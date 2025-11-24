@@ -1,7 +1,7 @@
-from typing import TypedDict, Annotated, Literal
+from typing import TypedDict, Annotated
 from langchain_core.messages import AnyMessage
 from langchain_core.tools import tool
-from langchain_aws import ChatBedrock
+from langchain_aws import ChatBedrockConverse
 from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -20,10 +20,11 @@ def lookup_definition(word: str) -> str:
 
 tools = [lookup_definition]
 
-# 3. Model (Claude 3.5 Sonnet)
-llm = ChatBedrock(
+# 3. Model (Use ChatBedrockConverse for Tool Support)
+llm = ChatBedrockConverse(
     model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
-    model_kwargs={"temperature": 0}
+    temperature=0,
+    region_name="us-east-1"
 ).bind_tools(tools)
 
 # 4. Nodes
