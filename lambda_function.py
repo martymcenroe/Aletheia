@@ -1,70 +1,70 @@
 import json
-import boto3
 import os
-import uuid
-from datetime import datetime
+import asyncio
+import logging
+import awslambda
+from agent import graph
 
-# Get the table name from the environment variable we set
-TABLE_NAME = os.environ.get('DYNAMO_TABLE_NAME')
-# Initialize the DynamoDB client
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(TABLE_NAME)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-def lambda_handler(event, context):
+async def run_agent_engine(input_text: str, thread_id: str, response_stream):
     """
-    This function receives an API Gateway POST request, parses the JSON body,
-    and saves the data to a DynamoDB table.
+    Async engine to drive the LangGraph agent and stream tokens back.
     """
+    config = {"configurable": {"thread_id": thread_id}}
     
-    print(f"## Received Event: {event}") # This is our most important log!
+    # Run the graph and stream events
+    # version="v1" is required for astream_events to return standard event schema
+    async for event in graph.astream_events({"messages": [("user", input_text)]}, config, version="v1"):
+        kind = event["event"]
+        
+        # We focus on streaming the raw tokens from the LLM
+        if kind == "on_chat_model_stream":
+            content = event["data"]["chunk"].content
+            if content:
+                # Format as SSE (Server-Sent Events)
+                payload = json.dumps({"type": "token", "content": content})
+                response_stream.write(f"data: {payload}\n\n".encode('utf-8'))
+        
+        # Log tool usage for debugging
+        elif kind == "on_tool_start":
+            logger.info(f"Tool Triggered: {event['name']}")
+            payload = json.dumps({"type": "status", "content": f"Analyzing with {event['name']}..."})
+            response_stream.write(f"data: {payload}\n\n".encode('utf-8'))
 
+@awslambda.streamify_response
+def lambda_handler(event, context, response_stream):
+    """
+    AWS Lambda Handler with Response Streaming.
+    """
     try:
-        # API Gateway wraps the body in a string, so we must parse it
-        body = json.loads(event.get('body', '{}'))
-        
-        # Extract data from our browser extension's payload
-        word = body.get('word')
-        url = body.get('url')
-        title = body.get('title')
+        # 1. Parse Input
+        # API Gateway might wrap the body in a string
+        if "body" in event:
+            body = json.loads(event["body"]) if isinstance(event["body"], str) else event["body"]
+        else:
+            body = event
 
-        # --- Data Validation (Basic) ---
-        if not word or not url:
-            print("## Validation Failed: Missing 'word' or 'url'")
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': "Missing 'word' or 'url' in payload"})
-            }
-        
-        # --- Prepare Item for DynamoDB ---
-        item_to_save = {
-            'LogID': str(uuid.uuid4()), # Generate a unique primary key
-            'Timestamp': datetime.now().isoformat(),
-            'Word': word,
-            'SourceURL': url,
-            'SourceTitle': title,
-            # We will add the AI_Response here in a future story
-        }
-        
-        # --- Save to DynamoDB ---
-        print(f"## Writing to DynamoDB: {item_to_save}")
-        table.put_item(Item=item_to_save)
-        
-        # --- Send Success Response ---
-        return {
-            'statusCode': 200,
-            # This body is what our browser extension will receive
-            'body': json.dumps({'message': 'Data logged successfully', 'logId': item_to_save['LogID']})
-        }
+        user_input = body.get("user_input")
+        thread_id = body.get("thread_id", "default_thread")
 
-    except json.JSONDecodeError:
-        print("## Error: Invalid JSON in body")
-        return {
-            'statusCode': 400,
-            'body': json.dumps({'error': 'Invalid JSON format in request body'})
-        }
+        if not user_input:
+            error_msg = json.dumps({"error": "No user_input provided"})
+            response_stream.write(f"data: {error_msg}\n\n".encode('utf-8'))
+            return
+
+        # 2. Set Content-Type for SSE
+        # Note: In Lambda streaming, headers are often set via metadata object if using function URLs, 
+        # but for internal logic we focus on the stream body here.
+        
+        # 3. Run the Async Graph synchronously
+        asyncio.run(run_agent_engine(user_input, thread_id, response_stream))
+
+        # 4. End Stream
+        response_stream.write(b"data: [DONE]\n\n")
+
     except Exception as e:
-        print(f"## UNHANDLED EXCEPTION: {e}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': 'Internal server error'})
-        }
+        logger.error(f"Handler Error: {e}", exc_info=True)
+        error_payload = json.dumps({"type": "error", "content": str(e)})
+        response_stream.write(f"data: {error_payload}\n\n".encode('utf-8'))
