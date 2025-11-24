@@ -44,3 +44,11 @@ jspm_packages/
 # dotenv environment variables file
 .env
 .env.test
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+dist/
+*.egg-info/
+.pytest_cache/
