@@ -1,4 +1,4 @@
-from typing import TypedDict, Annotated
+from typing import TypedDict, Annotated, Optional
 from langchain_core.messages import AnyMessage
 from langchain_core.tools import tool
 from langchain_aws import ChatBedrockConverse
@@ -6,10 +6,12 @@ from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from checkpointer import DynamoDBSaver
+from compliance import ComplianceReport
 
 # 1. State Schema
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
+    compliance_data: Optional[ComplianceReport] # Added for Issue #Compliance
 
 # 2. Tools
 @tool
