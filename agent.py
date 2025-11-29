@@ -11,18 +11,22 @@ from compliance import ComplianceReport
 # 1. State Schema
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    compliance_data: Optional[ComplianceReport] # Added for Issue #Compliance
+    compliance_data: Optional[ComplianceReport]
+    # [DEV MODE] Only populated if ALETHEIA_ENV=dev
+    debug_raw_context: Optional[str]
+    # [METADATA] Added for Harvester
+    url: Optional[str]
+    title: Optional[str]
 
 # 2. Tools
 @tool
 def lookup_definition(word: str) -> str:
     """Look up the definition and cultural context of a word."""
-    # Placeholder logic for MVP
     return f"Contextual analysis for '{word}': [Placeholder] This word implies specific nuance in this context."
 
 tools = [lookup_definition]
 
-# 3. Model (Use ChatBedrockConverse for Tool Support)
+# 3. Model
 llm = ChatBedrockConverse(
     model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
     temperature=0,
@@ -42,6 +46,6 @@ workflow.add_edge(START, "agent")
 workflow.add_conditional_edges("agent", tools_condition)
 workflow.add_edge("tools", "agent")
 
-# 6. Compilation with Persistence
+# 6. Compilation
 checkpointer = DynamoDBSaver()
 graph = workflow.compile(checkpointer=checkpointer)
