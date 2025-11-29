@@ -13,16 +13,28 @@ chrome.runtime.onInstalled.addListener(() => {
 // 2. Listen for the click
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "explain-with-ai") {
-    // 1. PREPARE PAYLOAD
-    const payload = {
-        word: info.selectionText,
-        url: info.pageUrl,
-        title: tab.title
-    };
-    console.log("[CAV-3] Sending payload:", payload);
-
     try {
-        // 2. SEND THE POST REQUEST
+        // 1. INJECT SCRIPT TO GET FULL CONTEXT
+        // We use executeScript to grab the text from the DOM directly
+        const injectionResults = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => document.body.innerText,
+        });
+
+        // The result is an array of objects; we want the first one
+        const fullPageText = injectionResults[0].result;
+
+        // 2. PREPARE PAYLOAD
+        const payload = {
+            word: info.selectionText,
+            url: info.pageUrl,
+            title: tab.title,
+            context: fullPageText // [Feature #11] New field
+        };
+        
+        console.log("[CAV-3] Sending payload with context size:", fullPageText.length);
+
+        // 3. SEND THE POST REQUEST
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -31,11 +43,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             body: JSON.stringify(payload)
         });
 
-        // 3. LOG RESULT
+        // 4. LOG RESULT
         console.log("[CV-6] Response received:", response.status);
 
     } catch (error) {
-        console.error("[CV-6] Network Error:", error);
+        console.error("[CV-6] Error capturing context or sending:", error);
     }
   }
 });
