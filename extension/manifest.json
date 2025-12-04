@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Aletheia",
+  "version": "1.0",
+  "description": "AI-Powered Context Analysis",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {}
+}
