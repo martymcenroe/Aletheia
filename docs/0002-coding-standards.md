@@ -1,31 +1,25 @@
 # 0002 - Coding Standards & Operational Procedures
 
-## 1. Python Development
+## 1. Prime Directives for AI Agents
+* **Root-Relative Paths:** You must ALWAYS generate file paths relative to the project root (e.g., `src/guardrails/engine.py`), regardless of which file is currently open. NEVER create a nested `src/` inside `docs/`.
+* **Explicit Handoff:** At the end of every code generation turn, you MUST provide a "Verification Block" containing the exact terminal commands the user needs to run (e.g., `poetry run pytest`). Do not assume the user knows what to do next.
+
+## 2. Python Development
 * **Version:** Python 3.12 (Strict).
 * **Dependency Management:**
-    * **Local Dev:** Use `poetry add <package>`. NEVER use `pip install` directly in the environment.
-    * **Lambda Packaging:** handled by `deploy.sh`. Do not manually zip files.
+    * **Local Dev:** Use `poetry add <package>`. NEVER use `pip install` directly.
+    * **Lambda Packaging:** Handled by `deploy.sh`.
 * **Linting:** Follow PEP 8.
 * **Type Hinting:** Required for all function signatures.
 
-## 2. AWS & Infrastructure
-* **Philosophy:** "Bare Metal" Scripting.
-    * **No:** Terraform, CDK, CloudFormation.
-    * **Yes:** AWS CLI (`aws lambda ...`), Bash scripts (`provision.sh`, `deploy.sh`).
-* **Lambda Runtime:**
-    * Assume `boto3` is pre-installed (standard AWS runtime).
-    * Avoid heavy libraries (Pandas, Numpy) unless explicitly authorized by an ADR.
+## 3. AWS & Infrastructure
+* **Philosophy:** "Bare Metal" Scripting (Bash + AWS CLI).
+* **Lambda Runtime:** Assume `boto3` is pre-installed.
 
-## 3. Version Control (Git)
-* **Branching:**
-    * Format: `ID-short-description` (e.g., `11-local-guardrails`).
-    * Source: Always branch from `main`.
-* **Commits:**
-    * Format: Conventional Commits (`type: description`).
-    * Types: `feat`, `fix`, `chore`, `docs`, `test`.
-    * Example: `feat: implement validation logic for guardrails`
-* **PRs:** Squash and merge only.
+## 4. Version Control (Git)
+* **Branching:** Format `ID-short-description`.
+* **Commits:** Conventional Commits (`type: description`).
 
-## 4. Documentation
+## 5. Documentation
 * **Update First:** Update the relevant `docs/` file *before* writing code.
-* **Lessons Learned:** If you solve a hard error, append it to `docs/9000-lessons-learned.md`.
+* **Lessons Learned:** Log new discoveries in `docs/9000-lessons-learned.md`.
