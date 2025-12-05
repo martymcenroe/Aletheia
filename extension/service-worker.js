@@ -1,5 +1,5 @@
 // [CV-7] CONSTANTS - WIRED TO AWS LAMBDA
-const API_ENDPOINT = "https://i2moviunzmb4v3srunkklleyg40xsfdg.lambda-url.us-east-1.on.aws/";
+const API_ENDPOINT = "https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/";
 
 // 1. Create the menu item when installed
 chrome.runtime.onInstalled.addListener(() => {
