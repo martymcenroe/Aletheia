@@ -1,59 +1,39 @@
 #!/bin/bash
 set -e
 
-APP_NAME="Aletheia"
-FUNC_NAME="${APP_NAME}Agent"
-REGION="us-east-1"
-BUILD_DIR="build_package"
+FUNC_NAME="AletheiaAgent"
 ZIP_FILE="function.zip"
+TARGET_FILE="lambda_harvester_function.py"
+HANDLER_NAME="lambda_harvester_function.lambda_handler"
+REGION="us-east-1"
 
-echo "=== Deploying $APP_NAME to Lambda ($REGION) ==="
+echo "=== Deploying Harvester ($TARGET_FILE) ==="
 
-# 1. Cleanup previous build
-rm -rf "$BUILD_DIR" "$ZIP_FILE" requirements.txt
-mkdir -p "$BUILD_DIR"
-
-# 2. Export Dependencies (Poetry)
-echo "-> Exporting dependencies..."
-poetry export -f requirements.txt --output requirements.txt --without-hashes
-
-# 3. Install Dependencies
-echo "-> Installing dependencies to build dir..."
-pip install -r requirements.txt -t "$BUILD_DIR" --upgrade --quiet
-
-# 4. Copy Source Code
-echo "-> Copying application files..."
-# REMOVED: guardrails.py (Not yet merged to main)
-cp lambda_function.py agent.py checkpointer.py compliance.py "$BUILD_DIR/"
-
-# 5. Zip Package
-echo "-> Creating Deployment Package..."
-cat << 'PY_SCRIPT' > zipper.py
+# 1. Zip ONLY the specific harvester file
+rm -f "$ZIP_FILE"
+cat << PY_SCRIPT > zipper.py
 import zipfile
-import os
-
-build_dir = "build_package"
-zip_name = "function.zip"
-
-with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as z:
-    for root, dirs, files in os.walk(build_dir):
-        for file in files:
-            file_path = os.path.join(root, file)
-            arcname = os.path.relpath(file_path, build_dir)
-            z.write(file_path, arcname)
+with zipfile.ZipFile('$ZIP_FILE', 'w', zipfile.ZIP_DEFLATED) as z:
+    z.write('$TARGET_FILE')
 PY_SCRIPT
-
 python zipper.py
 rm zipper.py
 
-# 6. Deploy to AWS
-echo "-> Uploading to AWS Lambda ($FUNC_NAME)..."
+# 2. Update Configuration (Tell AWS to use the new filename)
+# We do this first to ensure the runtime knows where to look
+echo "-> Updating Handler to: $HANDLER_NAME"
+aws lambda update-function-configuration \
+    --function-name "$FUNC_NAME" \
+    --handler "$HANDLER_NAME" \
+    --region "$REGION" >/dev/null
+
+# 3. Update Code
+echo "-> Uploading Code..."
 aws lambda update-function-code \
     --function-name "$FUNC_NAME" \
     --zip-file fileb://"$ZIP_FILE" \
     --region "$REGION" \
-    --publish
+    --publish >/dev/null
 
-# 7. Cleanup
-rm -rf "$BUILD_DIR" "$ZIP_FILE" requirements.txt
 echo "=== Deployment Success ==="
+rm -f "$ZIP_FILE"
