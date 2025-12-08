@@ -1,15 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Context-Aware Vocabulary",
+  "name": "Aletheia",
   "version": "1.0",
-  "description": "Explain highlighted text using AI.",
+  "description": "AI-Powered Context Analysis",
   "permissions": [
+    "activeTab",
+    "scripting",
     "contextMenus"
   ],
   "host_permissions": [
-    "https://webhook.site/1a0e08a8-a013-480f-8e03-ee34930a1d26" 
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "service-worker.js"
-  }
+  },
+  "action": {}
 }
