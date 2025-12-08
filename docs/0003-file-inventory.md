@@ -27,6 +27,7 @@ This document serves as the strict inventory of the **Aletheia** repository. It 
 | `0001-system-architecture.md` | **Standard** | High-level design document covering the "Stateful Serverless" pattern and LangGraph integration. |
 | `0002-coding-standards.md` | **Standard** | Operational procedures, coding style guides, and imperative rules for AI agents. |
 | `1011-local-guardrails.md` | **Feature Spec** | Detailed requirements and implementation plan for the Local Guardrails Test Harness (Issue #11). |
+    | `1010-semantic-guardrails.md` | **Feature Spec** | Specification for the LLM-based semantic maturity guardrails (Issue #10). |
 | `9000-lessons-learned.md` | **Memory** | A log of technical blockers, solutions, and learned behaviors to prevent regression. |
 | `9001-open-investigations.md` | **Memory** | A tracker for open questions, spikes, and hypotheses currently under investigation. |
 | `linkedin-auth-gate.md` | **Feature Spec** | Documentation specific to the LinkedIn authentication gating mechanism. |
@@ -49,3 +50,12 @@ This document serves as the strict inventory of the **Aletheia** repository. It 
 | :--- | :--- | :--- |
 | `__init__.py` | **Python** | Marks the directory as a Python package. |
 | `test_guardrails.py` | **Testing** | Unit tests for the guardrails module (run via `pytest`). |
+## 📂 src/ (Root Package)
+| File | Role | Description |
+| :--- | :--- | :--- |
+| `__init__.py` | **Python** | Makes the `src` directory importable by pytest (Fixes "ModuleNotFoundError"). |
+
+## 📂 legacy/ (Quarantine)
+| File | Role | Description |
+| :--- | :--- | :--- |
+| `manual_test.py_bak` | **Archive** | Broken/Deprecated test script preserved for history. |
