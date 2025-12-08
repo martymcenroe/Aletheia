@@ -1,47 +1,25 @@
-# Aletheia: Stateful AI Agent on AWS Serverless
+# Aletheia: AI-Powered Context Analysis Engine
 
-A production-grade backend for a Chrome Extension that delivers context-aware text analysis. It solves the "Stateless Lambda" problem by using **LangGraph** with a custom **DynamoDB Checkpointer** to persist agent state across execution turns.
+**Aletheia** (Greek for *Truth/Unconcealment*) is a serverless, event-driven architecture that bridges the gap between static content and semantic understanding. It allows users to extract context-aware insights from any webpage using a custom Chrome Extension and an Agentic AI backend.
 
-## 🏗️ Architecture
+### 🏆 Engineering Highlights
+* **Serverless Architecture:** Built on **AWS Lambda** and **DynamoDB** with "Scale-to-Zero" economics.
+* **AI Agent Orchestration:** Implements **LangGraph** for stateful, multi-turn reasoning (not just stateless API calls).
+* **Infrastructure as Code:** "Bare metal" provisioning scripts (Bash/AWS CLI) demonstrating deep understanding of cloud primitives without abstraction layers.
+* **Event-Driven Harvesting:** Custom-built data pipeline to harvest, sanitize, and checkpoint training data from live browsing sessions.
+* **Security First:** Strict IAM scoping and manifest permission gating.
 
-The system is designed as a **Stateful Graph** running on **Stateless Compute**.
+### 🛠 Tech Stack
+* **Language:** Python 3.12 (Backend), JavaScript (Frontend)
+* **Cloud:** AWS (Lambda, DynamoDB, S3, IAM)
+* **AI/ML:** LangChain, LangGraph, OpenAI/Bedrock
+* **Tooling:** Poetry, GitHub Actions, Custom Bash Automation
 
-* **Runtime:** AWS Lambda (Python 3.12) with Response Streaming (SSE).
-* **Orchestration:** LangGraph (StateGraph).
-* **Persistence:** Amazon DynamoDB (Thread-level check-pointing).
-* **AI Model:** Amazon Bedrock (Claude 3.5 Sonnet).
+### 🚀 Quick Start (Development)
+1.  **Clone:** `git clone ...`
+2.  **Provision:** `./provision.sh` (Sets up AWS resources)
+3.  **Deploy:** `./deploy.sh` (Builds & pushes Lambda artifact)
+4.  **Install:** Load `extension/` directory into Chrome Developer Mode.
 
-### The "Stateful Serverless" Pattern
-Standard Lambdas forget context after execution. Aletheia overrides this:
-1.  **Load:** Lambda initializes -> fetches `thread_id` -> loads State Snapshot from DynamoDB.
-2.  **Reason:** Agent processes input -> determines next step (LLM or Tool).
-3.  **Persist:** Agent saves new State Snapshot -> DynamoDB.
-4.  **Stream:** Token-by-token response is streamed to the client via `awslambda.streamify_response`.
-
-## 🛠️ Technology Stack
-
-| Component | Technology | Rationale |
-| :--- | :--- | :--- |
-| **Compute** | AWS Lambda | Zero-scale cost, event-driven. |
-| **Database** | DynamoDB | Low-latency state/checkpoint storage. |
-| **Agent Framework** | LangGraph | Cyclic graph flows (Looping capability). |
-| **LLM** | Claude 3.5 Sonnet | High reasoning capability for linguistic nuances. |
-| **Interface** | SSE (Server-Sent Events) | Real-time UX for the browser extension. |
-
-## 🚀 Key Features
-
-* **Streaming Response:** Uses `awslambda.streamify_response` to reduce Time-To-First-Byte (TTFB).
-* **Persistence Layer:** Custom `DynamoDBSaver` class implementing LangGraph's `BaseCheckpointSaver`.
-* **Tooling:** Extensible tool node structure (currently implements `lookup_definition`).
-
-## 📂 Repository Structure
-
-* `lambda_function.py`: Entry point. Handles SSE streaming and async execution loop.
-* `agent.py`: Defines the `StateGraph`, Nodes, and Bedrock binding.
-* `checkpointer.py`: Custom infrastructure adapter for DynamoDB persistence.
-
-## 🔮 Roadmap
-
-* **RAG Integration:** Connect to Vector Store for long-term document recall.
-* **Observability:** Implement AWS X-Ray/LangSmith tracing.
-* **Testing:** Add unit tests for graph transitions.
+---
+*Created by [Marty McEnroe]. This project demonstrates strict engineering hygiene, architectural documentation, and the "AI-as-Workforce" development paradigm.*
