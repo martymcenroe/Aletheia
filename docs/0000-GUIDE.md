@@ -13,6 +13,7 @@ We use a **4-Digit Namespace** to organize our collective memory:
 * **`0xxx` (Standards):** The rules of the road.
     * Read `0001-architecture.md` for the system design.
     * Read `0002-coding-standards.md` before writing a line of code.
+    * Read `0003-file-inventory.md` for the strict project manifest. Update this file if you add/delete files.
 * **`1xxx` (Features):** The work.
     * Files map to GitHub Issues: `1000 + IssueID`.
     * Example: Issue #25 is documented in `1025-linkedin-gate.md`.
