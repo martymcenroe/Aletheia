@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThriveTech.ai | Architecting Intelligence</title>
+    <meta name="description" content="ThriveTech.ai - Architecting Intelligence. Home of Aletheia.">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-color: #e0e0e0;
+            --accent-color: #00ff41; /* Cyberpunk Green */
+            --secondary-color: #888;
+            --card-bg: #111;
+            --border-color: #333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+        .container { width: 90%; max-width: 700px; padding: 2rem; text-align: center; }
+        header { margin-bottom: 4rem; animation: fadeIn 1.5s ease-in-out; }
+        h1 { font-size: 2.5rem; letter-spacing: -2px; margin-bottom: 0.5rem; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 255, 65, 0.2); }
+        .tagline { color: var(--accent-color); font-size: 1.1rem; letter-spacing: 1px; }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2rem;
+            margin-bottom: 4rem;
+            text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0, 255, 65, 0.1); border-color: var(--accent-color); }
+        .card h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+        .badge {
+            display: inline-block;
+            background-color: rgba(0, 255, 65, 0.1);
+            color: var(--accent-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 2px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 1px solid var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        .card p { color: var(--secondary-color); font-size: 0.95rem; margin-bottom: 1rem; }
+        #privacy { border-top: 1px solid var(--border-color); padding-top: 2rem; text-align: left; font-size: 0.85rem; color: var(--secondary-color); }
+        #privacy h3 { color: var(--text-color); font-size: 1rem; margin-bottom: 1rem; }
+        footer { margin-top: auto; padding: 2rem; font-size: 0.7rem; color: #444; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ThriveTech.ai</h1>
+            <p class="tagline">_Architecting Intelligence</p>
+        </header>
+        <main>
+            <div class="card">
+                <span class="badge">COMING SOON TO CHROME STORE</span>
+                <h2>Aletheia</h2>
+                <p>AI-Powered Context Analysis for the discerning reader.</p>
+                <p>Aletheia operates on a "Local First" architecture. Your data never leaves your machine unless you explicitly authorize it.</p>
+            </div>
+            <section id="privacy">
+                <h3>>> PRIVACY POLICY</h3>
+                <p class="legal-text"><strong>Effective Date:</strong> December 2025</p>
+                <p class="legal-text">1. <strong>No Data Collection:</strong> Aletheia does not collect, transmit, or sell your browsing history, personal information, or interaction data.</p>
+                <p class="legal-text">2. <strong>Local Processing:</strong> All AI analysis is performed within the browser environment or via direct, user-authorized API calls. No intermediate servers store your data.</p>
+                <p class="legal-text">3. <strong>Permissions:</strong> We request only the permissions strictly necessary to function (e.g., modifying the current tab when activated).</p>
+            </section>
+        </main>
+        <footer>
+            &copy; 2025 ThriveTech.ai | Plano, TX
+        </footer>
+    </div>
+</body>
+</html>
