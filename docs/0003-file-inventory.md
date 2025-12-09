@@ -60,3 +60,9 @@ This document serves as the strict inventory of the **Aletheia** repository. It 
 | :--- | :--- | :--- |
 | `manual_test.py_bak` | **Archive** | Broken/Deprecated test script preserved for history. |
 | `guardrails.py_bak` | **Archive** | Rogue file utilizing unauthorized libraries (LangChain), quarantined for analysis. |
+
+## 唐 src/guardrails/resources/ (Config)
+| File | Role | Description |
+| :--- | :--- | :--- |
+| `taxonomy.json` | **Config** | Definitions, few-shot examples, and probability scores for the Semantic Guardrail. |
+| `denylist.json` | **Data** | (Planned) Local cache of hate speech terms harvested from RSDB. |
