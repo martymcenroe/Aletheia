@@ -29,7 +29,9 @@ Every feature or fix must strictly follow this 9-step execution loop to ensure h
 | **9. Cleanup** | Hygiene | `git checkout main && git pull && git branch -d ID-desc` |
 
 ## 4. Emergency Recovery
-If the session context is lost or the environment destabilizes:
+If the session context is lost or the environment destabilizes, strict **Emergency Recovery Mode** is active.
+
 1.  **Stop:** Do not execute further changes.
-2.  **Verify:** Run `git status` to establish ground truth.
-3.  **Sync:** Pull from `main` to ensure local state matches upstream.
+2.  **Single-Instruction Constraint:** The AI must downgrade to **One Command Per Turn**. Do not batch commands. Wait for explicit user confirmation after every action.
+3.  **Ground Truth:** Run `git status` to establish the state of the workspace before proceeding.
+4.  **Sync:** Pull from `main` to ensure local state matches upstream.
