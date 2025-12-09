@@ -11,18 +11,20 @@ Your goal is not just to write code, but to maintain the integrity of this syste
 We use a **4-Digit Namespace** to organize our collective memory:
 
 * **`0xxx` (Standards):** The rules of the road.
-    * Read `0001-architecture.md` for the system design.
+    * Read `0001-system-architecture.md` for the system design.
     * Read `0002-coding-standards.md` before writing a line of code.
     * Read `0003-file-inventory.md` for the strict project manifest. Update this file if you add/delete files.
+    * Read `0004-orchestration-protocol.md` for the workflow rules.
 * **`1xxx` (Features):** The work.
     * Files map to GitHub Issues: `1000 + IssueID`.
     * Example: Issue #25 is documented in `1025-linkedin-gate.md`.
 * **`9xxx` (Knowledge):** The memory.
     * **9000:** Lessons Learned Log (Check this to avoid repeating mistakes).
+    * **9001:** Open Investigations & Future Work (Spikes, Automation Triggers).
     * **9010:** Cheat Sheets (Git, AWS, Bash).
     * **99xx:** Archive (The Graveyard).
 
 ## 🛑 Prime Directives for AI Agents
-1.  **Seek Ground Truth:** Do not hallucinate file paths. Check `ls -R` or `docs/0000-index.md`.
+1.  **Seek Ground Truth:** Do not hallucinate file paths. Check `ls -R` or `docs/0000-GUIDE.md`.
 2.  **Log Your Learnings:** If you solve a novel error, append it to `9000-lessons-learned.md`.
 3.  **Respect the Standards:** Do not use `pip` if `0002` says "Use Poetry."
