@@ -1,0 +1,41 @@
+{
+  "taxonomy": {
+    "Archaic": "Outdated or pejorative terms (e.g., 'dropsy', 'blackguard').",
+    "Provocative": "Sexual slang or double entendres (e.g., 'swiving', 'tupping').",
+    "Hate": "Slurs or discriminatory language, even in compounds.",
+    "Neologism": "Newly coined words from the last 2 years (e.g., 'skibidi', 'fanum tax').",
+    "None": "Standard, safe language."
+  },
+  "few_shot_examples": [
+    {
+      "text": "He is a blackguard and a knave",
+      "scores": {"Archaic": 0.95, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 0.05},
+      "category": "Archaic"
+    },
+    {
+      "text": "That grimace shake is pure fanum tax",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.9, "None": 0.1},
+      "category": "Neologism"
+    },
+    {
+      "text": "The integration tests passed successfully",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
+    },
+    {
+      "text": "They were tupping in the field",
+      "scores": {"Archaic": 0.1, "Provocative": 0.85, "Hate": 0.0, "Neologism": 0.0, "None": 0.05},
+      "category": "Provocative"
+    },
+    {
+      "text": "You are a [slur]",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.99, "Neologism": 0.0, "None": 0.01},
+      "category": "Hate"
+    },
+    {
+      "text": "The derivative of velocity is acceleration",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
+    }
+  ]
+}

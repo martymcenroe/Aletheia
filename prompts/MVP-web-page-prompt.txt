@@ -1,0 +1,19 @@
+I act as a Principal Architect for ThriveTech.ai. I need to deploy a "Minimum Viable" landing page for my company to host the Privacy Policy for my Chrome Extension, "Aletheia."
+
+Constraints:
+
+Single File: I want a massive, self-contained index.html file. No separate CSS/JS files. Embed everything.
+
+Hosting: It must work immediately on GitHub Pages (Standard HTML mode).
+
+Design: Clean, minimalist, "Dark Mode" aesthetic (Matrix/Cyberpunk subtle vibes).
+
+Content:
+
+Hero Section: ThriveTech.ai logo (text placeholder) and tagline: "Architecting Intelligence."
+
+Product Section: A card for "Aletheia" with a "Coming Soon to Chrome Store" badge.
+
+Privacy Section: A clear, legal-friendly Privacy Policy section (bookmark anchor #privacy) that states: "Aletheia is a local-first application. We do not collect, store, or transmit user browsing data or PII. All processing occurs on your device."
+
+Output: Provide the raw HTML code for index.html
