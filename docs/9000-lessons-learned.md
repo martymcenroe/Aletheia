@@ -13,3 +13,4 @@
 | 2025-12-09 | Store Compliance | - | Google Chrome Web Store Manual Review Triggers | **Lesson:** Avoid `<all_urls>` permission at all costs. It triggers a multi-week manual review. Use `activeTab` for "Click-to-Run" privacy by default. |
 | 2025-12-09 | Rapid Deployment | - | GitHub Pages for Legal Compliance | **Lesson:** Don't overengineer the Privacy Policy site. A single `index.html` pushed to a `gh-pages` branch (or main docs) is sufficient for Google Store compliance. |
 | 2025-12-09 | Orchestration | 13 | Identity Mgmt | Multi-user LLM accounts create auth friction and cost ($4/mo). | **Rule:** Adopt Single-User CLI model. Orchestrator (`martymcenroe`) commits all code. (See `0004`). |
+| 2025-12-11 | Repo Genesis | 11 | First PR Failure | The first branch pushed becomes default; cannot PR branch into itself. | **Rule:** Initialize and push main upstream before creating feature branches. |
