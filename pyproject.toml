@@ -13,6 +13,7 @@ langchain = "^1.0.8"
 langchain-aws = "^1.0.0"
 langgraph = "^1.0.3"
 pillow = "^12.0.0"
+tzdata = "^2025.3"
 
 [build-system]
 requires = ["poetry-core"]
