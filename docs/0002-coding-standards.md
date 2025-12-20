@@ -65,3 +65,15 @@ Examples:
 * `feat: implement semantic guardrail engine (ref #10)`
 * `docs: add store compliance spec (ref #51)`
 * `chore: rename doc to follow naming convention (ref #25)`
+## 7. Documentation Standards
+
+### 7.1 The Inventory Rule
+* **Authority:** `docs/0003-file-inventory.md` is the source of truth for file reliability.
+* **Requirement:** You MUST add any new file to the inventory immediately upon creation.
+* **Status Taxonomy:**
+    * 🟢 **Stable:** Verified, Documented, Production-Ready.
+    * 🟡 **Beta:** Functional but partial coverage.
+    * 🟠 **In-Progress:** Active dev, expect breakage.
+    * ⚪ **Placeholder:** Skeleton only.
+    * ⚫ **Legacy:** Deprecated (Do not use).
+    * ❓ **Unknown:** Needs audit.
