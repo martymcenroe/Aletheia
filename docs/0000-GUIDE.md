@@ -15,6 +15,7 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * Read `0002-coding-standards.md` before writing a line of code.
     * Read `0003-file-inventory.md` for the strict project manifest. Update this file if you add/delete files.
     * Read `0004-orchestration-protocol.md` for the workflow rules.
+    * Read `0005-testing-strategy-and-protocols.md` for the mandatory verification modules.
 * **`1xxx` (Features):** The work.
     * Files map to GitHub Issues: `1000 + IssueID`.
     * Example: Issue #25 is documented in `1025-linkedin-auth-gate.md`.

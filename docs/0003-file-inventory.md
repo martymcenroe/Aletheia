@@ -8,6 +8,7 @@
 | `docs/0002-coding-standards.md` | **Rules** | - | Style guides, linting rules, and naming conventions. |
 | `docs/0003-file-inventory.md` | **Meta** | - | This file. The map of the repository. |
 | `docs/0004-orchestration-protocol.md` | **Process** | #48 | The Single-User Orchestrator workflow and Emergency Recovery protocols. |
+| `docs/0005-testing-strategy-and-protocols.md` | **Protocol** | - | Testing strategy and modular verification protocols. |
 
 ## 10xx Guardrails & Features (Series 1000)
 | File | Role | Linked Issue | Description |
@@ -45,3 +46,4 @@
 | File | Role | Linked Issue | Description |
 | :--- | :--- | :--- | :--- |
 | `tools/generate_store_assets.py` | **Utility** | #52 | Generates release zip and placeholder store assets. |
+| `tools/log_viewer.py` | **Utility** | #69 | CLI Inspector for DynamoDB telemetry. |

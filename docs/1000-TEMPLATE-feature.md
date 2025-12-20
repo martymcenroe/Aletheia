@@ -17,15 +17,12 @@
 {Pseudocode, data structures, function signatures}
 
 ## 5. Verification & Testing
+*Ref: [0005-testing-strategy-and-protocols.md](../0005-testing-strategy-and-protocols.md)*
 
-### 5.1 Test Commands
-```bash
-# Unit tests
-poetry run pytest tests/test_{module}.py -v
-
-# Integration test (if applicable)
-python scripts/verify_{feature}.py
-```
+### 5.1 Test Modules (Select relevant from 0005)
+* **Module A (Unit):** `poetry run pytest tests/test_{module}.py -v`
+* **Module B (Semantic):** {Applicable? Yes/No}
+* **Module C (Trace):** {Applicable? Yes/No}
 
 ### 5.2 Test Scenarios
 | Scenario | Input | Expected Output | Pass Criteria |
