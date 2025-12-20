@@ -18,6 +18,7 @@ This is my running log of hard-won lessons, gotchas, and rules I've established 
 | 2025-12-20 | `git branch -r` shows cached remote refs, not live GitHub state. After `delete_branch_on_merge` triggers, local still shows "zombie" branches. | Run `git fetch --prune` before any branch audit. |
 | 2025-12-20 | Branches are pointers, not history. Deleting a merged branch loses nothing — work is preserved in merge commits and PR history. | Delete merged branches confidently; recover via PR page or `git reflog` if needed. |
 | 2025-12-20 | `git stash` saves uncommitted changes; `git stash pop` restores them. Useful when you edit on wrong branch. | Stash before switching branches if you have uncommitted work in the wrong place. |
+| 2025-12-20 | Windows Git converts symlinks to regular files by default (copies content instead of preserving link). True symlinks require Developer Mode + Admin + `core.symlinks=true`. | Use `sync-journal` bash function to manually copy cross-repo files. Mac can use real symlinks. |
 
 ## GitHub CLI (`gh`)
 
