@@ -12,13 +12,21 @@
 ## 10xx Guardrails & Features (Series 1000)
 | File | Role | Linked Issue | Description |
 | :--- | :--- | :--- | :--- |
+| `docs/1000-TEMPLATE-feature.md` | **Template** | - | Standard template for new feature documentation. |
+| `docs/1005-graph-tests.md` | **Spec** | #5 | Unit tests for LangGraph node functions. |
+| `docs/1006-rag-vector.md` | **Spec** | #6 | RAG Vector Store implementation. |
+| `docs/1007-observability.md` | **Spec** | #7 | Observability and tracing for Lambda functions. |
 | `docs/1010-semantic-guardrails.md` | **Spec** | #10 | Layer 3: Probabilistic Semantic Guardrail (Claude Haiku). |
 | `docs/1011-local-guardrails.md` | **Spec** | #11 | Layer 1: Regex and pattern matching. |
-| `docs/1012-deterministic-hate-filter.md` | **Spec** | #45 | Layer 2: Deterministic Hate Speech Filter (RSDB). |
+| `docs/1014-compliance-engine.md` | **Spec** | #14 | Compliance checking engine for content validation. |
 | `docs/1025-linkedin-auth-gate.md` | **Spec** | #25 | Strategy for LinkedIn authentication gating. |
-| `docs/1014-security-audit.md` | **Audit** | - | Security posture and audit logs. |
-| `docs/1015-whitelist-mode.md` | **Spec** | - | Strict whitelist enforcement protocols. |
-| `docs/1016-privacy-compliance.md` | **Spec** | #14 | GDPR/CCPA compliance engine architecture. |
+| `docs/1041-security-audit.md` | **Audit** | #41 | Security posture and permission culling. |
+| `docs/1042-whitelist-mode.md` | **Spec** | #42 | Strict whitelist enforcement protocols. |
+| `docs/1043-privacy-compliance.md` | **Spec** | #43 | Privacy policy and store compliance. |
+| `docs/1044-warning-ui.md` | **Spec** | #44 | Browser extension warning UI for guardrail triggers. |
+| `docs/1045-deterministic-hate-filter.md` | **Spec** | #45 | Layer 2: Deterministic Hate Speech Filter (RSDB). |
+| `docs/1051-store-compliance.md` | **Spec** | #51 | Chrome Web Store compliance requirements. |
+| `docs/1053-store-assets.md` | **Spec** | #53 | Store asset generation for Chrome Web Store. |
 
 ## 90xx Knowledge Base
 | File | Role | Linked Issue | Description |
