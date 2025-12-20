@@ -15,7 +15,7 @@
 | `docs/1010-semantic-guardrails.md` | **Spec** | #10 | Layer 3: Probabilistic Semantic Guardrail (Claude Haiku). |
 | `docs/1011-local-guardrails.md` | **Spec** | #11 | Layer 1: Regex and pattern matching. |
 | `docs/1012-deterministic-hate-filter.md` | **Spec** | #45 | Layer 2: Deterministic Hate Speech Filter (RSDB). |
-| `docs/1013-linkedin-auth-gate.md` | **Spec** | #25 | Strategy for LinkedIn authentication gating. |
+| `docs/1025-linkedin-auth-gate.md` | **Spec** | #25 | Strategy for LinkedIn authentication gating. |
 | `docs/1014-security-audit.md` | **Audit** | - | Security posture and audit logs. |
 | `docs/1015-whitelist-mode.md` | **Spec** | - | Strict whitelist enforcement protocols. |
 | `docs/1016-privacy-compliance.md` | **Spec** | #14 | GDPR/CCPA compliance engine architecture. |
