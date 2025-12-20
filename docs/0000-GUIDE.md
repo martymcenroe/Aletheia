@@ -33,4 +33,4 @@ We use a **4-Digit Namespace** to organize our collective memory:
 3.  **Respect the Standards:** Do not use `pip` if `0002` says "Use Poetry."
 4.  **Use the Template:** When creating a new feature doc, copy `1000-TEMPLATE-feature.md` and fill in all sections, especially **Section 5: Verification & Testing**.
 5.  **Plan Before Execute:** Discuss multi-step plans before running commands. Never batch destructive operations without explicit approval.
-6.  **Use ASCII-Safe Text:** Avoid smart quotes, em-dashes, and non-ASCII characters in documentation to prevent encoding corruption (mojibake) across different LLM interfaces.
+6.  **Use UTF-8 6.  **Use ASCII-Safe Text:** Avoid smart quotes, em-dashes, and non-ASCII characters in documentation to prevent encoding corruption (mojibake) across different LLM interfaces. Emojis:** We embrace modern encoding. Use emojis (e.g., 🟢, ⚠️) in documentation to improve scannability. Ensure your terminal is configured for UTF-8.
