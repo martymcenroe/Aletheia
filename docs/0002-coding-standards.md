@@ -67,6 +67,11 @@ Examples:
 * `chore: rename doc to follow naming convention (ref #25)`
 ## 7. Documentation Standards
 
+### 7.0 Link Formatting
+* **Relative Paths Only:** All internal documentation links must use relative paths (e.g., `[0005-testing](0005-testing-strategy-and-protocols.md)`). Never use absolute URLs or search engine URLs.
+* **No Google Search Links:** Do not wrap file references in `https://www.google.com/search?q=...` — this is a known Gemini artifact that breaks links.
+* **Verify Links:** Before committing, grep for `google.com/search` to catch accidental search URL insertions.
+
 ### 7.1 The Inventory Rule
 * **Authority:** `docs/0003-file-inventory.md` is the source of truth for file reliability.
 * **Requirement:** You MUST add any new file to the inventory immediately upon creation.
