@@ -10,16 +10,21 @@ Your goal is not just to write code, but to maintain the integrity of this syste
 ## The Filing System
 We use a **4-Digit Namespace** to organize our collective memory:
 
-* **`0xxx` (Standards):** The rules of the road.
-    * Read `0001-system-architecture.md` for the system design.
-    * Read `0002-coding-standards.md` before writing a line of code.
-    * Read `0003-file-inventory.md` for the strict project manifest. Update this file if you add/delete files.
-    * Read `0004-orchestration-protocol.md` for the workflow rules.
-    * Read `0005-testing-strategy-and-protocols.md` for the mandatory verification modules.
+* **`00xx` (Standards):** The rules of the road.
+    * `0001-system-architecture.md` — System design.
+    * `0002-coding-standards.md` — Read before writing code.
+    * `0003-file-inventory.md` — The project manifest. Update when adding/deleting files.
+    * `0004-orchestration-protocol.md` — Workflow rules and mini-sprint protocol.
+    * `0005-testing-strategy-and-protocols.md` — Mandatory verification modules.
+* **`01xx` (Templates):** Patterns to copy for consistent artifacts.
+    * `0100-TEMPLATE-GUIDE.md` — Index of all templates.
+    * `0101-TEMPLATE-issue.md` — GitHub Issue template for features.
+    * `0102-TEMPLATE-feature-lld.md` — Low-Level Design doc template.
+    * See `0100` for full template index (testing, tutorials, style guides).
 * **`1xxx` (Features):** The work.
     * Files map to GitHub Issues: `1000 + IssueID`.
     * Example: Issue #25 is documented in `1025-linkedin-auth-gate.md`.
-    * **Template:** Use `1000-TEMPLATE-feature.md` when creating new feature docs.
+    * **Template:** Use `0102-TEMPLATE-feature-lld.md` when creating new feature docs.
     * Feature docs remain in `1xxx` even after the issue is closed (they document what was built).
 * **`9xxx` (Knowledge):** The memory.
     * **9000:** Lessons Learned Log (Check this to avoid repeating mistakes).
@@ -31,6 +36,6 @@ We use a **4-Digit Namespace** to organize our collective memory:
 1.  **Seek Ground Truth:** Do not hallucinate file paths. Check `ls -R` or `docs/0000-GUIDE.md`.
 2.  **Log Your Learnings:** If you solve a novel error, append it to `9000-lessons-learned.md`.
 3.  **Respect the Standards:** Do not use `pip` if `0002` says "Use Poetry."
-4.  **Use the Template:** When creating a new feature doc, copy `1000-TEMPLATE-feature.md` and fill in all sections, especially **Section 5: Verification & Testing**.
+4.  **Use the Templates:** When creating a new feature doc, copy `0102-TEMPLATE-feature-lld.md`. When creating an issue, follow `0101-TEMPLATE-issue.md`.
 5.  **Plan Before Execute:** Discuss multi-step plans before running commands. Never batch destructive operations without explicit approval.
-6.  **Use UTF-8 6.  **Use ASCII-Safe Text:** Avoid smart quotes, em-dashes, and non-ASCII characters in documentation to prevent encoding corruption (mojibake) across different LLM interfaces. Emojis:** We embrace modern encoding. Use emojis (e.g., 🟢, ⚠️) in documentation to improve scannability. Ensure your terminal is configured for UTF-8.
+6.  **Use Emojis for Status:** We use emoji status indicators (e.g., green circle, yellow circle) in documentation. Ensure your terminal supports UTF-8.

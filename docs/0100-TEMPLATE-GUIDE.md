@@ -1,0 +1,69 @@
+# 0100 - Template Guide
+
+## Purpose
+This document indexes all templates in the `01xx` namespace. Templates provide consistent patterns for common artifacts.
+
+## How to Use Templates
+1. Find the appropriate template below
+2. Copy the template file to the correct location
+3. Rename according to conventions (see `0002-coding-standards.md`)
+4. Fill in all sections; delete "Future" placeholders if not applicable
+
+---
+
+## Template Index
+
+### 010x: Core Templates
+| File | Purpose | Status |
+|:-----|:--------|:-------|
+| `0100-TEMPLATE-GUIDE.md` | This file. Index of all templates. | Active |
+| `0101-TEMPLATE-issue.md` | GitHub Issue template for features | Active |
+| `0102-TEMPLATE-feature-lld.md` | Low-Level Design doc for features | Active |
+| `0103-TEMPLATE-chore-issue.md` | Lightweight issue for chores/bugs | Future |
+| `0104-TEMPLATE-adr.md` | Architecture Decision Record | Future |
+
+### 011x: Testing Templates
+| File | Purpose | Status |
+|:-----|:--------|:-------|
+| `0110-TEMPLATE-test-plan.md` | Test strategy for a feature/release | Future |
+| `0111-TEMPLATE-test-script.md` | Step-by-step manual test procedure | Future |
+| `0112-TEMPLATE-test-report.md` | Results documentation after test run | Future |
+
+### 012x: Content & Tutorial Templates
+| File | Purpose | Status |
+|:-----|:--------|:-------|
+| `0120-TEMPLATE-tutorial-plan.md` | Outline for a tutorial video/doc | Future |
+| `0121-TEMPLATE-tutorial-script.md` | Shot-by-shot script for video recording | Future |
+| `0122-TEMPLATE-support-article.md` | FAQ/troubleshooting article format | Future |
+
+### 013x: Release & Operations Templates
+| File | Purpose | Status |
+|:-----|:--------|:-------|
+| `0130-TEMPLATE-release-notes.md` | Changelog format for releases | Future |
+| `0131-TEMPLATE-incident-report.md` | Post-mortem for outages/bugs | Future |
+| `0132-TEMPLATE-sprint-retro.md` | Mini-sprint retrospective | Future |
+
+### 014x: Style Guides
+| File | Purpose | Status |
+|:-----|:--------|:-------|
+| `0140-STYLE-ui-copy.md` | Tone, voice, terminology for user-facing text | Future |
+| `0141-STYLE-error-messages.md` | How to write error messages | Future |
+| `0142-STYLE-commit-messages.md` | Expanded commit convention guide | Future |
+
+### 015x-018x: Reserved
+| Range | Category | Status |
+|:------|:---------|:-------|
+| `015x` | Security (threat models, reviews) | Future |
+| `016x` | Compliance (privacy, store submission) | Future |
+| `017x` | Integration (API docs, webhooks) | Future |
+| `018x` | Infrastructure (runbooks, deployment) | Future |
+
+---
+
+## Adding New Templates
+
+1. Choose the appropriate range from above
+2. Use the next available number in that range
+3. Name format: `01XX-TEMPLATE-{name}.md` or `01XX-STYLE-{name}.md`
+4. Update this guide with the new entry
+5. Update `0003-file-inventory.md`
