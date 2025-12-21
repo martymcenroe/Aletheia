@@ -36,7 +36,7 @@ sequenceDiagram
 
 ## 6. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md*](https://www.google.com/search?q=../0005-testing-strategy-and-protocols.md)
+*Ref: [0005-testing-strategy-and-protocols.md*](0005-testing-strategy-and-protocols.md)
 
 ### 6.1 Test Modules (Select relevant from 0005)
 
