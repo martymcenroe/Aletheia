@@ -35,3 +35,16 @@ If the session context is lost or the environment destabilizes, strict **Emergen
 2.  **Single-Instruction Constraint:** The AI must downgrade to **One Command Per Turn**. Do not batch commands. Wait for explicit user confirmation after every action.
 3.  **Ground Truth:** Run `git status` to establish the state of the workspace before proceeding.
 4.  **Sync:** Pull from `main` to ensure local state matches upstream.
+
+## 5. Session Logging
+
+At the end of each working session, AI agents MUST append a summary to `.session-log.md`:
+
+1. **Timestamp & Model:** `## YYYY-MM-DD HH:MM CT | Model Name`
+2. **Summary:** 1-2 sentence overview
+3. **Files Modified:** List of changed files
+4. **Issues Closed/Created:** Issue numbers
+5. **Open Questions:** Unresolved items for next session
+6. **State on Exit:** Branch, open PRs, last commit SHA
+
+This file is `.gitignored` and provides continuity across sessions.

@@ -49,6 +49,10 @@ This is my running log of hard-won lessons, gotchas, and rules I've established 
 |:-----|:-------|:------------|
 | 2025-12-04 | Local python scripts don't auto-update if you paste into the wrong file. | **Always** verify file content (`cat file.py`) or use a diagnostic print to confirm code version. |
 | 2025-12-05 | Tests must respect the *execution order* of validators. A "Fail Fast" check will mask downstream checks. | Assert the *first* failure reason in the chain, not just the existence of *a* failure. |
+| 2025-12-20 | Windows Python lacks IANA timezones; `zoneinfo` fails without `tzdata`. | **Dependency:** Always add `tzdata` to Poetry on Windows projects. |
+| 2025-12-20 | Logs in UTC/ISO8601 are unreadable for humans. | **Standard:** Display timestamps in `America/Chicago` using `%b %d %H:%M` format. |
+
+---
 
 ## Publishing & Compliance
 

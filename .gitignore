@@ -55,4 +55,8 @@ dist/
 
 # Local Testing
 test_data.json
+
+# LLM specific
 prompts/
+.session-log.md
+*.bak
