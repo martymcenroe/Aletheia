@@ -1,30 +1,74 @@
-# 🏗️ Aletheia: Architecture & Design Decisions
+# Aletheia: Architecture & Design Decisions
 
 ## 1. The "Stateful Serverless" Pattern
-* **Challenge:** AWS Lambda is stateless. Complex GenAI agents require persistent memory (multi-turn reasoning) which usually requires expensive always-on containers.
-* **Architecture:** I implemented a **"Hydration/Dehydration"** cycle:
-    * **Load:** Lambda retrieves the latest state snapshot from DynamoDB (Partition Key: `thread_id`).
-    * **Execute:** LangGraph processes the state.
-    * **Persist:** The updated state is written back to DynamoDB.
-* **Benefit:** This architecture allows for **infinite-scale agent memory** with **zero idle cost**.
+* **Challenge:** AWS Lambda is stateless. Complex GenAI agents require persistent memory.
+* **Architecture:** **"Hydration/Dehydration" Cycle**.
+    * **Load:** Retrieve state from DynamoDB (`thread_id`).
+    * **Execute:** LangGraph processes state.
+    * **Persist:** Write updated state back to DynamoDB.
+* **Benefit:** Infinite-scale agent memory with zero idle cost.
 
-## 2. Why LangGraph? (vs. Linear Chains)
-* **Design Choice:** Linear chains (`Seq -> Seq`) are brittle and cannot handle loops (e.g., "The tool failed, try again").
-* **Solution:** I chose **LangGraph** to model the application as a cyclic graph (`Agent -> Tool -> Agent`).
-* **Future Proofing:** This graph structure is the required foundation for future RAG (Retrieval Augmented Generation) integration, allowing the agent to dynamically decide when to fetch external data.
+## 2. The Defense Funnel (Fail Fast)
+We enforce a strict, ordered defense pipeline to minimize cost and liability.
+
+### Diagram: The Gauntlet
+```mermaid
+sequenceDiagram
+    participant User
+    participant L1_Syntax as L1: Syntax (Regex)
+    participant L2_Hate as L2: Hate (Denylist)
+    participant L3_Semantic as L3: Semantic (AI)
+    participant Compliance as Compliance (Future)
+    participant Agent as Agent (DynamoDB)
+
+    Note over User, Agent: The Request Pipeline
+
+    User->>L1_Syntax: 1. Input (Word)
+    
+    alt is Garbage?
+        L1_Syntax--xUser: BLOCK (Invalid Format)
+    else is Valid
+        L1_Syntax->>L2_Hate: 2. Check Index
+    end
+
+    alt is Listed?
+        L2_Hate--xUser: BLOCK (Liability Shield)
+        Note right of L2_Hate: Store Metadata Only<br/>(Index, URL, Time)
+    else is Clean
+        L2_Hate->>L3_Semantic: 3. Check Context (Raw)
+    end
+
+    alt is Unsafe?
+        L3_Semantic--xUser: BLOCK (Provocative/Archaic)
+    else is Safe
+        L3_Semantic->>Compliance: 4. Verification
+    end
+
+    rect rgb(240, 240, 240)
+    Note over Compliance: DEFERRED (Copyright Engine)
+    Compliance-->>Compliance: Summarize & Vectorize
+    end
+
+    Compliance->>Agent: 5. Hydrate & Execute
+    Agent-->>User: Streaming Response
+
+```
+
+### 2.1 Layer Definitions
+
+| Layer | Type | Mechanism | Responsibility | Storage Logic |
+| --- | --- | --- | --- | --- |
+| **L1** | Syntactic | Regex (CPU) | Block gibberish, non-words, scripts. | None (Discard). |
+| **L2** | Deterministic | Hash Lookup | Block known hate speech (RSDB). | **Metadata Only:** Store Index ID, Timestamp, URL. *Never store the word.* |
+| **L3** | Semantic | LLM (Haiku) | Block provocative/archaic nuance. | Log Rejection Category + Score. |
+| **Compliance** | Legal | LLM (Summary) | Strip copyright text before storage. | **Deferred.** (Currently passing Raw Text). |
 
 ## 3. Streaming UX (Server-Sent Events)
-* **UX Constraint:** LLM inference is slow. A 5-second pause breaks the user flow.
-* **Implementation:** I utilized `@awslambda.streamify_response`.
-* **Outcome:** Tokens are piped to the client via **Server-Sent Events (SSE)** as they are generated. This reduces the perceived latency (Time-To-First-Byte) from ~4s to <500ms.
 
-## 4. Guardrail Performance Budget
-To maintain the "Stateful Serverless" responsiveness, we enforce a strict latency budget for the 3-layer defense funnel:
+* **Implementation:** `@awslambda.streamify_response`.
+* **Outcome:** Time-To-First-Byte < 500ms.
 
-| Layer | Type | Mechanism | Budget (Max) | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **L1** | Syntactic | Regex/Length (CPU) | < 1ms | Active |
-| **L2** | Deterministic | Hash Lookup (Memory) | < 5ms | Planned (Ref #1012) |
-| **L3** | Semantic | LLM Inference (Network) | ~800ms | Active (Ref #10) |
+## 4. Why LangGraph?
 
-**Constraint:** L1 and L2 (The "Pre-Flight" checks) must complete in **< 50ms** combined to avoid perceptible drag before the L3 call.
+* **Resilience:** cyclic graphs (`Agent -> Tool -> Agent`) handle failures better than linear chains.
+* **Future Proofing:** Enables dynamic RAG loops.

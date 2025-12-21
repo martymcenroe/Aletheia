@@ -66,3 +66,5 @@ For critical features, we execute three distinct review passes:
 When passing context between models, the Orchestrator shall provide:
 * The raw content (Code/Text).
 * The specific "Lens" for review (e.g., "Review for Privacy," "Review for Coding Standards").
+* The Issue numbers being reviewed.
+* Any prior review feedback to incorporate (if Pass 2 or 3).

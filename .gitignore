@@ -60,3 +60,7 @@ test_data.json
 prompts/
 .session-log.md
 *.bak
+
+# Context Dumps (Gemini)
+_all_issues.json
+_full_project_context.txt
