@@ -72,3 +72,4 @@ sequenceDiagram
 
 * **Resilience:** cyclic graphs (`Agent -> Tool -> Agent`) handle failures better than linear chains.
 * **Future Proofing:** Enables dynamic RAG loops.
+
