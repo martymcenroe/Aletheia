@@ -33,3 +33,12 @@ At the end of your session, output a log entry for the Orchestrator to append to
 
 ## You Are Not Alone
 Other agents work on this project. Check `.session-log.md` for recent context. The Orchestrator (Marty) coordinates all work via GitHub Projects.
+
+## Session Logging
+At end of session, append a summary to `.session-log.md` using the format shown in existing entries. Include:
+- Date/time and model name
+- Summary of work done
+- Files created/modified
+- Issues created/closed
+- Key decisions
+- State on exit (branch, last commit, next steps)

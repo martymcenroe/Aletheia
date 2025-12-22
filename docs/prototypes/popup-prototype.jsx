@@ -3,16 +3,16 @@ import { useState } from 'react';
 export default function AletheiaPopupPrototype() {
   const [view, setView] = useState('main'); // 'main' | 'manage' | 'confirm'
   const [isActive, setIsActive] = useState(false);
-  const [whitelist, setWhitelist] = useState(['wsj.com', 'nytimes.com', 'economist.com']);
+  const [allowlist, setAllowlist] = useState(['wsj.com', 'nytimes.com', 'economist.com']);
   const [selected, setSelected] = useState(new Set());
   const currentDomain = 'wsj.com';
 
   const toggleActive = () => {
     if (isActive) {
-      setWhitelist(whitelist.filter(d => d !== currentDomain));
+      setAllowlist(allowlist.filter(d => d !== currentDomain));
     } else {
-      if (!whitelist.includes(currentDomain)) {
-        setWhitelist([...whitelist, currentDomain]);
+      if (!allowlist.includes(currentDomain)) {
+        setAllowlist([...allowlist, currentDomain]);
       }
     }
     setIsActive(!isActive);
@@ -29,8 +29,8 @@ export default function AletheiaPopupPrototype() {
   };
 
   const removeSelected = () => {
-    const newWhitelist = whitelist.filter(d => !selected.has(d));
-    setWhitelist(newWhitelist);
+    const newAllowlist = allowlist.filter(d => !selected.has(d));
+    setAllowlist(newAllowlist);
     setSelected(new Set());
     if (selected.has(currentDomain)) {
       setIsActive(false);
@@ -38,7 +38,7 @@ export default function AletheiaPopupPrototype() {
   };
 
   const clearAll = () => {
-    setWhitelist([]);
+    setAllowlist([]);
     setSelected(new Set());
     setIsActive(false);
     setView('main');
@@ -222,7 +222,7 @@ export default function AletheiaPopupPrototype() {
         onMouseEnter={(e) => e.target.style.backgroundColor = colors.bgSecondary}
         onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
       >
-        <span>Manage Whitelist</span>
+        <span>Manage Allowlist</span>
         <span style={{ color: colors.textSecondary }}>→</span>
       </button>
     </div>
@@ -257,7 +257,7 @@ export default function AletheiaPopupPrototype() {
           fontWeight: 600, 
           color: colors.text,
         }}>
-          Whitelist
+          Allowlist
         </span>
         <span style={{
           marginLeft: 'auto',
@@ -267,7 +267,7 @@ export default function AletheiaPopupPrototype() {
           padding: '2px 8px',
           borderRadius: 12,
         }}>
-          {whitelist.length} {whitelist.length === 1 ? 'site' : 'sites'}
+          {allowlist.length} {allowlist.length === 1 ? 'site' : 'sites'}
         </span>
       </div>
 
@@ -277,17 +277,17 @@ export default function AletheiaPopupPrototype() {
         overflowY: 'auto',
         borderBottom: `1px solid ${colors.border}`,
       }}>
-        {whitelist.length === 0 ? (
+        {allowlist.length === 0 ? (
           <div style={{
             padding: 24,
             textAlign: 'center',
             color: colors.textSecondary,
             fontSize: 14,
           }}>
-            No domains whitelisted
+            No domains allowlisted
           </div>
         ) : (
-          whitelist.map((domain) => (
+          allowlist.map((domain) => (
             <label
               key={domain}
               style={{
@@ -419,7 +419,7 @@ export default function AletheiaPopupPrototype() {
         marginBottom: 20,
         lineHeight: 1.5,
       }}>
-        This will remove all whitelisted domains. This action cannot be undone.
+        This will remove all allowlisted domains. This action cannot be undone.
       </div>
       <div style={{ display: 'flex', gap: 12 }}>
         <button
@@ -489,7 +489,7 @@ export default function AletheiaPopupPrototype() {
         color: '#9CA3AF',
         marginTop: 8,
       }}>
-        Click power button and "Manage Whitelist" to explore
+        Click power button and "Manage Allowlist" to explore
       </div>
     </div>
   );
