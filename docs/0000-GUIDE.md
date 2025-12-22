@@ -27,10 +27,11 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * **Template:** Use `0102-TEMPLATE-feature-lld.md` when creating new feature docs.
     * Feature docs remain in `1xxx` even after the issue is closed (they document what was built).
 * **`9xxx` (Knowledge):** The memory.
-    * **9000:** Lessons Learned Log (Check this to avoid repeating mistakes).
+    * **9000:** Lessons Learned — **Aletheia-specific** gotchas and solutions (Chrome extension, Bedrock, this codebase).
     * **9001:** Open Investigations & Future Work (Spikes, Automation Triggers).
     * **9010:** Cheat Sheets (Git, AWS, Bash).
-    * **99xx:** Archive (Project closure documents only -- for when Aletheia is fully retired).
+    * **99xx:** Archive (Project closure documents only — for when Aletheia is fully retired).
+    * **Cross-project lessons** (Git workflow, AWS deployment, general engineering) live in the [Engineering Journal](https://github.com/martymcenroe/martymcenroe/blob/main/ENGINEERING-JOURNAL.md).
 
 ## Prime Directives for AI Agents
 1.  **Seek Ground Truth:** Do not hallucinate file paths. Check `ls -R` or `docs/0000-GUIDE.md`.
