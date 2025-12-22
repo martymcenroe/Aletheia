@@ -3,7 +3,7 @@
 ## 1. Context & Goal
 * **Issue:** #76
 * **Objective:** Provide a browser action popup allowing users to toggle Aletheia on/off for the current domain and manage their allowlist.
-* **Status:** Approved
+* **Status:** Complete
 
 ## 2. Requirements
 
@@ -189,12 +189,23 @@ if (!allowlist.includes(domain)) {
 | **Subdomain handling** | User enables `finance.yahoo.com`, expects it to work on `news.yahoo.com` | MVP: Store full hostname as-is. Document as known limitation. Future: Add root-domain option using Public Suffix List. |
 | **Allowlist check timing** | Gate runs after fetch, defeating the purpose | Allowlist check MUST execute inside `onClicked` handler BEFORE any `chrome.scripting.executeScript` or `fetch` calls. Do not refactor this sequence. |
 
+### 4.8 UX Decisions
+
+| Question | Decision | Rationale |
+|:---------|:---------|:----------|
+| Clear All confirmation | Custom in-popup UI | Matches prototype, avoids jarring native dialog |
+| Remove Selected visibility | Always visible, disabled when empty | Prevents layout shift |
+| Empty allowlist message | "No domains allowlisted yet" | Better UX than empty void |
+| Domain normalization | Strip `www.` only | MVP scope, edge cases documented as limitation |
+
+
 ## 5. Prototype Reference
 
 A high-fidelity interactive React prototype was created during design review:
 - **File:** `docs/prototypes/popup-prototype.jsx`
 - **Purpose:** Visual/interaction reference for implementation
 - **Note:** Prototype uses React; actual implementation will be vanilla JS
+- **Note:** The popup logo must use the Lambda icon asset (`icons/icon128.png`), not a hardcoded letter
 
 ## 6. Verification & Testing
 
@@ -216,30 +227,55 @@ A high-fidelity interactive React prototype was created during design review:
 
 ### 6.2 Manual Smoke Test
 
+**Setup**
 1. `git checkout 76-allowlist-popup`
-2. Load unpacked extension in Chrome
-3. Visit wsj.com
-4. Click extension icon → verify "wsj.com" displayed, status "INACTIVE"
-5. Click power button → verify "ACTIVE" state
-6. Select text, right-click → "Explain with AI" → verify API call succeeds
-7. Click power button → verify "INACTIVE" state
-8. Right-click → "Explain with AI" → verify NO API call (check DevTools console)
-9. Click "Manage Allowlist" → verify list view
-10. Add another domain, verify it appears in list
-11. Select it, click "Remove Selected" → verify removed
-12. Click "Clear All Data" → confirm → verify empty state
-13. Close browser, reopen → verify state persisted
-14. Verify toolbar icon never changed throughout test
+2. Open Chrome, go to `chrome://extensions/`
+3. Remove Aletheia if already loaded
+4. Enable Developer Mode, click "Load unpacked", select `extension/` folder
+5. Pin Aletheia to toolbar (click puzzle icon → pin)
+
+**Test: Inactive State (Verify Gate Blocks)**
+6. Visit wsj.com
+7. Click Aletheia icon → verify "wsj.com" displayed, status "INACTIVE"
+8. Select text, right-click → "Explain with AI"
+9. Run `poetry run python tools/log_viewer.py --tail 1` → note timestamp of last entry
+10. Confirm NO new entry (gate blocked)
+
+**Test: Active State (Verify API Works)**
+11. Click power button → verify "ACTIVE" state
+12. Select text, right-click → "Explain with AI"
+13. Run `tools/log_viewer.py --tail 1` → verify NEW entry with later timestamp
+
+**Test: Management View**
+14. Click "Manage Allowlist" → verify wsj.com in list
+15. Visit nytimes.com, click icon, enable it
+16. Return to wsj.com, click "Manage Allowlist" → verify both domains listed
+17. Select nytimes.com checkbox, click "Remove Selected" → verify removed
+
+**Test: Toggle Back to Inactive**
+18. Click power button on wsj.com → verify "INACTIVE" state
+
+**Test: Clear All Data**
+19. First add wsj.com back (click power → ACTIVE)
+20. Click "Manage Allowlist" → Click "Clear All Data" → confirm in dialog → verify list empty
+
+**Test: Persistence**
+21. Add wsj.com to allowlist again
+22. Close browser completely, reopen
+23. Visit wsj.com, click icon → verify state persisted (should be ACTIVE)
+
+**Test: Static Icon**
+24. Throughout all steps: verify toolbar icon never changed (always Lambda, no badge)
 
 ## 7. Definition of Done
 
-- [ ] `extension/popup.html` created
-- [ ] `extension/popup.css` created with design system
-- [ ] `extension/popup.js` created with all functions
-- [ ] `extension/service-worker.js` updated with allowlist gate
-- [ ] `extension/manifest.json` verified (no host_permissions)
-- [ ] Storage persists across browser restart
-- [ ] Storage survives "Clear cookies on exit"
-- [ ] "Clear All Data" works with confirmation
-- [ ] All smoke test scenarios pass
+- [x] `extension/popup.html` created
+- [x] `extension/popup.css` created with design system
+- [x] `extension/popup.js` created with all functions
+- [x] `extension/service-worker.js` updated with allowlist gate
+- [x] `extension/manifest.json` verified (no host_permissions)
+- [x] Storage persists across browser restart
+- [x] Storage survives "Clear cookies on exit"
+- [x] "Clear All Data" works with confirmation
+- [x] All smoke test scenarios pass
 - [ ] PR merged to main

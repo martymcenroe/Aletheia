@@ -62,6 +62,11 @@
 | `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
 | `docs/1080-wire-agent-logic.md` | **Spec** | 🟠 **In-Progress** | #80 | Wiring agent.py to guardrails/compliance. |
 
+### Prototypes & Design Artifacts
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/prototypes/popup-prototype.jsx` | **Prototype** | 🟢 **Stable** | #76 | React prototype for allowlist popup UI. |
+
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -88,7 +93,10 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
-| `extension/service-worker.js` | **Logic** | 🟠 **In-Progress** | #76 | Background script. Needs allowlist gate. |
+| `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76 | Background script with allowlist gate. |
+| `extension/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
+| `extension/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
+| `extension/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
 | `extension/icons/icon16.png` | **Asset** | 🟢 **Stable** | #82 | Toolbar icon (Lambda). |
 | `extension/icons/icon32.png` | **Asset** | 🟢 **Stable** | #82 | Small icon (Lambda). |
 | `extension/icons/icon48.png` | **Asset** | 🟢 **Stable** | #82 | Medium icon (Lambda). |
@@ -108,7 +116,7 @@
 | `harvest_test_data.py` | **Utility** | 🟡 **Beta** | #72 | Log puller. Pending move to tools/. |
 | `tools/generate_store_assets.py` | **Utility** | ⚪ **Placeholder** | #53 | Store asset generator. |
 | `tools/log_viewer.py` | **Utility** | 🟢 **Stable** | #69 | DynamoDB Inspector. |
-| `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Icon factory (Pillow). |
+| `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Icon factory (Pillow). Supports `--transparent` and `--threshold N` CLI options. |
 | `tools/master_lambda.png` | **Asset** | 🟢 **Stable** | #82 | Master source for branding. |
 
 ### Testing & Verification

@@ -86,3 +86,31 @@ Examples:
     * ⚪ **Placeholder:** Skeleton only.
     * ⚫ **Legacy:** Deprecated (Do not use).
     * ❓ **Unknown:** Needs audit.
+
+## 8. File Editing Patterns
+
+### 8.1 Appending to Sectioned Files
+When appending to a file with multiple sections (like `ENGINEERING-JOURNAL.md`), insert before the next section marker rather than at EOF.
+
+**Pattern:** Find `---\n\n## NextSection` and insert before it.
+```bash
+# Insert a row before the "## Publishing" section
+sed -i '/^---$/,/^## Publishing/{
+  /^## Publishing/i\
+| 2025-12-22 | New lesson here | New rule here |
+}' docs/ENGINEERING-JOURNAL.md
+```
+
+**Alternative with awk** (for complex inserts):
+```bash
+awk '/^## TargetSection/{found=1} found && /^---$/{print "| NEW ROW |"; found=0} 1' file.md > tmp && mv tmp file.md
+```
+
+### 6.4 Auto-Closing Issues (Belt & Suspenders)
+When an issue is **COMPLETE** (all Definition of Done items checked), use closing keywords in BOTH:
+1. **Commit message:** `feat: description (close #ID)`
+2. **PR body:** Include `Closes #ID` on its own line
+
+**GitHub Closing Keywords:** `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves`, `resolved`
+
+**Rule:** If you know the issue is done, ALWAYS use `close #ID`. Never use `ref #ID` for completed work.

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aletheia</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="popup-container">
+
+    <!-- MAIN VIEW -->
+    <div id="main-view" class="view">
+      <div class="logo-container">
+        <img src="icons/icon128.png" alt="Aletheia" class="logo">
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-label">Current Domain</div>
+        <div class="domain-name" id="current-domain">Loading...</div>
+      </div>
+
+      <div class="power-section">
+        <button id="power-button" class="power-button">
+          <span class="power-icon">⏻</span>
+        </button>
+        <div class="status-text">
+          Aletheia is <strong id="status-label">INACTIVE</strong>
+        </div>
+        <div class="status-subtext">on this domain</div>
+      </div>
+
+      <button id="manage-button" class="manage-button">
+        <span>Manage Allowlist</span>
+        <span class="arrow">→</span>
+      </button>
+    </div>
+
+    <!-- MANAGEMENT VIEW -->
+    <div id="manage-view" class="view" style="display: none;">
+      <div class="header">
+        <button id="back-button" class="back-button">←</button>
+        <span class="header-title">Allowlist</span>
+        <span id="site-count" class="site-count">0 sites</span>
+      </div>
+
+      <div class="list-container" id="list-container">
+        <div id="empty-state" class="empty-state">
+          No domains allowlisted
+        </div>
+        <div id="allowlist" class="allowlist"></div>
+      </div>
+
+      <div class="actions">
+        <button id="remove-button" class="remove-button" disabled>
+          Remove Selected
+        </button>
+        <button id="clear-all-button" class="clear-all-button">
+          <span>⚠</span> Clear All Data
+        </button>
+      </div>
+    </div>
+
+    <!-- CONFIRM VIEW -->
+    <div id="confirm-view" class="view" style="display: none;">
+      <div class="confirm-icon-container">
+        <div class="confirm-icon">⚠</div>
+      </div>
+      <div class="confirm-title">Clear All Data?</div>
+      <div class="confirm-message">
+        This will remove all allowlisted domains. This action cannot be undone.
+      </div>
+      <div class="confirm-actions">
+        <button id="cancel-button" class="cancel-button">Cancel</button>
+        <button id="confirm-clear-button" class="confirm-button">Clear All</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
