@@ -7,8 +7,20 @@
 * ⚪ **Placeholder:** Skeleton or empty file; do not run.
 * ⚫ **Legacy:** Deprecated/Archived (Reference only).
 * ❓ **Unknown:** Needs audit/verification.
+* 🚫 **Gitignored:** Not tracked; listed for completeness.
 
 ## 2. Inventory
+
+### Root Configuration
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `.gitignore` | **Config** | 🟢 **Stable** | - | Git ignore rules. |
+| `.session-log.md` | **Log** | 🚫 **Gitignored** | - | AI session continuity log. |
+| `CLAUDE.md` | **Config** | 🟢 **Stable** | - | Claude Code agent onboarding. |
+| `LICENSE` | **Legal** | 🟢 **Stable** | - | MIT License. |
+| `README.md` | **Doc** | 🟢 **Stable** | - | Project overview. |
+| `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
+| `pyproject.toml` | **Config** | 🟢 **Stable** | - | Python dependencies. |
 
 ### 00xx Core Standards
 | File | Role | Status | Linked Issue | Description |
@@ -20,6 +32,7 @@
 | `docs/0004-orchestration-protocol.md` | **Protocol** | 🟢 **Stable** | #50 | Rules for AI-User collaboration and mini-sprints. |
 | `docs/0005-testing-strategy-and-protocols.md` | **Protocol** | 🟢 **Stable** | #69 | Testing strategy and modular verification. |
 | `docs/0006-mermaid-diagrams.md` | **Standard** | 🟢 **Stable** | - | Mermaid JS diagramming standards and patterns. |
+| `docs/0007-legal-compliance-strategy.md` | **Standard** | 🟢 **Stable** | - | Legal strategy for content handling. |
 
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
@@ -31,63 +44,71 @@
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/1005-graph-tests.md` | **Spec** | ❓ **Unknown** | #5 | Unit tests for LangGraph nodes. |
-| `docs/1006-rag-vector.md` | **Spec** | ❓ **Unknown** | #6 | RAG Vector Store implementation. |
-| `docs/1007-observability.md` | **Spec** | ❓ **Unknown** | #7 | Observability and tracing. |
-| `docs/1010-semantic-guardrails.md` | **Spec** | ❓ **Unknown** | #10 | Layer 3 Semantic Guardrail. |
-| `docs/1011-local-guardrails.md` | **Spec** | ❓ **Unknown** | #11 | Layer 1 Local Guardrails. |
-| `docs/1014-compliance-engine.md` | **Spec** | ❓ **Unknown** | #14 | Compliance checking engine. |
-| `docs/1025-linkedin-auth-gate.md` | **Spec** | ❓ **Unknown** | #25 | LinkedIn authentication gating. |
+| `docs/1005-graph-tests.md` | **Spec** | ⚪ **Placeholder** | #5 | Unit tests for LangGraph nodes. |
+| `docs/1006-rag-vector.md` | **Spec** | ⚪ **Placeholder** | #6 | RAG Vector Store implementation. |
+| `docs/1007-observability.md` | **Spec** | ⚪ **Placeholder** | #7 | Observability and tracing. |
+| `docs/1010-semantic-guardrails.md` | **Spec** | 🟡 **Beta** | #10 | Layer 3 Semantic Guardrail. |
+| `docs/1011-local-guardrails.md` | **Spec** | 🟡 **Beta** | #11 | Layer 1 Local Guardrails. |
+| `docs/1014-compliance-engine.md` | **Spec** | 🟡 **Beta** | #14 | Compliance checking engine. |
+| `docs/1025-linkedin-auth-gate.md` | **Spec** | ⚫ **Legacy** | #25 | LinkedIn auth (cookie heuristic). Superseded by OAuth approach. |
 | `docs/1041-security-audit.md` | **Spec** | 🟢 **Stable** | #41 | Security audit and permission culling. |
 | `docs/1042-whitelist-mode.md` | **Spec** | 🟢 **Stable** | #42 | Whitelist mode and safety filters. |
 | `docs/1043-privacy-compliance.md` | **Spec** | 🟢 **Stable** | #43 | Privacy policy compliance. |
-| `docs/1044-warning-ui.md` | **Spec** | ❓ **Unknown** | #44 | Browser extension warning UI. |
-| `docs/1045-deterministic-hate-filter.md` | **Spec** | ❓ **Unknown** | #45 | Layer 2 Deterministic Hate Filter. |
-| `docs/1051-store-compliance.md` | **Spec** | ❓ **Unknown** | #51 | Chrome Web Store compliance. |
-| `docs/1053-store-assets.md` | **Spec** | ❓ **Unknown** | #53 | Store asset generation. |
+| `docs/1044-warning-ui.md` | **Spec** | ⚪ **Placeholder** | #44 | Browser extension warning UI. |
+| `docs/1045-deterministic-hate-filter.md` | **Spec** | ⚪ **Placeholder** | #45 | Layer 2 Deterministic Hate Filter. |
+| `docs/1051-store-compliance.md` | **Spec** | 🟡 **Beta** | #51 | Chrome Web Store compliance. |
+| `docs/1053-store-assets.md` | **Spec** | ⚪ **Placeholder** | #53 | Store asset generation. |
 | `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
+| `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
+| `docs/1080-wire-agent-logic.md` | **Spec** | 🟠 **In-Progress** | #80 | Wiring agent.py to guardrails/compliance. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/9000-lessons-learned.md` | **Log** | 🟢 **Stable** | - | Pointer to Engineering Journal. |
-| `docs/9001-open-investigations.md` | **Log** | ❓ **Unknown** | - | Future work and spikes. |
+| `docs/9000-lessons-learned.md` | **Log** | 🟢 **Stable** | - | Aletheia-specific lessons (project-scoped). |
+| `docs/9001-open-investigations.md` | **Log** | 🟡 **Beta** | - | Future work and spikes. |
 | `docs/ENGINEERING-JOURNAL.md` | **Log** | 🟢 **Stable** | - | Cross-project engineering lessons (synced). |
 
 ### Core Application (Python)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `agent.py` | **Logic** | ❓ **Unknown** | - | Main LangGraph agent definitions. |
-| `checkpointer.py` | **State** | ❓ **Unknown** | - | DynamoDB state management. |
-| `compliance.py` | **Logic** | ❓ **Unknown** | #14 | Compliance checking logic. |
-| `lambda_function.py` | **Entry** | ❓ **Unknown** | - | Main AWS Lambda handler. |
-| `lambda_harvester_function.py` | **Entry** | ❓ **Unknown** | - | Secondary Lambda handler. |
-| `src/guardrails/` | **Module** | ❓ **Unknown** | - | Guardrail implementations. |
+| `agent.py` | **Logic** | 🟡 **Beta** | #80 | Main LangGraph agent definitions. |
+| `checkpointer.py` | **State** | 🟡 **Beta** | - | DynamoDB state management. |
+| `compliance.py` | **Logic** | 🟡 **Beta** | #14 | Compliance checking logic. |
+| `lambda_function.py` | **Entry** | 🟡 **Beta** | - | Main AWS Lambda handler (streaming). |
+| `lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
+| `src/__init__.py` | **Module** | 🟢 **Stable** | - | Package init. |
+| `src/guardrails/__init__.py` | **Module** | 🟢 **Stable** | - | Guardrails package init. |
+| `src/guardrails/engine.py` | **Logic** | 🟡 **Beta** | #11 | Guardrails engine. |
+| `src/guardrails/validators.py` | **Logic** | 🟡 **Beta** | #11 | Validator functions. |
+| `src/guardrails/semantic.py` | **Logic** | 🟡 **Beta** | #10 | Semantic guardrail (LLM-based). |
+| `src/guardrails/resources/taxonomy.json` | **Data** | 🟢 **Stable** | #10 | Taxonomy and few-shot examples. |
 
 ### Chrome Extension
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `extension/icons/` | **Asset** | 🟢 **Stable** | #82 | Generated icon set (Do not edit). |
 | `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
-| `extension/popup.html` | **UI** | 🟠 **In-Progress** | #76 | Main popup structure. |
-| `extension/service-worker.js` | **Logic** | ❓ **Unknown** | - | Background script. |
-| `index.html` | **Asset** | ❓ **Unknown** | - | Landing page. |
+| `extension/service-worker.js` | **Logic** | 🟠 **In-Progress** | #76 | Background script. Needs allowlist gate. |
+| `extension/icons/icon16.png` | **Asset** | 🟢 **Stable** | #82 | Toolbar icon (Lambda). |
+| `extension/icons/icon32.png` | **Asset** | 🟢 **Stable** | #82 | Small icon (Lambda). |
+| `extension/icons/icon48.png` | **Asset** | 🟢 **Stable** | #82 | Medium icon (Lambda). |
+| `extension/icons/icon128.png` | **Asset** | 🟢 **Stable** | #82 | Large icon (Lambda). |
+| `index.html` | **Asset** | ⚫ **Legacy** | #81 | Landing page (cyberpunk). To be redesigned. |
 
 ### Infrastructure & Deployment
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `deploy.sh` | **Script** | ❓ **Unknown** | - | Deployment automation. |
-| `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
-| `provision.sh` | **Script** | ❓ **Unknown** | - | Infrastructure provisioning. |
-| `pyproject.toml` | **Config** | 🟢 **Stable** | - | Python dependencies. |
+| `deploy.sh` | **Script** | 🟡 **Beta** | - | Lambda deployment automation. |
+| `provision.sh` | **Script** | 🟡 **Beta** | - | AWS infrastructure provisioning. |
+| `dist/` | **Output** | 🚫 **Gitignored** | - | Build artifacts (empty). |
 
 ### Tools & Utilities
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `harvest_test_data.py` | **Utility** | 🟡 **Beta** | #72 | Log puller. Pending move to tools/. |
-| `tools/generate_store_assets.py` | **Utility** | ❓ **Unknown** | - | Store asset generator. |
+| `tools/generate_store_assets.py` | **Utility** | ⚪ **Placeholder** | #53 | Store asset generator. |
 | `tools/log_viewer.py` | **Utility** | 🟢 **Stable** | #69 | DynamoDB Inspector. |
-| `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Asset factory (Pillow). |
+| `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Icon factory (Pillow). |
 | `tools/master_lambda.png` | **Asset** | 🟢 **Stable** | #82 | Master source for branding. |
 
 ### Testing & Verification
@@ -96,14 +117,15 @@
 | `run_guardrails.py` | **Test** | ⚪ **Placeholder** | - | Guardrail runner. |
 | `test_ground_truth.json` | **Data** | 🟢 **Stable** | - | Gold standard test dataset. |
 | `test_holistic_data.json` | **Data** | 🟡 **Beta** | - | Raw harvested test data. |
-| `tests/test_guardrails.py` | **Test** | ❓ **Unknown** | - | Unit tests for guardrails. |
-| `tests/test_semantic.py` | **Test** | ❓ **Unknown** | - | Unit tests for semantic layer. |
+| `tests/__init__.py` | **Test** | 🟢 **Stable** | - | Test package init. |
+| `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
+| `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
 
 ### Legacy & Abandoned
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `build/` | **Artifact** | ⚫ **Legacy** | - | Abandoned build directory. |
-| `legacy/` | **Archive** | ⚫ **Legacy** | - | Old guardrails and tests. |
-| `prompts/` | **Archive** | ⚫ **Legacy** | - | Old text prompts. |
+| `legacy/guardrails.py_bak` | **Archive** | ⚫ **Legacy** | - | Old guardrails implementation. |
+| `legacy/manual_test.py_bak` | **Archive** | ⚫ **Legacy** | - | Old manual test script. |
+| `prompts/` | **Archive** | ⚫ **Legacy** | - | Old text prompts. To be cleaned. |
