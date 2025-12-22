@@ -189,6 +189,16 @@ if (!allowlist.includes(domain)) {
 | **Subdomain handling** | User enables `finance.yahoo.com`, expects it to work on `news.yahoo.com` | MVP: Store full hostname as-is. Document as known limitation. Future: Add root-domain option using Public Suffix List. |
 | **Allowlist check timing** | Gate runs after fetch, defeating the purpose | Allowlist check MUST execute inside `onClicked` handler BEFORE any `chrome.scripting.executeScript` or `fetch` calls. Do not refactor this sequence. |
 
+### 4.8 UX Decisions
+
+| Question | Decision | Rationale |
+|:---------|:---------|:----------|
+| Clear All confirmation | Custom in-popup UI | Matches prototype, avoids jarring native dialog |
+| Remove Selected visibility | Always visible, disabled when empty | Prevents layout shift |
+| Empty allowlist message | "No domains allowlisted yet" | Better UX than empty void |
+| Domain normalization | Strip `www.` only | MVP scope, edge cases documented as limitation |
+
+
 ## 5. Prototype Reference
 
 A high-fidelity interactive React prototype was created during design review:
