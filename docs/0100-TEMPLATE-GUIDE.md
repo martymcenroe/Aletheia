@@ -67,3 +67,27 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 3. Name format: `01XX-TEMPLATE-{name}.md` or `01XX-STYLE-{name}.md`
 4. Update this guide with the new entry
 5. Update `0003-file-inventory.md`
+
+## Session Log Entry Template
+```markdown
+## YYYY-MM-DD HH:MM CT | Model Name
+
+### Summary
+One paragraph describing the session's main accomplishment.
+
+### Feature Work
+- Bullet list of shipped features, implementations, bug fixes
+
+### Tooling
+- Bullet list of documentation updates, template improvements, process refinements
+
+### Issues
+- Created: #XX, #YY
+- Closed: #ZZ
+
+### State on Exit
+- Branch: `branch-name`
+- Last commit: `sha` or message
+- Open PRs: N
+- Next: What the next session should pick up
+```

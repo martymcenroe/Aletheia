@@ -27,7 +27,7 @@
 6. **Push:** Backup (`git push`).
 7. **PR:** Review (`gh pr create`).
 8. **Merge:** Finalize (`gh pr merge`).
-9. **Cleanup:** Hygiene (`git branch -d`).
+9. **Cleanup:** Hygiene (`git pull` then `git branch -d`). Always pull main first to avoid "not merged to HEAD" warning.
 
 ## 5. Documentation
 * **Update First:** Update the relevant `docs/` file *before* writing code.
