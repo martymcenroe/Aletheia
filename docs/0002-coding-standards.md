@@ -57,13 +57,17 @@ Format: `1{IssueID}-short-description.md` (for feature specs in the `1xxx` names
 **Note:** GitHub shares a single sequence across Issues, PRs, and Discussions. Plan for Issue IDs up to #999 in the current 4-digit scheme. If the project approaches #900, migrate to a 5-digit namespace.
 
 ### 6.3 Commit Message Format
-Format: `type: description (ref #ID)`
+Format: `type: description (KEYWORD #ID)`
 
 Types: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`
 
+**Issue Keywords:**
+* **`ref #ID` (Reference):** Use when the commit contributes to an issue but work is **In-Progress**. Do not close the issue.
+* **`close #ID` (Close):** Use **ONLY** when the issue's "Definition of Done" is fully met. This automatically closes the issue in GitHub.
+
 Examples:
 * `feat: implement semantic guardrail engine (ref #10)`
-* `docs: add store compliance spec (ref #51)`
+* `fix: final validation of auth gate (close #25)`
 * `chore: rename doc to follow naming convention (ref #25)`
 ## 7. Documentation Standards
 

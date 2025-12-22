@@ -19,6 +19,7 @@
 | `docs/0003-file-inventory.md` | **Register** | 🟢 **Stable** | #70 | This file. The map of the territory. |
 | `docs/0004-orchestration-protocol.md` | **Protocol** | 🟢 **Stable** | #50 | Rules for AI-User collaboration and mini-sprints. |
 | `docs/0005-testing-strategy-and-protocols.md` | **Protocol** | 🟢 **Stable** | #69 | Testing strategy and modular verification. |
+| `docs/0006-mermaid-diagrams.md` | **Standard** | 🟢 **Stable** | - | Mermaid JS diagramming standards and patterns. |
 
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
