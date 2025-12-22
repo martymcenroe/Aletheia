@@ -34,6 +34,8 @@
 | `docs/0006-mermaid-diagrams.md` | **Standard** | 🟢 **Stable** | - | Mermaid JS diagramming standards and patterns. |
 | `docs/0007-legal-compliance-strategy.md` | **Standard** | 🟢 **Stable** | - | Legal strategy for content handling. |
 
+| `docs/0008-orchestrator-instructions.md` | **Guide** | 🟢 **Stable** | - | Rules for human orchestrator managing AI sessions. |
+| `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions cleanly. |
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
