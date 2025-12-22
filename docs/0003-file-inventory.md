@@ -66,7 +66,9 @@
 ### Chrome Extension
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `extension/manifest.json` | **Config** | ❓ **Unknown** | - | Chrome Extension manifest. |
+| `extension/icons/` | **Asset** | 🟢 **Stable** | #82 | Generated icon set (Do not edit). |
+| `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
+| `extension/popup.html` | **UI** | 🟠 **In-Progress** | #76 | Main popup structure. |
 | `extension/service-worker.js` | **Logic** | ❓ **Unknown** | - | Background script. |
 | `index.html` | **Asset** | ❓ **Unknown** | - | Landing page. |
 
@@ -84,6 +86,8 @@
 | `harvest_test_data.py` | **Utility** | 🟡 **Beta** | #72 | Log puller. Pending move to tools/. |
 | `tools/generate_store_assets.py` | **Utility** | ❓ **Unknown** | - | Store asset generator. |
 | `tools/log_viewer.py` | **Utility** | 🟢 **Stable** | #69 | DynamoDB Inspector. |
+| `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Asset factory (Pillow). |
+| `tools/master_lambda.png` | **Asset** | 🟢 **Stable** | #82 | Master source for branding. |
 
 ### Testing & Verification
 | File | Role | Status | Linked Issue | Description |
