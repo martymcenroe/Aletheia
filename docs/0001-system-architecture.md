@@ -8,6 +8,38 @@
     * **Persist:** Write updated state back to DynamoDB.
 * **Benefit:** Infinite-scale agent memory with zero idle cost.
 
+### 1.1 Component Diagram (Physical Layout)
+```mermaid
+graph TD
+    subgraph Client [Chrome Browser]
+        Ext[Extension UI]
+        CS[Content Script]
+    end
+
+    subgraph Cloud [AWS Cloud]
+        LB[Lambda Function]
+        DDB[(DynamoDB State)]
+
+        subgraph Logic [The Funnel]
+            L1[L1: Regex]
+            L2[L2: Hate List]
+            L3[L3: Semantic AI]
+            Comp[Compliance Engine]
+        end
+
+        Brain[Bedrock Agent]
+    end
+
+    Ext -->|POST /analyze| LB
+    LB <-->|Hydrate/Persist| DDB
+    LB --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 -->|Safe?| Comp
+    Comp -->|Summary| Brain
+    Brain -->|SSE Stream| Ext
+```
+
 ## 2. The Defense Funnel (Fail Fast)
 We enforce a strict, ordered defense pipeline to minimize cost and liability.
 
@@ -73,3 +105,46 @@ sequenceDiagram
 * **Resilience:** cyclic graphs (`Agent -> Tool -> Agent`) handle failures better than linear chains.
 * **Future Proofing:** Enables dynamic RAG loops.
 
+## 5. Architecture Decision Records (ADRs)
+
+### ADR-001: Privacy-First Extension Permissions
+**Date:** 2025-12-21  
+**Status:** Final — Do not revisit.
+
+**Decision:** Aletheia will NEVER request `host_permissions: ["<all_urls>"]`.
+
+**Context:**
+Chrome extensions requesting broad host permissions trigger a scary warning: "Read and change all your data on all websites." This erodes user trust and delays Chrome Web Store review.
+
+**Rationale:**
+- `activeTab` permission grants temporary per-site access only on user interaction (click, right-click)
+- Users explicitly enable sites via the allowlist popup
+- No background surveillance of browsing activity
+
+**Tradeoffs Accepted:**
+- Toolbar icon remains static (cannot change color/badge per-site without user action)
+- Cannot inject scripts proactively — requires user-initiated context menu or popup click
+- Badge feedback (setBadgeText/setBadgeBackgroundColor) is the only dynamic toolbar indicator
+
+**Consequences:**
+- Issue #77 uses badge text/color instead of icon swapping for feedback
+- Allowlist status shown only inside popup UI, never on toolbar icon
+- 
+### ADR-002: Shadow DOM for Injected UI
+**Date:** 2025-12-22  
+**Status:** Final
+
+**Decision:** All UI elements injected into host pages MUST use Shadow DOM (`element.attachShadow({mode: 'closed'})`).
+
+**Context:**
+Content scripts can inject DOM elements into host pages. Without isolation, host page CSS affects our UI and vice versa, causing "broken UI" reports and unprofessional appearance.
+
+**Rationale:**
+- Prevents style "bleed" from host page CSS resets
+- Prevents our styles from breaking host page layout
+- `mode: 'closed'` prevents host page JavaScript from accessing our shadow tree
+- Required for Chrome Web Store approval on complex sites (WSJ, NYT, etc.)
+
+**Consequences:**
+- Overlay implementations must create a shadow root before appending styled content
+- Slightly more complex code, but required for professional UX across all websites

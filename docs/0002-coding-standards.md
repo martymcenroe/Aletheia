@@ -69,6 +69,16 @@ Examples:
 * `feat: implement semantic guardrail engine (ref #10)`
 * `fix: final validation of auth gate (close #25)`
 * `chore: rename doc to follow naming convention (ref #25)`
+
+### 6.4 Auto-Closing Issues (Belt & Suspenders)
+When an issue is **COMPLETE** (all Definition of Done items checked), use closing keywords in BOTH:
+1. **Commit message:** `feat: description (close #ID)`
+2. **PR body:** Include `Closes #ID` on its own line
+
+**GitHub Closing Keywords:** `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves`, `resolved`
+
+**Rule:** If you know the issue is done, ALWAYS use `close #ID`. Never use `ref #ID` for completed work.
+
 ## 7. Documentation Standards
 
 ### 7.0 Link Formatting
@@ -106,11 +116,29 @@ sed -i '/^---$/,/^## Publishing/{
 awk '/^## TargetSection/{found=1} found && /^---$/{print "| NEW ROW |"; found=0} 1' file.md > tmp && mv tmp file.md
 ```
 
-### 6.4 Auto-Closing Issues (Belt & Suspenders)
-When an issue is **COMPLETE** (all Definition of Done items checked), use closing keywords in BOTH:
-1. **Commit message:** `feat: description (close #ID)`
-2. **PR body:** Include `Closes #ID` on its own line
+## 9. JavaScript / Extension Development
 
-**GitHub Closing Keywords:** `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves`, `resolved`
+### 9.1 Never Use innerHTML with User Content
+When displaying user-selected text or any external content, ALWAYS use `element.textContent`, NEVER `innerHTML`.
 
-**Rule:** If you know the issue is done, ALWAYS use `close #ID`. Never use `ref #ID` for completed work.
+**Why:** Prevents Self-XSS attacks. A user could select malicious text like `<img src=x onerror=alert(1)>`.
+
+**Rule:**
+```javascript
+// WRONG — XSS vulnerability
+overlay.innerHTML = `Saved: ${selectedWord}`;
+
+// CORRECT — safe
+overlay.textContent = `Saved: ${selectedWord}`;
+```
+
+### 9.2 Shadow DOM for Injected UI
+All UI injected into host pages must use Shadow DOM. See ADR-002 in `docs/0001-system-architecture.md`.
+```javascript
+// CORRECT — isolated styling
+const host = document.createElement('div');
+const shadow = host.attachShadow({ mode: 'closed' });
+shadow.innerHTML = `<style>/* our styles */</style><div class="overlay">Content</div>`;
+document.body.appendChild(host);
+```
+
