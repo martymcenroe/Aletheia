@@ -169,6 +169,19 @@ chrome.action.setBadgeText({ text: '' });
 | **Selection lost** | Selection clears before we read it | Read selection immediately in content script |
 | **Badge race condition** | Multiple rapid clicks confuse badge state | Use `clearTimeout` before setting new badge timer |
 
+### 4.9 Implementation Decisions
+
+| Question | Decision | Rationale |
+|:---------|:---------|:----------|
+| Badge clearing trigger | `popup.js` on DOMContentLoaded | Simpler than service-worker listener; clears even if popup already open |
+| Blocked overlay timeout | 5 seconds | Longer duration since user action required |
+| Success overlay timeout | 3 seconds | Per Issue #77 spec |
+| Error overlay timeout | 3 seconds | Per Issue #77 spec |
+| Badge flash duration | 2 seconds | Shorter than overlay; catches attention without lingering |
+| Error message text | "✗ Could not save. Try again." | Generic; don't include word (error may be unrelated) |
+| Blocked overlay timing | Inject immediately (no API call) | Gate fires before any network activity |
+| Success/Error overlay timing | Inject after API completes | Show result of actual operation |
+
 ## 5. Content Script Injection
 
 The overlay is injected programmatically, not via manifest `content_scripts`. This supports our privacy narrative: "We only run when you ask us to."

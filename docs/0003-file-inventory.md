@@ -41,6 +41,7 @@
 | `docs/0100-TEMPLATE-GUIDE.md` | **Index** | 🟢 **Stable** | - | Index of all templates and their purposes. |
 | `docs/0101-TEMPLATE-issue.md` | **Template** | 🟢 **Stable** | - | GitHub Issue template for features. |
 | `docs/0102-TEMPLATE-feature-lld.md` | **Template** | 🟢 **Stable** | - | Low-Level Design doc template for features. |
+| `docs/0103-TEMPLATE-implementation-report.md` | **Template** | 🟢 **Stable** | - | Implementation report template. |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
@@ -68,6 +69,12 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/prototypes/popup-prototype.jsx` | **Prototype** | 🟢 **Stable** | #76 | React prototype for allowlist popup UI. |
 
+### Implementation Reports
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/reports/` | **Directory** | 🟢 **Stable** | - | Implementation reports by issue ID. Not individually listed. |
+
+
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -94,10 +101,11 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
-| `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76 | Background script with allowlist gate. |
+| `extension/service-worker.js` | **Logic** | 🟡 **Beta** | #76, #77 | Background script with allowlist gate and badge feedback. |
+| `extension/overlay.js` | **UI** | 🟡 **Beta** | #77 | Selection-anchored overlay with Shadow DOM (reference). |
 | `extension/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
 | `extension/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
-| `extension/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
+| `extension/popup.js` | **Logic** | 🟡 **Beta** | #76, #77 | Popup logic, storage interaction, badge clearing. |
 | `extension/icons/icon16.png` | **Asset** | 🟢 **Stable** | #82 | Toolbar icon (Lambda). |
 | `extension/icons/icon32.png` | **Asset** | 🟢 **Stable** | #82 | Small icon (Lambda). |
 | `extension/icons/icon48.png` | **Asset** | 🟢 **Stable** | #82 | Medium icon (Lambda). |

@@ -290,6 +290,9 @@ function handleConfirmClearClick() {
 // ============================================================================
 
 function init() {
+  // Clear badge when popup opens (Issue #77)
+  chrome.action.setBadgeText({ text: '' });
+
   // Main view event listeners
   powerButton.addEventListener('click', handlePowerToggle);
   manageButton.addEventListener('click', handleManageClick);

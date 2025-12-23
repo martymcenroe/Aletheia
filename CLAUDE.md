@@ -42,3 +42,6 @@ At end of session, append a summary to `.session-log.md` using the template in d
 - Issues created/closed
 - Key decisions
 - State on exit (branch, last commit, next steps)
+
+## Implementation Reports
+After completing implementation, create a report at `docs/reports/{IssueID}-implementation-report.md` using the template in `docs/0103-TEMPLATE-implementation-report.md`. Do this BEFORE reporting completion to the orchestrator.
