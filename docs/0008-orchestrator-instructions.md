@@ -77,3 +77,49 @@ When switching between agents:
 | Stash forgotten | Check `git stash list` at session end |
 | LLD outdated after implementation | Update status to "Complete" and check DoD items |
 | Session-log not updated | Make it the last action before closing |
+
+## 6. Parallel Branch Work with Git Worktree
+
+### Recommended Pattern
+Keep `main` in your primary directory for docs, reviews, and stable reference. Use worktrees for feature branches:
+```
+~/Projects/Aletheia/        → always main (stable)
+~/Projects/Aletheia-77/     → worktree for issue #77
+~/Projects/Aletheia-80/     → worktree for issue #80
+```
+
+### Creating a Worktree
+```bash
+# From main, create a new worktree + branch based on main
+git worktree add ../Aletheia-80 -b 80-wire-agent main
+
+# Or attach to an existing branch
+git worktree add ../Aletheia-77 77-action-feedback
+
+# Or attach to an existing remote branch
+git fetch
+git worktree add ../Aletheia-80 origin/80-wire-agent
+```
+
+### Managing Worktrees
+```bash
+# List all worktrees
+git worktree list
+
+# Remove a worktree when done (from main directory)
+git worktree remove ../Aletheia-80
+
+# Prune stale worktree references
+git worktree prune
+```
+
+### Benefits
+- Main always clean for quick lookups and reviews
+- Multiple agents can work in parallel (each in own directory)
+- Compare feature vs main side-by-side
+- Never accidentally commit to wrong branch
+
+### Rules
+- Never checkout the same branch in two worktrees
+- Remove worktrees after PR merge to avoid clutter
+- Run `git worktree list` periodically to audit
