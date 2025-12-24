@@ -36,7 +36,7 @@
 | `docs/0008-orchestrator-instructions.md` | **Guide** | 🟢 **Stable** | - | Rules for human orchestrator managing AI sessions. |
 | `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions cleanly. |
 | `docs/0010-standard-labels.md` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
-| `docs/0010-standard-labels.md` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
+
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -64,7 +64,6 @@
 | `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
 | `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
 | `docs/1080-wire-agent-logic.md` | **Spec** | 🟠 **In-Progress** | #80 | Wiring agent.py to guardrails/compliance. |
-| `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | WAF rate limiting and API key gate. |
 | `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | WAF rate limiting and API key gate. |
 
 ### Prototypes & Design Artifacts
