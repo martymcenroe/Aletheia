@@ -142,3 +142,35 @@ shadow.innerHTML = `<style>/* our styles */</style><div class="overlay">Content<
 document.body.appendChild(host);
 ```
 
+
+## 10. Git Worktree Protocols
+
+### 10.1 The "Parallel Universe" Model
+We use `git worktree` to maintain isolated environments for different features without destroying local state (e.g., server logs, temp files).
+
+**Directory Structure:**
+```text
+Projects/
+├── Aletheia/              # [Main Worktree] Always kept on 'main'
+├── Aletheia-95-security/  # [Linked Worktree] Checked out to 'feature/95-...'
+└── Aletheia-80-wire/      # [Linked Worktree] Checked out to 'feature/80-...'
+
+```
+
+### 10.2 The Golden Rule
+
+**You cannot check out the same branch in two worktrees simultaneously.**
+
+* **The Error:** `fatal: 'main' is already used by worktree`
+* **The Cause:** You are in a feature folder trying to `git checkout main`, but `main` is already active in the root `Aletheia/` folder.
+* **The Fix:**
+* **To update:** Do not checkout main. Run `git fetch origin main` and `git merge origin/main`.
+* **To browse:** Open a separate terminal in the root `Aletheia/` folder.
+
+
+
+### 10.3 Common Commands
+
+* **Create:** `git worktree add ../Aletheia-99-feature -b feature/99-name`
+* **List:** `git worktree list`
+* **Remove:** `git worktree remove ../Aletheia-99-feature` (then delete the folder)
