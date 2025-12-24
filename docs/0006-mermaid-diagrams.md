@@ -37,16 +37,51 @@ To keep flowcharts clean, avoid connecting every node to every other node direct
     * `{Diamond}`: Decision/Router
     * `((Circle))`: Start/Stop
     * `[[Subroutine]]`: Sub-process
-3.  **Labels:** Keep arrow labels short.
+3.  **Styling:** Use standard CSS classes if possible, or simple `style` definitions at the bottom of the graph to keep the logic clean.
 
-## 5. Example Snippet
+## 5. Syntax Safety & Parser Compatibility (CRITICAL)
+Mermaid parsers (GitHub, Live Editor) are fragile. Follow these escaping rules to prevent rendering errors.
+
+### 5.1 The "Quote Everything" Rule
+**ALWAYS** enclose label text in double quotes if it contains spaces, parentheses, or special characters.
+* **Bad:** `A -->|No (Block)| B` (Parser interprets `()` as shape definition)
+* **Good:** `A -->|"No (Block)"| B`
+* **Bad:** `id[User Input]` (Space can confuse parser)
+* **Good:** `id["User Input"]`
+
+### 5.2 Line Breaks
+Do not use raw newlines or malformed HTML. Use `<br/>` inside quoted strings.
+* **Bad:** `Node[Line 1 /br Line 2]` (Invalid tag)
+* **Bad:** `Node[Line 1 <br> Line 2]` (Unquoted HTML can break strict parsers)
+* **Good:** `Node["Line 1<br/>Line 2"]`
+
+### 5.3 Special Characters
+Avoid using `#`, `;`, or `{}` inside text labels unless quoted.
+* **Bad:** `Node[Issue #80]`
+* **Good:** `Node["Issue #80"]`
+
+## 6. Example Template
 
 ```mermaid
-flowchart TD
-    Start((Start)) --> Router{Routing Logic}
+graph TD
+    %% 1. Define Nodes with Quoted Labels
+    Start(("Start"))
+    Router{"Check Logic"}
+    ProcessA["Execute Process A<br/>(Heavy Lift)"]
+    ProcessB["Execute Process B"]
+    End(("End"))
+
+    %% 2. Define Relationships with Quoted Edge Labels
+    Start --> Router
+    Router -->|"Condition 1 (True)"| ProcessA
+    Router -->|"Condition 2 (False)"| ProcessB
     
-    Router -->|User Input| Process[Process Data]
-    Router -->|Error| Handle[Error Handler]
-    
-    Process --> Router
-    Handle --> Stop((End))
+    ProcessA --> End
+    ProcessB --> End
+
+    %% 3. Apply Styles (Optional)
+    style Start fill:#f9f,stroke:#333
+    style End fill:#f9f,stroke:#333
+
+```
+
