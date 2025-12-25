@@ -68,7 +68,18 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 4. Update this guide with the new entry
 5. Update `0003-file-inventory.md`
 
-## Session Log Entry Template
+## Session Logs
+
+Session logs are stored in `docs/session-logs/` with weekly files named by the Monday date (e.g., `2025-12-23.md`).
+
+**Week boundary:** Monday 3:00 AM CT to following Monday 2:59 AM CT
+
+### File Naming
+- Format: `YYYY-MM-DD.md` where the date is the Monday of that week
+- Example: Work done Sunday night Dec 22 at 11pm goes in `2025-12-16.md` (prior week)
+- Example: Work done Monday Dec 23 at 9am goes in `2025-12-23.md` (new week)
+
+### Entry Template
 ```markdown
 ## YYYY-MM-DD HH:MM CT | Model Name
 
@@ -90,4 +101,14 @@ One paragraph describing the session's main accomplishment.
 - Last commit: `sha` or message
 - Open PRs: N
 - Next: What the next session should pick up
+```
+
+### Weekly File Header
+Each weekly file should start with:
+```markdown
+# Session Log: Week of YYYY-MM-DD
+
+Week boundary: Monday 3:00 AM CT to following Monday 2:59 AM CT
+
+---
 ```

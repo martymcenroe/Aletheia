@@ -58,9 +58,11 @@ test_data.json
 
 # LLM specific
 prompts/
-.session-log.md
 *.bak
 
 # Context Dumps (Gemini)
 _all_issues.json
 _full_project_context.txt
+
+# Security
+docs/security/

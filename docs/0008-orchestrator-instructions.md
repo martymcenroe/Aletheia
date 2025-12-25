@@ -17,7 +17,7 @@ Check the timestamp in turn meta-tags. LLMs can lose track of time during long s
 ### 1.3 Power & Connectivity
 - Use a UPS on desktop machines
 - Save work frequently during long sessions
-- If power loss occurs, check `.session-log.md` for last known state
+- If power loss occurs, check `docs/session-logs/` for last known state
 
 ## 2. Agent Management
 
@@ -31,7 +31,7 @@ Check the timestamp in turn meta-tags. LLMs can lose track of time during long s
 
 ### 2.2 Handoff Protocol
 When switching between agents:
-1. Have the outgoing agent write to `.session-log.md`
+1. Have the outgoing agent write to the current week's session log (see Section 7)
 2. Provide the incoming agent with:
    - Current branch
    - Last commit SHA
@@ -76,4 +76,100 @@ When switching between agents:
 | Issues left open after completion | Use `close #ID` keyword, not `ref #ID` |
 | Stash forgotten | Check `git stash list` at session end |
 | LLD outdated after implementation | Update status to "Complete" and check DoD items |
-| Session-log not updated | Make it the last action before closing |
+| Session-log not updated | Make it the last action before closing (see Section 7) |
+
+## 6. Parallel Branch Work with Git Worktree
+
+### Recommended Pattern
+Keep `main` in your primary directory for docs, reviews, and stable reference. Use worktrees for feature branches:
+```
+~/Projects/Aletheia/        → always main (stable)
+~/Projects/Aletheia-77/     → worktree for issue #77
+~/Projects/Aletheia-80/     → worktree for issue #80
+```
+
+### Creating a Worktree
+```bash
+# From main, create a new worktree + branch based on main
+git worktree add ../Aletheia-80 -b 80-wire-agent main
+
+# Or attach to an existing branch
+git worktree add ../Aletheia-77 77-action-feedback
+
+# Or attach to an existing remote branch
+git fetch
+git worktree add ../Aletheia-80 origin/80-wire-agent
+```
+
+### Managing Worktrees
+```bash
+# List all worktrees
+git worktree list
+
+# Remove a worktree when done (from main directory)
+git worktree remove ../Aletheia-80
+
+# Prune stale worktree references
+git worktree prune
+```
+
+### Benefits
+- Main always clean for quick lookups and reviews
+- Multiple agents can work in parallel (each in own directory)
+- Compare feature vs main side-by-side
+- Never accidentally commit to wrong branch
+
+### Rules
+- Never checkout the same branch in two worktrees
+- Remove worktrees after PR merge to avoid clutter
+- Run `git worktree list` periodically to audit
+
+## 7. Session Log Management
+
+Session logs live in `docs/session-logs/` with weekly files named by Monday date.
+
+### Week Boundary
+- **Cutoff:** Monday 3:00 AM CT
+- Sunday 11pm work → current week's file
+- Monday 9am work → new week's file
+
+### File Naming
+```
+docs/session-logs/2025-12-16.md  ← Week of Dec 16-22
+docs/session-logs/2025-12-23.md  ← Week of Dec 23-29
+```
+
+### Creating a New Week's File
+When the week boundary crosses, create the new file:
+
+```bash
+# Calculate the Monday date (adjust for your OS)
+MONDAY=$(date -d "last monday" +%Y-%m-%d)
+
+# Create the file with header
+cat > docs/session-logs/${MONDAY}.md << 'EOF'
+# Session Log: Week of ${MONDAY}
+
+Week boundary: Monday 3:00 AM CT to following Monday 2:59 AM CT
+
+---
+EOF
+```
+
+Or manually:
+1. Copy header from previous week's file
+2. Update the date in the `# Session Log: Week of` line
+3. Clear the entries (keep the `---` separator)
+
+### Orchestrator Checklist (Week Start)
+- [ ] Check if new session log file needed (Monday mornings)
+- [ ] If agents worked over the weekend, verify entries went to correct week
+- [ ] Commit new week's file before assigning work
+
+### Edge Cases
+| Situation | Action |
+|:----------|:-------|
+| Agent starts session, no file exists | Agent creates file with header |
+| Late Sunday session crosses midnight | Entry goes in prior week's file (until 3am Mon) |
+| Extended session spans week boundary | Use the session END date's week file |
+| Forgot to create file, agent already wrote | Move entry to correct file, commit both |

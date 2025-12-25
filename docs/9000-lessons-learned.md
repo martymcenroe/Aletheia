@@ -20,3 +20,4 @@ Append new entries to the bottom of the log table:
 | 2025-12-22 | Chrome extension reload doesn't require remove/reinstall during development. | Just click refresh icon on `chrome://extensions/` page, then close/reopen popup. |
 | 2025-12-22 | `chrome.storage.local` survives "Clear browsing data" including "Hosted app data" checkbox. | Storage is extension-owned, not site-owned. Safe to use for user preferences. |
 | 2025-12-22 | Duplicate context menu error on extension reload: `Cannot create item with duplicate id`. | Wrap `contextMenus.create` in try/catch or check existence first. (Issue #89) |
+| 2025-12-23 | `fatal: 'main' is already used by worktree` | Git forbids checking out the same branch in multiple dirs. Merge `origin/main` instead of checking out `main`. |

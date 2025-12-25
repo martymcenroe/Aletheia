@@ -7,7 +7,28 @@ We treat AI agents not as tools, but as distinct team members who require contex
 If you are an AI reading this: **You are being onboarded.**
 Your goal is not just to write code, but to maintain the integrity of this system.
 
-## The Filing System
+
+# Project Aletheia: AI Workforce Guide
+
+## 1. Context & Standards
+All agents must adhere to the core documentation:
+- **Standards:** `docs/0002-coding-standards.md` (The 9-Step Flip Turn)
+- **Inventory:** `docs/0003-file-inventory.md`
+
+## 2. Agent Routing
+Identify yourself and load your specific protocols immediately:
+
+### ♊ If you are Gemini:
+Read and execute `GEMINI.md` (in repository root).
+*Critical: You must initiate the Identity Handshake defined there.*
+
+### 🔶 If you are Claude:
+Read and execute `CLAUDE.md` (in repository root).
+
+### 🤖 If you are ChatGPT:
+Read and execute `CHATGPT.md` (in repository root).
+
+## 3. The Filing System
 We use a **4-Digit Namespace** to organize our collective memory:
 
 * **`00xx` (Standards):** The rules of the road.
@@ -40,3 +61,4 @@ We use a **4-Digit Namespace** to organize our collective memory:
 4.  **Use the Templates:** When creating a new feature doc, copy `0102-TEMPLATE-feature-lld.md`. When creating an issue, follow `0101-TEMPLATE-issue.md`.
 5.  **Plan Before Execute:** Discuss multi-step plans before running commands. Never batch destructive operations without explicit approval.
 6.  **Use Emojis for Status:** We use emoji status indicators (e.g., green circle, yellow circle) in documentation. Ensure your terminal supports UTF-8.
+7.  **Log Your Sessions:** At session end, append a summary to `docs/session-logs/YYYY-MM-DD.md` (Monday date). Week boundary is Monday 3:00 AM CT. See `docs/0100-TEMPLATE-GUIDE.md` for format.

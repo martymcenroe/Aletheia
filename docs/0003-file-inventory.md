@@ -35,6 +35,8 @@
 | `docs/0007-legal-compliance-strategy.md` | **Standard** | 🟢 **Stable** | - | Legal strategy for content handling. |
 | `docs/0008-orchestrator-instructions.md` | **Guide** | 🟢 **Stable** | - | Rules for human orchestrator managing AI sessions. |
 | `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions cleanly. |
+| `docs/0010-standard-labels.md` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
+
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -63,6 +65,7 @@
 | `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
 | `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
 | `docs/1080-wire-agent-logic.md` | **Spec** | 🟠 **In-Progress** | #80 | Wiring agent.py to guardrails/compliance. |
+| `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | WAF rate limiting and API key gate. |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |
@@ -139,6 +142,8 @@
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
+| `docs/security/vulnerability-test.md` | **Test** | 🚫 **Gitignored** | #95 | Manual vulnerability reproduction scripts. |
+| `docs/security/vulnerability-test.md` | **Test** | 🚫 **Gitignored** | #95 | Manual vulnerability reproduction scripts. |
 
 ### Legacy & Abandoned
 | File | Role | Status | Linked Issue | Description |
