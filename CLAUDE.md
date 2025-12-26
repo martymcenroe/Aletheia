@@ -24,7 +24,9 @@ When you solve a novel problem:
 Other agents work on this project. Check `docs/session-logs/` for recent context. The Orchestrator (Marty) coordinates all work via GitHub Projects.
 
 ## Session Logging
-At end of session, append a summary to the current week's file in `docs/session-logs/YYYY-MM-DD.md` (Monday date).
+At end of session, append a summary to the current week's file in `docs/session-logs/Week-starting-YYYY-MM-DD.md`.
 - **Week boundary:** Monday 3:00 AM CT to following Monday 2:59 AM CT
+- **Format:** Use ISO 8601 dates (YYYY-MM-DD) where the date is the Monday starting the week
 - See `docs/0100-TEMPLATE-GUIDE.md` for the full entry template
 - Include: date/time, model name, summary, files, issues, state on exit
+- **Entries must be sorted chronologically** within each file

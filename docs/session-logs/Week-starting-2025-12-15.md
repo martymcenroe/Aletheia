@@ -1,6 +1,6 @@
-# Session Log: Week of 2025-12-16
+# Session Log: Week starting 2025-12-15
 
-Week boundary: Monday 3:00 AM CT to following Monday 2:59 AM CT
+**Period:** Monday 2025-12-15 3:00 AM CT → Monday 2025-12-22 2:59 AM CT
 
 ---
 
@@ -259,6 +259,20 @@ The extension is ready for the manual smoke test outlined in docs/1076-allowlist
 
 ---
 
+## 2025-12-22 11:30 CT | Claude Code (Sonnet)
+
+Summary: Implemented Issue #76 Domain Allowlist Popup feature with three-view UI (main, manage, confirm), allowlist gate in service worker, and full storage integration. Fixed logo to use Lambda icon asset.
+
+Files Modified:
+- extension/popup.html (created)
+- extension/popup.css (created)
+- extension/popup.js (created)
+- extension/service-worker.js (modified - added allowlist gate)
+- docs/0003-file-inventory.md (updated)
+- docs/1076-allowlist-popup.md (updated - added logo requirement, marked complete)
+
+---
+
 ## 2025-12-22 16:51 CT | Claude Opus 4.5
 
 ### Summary
@@ -294,18 +308,6 @@ Full implementation cycle for #76 (Allowlist Popup). Oversaw Claude Code (Sonnet
 - Next: #77 (Action Feedback), #80 (Wire Agent with Gemini), #51 (Store submission)
 
 ---
-
-## 2025-12-22 11:30 CT | Claude Code (Sonnet)
-
-Summary: Implemented Issue #76 Domain Allowlist Popup feature with three-view UI (main, manage, confirm), allowlist gate in service worker, and full storage integration. Fixed logo to use Lambda icon asset.
-
-Files Modified:
-- extension/popup.html (created)
-- extension/popup.css (created)
-- extension/popup.js (created)
-- extension/service-worker.js (modified - added allowlist gate)
-- docs/0003-file-inventory.md (updated)
-- docs/1076-allowlist-popup.md (updated - added logo requirement, marked complete)
 
 ## 2025-12-22 20:20 CT | Claude Code (Sonnet)
 

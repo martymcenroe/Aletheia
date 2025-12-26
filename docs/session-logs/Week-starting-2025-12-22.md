@@ -1,6 +1,6 @@
-# Session Log: Week of 2025-12-23
+# Session Log: Week starting 2025-12-22
 
-Week boundary: Monday 3:00 AM CT to following Monday 2:59 AM CT
+**Period:** Monday 2025-12-22 3:00 AM CT → Monday 2025-12-29 2:59 AM CT
 
 ---
 

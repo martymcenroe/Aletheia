@@ -70,14 +70,15 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 
 ## Session Logs
 
-Session logs are stored in `docs/session-logs/` with weekly files named by the Monday date (e.g., `2025-12-23.md`).
+Session logs are stored in `docs/session-logs/` with weekly files using ISO 8601 date format.
 
 **Week boundary:** Monday 3:00 AM CT to following Monday 2:59 AM CT
 
 ### File Naming
-- Format: `YYYY-MM-DD.md` where the date is the Monday of that week
-- Example: Work done Sunday night Dec 22 at 11pm goes in `2025-12-16.md` (prior week)
-- Example: Work done Monday Dec 23 at 9am goes in `2025-12-23.md` (new week)
+- Format: `Week-starting-YYYY-MM-DD.md` where the date is the Monday that starts the week
+- Use ISO 8601 format (YYYY-MM-DD) with zero-padded month and day for proper sorting
+- Example: Work done Sunday night 2025-12-21 at 11pm goes in `Week-starting-2025-12-15.md` (prior week)
+- Example: Work done Monday 2025-12-22 at 9am goes in `Week-starting-2025-12-22.md` (new week)
 
 ### Entry Template
 ```markdown
@@ -106,9 +107,11 @@ One paragraph describing the session's main accomplishment.
 ### Weekly File Header
 Each weekly file should start with:
 ```markdown
-# Session Log: Week of YYYY-MM-DD
+# Session Log: Week starting YYYY-MM-DD
 
-Week boundary: Monday 3:00 AM CT to following Monday 2:59 AM CT
+**Period:** Monday YYYY-MM-DD 3:00 AM CT → Monday YYYY-MM-DD 2:59 AM CT
 
 ---
 ```
+
+**Entries must be sorted chronologically** (oldest at top, newest at bottom) so the log reads like a story.
