@@ -97,6 +97,27 @@ When an issue is **COMPLETE** (all Definition of Done items checked), use closin
     * ⚫ **Legacy:** Deprecated (Do not use).
     * ❓ **Unknown:** Needs audit.
 
+### 7.2 Documentation Lives in Main (The "Docs in Main" Policy)
+* **Rule:** ALL documentation changes MUST be committed to the `main` branch, NEVER to feature branches.
+* **Rationale:** The orchestrator (Marty) needs immediate visibility into all feature documentation (especially `10xx` LLDs) when building implementation plans. Keeping docs in long-running feature branches creates documentation drift and planning blindness.
+* **Scope:** This applies to ALL files in `docs/`:
+    * Feature specifications (`10xx` files)
+    * Templates (`01xx` files)
+    * Core standards (`00xx` files)
+    * Implementation reports (`docs/reports/`)
+    * Session logs (`docs/session-logs/`)
+    * All other documentation
+
+**Workflow:**
+1. When starting work on a feature, create the `10xx` LLD in `main` branch first
+2. Commit the LLD to `main` before creating the feature branch
+3. If updates to the LLD are needed during implementation, make those changes in `main` (not the feature branch)
+4. Implementation reports go in `main` when complete
+
+**Exception:** Code-adjacent documentation (like inline comments or docstrings) naturally lives with the code in feature branches.
+
+**Migration:** When cherry-picking or merging feature branches created before this policy, extract any NEW documentation files and commit them to `main` separately. See commit `7c8336d` for reference implementation.
+
 ## 8. File Editing Patterns
 
 ### 8.1 Appending to Sectioned Files
