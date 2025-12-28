@@ -155,10 +155,10 @@ Resolved "Documentation Drift" critical failure where feature branches lacked th
 
 ---
 
-## 2025-12-28 07:14-13:30 CT | Claude Sonnet 4.5 via Claude Code
+## 2025-12-28 07:14-14:30 CT | Claude Sonnet 4.5 via Claude Code
 
 ### Summary
-Standardized session log naming convention to ISO 8601 Week-starting format, established comprehensive PDF printing infrastructure using Pandoc+MiKTeX+SumatraPDF, and successfully generated PDFs for all 34 docs/ files plus GitHub issues report. Analyzed all branches to categorize documentation as NEW vs MODIFIED, then cherry-picked 3 NEW files from branch 77-action-feedback to main, establishing new policy: ALL docs in main, never in branches.
+Standardized session log naming convention to ISO 8601 Week-starting format, established comprehensive PDF printing infrastructure using Pandoc+MiKTeX+SumatraPDF, and successfully generated PDFs for all 34 docs/ files plus GitHub issues report. Analyzed all branches to categorize documentation as NEW vs MODIFIED, then cherry-picked 3 NEW files from branch 77-action-feedback to main, establishing new policy: ALL docs in main, never in branches. Formalized "Docs in Main" policy in coding standards, synced session logs across active branches, pulled production-ready 1080 LLD from branch 80, and deleted stale branches 25 and 80 to reduce cognitive overhead.
 
 ### Feature Work
 - Standardized session log naming: `YYYY-MM-DD.md` → `Week-starting-YYYY-MM-DD.md`
@@ -233,17 +233,41 @@ Standardized session log naming convention to ISO 8601 Week-starting format, est
 - `docs/reports/77-implementation-report.md` - Cherry-picked from branch 77
 - Various helper scripts (gitignored)
 
+### Branch Cleanup
+- **Synced session logs** from main to active branches:
+  - Branch 77-action-feedback: Added Week-starting session logs (commit 1cd1931)
+  - Branch 80-wire-agent: Added Week-starting session logs (commit 16cab11)
+- **Pulled 1080 LLD** from branch 80 to main (commit 9033b21):
+  - Replaced draft with Gemini's production-ready version
+  - Includes Claude Opus review approval and security clarifications
+  - Complete Python implementations (guardrails_node, summarizer_node, should_continue)
+  - +77 insertions of implementation detail
+- **Deleted branch 25-linkedin-auth-gate:**
+  - 0 NEW files (all 34 modified files already in main)
+  - Local and remote branches removed
+  - Branch created for legacy LinkedIn auth (superseded by OAuth approach)
+- **Deleted branch 80-wire-agent:**
+  - 0 NEW files worth keeping (only 1080 doc, already pulled to main)
+  - Worktree removed: `/c/Users/mcwiz/Projects/Aletheia-80/`
+  - Local and remote branches removed
+  - Will recreate fresh when ready to implement #80
+
 ### Key Decisions
 - **Documentation Workflow:** Established new policy that ALL docs (including 10xx feature docs) must be edited in main branch, never in feature branches. This ensures orchestrator can easily access all feature docs when building plans.
+- **Formalized in Coding Standards:** Added Section 7.2 "Documentation Lives in Main" policy to `docs/0002-coding-standards.md` (commit 20cdf2e)
+- **Branch Hygiene:** Decided to delete stale branches 25 and 80 to reduce cognitive overhead. Fresh branches can be created from main when ready to implement.
 
 ### State on Exit
 - **Branch:** `main`
-- **Last commit:** `7c8336d` - docs: cherry-pick NEW files from branch 77-action-feedback to main
+- **Last commit:** `9033b21` - docs: pull production-ready 1080 LLD from branch 80-wire-agent
+- **Active Worktrees:**
+  - `Aletheia/` → main (9033b21)
+  - `Aletheia-77/` → 77-action-feedback (1cd1931)
+- **Deleted Branches:** 25-linkedin-auth-gate, 80-wire-agent
 - **Open PRs:** 0
 - **Printer Status:** Stuck job requiring manual cleanup (Windows spooler lock)
 - **Next:**
-  - Establish "Docs in Main" coding standard in docs/0002-coding-standards.md
-  - Decide strategy for 48 MODIFIED files currently out of sync between branches and main
   - Complete #77 smoke test, fix #93, implement #94
+  - When ready for #80: Create fresh branch from main with latest 1080 LLD
   - Clear printer spooler lock (manual intervention required)
   - Print remaining docs once printer is stable
