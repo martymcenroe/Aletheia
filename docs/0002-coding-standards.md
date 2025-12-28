@@ -79,6 +79,31 @@ When an issue is **COMPLETE** (all Definition of Done items checked), use closin
 
 **Rule:** If you know the issue is done, ALWAYS use `close #ID`. Never use `ref #ID` for completed work.
 
+### 6.5 Testing Before Closing (AI Agent Rule)
+**CRITICAL:** AI agents must NEVER close an issue until human testing is complete.
+
+**Workflow:**
+1. AI agent implements the fix/feature and commits with `(ref #ID)`
+2. AI agent reports completion to user: "Fix ready for testing in commit XXXXXX"
+3. User tests the implementation
+4. User confirms testing results
+5. **ONLY THEN** may the AI agent close the issue (manually via `gh issue close`, not via commit message)
+
+**Exception:** For documentation-only issues (no code changes), the AI agent may close immediately after committing.
+
+**Rationale:** Only the human orchestrator can verify that code changes work as expected in the real environment. Premature closure creates false completion signals and breaks project tracking.
+
+**Example:**
+```bash
+# WRONG - AI agent closes issue in commit message before testing
+git commit -m "fix: remove duplicate checkmark (close #93)"
+
+# CORRECT - AI agent uses ref, waits for human testing
+git commit -m "fix: remove duplicate checkmark (ref #93)"
+# Later, after user confirms testing:
+gh issue close 93 --comment "Human testing verified. Closing."
+```
+
 ## 7. Documentation Standards
 
 ### 7.0 Link Formatting
