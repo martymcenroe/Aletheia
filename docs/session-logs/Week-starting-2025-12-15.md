@@ -1,0 +1,331 @@
+# Session Log: Week starting 2025-12-15
+
+**Period:** Monday 2025-12-15 3:00 AM CT → Monday 2025-12-22 2:59 AM CT
+
+---
+
+## 2025-12-20 13:09 CT | Claude Opus 4.5
+### Summary
+Cleaned up branch hygiene, audited docs, created testing strategy with Gemini.
+
+### Files Modified
+- docs/0002-coding-standards.md (added naming conventions)
+- docs/0003-file-inventory.md (renamed entries)
+- docs/1041-1045 (added testing sections)
+
+### Issues Closed
+#56, #57, #61, #62, #63, #64, #65
+
+### Issues Created
+#61-65 (testing section chores)
+
+### Open Questions
+- Whitelist code: where does the popup.html live?
+- Extension/main mismatch: verify Canary is loading latest
+
+### State on Exit
+- Branch: main (clean)
+- Open PRs: 0
+- Last commit: a5f7770
+
+---
+## 2025-12-20 14:30 CT | Gemini 3 Pro
+
+### Summary
+Created log inspector tool, established testing strategy doc.
+
+### Files Modified
+- tools/log_viewer.py (new)
+- docs/0005-testing-strategy-and-protocols.md (new)
+- docs/0003-file-inventory.md (status overhaul)
+
+### Issues Closed
+#69, #70
+
+### State on Exit
+- Branch: main (clean)
+- Open PRs: 0
+- Last commit: [sha]
+
+---
+## 2025-12-21 11:38 CT | Gemini 3 Pro
+* **Summary:** Refactored Store Compliance spec (Issue #51) to standard; successfully registered Developer Dashboard account; defined "Multi-Model Verification Protocol" (Issue #50); formalized specs for Whitelist (#76) and Feedback Overlay (#77).
+* **Files Modified:** `docs/1051-store-compliance.md`, `docs/0004-orchestration-protocol.md`, `docs/1076-whitelist-popup.md`, `docs/1077-feedback-overlay.md`.
+* **Issues Closed/Created:** Created feature docs for #76 & #77. #51 remains Open (Hold for frontend assets).
+* **Open Questions:** Awaiting frontend implementation and assets from Claude for #76/#77 to unblock #51 submission.
+* **State on Exit:** Main branch clean. Prepared context files for "Great Audit" in fresh session.
+
+---
+
+## 2025-12-21 13:46 CT | Gemini 3 Pro
+* **Summary:** Performed "Great Audit". Remedied "Zombie Features" by creating LLD for Compliance Engine (#14). Updated System Architecture (0001) with Component and Sequence diagrams to fix "Missing Big Picture". Updated Feature Template (0102) to include Diagrams. Parked Linting (Issue #58).
+* **Files Modified:** `docs/0001-system-architecture.md`, `docs/1014-compliance-engine.md`, `docs/0102-TEMPLATE-feature-lld.md`, `docs/9001-open-investigations.md`, `.gitignore`.
+* **Issues Closed/Created:** Created Issue #79 (Wire Agent). Created Issue #78 (Firing Range).
+* **State on Exit:** Architecture documentation matches reality. Code (agent.py) identified as lagging.
+
+## 2025-12-21 13:58 CT | Gemini 3 Pro
+* **Summary:** Performed final housekeeping. Deduplicated issue tracker (closed duplicates created during audit setup). Pushed all local audit fixes to remote (`origin/main`) to ensure synchronization.
+* **Files Modified:** None (Git operations only).
+* **Issues Closed/Created:** Closed #72 (Duplicate Harvester) and #78 (Duplicate Firing Range).
+* **Open Questions:** None.
+* **State on Exit:** Local environment is clean and fully synced with Remote.
+
+## 2025-12-21 16:13 CT | Claude Opus 4.5
+
+### Summary
+Mini-sprint continuation for #76 (Whitelist Popup) and #77 (Action Feedback). Created template system (01xx namespace), incorporated Gemini security review feedback, drafted LLD for #76.
+
+## 2025-12-21 19:07 CT | Gemini 3 Pro
+### Branding, Tooling & LLD Refinement
+* **Design (Issue #76):** Refactored LLD diagram from `stateDiagram-v2` to `flowchart TD` using the "Router Pattern" to eliminate routing spaghetti; confirmed "Confirm" actions in UI flow.
+* **Branding (Issue #82):** Established "Cyber-Gothic Lambda" ($\lambda$) identity, symbolizing the convergence of Logic (Church) and Humanity (Ren).
+* **Tooling:** Created `tools/generate_icons.py` (Pillow) to auto-crop and generate chrome-compliant assets from `tools/master_lambda.png`.
+* **Architecture:** Finalized `extension/manifest.json` with a **Privacy-First** posture; removed `host_permissions` to ensure the extension remains "blind" until user activation.
+* **Docs:** Updated `docs/0003-file-inventory.md` with new asset and tooling paths.
+*
+## 2025-12-21 22:20 CST | Gemini 3 Pro
+### Summary
+Assisted with "Agora" documentation sprint. Created and standardized naming for the Castalian Protocol, Symbology, and Lambda Archetype core documents. Resolved git pathspec errors caused by whitespace in filenames.
+
+### Files Modified
+- docs/0003-the-castalian-protocol.md (created/renamed)
+- docs/0004-symbology-and-resonance.md (created)
+- docs/0005-the-lambda-archetype.md (created)
+
+### Issues Closed
+N/A
+
+### Open Questions
+- None.
+
+### State on Exit
+- Branch: main (clean after final push)
+- Open PRs: 0
+- Last commit: [User to verify SHA]
+
+## 2025-12-21 22:54 CT | Claude Opus 4.5
+
+**Summary:** Completed LLD for #76 (Allowlist Popup). Integrated Gemini security feedback, created interactive prototype, established privacy-first architecture (no host_permissions, static icon).
+
+**Files Created:**
+- `docs/1076-allowlist-popup.md` (ready to commit)
+- `docs/prototypes/popup-prototype.jsx` (ready to commit)
+- `docs/0004-orchestration-protocol.md` (merged v1+v2, ready to commit)
+
+**Files Modified:**
+- `docs/0006-mermaid-diagrams.md` (renamed from 006)
+
+**Issues:**
+- #76: LLD approved, ready for implementation
+- #77: Deferred to next session (depends on #76)
+- #81: Created (landing page redesign)
+
+**Key Decisions:**
+- Privacy-first: No `host_permissions`, static toolbar icon
+- Terminology: "Allowlist" not "whitelist"
+- Subdomain handling: Store full hostname (MVP limitation documented)
+- Implementation: Hand off to Claude Code / Sonnet
+
+**Mini-Sprint Status:**
+- Owner: Claude Opus 4.5
+- #76: Design complete ✅
+- #77: Planning (next session)
+
+**State on Exit:**
+- Branch: main
+- Last commit: (after cleanup)
+- Open PRs: None
+- Next: Commit LLD, create branch, implement via Claude Code
+
+## 2025-12-22 00:36 CT | Gemini 3 Pro
+* **Summary:** Pivot to "Operation Glass House" (Compliance -> Summarization). Defined legal strategy for 'noarchive' signals. Prepared LLD for wiring the Agent with a pass-through Summarizer node.
+* **Files Modified:** * `docs/1051-store-compliance.md` (Finalized Store Text)
+    * `docs/0007-legal-compliance-strategy.md` (New Strategy)
+    * `docs/1080-wire-agent-logic.md` (New LLD)
+* **Issues Created/Updated:** * Created #82 (Signal Inspector Tool)
+    * Created #85 (Refactor: Compliance -> Summarization)
+    * Updated #80 (Wire Agent) to use "No-Op" Summarizer node.
+    * Deferred #81 (Landing Page) to post-submission.
+* **State on Exit:** Documentation ready for Implementation Phase. Codebase clean and synced.
+
+## 2025-12-22 09:46 CT | Claude Opus 4.5
+
+**Summary:** Morning housekeeping. Created CLAUDE.md for agent onboarding, clarified 9000 vs Engineering Journal split, set up GitHub Projects with agent colors (Opus=Orange), cleaned up stale branches.
+
+**Files Committed:**
+- `CLAUDE.md` — Agent onboarding file
+- `docs/0000-GUIDE.md` — Updated 9xxx section
+- `docs/9000-lessons-learned.md` — New format with explicit append instructions
+
+**Issues:**
+- #76: Renamed to "allowlist" terminology
+- #86: Created — Rewrite LinkedIn auth LLD for OAuth
+- #87: Created — Audit 00xx docs for coherence
+
+**Branches Deleted:**
+- `origin/25-linkedin-auth-gate`
+
+**Key Decisions:**
+- Agent colors: Opus=Orange, Gemini=Purple, Marty=Blue, Deprecated=White
+- Lesson split: Aletheia-specific → 9000, Cross-project → Engineering Journal
+- CLAUDE.md points to 0000-GUIDE.md as single entry point
+
+**State on Exit:**
+- Branch: main
+- Last commit: [your SHA after CLAUDE.md push]
+- Open PRs: None
+- Next: Claude Code (Sonnet) implementing #76 — plan phase complete, awaiting answers to clarifying questions
+
+## 2025-12-22 11:08 CT | Claude Opus 4.5
+
+**Summary:** Morning setup for #76 implementation. Created CLAUDE.md, added prototype to repo, performed full inventory audit, prepared handoff to Claude Code (Sonnet).
+
+**Files Committed to main:**
+- `CLAUDE.md` — Agent onboarding file
+- `docs/prototypes/popup-prototype.jsx` — Design reference
+- `docs/0003-file-inventory.md` — Full audit (74 files cataloged)
+- `docs/0000-GUIDE.md` — Updated 9xxx section
+- `docs/9000-lessons-learned.md` — New format with append instructions
+
+**Files Committed to 76-allowlist-popup branch:**
+- `docs/1076-allowlist-popup.md` — Added Section 4.8 UX Decisions
+
+**Issues:**
+- #76: Branch created, LLD finalized, handing to Sonnet
+- #86: Created — Rewrite LinkedIn auth LLD for OAuth
+- #87: Created — Audit 00xx docs for coherence
+
+**Cleanup:**
+- Deleted `origin/25-linkedin-auth-gate` branch
+- Removed stale files: `_all_issues.json`, `_full_project_context.txt`, `*.bak`
+- Cleaned `dist/` folder
+
+**Key Decisions:**
+- Prototype location: `docs/prototypes/` (not root)
+- Inventory includes gitignored files with 🚫 status
+- UX Decisions: Custom confirm dialog, always-visible Remove button, helpful empty state, www-only normalization
+
+**State on Exit:**
+- Branch: `76-allowlist-popup`
+- Last commit: `docs: add UX decisions to LLD (ref #76)`
+- Next: Claude Code (Sonnet) implements popup
+
+## 2025-12-22 11:21 CT | Claude Sonnet 4.5 via Claude Code
+
+Implementation Complete!
+
+I've successfully implemented the Domain Allowlist Popup feature for Issue #76. Here's what was created:
+
+Files Created:
+
+1. extension/popup.html (2,628 bytes) - Three-view popup structure:
+  - Main view with domain display and power toggle
+  - Management view with scrollable allowlist
+  - Confirmation dialog for Clear All Data
+2. extension/popup.css (7,767 bytes) - Complete styling with:
+  - Design system tokens (all colors, spacing, shadows)
+  - Responsive hover states
+  - Custom scrollbar styling
+  - Privacy-first static icon (no badge)
+3. extension/popup.js (9,034 bytes) - Full functionality:
+  - Domain extraction with www. normalization
+  - Chrome storage integration (chrome.storage.local)
+  - Multi-select checkbox management
+  - View transitions and state management
+
+Files Modified:
+
+4. extension/service-worker.js - Added allowlist gate:
+  - extractDomain() function (strips www.)
+  - Allowlist check before API call
+  - Console logging for blocked domains
+5. docs/0003-file-inventory.md - Updated with:
+  - Three new popup files (marked as 🟡 Beta)
+  - Service worker updated to 🟢 Stable
+  - New "Prototypes" section with popup-prototype.jsx
+
+Key Implementation Details:
+
+- ✅ Privacy-First: No badge on toolbar icon, status only shown in popup
+- ✅ Terminology: "allowlist" used consistently throughout
+- ✅ Storage: chrome.storage.local (survives restarts and cookie clears)
+- ✅ Allowlist Gate: Executes before executeScript and fetch calls
+- ✅ Domain Normalization: Strips www. prefix only (MVP scope)
+- ✅ Design System: Matches prototype with Tailwind-inspired tokens
+
+Ready for Testing:
+
+The extension is ready for the manual smoke test outlined in docs/1076-allowlist-popup.md:6.2. You can load the unpacked extension in Chrome to verify all functionality.
+
+---
+
+## 2025-12-22 11:30 CT | Claude Code (Sonnet)
+
+Summary: Implemented Issue #76 Domain Allowlist Popup feature with three-view UI (main, manage, confirm), allowlist gate in service worker, and full storage integration. Fixed logo to use Lambda icon asset.
+
+Files Modified:
+- extension/popup.html (created)
+- extension/popup.css (created)
+- extension/popup.js (created)
+- extension/service-worker.js (modified - added allowlist gate)
+- docs/0003-file-inventory.md (updated)
+- docs/1076-allowlist-popup.md (updated - added logo requirement, marked complete)
+
+---
+
+## 2025-12-22 16:51 CT | Claude Opus 4.5
+
+### Summary
+Full implementation cycle for #76 (Allowlist Popup). Oversaw Claude Code (Sonnet) implementation, conducted smoke testing, fixed icon transparency, completed flip-turn with PR merge. Significant tooling improvements to session management documentation.
+
+### Feature Work
+- Supervised Sonnet implementing popup.html, popup.css, popup.js
+- Added allowlist gate to service-worker.js
+- Converted Lambda icons to transparent background (threshold 250)
+- Updated generate_icons.py with `--transparent` and `--threshold` CLI options
+- All 24 smoke test steps passed
+- PR merged, Issue #76 closed
+
+### Tooling
+- Created 0008-orchestrator-instructions.md (rules for human orchestrator)
+- Created 0009-session-closeout-protocol.md (elegant session ending checklist)
+- Updated 0002-coding-standards.md: Section 6.4 auto-closing issues, Section 8 file editing patterns
+- Updated 0100-TEMPLATE-GUIDE.md with session-log entry template
+- Updated CLAUDE.md with session logging instructions
+- Updated 9000-lessons-learned.md (4 new entries)
+- Updated ENGINEERING-JOURNAL.md (2 new entries)
+- Updated 0003-file-inventory.md (new docs, popup files → Stable)
+
+### Issues
+- Closed: #76
+- Created: #90 (investigate stash with system-architecture changes)
+
+### State on Exit
+- Branch: main
+- Last commit: docs: fix inventory formatting (ref #87)
+- Open PRs: 0
+- Stash: stash@{0} pending investigation (Issue #90)
+- Next: #77 (Action Feedback), #80 (Wire Agent with Gemini), #51 (Store submission)
+
+---
+
+## 2025-12-22 20:20 CT | Claude Code (Sonnet)
+
+Summary: Implemented Issue #77 User Feedback for Context Menu Actions. Added selection-anchored overlay with Shadow DOM isolation and toolbar badge feedback (blocked/success/error states). Fixed Issue #76 popup logo to use Lambda icon asset.
+
+Files Modified:
+- extension/overlay.js (created - 3.3KB)
+- extension/service-worker.js (modified - added badge helpers, overlay injection, three feedback states)
+- extension/popup.js (modified - clear badge on popup open)
+- extension/popup.html (modified - replaced hardcoded "A" with icon128.png)
+- extension/popup.css (modified - adjusted logo dimensions for 128px image)
+- docs/0003-file-inventory.md (updated)
+- docs/1076-allowlist-popup.md (updated - added logo requirement note)
+
+Issues:
+- #76 (complete - logo fix applied)
+- #77 (implementation complete, ready for testing)
+
+State on Exit: Branch 77-action-feedback, last commit SHA: 8a2444d (unchanged - new files staged but not committed)
+
+Next Steps: Manual smoke testing per docs/1077-action-feedback.md Section 6.2, then commit and PR.
