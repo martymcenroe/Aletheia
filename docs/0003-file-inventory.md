@@ -43,6 +43,7 @@
 | `docs/0100-TEMPLATE-GUIDE.md` | **Index** | 🟢 **Stable** | - | Index of all templates and their purposes. |
 | `docs/0101-TEMPLATE-issue.md` | **Template** | 🟢 **Stable** | - | GitHub Issue template for features. |
 | `docs/0102-TEMPLATE-feature-lld.md` | **Template** | 🟢 **Stable** | - | Low-Level Design doc template for features. |
+| `docs/0103-TEMPLATE-implementation-report.md` | **Template** | 🟢 **Stable** | #77 | Implementation report template for completed features. |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
@@ -63,6 +64,7 @@
 | `docs/1053-store-assets.md` | **Spec** | ⚪ **Placeholder** | #53 | Store asset generation. |
 | `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
 | `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
+| `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/1080-wire-agent-logic.md` | **Spec** | 🟠 **In-Progress** | #80 | Wiring agent.py to guardrails/compliance. |
 | `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | WAF rate limiting and API key gate. |
 
@@ -70,6 +72,11 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/prototypes/popup-prototype.jsx` | **Prototype** | 🟢 **Stable** | #76 | React prototype for allowlist popup UI. |
+
+### Implementation Reports
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/reports/77-implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
