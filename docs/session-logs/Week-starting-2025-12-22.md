@@ -252,22 +252,74 @@ Standardized session log naming convention to ISO 8601 Week-starting format, est
   - Local and remote branches removed
   - Will recreate fresh when ready to implement #80
 
+### Issue Work (Branch 77-action-feedback)
+- **Issue #93 - Double checkmark bug:**
+  - Fixed: Removed ✓ and ✗ from overlay message strings (commit 5c41dd8)
+  - Human tested and verified by orchestrator
+  - Closed after testing verification (proper workflow per Section 6.5)
+- **Issue #96 - HTTP failure shows success:**
+  - Fixed: Added `response.ok` check before showing success feedback (commit 03444b1)
+  - Updated error message: "Not saved. Try again later."
+  - Catches HTTP 429, 500, and all non-2xx status codes
+  - Ready for human testing (using `ref #96` per Section 6.5)
+- **Issue #98 - Overlay viewport clipping:**
+  - Created issue to track overlay positioning bug at bottom of viewport
+  - Attempted fixes in commits 552fb7b and a9dd620
+  - Still failing Test 060 (overlay appears below instead of above)
+  - Requires further investigation
+
+### Policy & Standards Updates (Main Branch)
+- **Section 6.5 "Testing Before Closing"** (commit f59876d):
+  - AI agents must NEVER close issues until human testing complete
+  - Workflow: AI implements with `(ref #ID)`, waits for user testing, then closes
+  - Exception: Documentation-only issues may be closed immediately
+- **Section 7.2 "Docs in Main"** (commit 20cdf2e):
+  - ALL docs must be committed to main, never to feature branches
+  - Ensures orchestrator visibility for planning
+- **Test numbering in 1077 LLD** (commit c153623):
+  - Added 3-digit test numbers (010, 020...090) with gaps of 10
+  - Added Test 060 for viewport positioning (overlay above when near bottom)
+  - Updated positioning spec in Section 4.4 with viewport-aware logic
+- **README.md to onboarding** (commit e6d2d2a):
+  - Added README.md as first required reading in docs/0000-GUIDE.md
+  - Provides project context before standards
+
+### Tooling & Infrastructure
+- **AWS Lambda control aliases** (added to ~/.bash_profile):
+  - `aws_on` - Turn Lambda on (unrestricted)
+  - `aws_off` - Turn Lambda off (concurrency=0)
+  - `aws_status` - Check current concurrency setting
+  - Defense against denial of wallet attacks
+- **AWS concurrency investigation:**
+  - Account limit: 10 concurrent executions total
+  - Cannot reserve any concurrency (would violate 10 minimum unreserved)
+  - Lambda currently ON (unrestricted) for testing
+  - Issue #95 needed for proper API Gateway rate limiting
+
 ### Key Decisions
 - **Documentation Workflow:** Established new policy that ALL docs (including 10xx feature docs) must be edited in main branch, never in feature branches. This ensures orchestrator can easily access all feature docs when building plans.
 - **Formalized in Coding Standards:** Added Section 7.2 "Documentation Lives in Main" policy to `docs/0002-coding-standards.md` (commit 20cdf2e)
 - **Branch Hygiene:** Decided to delete stale branches 25 and 80 to reduce cognitive overhead. Fresh branches can be created from main when ready to implement.
+- **Testing Workflow:** AI agents must wait for human testing before closing issues (Section 6.5). This prevents false completion signals.
+
+### Issues Status
+- **Closed:** #93 (double checkmark), #97 (docs sync protocol - obsolete)
+- **In Progress:** #96 (ready for testing), #98 (overlay positioning bug)
+- **Ready for Work:** #77 (complete smoke test), #94 (XSS test harness), #95 (rate limiting)
 
 ### State on Exit
 - **Branch:** `main`
-- **Last commit:** `9033b21` - docs: pull production-ready 1080 LLD from branch 80-wire-agent
+- **Last commit:** `e6d2d2a` - docs: add README.md to required reading in 0000-GUIDE.md
 - **Active Worktrees:**
-  - `Aletheia/` → main (9033b21)
-  - `Aletheia-77/` → 77-action-feedback (1cd1931)
+  - `Aletheia/` → main (e6d2d2a)
+  - `Aletheia-77/` → 77-action-feedback (a9dd620)
 - **Deleted Branches:** 25-linkedin-auth-gate, 80-wire-agent
 - **Open PRs:** 0
-- **Printer Status:** Stuck job requiring manual cleanup (Windows spooler lock)
+- **Session Name:** `fixing_77_at_overlay`
+- **Lambda Status:** ON (unrestricted) for testing
+- **Printer Status:** User rebooted, status unknown (spooler issue may persist)
 - **Next:**
-  - Complete #77 smoke test, fix #93, implement #94
+  - Fix #98: Debug overlay positioning (why viewport detection not working)
+  - Test #96: Verify HTTP status check with Lambda concurrency=0
+  - Complete remaining #77 smoke tests (010-090)
   - When ready for #80: Create fresh branch from main with latest 1080 LLD
-  - Clear printer spooler lock (manual intervention required)
-  - Print remaining docs once printer is stable
