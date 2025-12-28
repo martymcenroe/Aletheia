@@ -12,6 +12,7 @@ Your goal is not just to write code, but to maintain the integrity of this syste
 
 ## 1. Context & Standards
 All agents must adhere to the core documentation:
+- **Project Overview:** `README.md` (at repository root - read this first for project context)
 - **Standards:** `docs/0002-coding-standards.md` (The 9-Step Flip Turn)
 - **Inventory:** `docs/0003-file-inventory.md`
 
