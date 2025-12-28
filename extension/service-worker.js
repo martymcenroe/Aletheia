@@ -175,7 +175,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: showOverlay,
-            args: [`✓ Saved: ${info.selectionText}`, 'success', 3000]
+            args: [`Saved: ${info.selectionText}`, 'success', 3000]
         });
 
     } catch (error) {
@@ -187,7 +187,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: showOverlay,
-            args: ['✗ Could not save. Try again.', 'error', 3000]
+            args: ['Could not save. Try again.', 'error', 3000]
         });
     }
   }
