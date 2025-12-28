@@ -169,6 +169,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         console.log("[CV-6] Response status:", response.status);
 
+        // Check if the server accepted the request
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: Server rejected request`);
+        }
+
         // Show success state feedback
         flashBadge('✓', '#22C55E', 3000);
 
@@ -187,7 +192,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: showOverlay,
-            args: ['Could not save. Try again.', 'error', 3000]
+            args: ['Not saved. Try again later.', 'error', 3000]
         });
     }
   }
