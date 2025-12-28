@@ -87,10 +87,19 @@ const selection = window.getSelection();
 const range = selection.getRangeAt(0);
 const rect = range.getBoundingClientRect();
 
-// Position overlay below selection
+// Position overlay below selection, but check viewport bounds
 overlay.style.position = 'fixed';
 overlay.style.left = `${rect.left}px`;
-overlay.style.top = `${rect.bottom + 8}px`; // 8px gap
+
+// If selection is near bottom of viewport, show above instead of below
+const spaceBelow = window.innerHeight - rect.bottom;
+if (spaceBelow < 60) {
+  // Not enough space below - position above selection
+  overlay.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+} else {
+  // Normal case - position below selection
+  overlay.style.top = `${rect.bottom + 8}px`;
+}
 ```
 
 ### 4.5 Shadow DOM Structure
@@ -201,58 +210,76 @@ await chrome.scripting.executeScript({
 
 ### 6.1 Test Scenarios
 
-| Scenario | Action | Expected Result | Pass Criteria |
-|:---------|:-------|:----------------|:--------------|
-| Blocked state | "Explain with AI" on non-allowlisted site | Overlay: warning message, Badge: "!" amber | No API call, badge persists |
-| Clear blocked badge | Click toolbar icon while badge shows "!" | Badge clears | Popup opens normally |
-| Success state | "Explain with AI" on allowlisted site | Overlay: "✓ Saved: [word]", Badge: "✓" green | API called, both clear after timeout |
-| Error state | "Explain with AI" with network offline | Overlay: error message, Badge: "✗" red | Both clear after timeout |
-| Overlay position | Select text in various page locations | Overlay appears below selection | Not clipped by viewport |
-| Shadow DOM isolation | Test on WSJ, NYT, GitHub | Overlay styling consistent | No style bleed |
-| XSS prevention | Select `<img src=x onerror=alert(1)>` | Text displayed literally | No script execution |
-| Rapid clicks | Click "Explain with AI" 5x quickly | Badge state coherent | No stuck badges |
+| Test | Scenario | Action | Expected Result | Pass Criteria |
+|:-----|:---------|:-------|:----------------|:--------------|
+| **010** | Blocked state | "Explain with AI" on non-allowlisted site | Overlay: warning message, Badge: "!" amber | No API call, badge persists |
+| **020** | Clear blocked badge | Click toolbar icon while badge shows "!" | Badge clears | Popup opens normally |
+| **030** | Success state | "Explain with AI" on allowlisted site | Overlay: "Saved: [word]", Badge: "✓" green | API called, both clear after timeout |
+| **040** | Error state | "Explain with AI" with network offline | Overlay: error message, Badge: "✗" red | Both clear after timeout |
+| **050** | Overlay position (top) | Select text at top of page | Overlay appears below selection | Visible, not clipped |
+| **060** | Overlay position (bottom) | Select text at bottom of viewport | Overlay appears ABOVE selection | Visible, not clipped by bottom edge |
+| **070** | Shadow DOM isolation | Test on WSJ, NYT, GitHub | Overlay styling consistent | No style bleed |
+| **080** | XSS prevention | Select `<img src=x onerror=alert(1)>` | Text displayed literally | No script execution |
+| **090** | Rapid clicks | Click "Explain with AI" 5x quickly | Badge state coherent | No stuck badges |
 
 ### 6.2 Manual Smoke Test
 
 **Setup**
-1. `git checkout 77-action-feedback`
-2. Load unpacked extension in Chrome
-3. Pin Aletheia to toolbar
-4. Ensure wsj.com is NOT in allowlist
+- `git checkout 77-action-feedback`
+- Load unpacked extension in Chrome
+- Pin Aletheia to toolbar
+- Ensure wsj.com is NOT in allowlist
 
-**Test: Blocked State**
-5. Visit wsj.com
-6. Select any word, right-click → "Explain with AI"
-7. Verify overlay appears with warning message near selection
-8. Verify badge shows "!" with amber background
-9. Wait 5 seconds → verify overlay disappears, badge persists
-10. Click toolbar icon → verify badge clears, popup opens
+**Test 010: Blocked State**
+1. Visit wsj.com
+2. Select any word, right-click → "Explain with AI"
+3. Verify overlay appears with warning message near selection
+4. Verify badge shows "!" with amber background
+5. Wait 5 seconds → verify overlay disappears, badge persists
 
-**Test: Success State**
-11. Enable wsj.com in popup (click power button)
-12. Select a word, right-click → "Explain with AI"
-13. Verify overlay shows "✓ Saved: [word]" near selection
-14. Verify badge shows "✓" with green background
-15. Verify both clear after ~2-3 seconds
-16. Run `poetry run python tools/log_viewer.py --tail 1` → verify new entry
+**Test 020: Clear Blocked Badge**
+6. Click toolbar icon → verify badge clears, popup opens
 
-**Test: Error State**
-17. Open DevTools → Network → check "Offline"
-18. Select a word, right-click → "Explain with AI"
-19. Verify overlay shows error message
-20. Verify badge shows "✗" with red background
-21. Verify both clear after ~2-3 seconds
-22. Uncheck "Offline"
+**Test 030: Success State**
+7. Enable wsj.com in popup (click power button)
+8. Select a word, right-click → "Explain with AI"
+9. Verify overlay shows "Saved: [word]" near selection
+10. Verify badge shows "✓" with green background
+11. Verify both clear after ~2-3 seconds
+12. Run `poetry run python tools/log_viewer.py --tail 1` → verify new entry
 
-**Test: Security**
-23. Visit any allowlisted site
-24. Select the text: `<script>alert('xss')</script>`
-25. Right-click → "Explain with AI"
-26. Verify overlay shows the text literally (no alert popup)
+**Test 040: Error State**
+13. Open DevTools → Network → check "Offline"
+14. Select a word, right-click → "Explain with AI"
+15. Verify overlay shows error message
+16. Verify badge shows "✗" with red background
+17. Verify both clear after ~2-3 seconds
+18. Uncheck "Offline"
 
-**Test: Style Isolation**
-27. Test on wsj.com, nytimes.com, github.com
-28. Verify overlay appearance is consistent across all sites
+**Test 050: Overlay Position (Top)**
+19. Select text at top of page
+20. Right-click → "Explain with AI"
+21. Verify overlay appears BELOW selection, fully visible
+
+**Test 060: Overlay Position (Bottom)**
+22. Scroll to bottom of page
+23. Select text at bottom of viewport (last visible line)
+24. Right-click → "Explain with AI"
+25. Verify overlay appears ABOVE selection, fully visible (not clipped)
+
+**Test 070: Shadow DOM Isolation**
+26. Test on wsj.com, nytimes.com, github.com
+27. Verify overlay appearance is consistent across all sites
+
+**Test 080: XSS Prevention**
+28. Visit any allowlisted site
+29. Select the text: `<script>alert('xss')</script>`
+30. Right-click → "Explain with AI"
+31. Verify overlay shows the text literally (no alert popup)
+
+**Test 090: Rapid Clicks**
+32. Select a word, rapidly click "Explain with AI" 5 times
+33. Verify badge state remains coherent (no stuck badges)
 
 ## 7. Definition of Done
 
