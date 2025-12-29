@@ -26,8 +26,9 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 | File | Purpose | Status |
 |:-----|:--------|:-------|
 | `0110-TEMPLATE-test-plan.md` | Test strategy for a feature/release | Future |
-| `0111-TEMPLATE-test-script.md` | Step-by-step manual test procedure | Future |
-| `0112-TEMPLATE-test-report.md` | Results documentation after test run | Future |
+| `0111-TEMPLATE-test-script.md` | Generic manual test procedure (basic) | Active |
+| `0112-TEMPLATE-browser-extension-test-script.md` | Browser extension test script for non-technical users | Active |
+| `0113-TEMPLATE-test-report.md` | Results documentation after test run | Future |
 
 ### 012x: Content & Tutorial Templates
 | File | Purpose | Status |
