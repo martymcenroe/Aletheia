@@ -75,10 +75,18 @@ Session logs are stored in `docs/session-logs/` with weekly files using ISO 8601
 
 **Week boundary:** Monday 3:00 AM CT to following Monday 2:59 AM CT
 
-### ⚠️ CRITICAL: Timestamp Issue on Windows
-**Git Bash (MINGW64) timestamp bug:** The command `TZ='America/Chicago' date` on Windows shows **UTC time with a "CT" label**, NOT actual Central Time. It will be 6 hours ahead during CST (winter).
+### Getting Timestamps on Windows
+**CORRECT command for Windows:**
+```bash
+powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
+```
 
-**AI Agents:** Do NOT trust automated timestamp commands on Windows. Ask the user for the current time OR use the time stated by the orchestrator in conversation.
+**WRONG - Do NOT use:**
+```bash
+TZ='America/Chicago' date   # Returns UTC, not local time
+```
+
+**AI Agents:** On Windows, use PowerShell's `Get-Date` for timestamps. Git Bash's `date` command doesn't support Windows timezones. If unsure, ask the user for the current time.
 
 ### File Naming
 - Format: `Week-starting-YYYY-MM-DD.md` where the date is the Monday that starts the week
