@@ -78,3 +78,6 @@ batch-pdf.sh
 print-all-pdfs.sh
 print-docs.sh
 format-issues.py
+
+# Generated PDFs (keep markdown, ignore PDF)
+6000-*.pdf
