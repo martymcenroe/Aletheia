@@ -17,6 +17,7 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 - **Branch before code:** `git checkout -b {IssueID}-short-desc`
   - Example: Issue #25 → `25-linkedin-auth-gate` ✅
   - Example: Issue #45 → `45-hate-filter` ✅
+- **Docs before Code:** You MUST update the relevant `docs/` file (LLD or Standard) *before* writing a single line of code.
 - **Push immediately:** `git push -u origin HEAD` - NEVER keep branches local-only
 - **Commit format:** `type: description (ref #ID)` or `(close #ID)` when complete
 - **Cleanup completely:** Delete BOTH local and remote branches after merge:
