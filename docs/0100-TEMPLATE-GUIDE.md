@@ -20,7 +20,7 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 | `0101-TEMPLATE-issue.md` | GitHub Issue template for features | Active |
 | `0102-TEMPLATE-feature-lld.md` | Low-Level Design doc for features | Active |
 | `0103-TEMPLATE-implementation-report.md` | Post-implementation report for completed features | Active |
-| `0104-TEMPLATE-adr.md` | Architecture Decision Record | Future |
+| `0104-TEMPLATE-adr.md` | Architecture Decision Record | Active |
 
 ### 011x: Testing Templates
 | File | Purpose | Status |

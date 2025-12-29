@@ -46,9 +46,21 @@
 | `docs/0101-TEMPLATE-issue.md` | **Template** | 🟢 **Stable** | - | GitHub Issue template for features. |
 | `docs/0102-TEMPLATE-feature-lld.md` | **Template** | 🟢 **Stable** | - | Low-Level Design doc template for features. |
 | `docs/0103-TEMPLATE-implementation-report.md` | **Template** | 🟢 **Stable** | #77 | Implementation report template for completed features. |
+| `docs/0104-TEMPLATE-adr.md` | **Template** | 🟢 **Stable** | #111 | Architecture Decision Record template. |
 | `docs/0111-TEMPLATE-test-script.md` | **Template** | 🟢 **Stable** | - | Manual test script template (generic). |
 | `docs/0112-TEMPLATE-browser-extension-test-script.md` | **Template** | 🟢 **Stable** | #77 | Browser extension test script template for non-technical users. |
 | `docs/0113-TEMPLATE-test-report.md` | **Template** | 🟢 **Stable** | - | Test report template for recording test execution results. |
+
+### 02xx Architecture Decision Records
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/0200-ADR-index.md` | **Index** | 🟢 **Stable** | #111 | Master index of all ADRs with category cross-reference. |
+| `docs/0201-ADR-privacy-first-permissions.md` | **ADR** | 🟢 **Stable** | #111 | Decision: Never request `<all_urls>` permission. |
+| `docs/0202-ADR-shadow-dom-isolation.md` | **ADR** | 🟢 **Stable** | #111 | Decision: Closed Shadow DOM for injected UI. |
+| `docs/0203-ADR-stateful-serverless.md` | **ADR** | 🟢 **Stable** | #111 | Decision: DynamoDB hydration/dehydration pattern. |
+| `docs/0204-ADR-defense-funnel.md` | **ADR** | 🟢 **Stable** | #111 | Decision: Ordered defense layers (fail fast). |
+| `docs/0205-ADR-langgraph-orchestration.md` | **ADR** | 🟢 **Stable** | #111 | Decision: LangGraph for agent orchestration. |
+| `docs/0206-ADR-streaming-sse.md` | **ADR** | 🟢 **Stable** | #111 | Decision: SSE for streaming responses. |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |

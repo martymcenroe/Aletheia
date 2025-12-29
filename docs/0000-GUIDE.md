@@ -42,7 +42,13 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * `0100-TEMPLATE-GUIDE.md` — Index of all templates.
     * `0101-TEMPLATE-issue.md` — GitHub Issue template for features.
     * `0102-TEMPLATE-feature-lld.md` — Low-Level Design doc template.
+    * `0104-TEMPLATE-adr.md` — Architecture Decision Record template.
     * See `0100` for full template index (testing, tutorials, style guides).
+* **`02xx` (ADRs):** Architecture Decision Records.
+    * `0200-ADR-index.md` — Master index of all ADRs with category cross-reference.
+    * Records significant architecture decisions following Michael Nygard's format.
+    * Status: Proposed → Implemented → Deprecated → Superseded.
+    * Every ADR requires a Security Risk Analysis section.
 * **`1xxx` (Features):** The work.
     * Files map to GitHub Issues: `1000 + IssueID`.
     * Example: Issue #25 is documented in `1025-linkedin-auth-gate.md`.
