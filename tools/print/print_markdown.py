@@ -38,8 +38,9 @@ except ImportError:
 PANDOC_PATH = "pandoc"  # Use PATH
 SUMATRA_PATH = r"C:\Users\mcwiz\AppData\Local\SumatraPDF\SumatraPDF.exe"
 PRINTER_NAME = "Brother HL-L6300DW series Printer"
-PANDOC_HEADER = ".pandoc-header.tex"
+PANDOC_HEADER = "tools/print/pandoc-header.tex"
 PRINT_HISTORY_FILE = ".print-history.json"
+PRINT_OUTPUT_DIR = "temp-pdfs"
 JOB_TIMEOUT_SECONDS = 300  # 5 minutes
 
 
@@ -116,7 +117,13 @@ def filter_markdown_files(directory, new=False, modified=False, all_files=False)
 
 def generate_pdf(markdown_path):
     """Generate PDF using pandoc with fancy headers."""
-    pdf_path = markdown_path.with_suffix('.pdf')
+    # Ensure output directory exists
+    output_dir = Path(PRINT_OUTPUT_DIR)
+    output_dir.mkdir(exist_ok=True)
+
+    # Generate PDF in temp-pdfs/ directory
+    pdf_filename = markdown_path.stem + '.pdf'
+    pdf_path = output_dir / pdf_filename
 
     print(f"Generating PDF from {markdown_path}...")
 
@@ -430,6 +437,10 @@ def main():
                     successful += 1
                     print(f"Success: {md_file.name}")
 
+                    # Clean up PDF after successful print
+                    if pdf_path.exists():
+                        pdf_path.unlink()
+
                     # Wait before next file (unless last file)
                     if i < len(files) - 1 and args.wait > 0:
                         countdown_wait(args.wait)
@@ -438,6 +449,7 @@ def main():
                 else:
                     skipped += 1
                     print(f"Skipped: {md_file.name} - {error}")
+                    # Keep PDF for inspection on failure
 
             except Exception as e:
                 print(f"Error processing {md_file.name}: {e}")
@@ -469,13 +481,19 @@ def main():
 
         if success:
             update_print_history(args.path)
+
+            # Clean up PDF after successful print
+            if pdf_path.exists():
+                pdf_path.unlink()
+
             print("")
             print("Complete!")
             print(f"   Markdown: {args.path}")
-            print(f"   PDF: {pdf_path}")
+            print(f"   PDF: {pdf_path} (deleted after print)")
             print(f"   Printed to: {PRINTER_NAME} ({mode_str})")
         else:
             print(f"Print failed: {error}")
+            print(f"   PDF kept for inspection: {pdf_path}")
             sys.exit(1)
 
 

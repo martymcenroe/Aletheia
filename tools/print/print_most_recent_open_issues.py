@@ -23,7 +23,8 @@ REPO = "martymcenroe/Aletheia"
 PANDOC_PATH = "pandoc"  # Use PATH
 SUMATRA_PATH = r"C:\Users\mcwiz\AppData\Local\SumatraPDF\SumatraPDF.exe"
 PRINTER_NAME = "Brother HL-L6300DW series Printer"
-PANDOC_HEADER = ".pandoc-header.tex"
+PANDOC_HEADER = "tools/print/pandoc-header.tex"
+PRINT_OUTPUT_DIR = "temp-pdfs"
 
 
 def fetch_open_issues():
@@ -119,7 +120,13 @@ def save_markdown(content, date_str):
 
 def generate_pdf(markdown_path, duplex=False):
     """Generate PDF using pandoc with fancy headers."""
-    pdf_path = markdown_path.with_suffix('.pdf')
+    # Ensure output directory exists
+    output_dir = Path(PRINT_OUTPUT_DIR)
+    output_dir.mkdir(exist_ok=True)
+
+    # Generate PDF in temp-pdfs/ directory
+    pdf_filename = markdown_path.stem + '.pdf'
+    pdf_path = output_dir / pdf_filename
 
     print(f"Generating PDF with pandoc...")
 
@@ -222,10 +229,14 @@ def main():
     pdf_path = generate_pdf(markdown_path, duplex)
     print_pdf(pdf_path, duplex)
 
+    # Clean up PDF after successful print
+    if pdf_path.exists():
+        pdf_path.unlink()
+
     print("")
     print("Complete!")
     print(f"   Markdown: {markdown_path}")
-    print(f"   PDF: {pdf_path}")
+    print(f"   PDF: {pdf_path} (deleted after print)")
     print(f"   Printed to: {PRINTER_NAME} ({mode_str})")
 
 

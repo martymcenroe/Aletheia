@@ -14,7 +14,11 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(gh:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(powershell.exe -Command \"Get-Date -Format ''yyyy-MM-dd''\")",
+      "Bash(python tools/print_most_recent_open_issues.py:*)",
+      "Bash(poetry add:*)",
+      "Bash(poetry run python:*)"
     ],
     "deny": [
       "Read(.env)",
