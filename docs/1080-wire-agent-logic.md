@@ -1,5 +1,5 @@
 [Gemini | Turn ID: 71 | Time: 2025-12-23 01:05 CST]
-[Updated: Claude Opus 4.5 | 2025-12-29 | Architecture clarification, TDD expansion]
+[Updated: Claude Opus 4.5 | 2025-12-29 | Template compliance, removed implementation code]
 
 # 1080 - Low-Level Design: Wire Agent to Defense Funnel
 
@@ -7,13 +7,32 @@
 
 * **Issue:** #80
 * **Objective:** Wire the `agent.py` LangGraph to enforce the "Defense in Depth" architecture.
-* **Reviewer:** Claude Opus (Verdict: Approved with clarifications).
-* **Strategy:** Fail Fast, Fail Closed.
-* **Related Issues:** #45 (Denylist - stub), #109 (Layer renaming), #112 (Signal handling)
+* **Status:** In Progress
+* **Reviewer:** Claude Opus (Verdict: Approved with clarifications)
+* **Strategy:** Fail Fast, Fail Closed
+* **Related Issues:** #45 (Denylist - stub), #104 (Age Check), #109 (Layer renaming), #112 (Signal handling)
 
-## 2. Architecture Overview
+## 2. Requirements
 
-### 2.1 Layer Naming Convention
+1. **Guardrails Integration:** Single entry point via `engine.validate()` orchestrating Denylist (stub) and Semantic checks
+2. **Fail Closed:** Any exception treated as BLOCKED (Internal Security Error)
+3. **User Feedback:** Blocked content returns user-friendly message via `AIMessage`
+4. **Transform Integration:** Pass-through stub for noarchive handling (future)
+5. **State Management:** Extend `AgentState` to carry security signals
+
+## 3. Alternatives Considered
+
+| Option | Pros | Cons | Decision |
+|--------|------|------|----------|
+| Sequential node checks | Simple, clear flow | Can't parallelize, verbose graph | **Selected** |
+| Parallel guardrail execution | Faster for multiple checks | Complex error handling, race conditions | Rejected |
+| Single monolithic node | Fewer graph nodes | Hard to test, violates SRP | Rejected |
+
+**Rationale:** Sequential nodes align with "Defense in Depth" philosophy - each layer is a distinct checkpoint. Easier to test, debug, and extend.
+
+## 4. Architecture Overview
+
+### 4.1 Layer Naming Convention
 
 We use **functional names** instead of L1/L2/L3/L4 because layers may move between client and server.
 
@@ -26,7 +45,7 @@ We use **functional names** instead of L1/L2/L3/L4 because layers may move betwe
 | **Semantic** | Lambda | AI-based context analysis | Implemented |
 | **Transform** | Lambda | Summarizer for noarchive | Implemented |
 
-### 2.2 Scope of This Issue (#80)
+### 4.2 Scope of This Issue (#80)
 
 **In Scope:** Server-side wiring (Lambda)
 - Wire `guardrails_node` → calls Denylist (stub) + Semantic
@@ -35,40 +54,14 @@ We use **functional names** instead of L1/L2/L3/L4 because layers may move betwe
 - State schema updates
 
 **Out of Scope:** Client-side checks (separate issues)
-- Age Check (#104)
-- Robot Meta detection
-- Selection validation enhancements
 
-## 3. Requirements
+## 5. Diagrams
 
-### 3.1 Guardrails Integration (The Gatekeeper)
-
-1. **Single Entry Point:** Call `src.guardrails.engine.validate(text)`.
-   - Internally orchestrates **Denylist** (stub) and **Semantic** checks
-   - Denylist is a no-op stub returning `blocked=False` until #45 is implemented
-2. **Fail Closed:** If `engine.validate` throws an exception, treat input as **BLOCKED** (Reason: "Internal Security Error").
-3. **Feedback:** If blocked, append an `AIMessage` with the block reason to `state['messages']`.
-
-### 3.2 Transform Integration (The Summarizer)
-
-1. Create a `summarizer_node` (renamed from "compliance").
-2. **Behavior for #80:** Pass-through (No-Op).
-3. **Future Behavior:** When `noarchive_flag=True`, invoke Transform to summarize raw text before storage.
-
-### 3.3 Graph Topology
-
-```
-Start → Guardrails → (blocked?) → End
-                  ↘ (safe) → Transform → Agent → End
-```
-
-## 4. Diagrams
-
-### 4.1 Server-Side Graph (This Issue)
+### 5.1 Server-Side Graph (This Issue)
 
 ```mermaid
 graph TD
-    subgraph "AWS Lambda (agent.py)"
+    subgraph "AWS Lambda - agent.py"
         START((Start)) --> GR[guardrails_node]
 
         GR --> CHECK{blocked?}
@@ -87,7 +80,7 @@ graph TD
     end
 ```
 
-### 4.2 Full Architecture (Context)
+### 5.2 Full Architecture (Context)
 
 ```mermaid
 graph LR
@@ -110,313 +103,154 @@ graph LR
     DYNAMO --> RESPONSE[Response to User]
 ```
 
-## 5. Technical Approach
+## 6. Technical Approach
 
 * **Module:** `agent.py`
-* **Dependencies:** `src.guardrails.engine`
-* **Pattern:** "Fail Fast" (Security violations abort execution immediately)
-* **State Management:** Extends `AgentState` to carry security signals
+* **Dependencies:** `src.guardrails.engine`, `langchain_core.messages`, `langgraph.graph`
+* **Pattern:** Fail Fast (security violations abort immediately)
 
-## 6. Implementation Details
+## 7. Interface Specification
 
-### 6.1 State Schema Update
+### 7.1 Data Structures
 
 ```python
-from typing import TypedDict, Annotated
-from langchain_core.messages import AnyMessage
-from langgraph.graph import add_messages
-
+# State schema - extends existing AgentState
 class AgentState(TypedDict):
-    # Existing fields
     messages: Annotated[list[AnyMessage], add_messages]
     thread_id: str
     raw_selection: str
-
-    # New fields for #80
-    guardrail_result: dict  # {'blocked': bool, 'reason': str, 'layer': str}
-
-    # Signal flags from extension (populated by Lambda handler)
-    signals: dict  # {'noarchive': bool, 'source_url': str, ...}
+    guardrail_result: dict   # {'blocked': bool, 'reason': str, 'layer': str}
+    signals: dict            # {'noarchive': bool, 'source_url': str, ...}
 ```
 
-### 6.2 Node Logic
-
-**A. `guardrails_node`**
+### 7.2 Function Signatures
 
 ```python
-from src.guardrails import engine
-from langchain_core.messages import AIMessage
-import logging
-
-logger = logging.getLogger(__name__)
-
 def guardrails_node(state: AgentState) -> dict:
+    """Gatekeeper - validates input through Denylist and Semantic checks.
+    Returns: {'guardrail_result': {...}, 'messages': [...] if blocked}
     """
-    Gatekeeper node - validates input through Denylist and Semantic checks.
+    ...
 
-    Fail Closed: Any exception results in BLOCKED status.
-    """
-    raw_text = state.get("raw_selection", "")
-
-    if not raw_text or not raw_text.strip():
-        return {
-            "guardrail_result": {"blocked": True, "reason": "Empty selection", "layer": "validation"},
-            "messages": [AIMessage(content="BLOCKED: No text selected")]
-        }
-
-    try:
-        # Orchestrates Denylist (stub) and Semantic checks
-        result = engine.validate(raw_text)
-    except Exception as e:
-        # Fail Closed - treat any error as security violation
-        logger.error(f"Guardrail exception: {e}", exc_info=True)
-        result = {"blocked": True, "reason": "Internal Security Error", "layer": "exception"}
-
-    if result.get("blocked"):
-        return {
-            "guardrail_result": result,
-            "messages": [AIMessage(content=f"BLOCKED: {result.get('reason', 'Unknown')}")]
-        }
-
-    return {"guardrail_result": result}
-```
-
-**B. `summarizer_node` (Transform)**
-
-```python
 def summarizer_node(state: AgentState) -> dict:
+    """Transform - handles noarchive content. Pass-through for #80.
+    Returns: {'signals': {...}}
     """
-    Transform node - handles noarchive content by summarizing instead of storing raw.
+    ...
 
-    For #80: Pass-through (no-op).
-    Future: Check signals['noarchive'] and invoke Transform if True.
-    """
-    signals = state.get("signals", {})
-
-    # STUB for #80 - pass through
-    # TODO (#85): If signals.get('noarchive'):
-    #     - Call compliance.analyze_context()
-    #     - Replace raw_selection with summary
-    #     - Set signals['transformed'] = True
-
-    return {"signals": signals}
-```
-
-**C. Conditional Edge: `should_continue`**
-
-```python
 def should_continue(state: AgentState) -> str:
+    """Router - determines next node based on guardrail result.
+    Returns: '__end__' if blocked, 'summarizer_node' if safe
     """
-    Routing logic - determines next node based on guardrail result.
+    ...
 
-    Returns:
-        "__end__" if blocked
-        "summarizer_node" if safe to proceed
+def build_agent_graph() -> CompiledGraph:
+    """Constructs the agent graph with defense funnel.
+    Returns: Compiled LangGraph ready for invocation
     """
-    result = state.get("guardrail_result", {})
-
-    if result.get("blocked"):
-        return "__end__"
-
-    return "summarizer_node"
+    ...
 ```
 
-### 6.3 Graph Construction
+### 7.3 Logic Flow (Pseudocode)
 
-```python
-from langgraph.graph import StateGraph, END
-
-def build_agent_graph():
-    """Construct the agent graph with defense funnel."""
-
-    graph = StateGraph(AgentState)
-
-    # Add nodes
-    graph.add_node("guardrails_node", guardrails_node)
-    graph.add_node("summarizer_node", summarizer_node)
-    graph.add_node("agent_node", agent_node)  # Existing Bedrock agent
-
-    # Set entry point
-    graph.set_entry_point("guardrails_node")
-
-    # Add conditional edge from guardrails
-    graph.add_conditional_edges(
-        "guardrails_node",
-        should_continue,
-        {
-            "__end__": END,
-            "summarizer_node": "summarizer_node"
-        }
-    )
-
-    # Add remaining edges
-    graph.add_edge("summarizer_node", "agent_node")
-    graph.add_edge("agent_node", END)
-
-    return graph.compile()
+**guardrails_node:**
+```
+1. Get raw_selection from state
+2. IF empty or whitespace THEN
+   - Return blocked (Empty selection)
+3. TRY
+   - Call engine.validate(raw_selection)
+4. CATCH any exception
+   - Return blocked (Internal Security Error)  [Fail Closed]
+5. IF result.blocked THEN
+   - Return guardrail_result + AIMessage with block reason
+6. ELSE
+   - Return guardrail_result only
 ```
 
-## 7. Verification & Testing
-
-* **Ref:** `docs/0005-testing-strategy-and-protocols.md`
-* **Test File:** `tests/test_agent_wiring.py`
-* **Strategy:** Test-Driven Development (TDD) - write tests BEFORE implementation
-
-### 7.1 Test Setup
-
-```python
-import pytest
-from unittest.mock import patch, MagicMock
-from agent import guardrails_node, summarizer_node, should_continue, AgentState
-
-@pytest.fixture
-def clean_state() -> AgentState:
-    """Baseline state for testing."""
-    return {
-        "messages": [],
-        "thread_id": "test-thread-001",
-        "raw_selection": "The quick brown fox jumps over the lazy dog.",
-        "guardrail_result": {},
-        "signals": {}
-    }
-
-@pytest.fixture
-def mock_engine_safe():
-    """Mock engine.validate returning safe result."""
-    with patch('src.guardrails.engine.validate') as mock:
-        mock.return_value = {"blocked": False, "reason": None, "layer": None}
-        yield mock
-
-@pytest.fixture
-def mock_engine_blocked():
-    """Mock engine.validate returning blocked result."""
-    with patch('src.guardrails.engine.validate') as mock:
-        mock.return_value = {"blocked": True, "reason": "Hate speech detected", "layer": "denylist"}
-        yield mock
-
-@pytest.fixture
-def mock_engine_exception():
-    """Mock engine.validate raising exception."""
-    with patch('src.guardrails.engine.validate') as mock:
-        mock.side_effect = ValueError("Database connection failed")
-        yield mock
+**summarizer_node:**
+```
+1. Get signals from state
+2. [STUB] Return signals unchanged
+3. [FUTURE] IF signals.noarchive THEN
+   - Call Transform to summarize
+   - Replace raw_selection with summary
 ```
 
-### 7.2 Test Scenarios
-
-| # | Scenario | Mock Behavior | Expected Path | Expected Output | Test Function |
-|---|----------|---------------|---------------|-----------------|---------------|
-| 1 | Happy Path | `blocked=False` | GR → Transform → Agent | Agent processes input | `test_happy_path` |
-| 2 | Blocked by Denylist | `blocked=True, layer=denylist` | GR → End | "BLOCKED: Hate speech..." | `test_blocked_denylist` |
-| 3 | Blocked by Semantic | `blocked=True, layer=semantic` | GR → End | "BLOCKED: Provocative..." | `test_blocked_semantic` |
-| 4 | Exception (Fail Closed) | Raises `ValueError` | GR → End | "BLOCKED: Internal Security Error" | `test_exception_fail_closed` |
-| 5 | Empty Selection | N/A (validation) | GR → End | "BLOCKED: No text selected" | `test_empty_selection` |
-| 6 | Whitespace Only | N/A (validation) | GR → End | "BLOCKED: No text selected" | `test_whitespace_only` |
-| 7 | Transform Pass-through | `blocked=False` | GR → Transform | signals unchanged | `test_transform_passthrough` |
-
-### 7.3 Test Implementations
-
-```python
-class TestGuardrailsNode:
-    """Tests for guardrails_node function."""
-
-    def test_happy_path(self, clean_state, mock_engine_safe):
-        """Safe content passes through without messages."""
-        result = guardrails_node(clean_state)
-
-        assert result["guardrail_result"]["blocked"] == False
-        assert "messages" not in result or len(result.get("messages", [])) == 0
-        mock_engine_safe.assert_called_once_with(clean_state["raw_selection"])
-
-    def test_blocked_denylist(self, clean_state, mock_engine_blocked):
-        """Blocked content returns BLOCKED message."""
-        result = guardrails_node(clean_state)
-
-        assert result["guardrail_result"]["blocked"] == True
-        assert len(result["messages"]) == 1
-        assert "BLOCKED:" in result["messages"][0].content
-        assert "Hate speech" in result["messages"][0].content
-
-    def test_exception_fail_closed(self, clean_state, mock_engine_exception):
-        """Exceptions result in BLOCKED with Internal Security Error."""
-        result = guardrails_node(clean_state)
-
-        assert result["guardrail_result"]["blocked"] == True
-        assert result["guardrail_result"]["reason"] == "Internal Security Error"
-        assert "Internal Security Error" in result["messages"][0].content
-
-    def test_empty_selection(self, clean_state):
-        """Empty selection is blocked at validation."""
-        clean_state["raw_selection"] = ""
-        result = guardrails_node(clean_state)
-
-        assert result["guardrail_result"]["blocked"] == True
-        assert "Empty selection" in result["guardrail_result"]["reason"]
-
-    def test_whitespace_only(self, clean_state):
-        """Whitespace-only selection is blocked."""
-        clean_state["raw_selection"] = "   \n\t  "
-        result = guardrails_node(clean_state)
-
-        assert result["guardrail_result"]["blocked"] == True
-
-
-class TestShouldContinue:
-    """Tests for should_continue routing function."""
-
-    def test_routes_to_end_when_blocked(self, clean_state):
-        """Blocked state routes to __end__."""
-        clean_state["guardrail_result"] = {"blocked": True, "reason": "test"}
-
-        assert should_continue(clean_state) == "__end__"
-
-    def test_routes_to_summarizer_when_safe(self, clean_state):
-        """Safe state routes to summarizer_node."""
-        clean_state["guardrail_result"] = {"blocked": False}
-
-        assert should_continue(clean_state) == "summarizer_node"
-
-    def test_routes_to_summarizer_when_missing_result(self, clean_state):
-        """Missing guardrail_result defaults to safe (routes to summarizer)."""
-        clean_state["guardrail_result"] = {}
-
-        assert should_continue(clean_state) == "summarizer_node"
-
-
-class TestSummarizerNode:
-    """Tests for summarizer_node (Transform) function."""
-
-    def test_passthrough_returns_signals(self, clean_state):
-        """Pass-through mode returns signals unchanged."""
-        clean_state["signals"] = {"noarchive": False, "source_url": "https://example.com"}
-
-        result = summarizer_node(clean_state)
-
-        assert result["signals"] == clean_state["signals"]
-
-    def test_empty_signals_returns_empty(self, clean_state):
-        """Empty signals returns empty dict."""
-        clean_state["signals"] = {}
-
-        result = summarizer_node(clean_state)
-
-        assert result["signals"] == {}
+**should_continue:**
+```
+1. Get guardrail_result from state
+2. IF blocked THEN return "__end__"
+3. ELSE return "summarizer_node"
 ```
 
-### 7.4 Running Tests
+## 8. Security Considerations
 
-```bash
-# Run all agent wiring tests
-poetry run pytest tests/test_agent_wiring.py -v
+| Concern | Mitigation | Status |
+|---------|------------|--------|
+| Input injection | All input passes through guardrails before processing | Addressed |
+| Exception leakage | Fail Closed - exceptions become generic "Internal Security Error" | Addressed |
+| Bypass via empty input | Explicit empty/whitespace check before engine call | Addressed |
+| Malformed API requests | Lambda handler validates payload structure | TODO |
 
-# Run with coverage
-poetry run pytest tests/test_agent_wiring.py -v --cov=agent --cov-report=term-missing
+**Fail Mode:** Fail Closed - Any uncertainty results in BLOCKED status. User safety over availability.
 
-# Run specific test class
-poetry run pytest tests/test_agent_wiring.py::TestGuardrailsNode -v
-```
+## 9. Performance Considerations
 
-## 8. Stub Modules
+| Metric | Budget | Approach |
+|--------|--------|----------|
+| Latency (guardrails) | < 200ms | Denylist is O(1) hash lookup, Semantic uses Haiku (fast) |
+| Latency (total) | < 2000ms | Bedrock dominates; guardrails negligible |
+| Memory | < 256MB Lambda | State is small (text + signals) |
+| API Calls | 1-2 per request | Haiku for Semantic, Sonnet for Agent |
+
+**Bottlenecks:** Bedrock API latency dominates. Guardrails add ~100-200ms.
+
+## 10. Risks & Mitigations
+
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| Semantic check false positive | User blocked incorrectly | Medium | Log all blocks, review patterns |
+| Denylist bypass (not implemented) | Hate content passes through | High until #45 | Semantic provides backup |
+| Exception in guardrails crashes Lambda | Service unavailable | Low | Fail Closed catches all exceptions |
+| State schema mismatch | Runtime errors | Medium | Type hints + unit tests |
+
+## 11. Verification & Testing
+
+*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+*Test File: `tests/test_agent_wiring.py`*
+
+### 11.1 Test Scenarios
+
+| ID | Scenario | Type | Input | Expected Output | Pass Criteria |
+|----|----------|------|-------|-----------------|---------------|
+| 010 | Happy Path | Auto | Safe text | Agent processes, returns response | No BLOCKED message |
+| 020 | Blocked by Denylist | Auto | Mock blocked=True | BLOCKED message | Contains "BLOCKED:" |
+| 030 | Blocked by Semantic | Auto | Mock blocked=True, layer=semantic | BLOCKED message | Contains "BLOCKED:" |
+| 040 | Exception (Fail Closed) | Auto | Mock raises ValueError | BLOCKED: Internal Security Error | Reason = "Internal Security Error" |
+| 050 | Malformed Request - Empty | Auto | "" | BLOCKED: No text | guardrail_result.blocked=True |
+| 060 | Malformed Request - Whitespace | Auto | "   \n\t  " | BLOCKED: No text | guardrail_result.blocked=True |
+| 070 | Transform Pass-through | Auto | Safe text + signals | signals unchanged | signals returned as-is |
+
+*Note: Tests 050/060 are API-level validation tests (automation only). Cannot be triggered from extension UI - empty selection doesn't show context menu.*
+
+### 11.2 Test Strategy
+
+* **Unit Tests:** Mock `engine.validate` to test node logic in isolation
+* **Integration Test:** Run full graph with mocked Bedrock
+* **End-to-End:** Manual smoke test with real Lambda + Bedrock
+
+### 11.3 Manual Smoke Test
+
+1. Load extension on allowlisted site
+2. Select safe text, click "Explain with AI"
+3. Verify response appears (not BLOCKED)
+4. Select provocative text (if Semantic working)
+5. Verify BLOCKED message appears
+
+*Full test results recorded in Test Report (0113) or Implementation Report (0103).*
+
+## 12. Stub Modules
 
 The following are **intentional stubs** that pass through until their respective issues are implemented:
 
@@ -427,29 +261,26 @@ The following are **intentional stubs** that pass through until their respective
 | Age Check | Not called (extension-side) | #104 |
 | Robot Meta Check | Not called (extension-side) | Future |
 
-## 9. Definition of Done
+## 13. Definition of Done
 
 ### Code
 - [ ] `agent.py` updated with new nodes and state schema
-- [ ] `guardrails_node` implements "Fail Closed" logic
+- [ ] `guardrails_node` implements Fail Closed logic
 - [ ] `summarizer_node` implements pass-through stub
 - [ ] `should_continue` implements routing logic
-- [ ] `build_agent_graph` constructs the graph correctly
+- [ ] `build_agent_graph` constructs graph correctly
 - [ ] `lambda_function.py` updated to use new graph
+- [ ] Code comments reference this LLD
 
 ### Tests
-- [ ] `tests/test_agent_wiring.py` created with all test scenarios
-- [ ] All 7 test scenarios pass
+- [ ] `tests/test_agent_wiring.py` created
+- [ ] All 7 test scenarios pass (010-070)
 - [ ] Test coverage > 90% for new code
 
 ### Documentation
-- [ ] This LLD updated with any implementation deviations
-- [ ] Code comments reference this LLD and related issues
-
-### Integration
-- [ ] Manual smoke test: Extension → Lambda → Bedrock → Response
-- [ ] Blocked content returns user-friendly message
-- [ ] Safe content processes through to agent
+- [ ] This LLD updated with any deviations
+- [ ] Implementation Report (0103) completed
+- [ ] Test Report (0113) completed
 
 ### Review
 - [ ] Code review by Gemini or Claude

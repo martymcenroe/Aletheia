@@ -19,7 +19,7 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 | `0100-TEMPLATE-GUIDE.md` | This file. Index of all templates. | Active |
 | `0101-TEMPLATE-issue.md` | GitHub Issue template for features | Active |
 | `0102-TEMPLATE-feature-lld.md` | Low-Level Design doc for features | Active |
-| `0103-TEMPLATE-chore-issue.md` | Lightweight issue for chores/bugs | Future |
+| `0103-TEMPLATE-implementation-report.md` | Post-implementation report for completed features | Active |
 | `0104-TEMPLATE-adr.md` | Architecture Decision Record | Future |
 
 ### 011x: Testing Templates
@@ -28,7 +28,7 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 | `0110-TEMPLATE-test-plan.md` | Test strategy for a feature/release | Future |
 | `0111-TEMPLATE-test-script.md` | Generic manual test procedure (basic) | Active |
 | `0112-TEMPLATE-browser-extension-test-script.md` | Browser extension test script for non-technical users | Active |
-| `0113-TEMPLATE-test-report.md` | Results documentation after test run | Future |
+| `0113-TEMPLATE-test-report.md` | Results documentation after test run | Active |
 
 ### 012x: Content & Tutorial Templates
 | File | Purpose | Status |
