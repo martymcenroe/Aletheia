@@ -66,3 +66,15 @@ _full_project_context.txt
 
 # Security
 docs/security/
+
+# Temporary PDF generation
+temp-pdfs/
+temp-*.pdf
+temp-*.md
+temp-*.json
+test-*.pdf
+.pandoc-header-temp.tex
+batch-pdf.sh
+print-all-pdfs.sh
+print-docs.sh
+format-issues.py
