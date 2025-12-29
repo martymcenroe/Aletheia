@@ -22,41 +22,63 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 | [0204](0204-ADR-defense-funnel.md) | Defense Funnel (Fail Fast) | Implemented | Security, Content Safety, Performance | 2025-12-15 |
 | [0205](0205-ADR-langgraph-orchestration.md) | LangGraph for Agent Orchestration | Implemented | Infrastructure, Integration | 2025-12-15 |
 | [0206](0206-ADR-streaming-sse.md) | Server-Sent Events for Streaming | Implemented | Infrastructure, UX, Performance | 2025-12-15 |
+| [0207](0207-ADR-single-identity-orchestration.md) | Single-Identity Orchestration | Implemented | Process, Cost, Security | 2025-12-29 |
+| [0208](0208-ADR-client-side-preference-storage.md) | Client-Side Preference Storage | Implemented | Privacy, UX, Data | 2025-12-29 |
+| [0209](0209-ADR-static-compliance-hosting.md) | Static Compliance Hosting | Implemented | Compliance, Cost, Infra | 2025-12-29 |
+| [0210](0210-ADR-git-worktree-isolation.md) | Git Worktree Isolation | Implemented | Process, Infra, UX | 2025-12-29 |
 
 ---
 
 ## By Category
 
+### Cost Optimization
+- [0207](0207-ADR-single-identity-orchestration.md)
+- [0209](0209-ADR-static-compliance-hosting.md)
+
+### Process
+- [0207](0207-ADR-single-identity-orchestration.md)
+- [0210](0210-ADR-git-worktree-isolation.md)
+
+### Compliance
+- [0209](0209-ADR-static-compliance-hosting.md)
+
 ### Security
-- [0201](0201-ADR-privacy-first-permissions.md) - Privacy-First Extension Permissions
-- [0202](0202-ADR-shadow-dom-isolation.md) - Shadow DOM for Injected UI
-- [0204](0204-ADR-defense-funnel.md) - Defense Funnel (Fail Fast)
+- [0201](0201-ADR-privacy-first-permissions.md)
+- [0202](0202-ADR-shadow-dom-isolation.md)
+- [0204](0204-ADR-defense-funnel.md)
+- [0207](0207-ADR-single-identity-orchestration.md)
 
 ### Privacy
-- [0201](0201-ADR-privacy-first-permissions.md) - Privacy-First Extension Permissions
+- [0201](0201-ADR-privacy-first-permissions.md)
+- [0208](0208-ADR-client-side-preference-storage.md)
 
 ### Content Safety
-- [0204](0204-ADR-defense-funnel.md) - Defense Funnel (Fail Fast)
+- [0204](0204-ADR-defense-funnel.md)
 
 ### Infrastructure
-- [0203](0203-ADR-stateful-serverless.md) - Stateful Serverless Pattern
-- [0205](0205-ADR-langgraph-orchestration.md) - LangGraph for Agent Orchestration
-- [0206](0206-ADR-streaming-sse.md) - Server-Sent Events for Streaming
+- [0203](0203-ADR-stateful-serverless.md)
+- [0205](0205-ADR-langgraph-orchestration.md)
+- [0206](0206-ADR-streaming-sse.md)
+- [0209](0209-ADR-static-compliance-hosting.md)
+- [0210](0210-ADR-git-worktree-isolation.md)
 
 ### Data
-- [0203](0203-ADR-stateful-serverless.md) - Stateful Serverless Pattern
+- [0203](0203-ADR-stateful-serverless.md)
+- [0208](0208-ADR-client-side-preference-storage.md)
 
 ### Integration
-- [0205](0205-ADR-langgraph-orchestration.md) - LangGraph for Agent Orchestration
+- [0205](0205-ADR-langgraph-orchestration.md)
 
 ### Performance
-- [0204](0204-ADR-defense-funnel.md) - Defense Funnel (Fail Fast)
-- [0206](0206-ADR-streaming-sse.md) - Server-Sent Events for Streaming
+- [0204](0204-ADR-defense-funnel.md)
+- [0206](0206-ADR-streaming-sse.md)
 
 ### UX
-- [0201](0201-ADR-privacy-first-permissions.md) - Privacy-First Extension Permissions
-- [0202](0202-ADR-shadow-dom-isolation.md) - Shadow DOM for Injected UI
-- [0206](0206-ADR-streaming-sse.md) - Server-Sent Events for Streaming
+- [0201](0201-ADR-privacy-first-permissions.md)
+- [0202](0202-ADR-shadow-dom-isolation.md)
+- [0206](0206-ADR-streaming-sse.md)
+- [0208](0208-ADR-client-side-preference-storage.md)
+- [0210](0210-ADR-git-worktree-isolation.md)
 
 ---
 
@@ -69,8 +91,8 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `docs/0104-TEMPLATE-adr.md`
-2. Use next available number (currently 0207)
-3. Name format: `0207-ADR-{short-topic}.md`
+2. Use next available number (currently 0211)
+3. Name format: `02xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
 6. Update `docs/0003-file-inventory.md`

@@ -271,6 +271,8 @@ The following are **intentional stubs** that pass through until their respective
 - [ ] `build_agent_graph` constructs graph correctly
 - [ ] `lambda_function.py` updated to use new graph
 - [ ] Code comments reference this LLD
+- [ ] `src/guardrails/engine.py` refactored to integrate `SemanticGuardrail`
+- [ ] `src/guardrails/engine.py` implements Denylist stub (hardcoded empty set)
 
 ### Tests
 - [ ] `tests/test_agent_wiring.py` created

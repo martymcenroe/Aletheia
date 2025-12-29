@@ -41,6 +41,9 @@ Tag each ADR with one or more categories:
 - **Integration** - APIs, third-party services, protocols
 - **Performance** - Latency, throughput, optimization
 - **UX** - User experience trade-offs affecting architecture
+- **Cost Optimization** - Budget-driven decisions (e.g., licensing, hosting)
+- **Process** - Workflow and developer experience decisions
+- **Compliance** - Legal, store policy, and regulatory requirements
 
 ## On Diagrams
 Use diagrams when they clarify the decision better than prose. Good candidates:

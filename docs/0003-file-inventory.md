@@ -61,6 +61,10 @@
 | `docs/0204-ADR-defense-funnel.md` | **ADR** | 🟢 **Stable** | #111 | Decision: Ordered defense layers (fail fast). |
 | `docs/0205-ADR-langgraph-orchestration.md` | **ADR** | 🟢 **Stable** | #111 | Decision: LangGraph for agent orchestration. |
 | `docs/0206-ADR-streaming-sse.md` | **ADR** | 🟢 **Stable** | #111 | Decision: SSE for streaming responses. |
+| `docs/0207-ADR-single-identity-orchestration.md` | **ADR** | 🟢 **Stable** | - | Decision: Single human committer identity. |
+| `docs/0208-ADR-client-side-preference-storage.md` | **ADR** | 🟢 **Stable** | - | Decision: chrome.storage.local for persistence. |
+| `docs/0209-ADR-static-compliance-hosting.md` | **ADR** | 🟢 **Stable** | - | Decision: GitHub Pages for legal docs. |
+| `docs/0210-ADR-git-worktree-isolation.md` | **ADR** | 🟢 **Stable** | - | Decision: Worktrees for feature isolation. |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
@@ -106,14 +110,14 @@
 ### Core Application (Python)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `agent.py` | **Logic** | 🟡 **Beta** | #80 | Main LangGraph agent definitions. |
+| `agent.py` | **Logic** | 🟠 **In-Progress** | #80 | Main LangGraph agent definitions. |
 | `checkpointer.py` | **State** | 🟡 **Beta** | - | DynamoDB state management. |
 | `compliance.py` | **Logic** | 🟡 **Beta** | #14 | Compliance checking logic. |
-| `lambda_function.py` | **Entry** | 🟡 **Beta** | - | Main AWS Lambda handler (streaming). |
+| `lambda_function.py` | **Entry** | 🟠 **In-Progress** | #80 | Main AWS Lambda handler (streaming). |
 | `lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
 | `src/__init__.py` | **Module** | 🟢 **Stable** | - | Package init. |
 | `src/guardrails/__init__.py` | **Module** | 🟢 **Stable** | - | Guardrails package init. |
-| `src/guardrails/engine.py` | **Logic** | 🟡 **Beta** | #11 | Guardrails engine. |
+| `src/guardrails/engine.py` | **Logic** | 🟠 **In-Progress** | #80 | Guardrails engine (wiring Semantic + Denylist stub). |
 | `src/guardrails/validators.py` | **Logic** | 🟡 **Beta** | #11 | Validator functions. |
 | `src/guardrails/semantic.py` | **Logic** | 🟡 **Beta** | #10 | Semantic guardrail (LLM-based). |
 | `src/guardrails/resources/taxonomy.json` | **Data** | 🟢 **Stable** | #10 | Taxonomy and few-shot examples. |
@@ -162,6 +166,7 @@
 | `tests/__init__.py` | **Test** | 🟢 **Stable** | - | Test package init. |
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
+| `tests/test_agent_wiring.py` | **Test** | 🟠 **In-Progress** | #80 | Unit tests for agent defense funnel wiring. |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
 | `docs/security/vulnerability-test.md` | **Test** | 🚫 **Gitignored** | #95 | Manual vulnerability reproduction scripts. |

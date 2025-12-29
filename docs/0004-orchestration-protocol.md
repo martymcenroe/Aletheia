@@ -20,7 +20,8 @@ Every feature or fix must strictly follow this 9-step execution loop to ensure h
 | :--- | :--- | :--- |
 | **1. Issue** | Discovery & Claim | `gh issue create` or `gh issue list` |
 | **2. Branch** | Isolation | `git checkout main && git pull && git checkout -b ID-desc` |
-| **3. Edit** | Implementation | `cat << 'EOF' > file.py` or `nano file.py` |
+| **3a. Docs** | Update Specs/Standards | `nano docs/10xx-feature.md` |
+| **3b. Code** | Implementation | `nano file.py` |
 | **4. Stage** | Preparation | `git add file.py` |
 | **5. Commit** | Save | `git commit -m "type: desc (ref #ID)"` |
 | **6. Push** | Team Visibility (REQUIRED) | `git push -u origin HEAD` - Never keep branches local-only |
