@@ -172,24 +172,27 @@ def print_pdf(pdf_path, duplex=False):
     """Print PDF using SumatraPDF."""
     print(f"Printing {pdf_path}...")
 
-    if duplex:
-        print("Double-sided printing requested.")
-        print("Note: Duplex must be configured in printer settings.")
-        print("SumatraPDF uses printer's default duplex setting.")
-
-    # SumatraPDF command
+    # SumatraPDF command with duplex control
     cmd = [
         SUMATRA_PATH,
         "-print-to", PRINTER_NAME,
         "-silent",
-        str(pdf_path.absolute())  # Use absolute path for Windows
     ]
+
+    # Add print settings for duplex/simplex
+    if duplex:
+        print("Double-sided printing requested.")
+        cmd.extend(["-print-settings", "duplex"])
+    else:
+        print("Single-sided printing requested.")
+        cmd.extend(["-print-settings", "simplex"])
+
+    cmd.append(str(pdf_path.absolute()))  # Use absolute path for Windows
 
     try:
         subprocess.run(cmd, check=True)
-        print(f"Sent to printer: {PRINTER_NAME}")
-        if duplex:
-            print("(Using printer's duplex setting if available)")
+        mode = "double-sided" if duplex else "single-sided"
+        print(f"Sent to printer: {PRINTER_NAME} ({mode})")
     except subprocess.CalledProcessError as e:
         print(f"Print error: {e}")
         sys.exit(1)
