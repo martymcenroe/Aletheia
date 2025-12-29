@@ -18,7 +18,8 @@
       "Bash(powershell.exe -Command \"Get-Date -Format ''yyyy-MM-dd''\")",
       "Bash(python tools/print_most_recent_open_issues.py:*)",
       "Bash(poetry add:*)",
-      "Bash(poetry run python:*)"
+      "Bash(poetry run python:*)",
+      "Bash(python -m json.tool:*)"
     ],
     "deny": [
       "Read(.env)",
