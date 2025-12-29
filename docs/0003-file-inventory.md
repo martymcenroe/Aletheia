@@ -36,6 +36,7 @@
 | `docs/0008-orchestrator-instructions.md` | **Guide** | 🟢 **Stable** | - | Rules for human orchestrator managing AI sessions. |
 | `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions cleanly. |
 | `docs/0010-standard-labels.md` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
+| `docs/0011-environment-cleanup-checklist.md` | **Protocol** | 🟢 **Stable** | - | Comprehensive cleanup checklist for dev environment. |
 
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
