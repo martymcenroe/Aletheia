@@ -123,19 +123,15 @@ def generate_pdf(markdown_path):
     # Create custom header with actual filepath and timestamp
     header_template = Path(PANDOC_HEADER).read_text(encoding='utf-8')
 
-    # Get actual Windows local time
-    result = subprocess.run(
-        ['powershell.exe', '-Command', 'Get-Date -Format "yyyy-MM-dd HH:mm"'],
-        capture_output=True,
-        text=True,
-        check=True
-    )
-    timestamp = result.stdout.strip()
+    # Get markdown file's last modification time
+    mtime = markdown_path.stat().st_mtime
+    mod_datetime = datetime.fromtimestamp(mtime)
+    timestamp = mod_datetime.strftime('%Y-%m-%d %H:%M')
 
     # Replace placeholders with actual values
     filepath_display = str(markdown_path).replace('\\', '/')
     custom_header = header_template.replace('FILEPATH', filepath_display)
-    custom_header = custom_header.replace('MODTIME', f'Generated: {timestamp} CT')
+    custom_header = custom_header.replace('MODTIME', f'Modified: {timestamp} CT')
 
     # Write to temporary header file
     temp_header = Path('.pandoc-header-temp.tex')
