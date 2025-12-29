@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2025-12-28 22:54 CT
-**Total Open Issues:** 22
+**Generated:** 2025-12-29 12:39 CT
+**Total Open Issues:** 31
 
 ---
 
@@ -1064,5 +1064,510 @@ Medium - Improves professionalism but not user-facing. Complete before going pub
 ## Prep Work Done
 - Created directory structure (scripts/aws/, tests/data/, tools/print/)
 - Deleted legacy/ directory (only contained .py_bak files)
+
+---
+
+## Issue #103: Establish standards for log documents to prevent print overflow
+
+**Labels:** documentation, enhancement
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Problem
+
+Log documents (9000-lessons-learned.md, 9001-open-investigations.md, ENGINEERING-JOURNAL.md) have formatting issues that cause print overflow - lines running off the right edge when printed.
+
+## Audit Findings
+
+Ran audit on all 40 docs/*.md files - **32 have line overflow issues**:
+
+**Worst offenders:**
+- 6000-open-issues-2025-12-28.md: 554 chars max (31 long lines)
+- 9000-lessons-learned.md: 499 chars max (9 long lines)
+- ENGINEERING-JOURNAL.md: 370 chars max (28 long lines)
+- 9001-open-investigations.md: 318 chars max (4 long lines)
+
+**Root causes:**
+- Long URLs without line breaks
+- Wide tables
+- Code blocks with long lines
+- Lack of markdown line wrapping
+
+## Proposed Solution
+
+Create documentation standards for log files (9xxx and session logs):
+
+1. **Line Length Limit**: Max 100 characters per line
+2. **URL Formatting**: Use markdown link syntax `[text](url)` instead of bare URLs
+3. **Table Width**: Limit tables to 5-6 columns max, use abbreviations
+4. **Code Blocks**: Add manual line breaks in long command examples
+5. **Enforcement**: Add to 0002-coding-standards.md Section on Log Files
+
+## Acceptance Criteria
+
+- [ ] Standards documented in 0002-coding-standards.md
+- [ ] Template created for log entries (if needed)
+- [ ] Existing log files updated to meet standards (or noted as legacy)
+- [ ] Print audit passes with <10 files having overflow
+
+## Notes
+
+LaTeX wrapping (`fvextra`, `hyperref`) helps but doesn't fully solve the problem for poorly formatted logs. Prevention is better than fixing during print generation.
+
+---
+
+## Issue #104: Block age-restricted sites (RTA/adult rating detection)
+
+**Labels:** enhancement, security
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+Prevent users from enabling Aletheia on age-restricted websites. The extension must detect adult content tags and display a permanent blocking state.
+
+## User Story
+As a user on an adult-tagged site, I should see a clear "not permitted" message and a red prohibition icon, making it obvious Aletheia will not function here.
+
+## Research Findings
+
+### Authoritative Source: Google Search Central
+**Official Documentation:** [SEO Guidelines for Explicit Content](https://developers.google.com/search/docs/crawling-indexing/safesearch)
+
+**Detection methods (per Google):**
+```html
+<meta name="rating" content="adult">
+```
+OR
+```html
+<meta name="rating" content="RTA-5042-1996-1400-1577-RTA">
+```
+
+### Decision
+**Block on:** `content="adult"` OR RTA pattern
+**Allow:** `content="mature"` (movie reviews, medical sites)
+
+## Implementation Details
+
+### Detection (service-worker.js)
+1. On tab update/page load, inject content script to check `<meta name="rating">`
+2. If `content="adult"` or contains `RTA-5042-1996-1400-1577-RTA` → set tab state to `AGE_RESTRICTED`
+
+### User Feedback - Text Selection Attempt
+When user selects text on age-restricted site:
+- **DO NOT** show "Enable Aletheia" prompt
+- **DO** show message: "Aletheia is not permitted on adult-tagged or age-restricted websites"
+- Use amber/warning styling
+
+### User Feedback - Extension Icon
+- Show red circle/slash prohibition symbol (🚫) on extension icon
+- Icon remains in this state **permanently** until tab is closed
+- No timer - state persists for tab lifetime
+- No persistence to storage (forget site when tab closes)
+
+### Popup UI (if user clicks extension)
+- Display explanatory message
+- All controls disabled
+- No "enable" option available
+
+### Security Considerations
+- Flag set by extension only (not injectable from page)
+- Security review needed to prevent bypass
+- Document in 0202-DR-content-safety.md
+
+## Testing
+- Requires test website with `<meta name="rating" content="adult">` tag
+- See Issue #[TEST_INFRA_ISSUE] for test hosting infrastructure
+- Manual verification on tagged test page
+
+## Acceptance Criteria
+- [ ] Extension detects `rating="adult"` meta tag
+- [ ] Extension detects RTA label pattern  
+- [ ] Text selection shows "not permitted" message (not "enable")
+- [ ] Extension icon shows prohibition symbol
+- [ ] Icon persists until tab closed (no timer)
+- [ ] No site data persisted to storage
+- [ ] Popup shows disabled state with explanation
+- [ ] Document decision in 0202-DR-content-safety.md
+
+## References
+- [Google SafeSearch Guidelines](https://developers.google.com/search/docs/crawling-indexing/safesearch)
+- [W3C PICS (Deprecated)](https://www.w3.org/PICS/)
+
+---
+
+## Issue #105: Scriptable test site hosting infrastructure (free/cheap)
+
+**Labels:** enhancement, testing
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+Create scriptable infrastructure to host test websites for Aletheia extension testing. Must be free or very cheap, and provisioned via script (no manual clicking).
+
+## Problem
+- Local file:// URLs don't work (unknown domain, extension restrictions)
+- Need real hosted sites with various meta tags for testing
+- Manual hosting setup is tedious ("clicky clacky crap")
+- User has multiple domain names available
+
+## Requirements
+1. **Cost:** Free or near-free
+2. **Scriptable:** Provision and deploy via CLI/script
+3. **Multiple test pages:** Different meta tags, content types
+4. **Domain support:** Can use user's existing domains
+
+## Test Pages Needed
+| Page | Purpose | Meta Tags |
+|------|---------|-----------|
+| `test-adult.html` | Age-restricted blocking (#104) | `<meta name="rating" content="adult">` |
+| `test-rta.html` | RTA pattern detection | `<meta name="rating" content="RTA-5042-1996-1400-1577-RTA">` |
+| `test-noarchive.html` | Summarizer trigger | `<meta name="robots" content="noarchive">` |
+| `test-clean.html` | Happy path baseline | No restrictive tags |
+| `test-xss.html` | XSS injection testing | Script tags in content |
+
+## Hosting Options to Evaluate
+
+### Option A: GitHub Pages (Free)
+- **Pros:** Free, scriptable via git push, supports custom domains
+- **Cons:** HTTPS only, public repo required for free tier
+- **Script:** `git push` to gh-pages branch
+
+### Option B: Cloudflare Pages (Free)
+- **Pros:** Free, fast, scriptable via Wrangler CLI
+- **Cons:** Learning curve
+- **Script:** `wrangler pages deploy`
+
+### Option C: AWS S3 + CloudFront (Cheap)
+- **Pros:** Already using AWS, full control
+- **Cons:** Not free (pennies/month), more setup
+- **Script:** `aws s3 sync` + CloudFormation
+
+### Option D: Netlify (Free tier)
+- **Pros:** Free, CLI available, instant deploys
+- **Cons:** Another account to manage
+- **Script:** `netlify deploy`
+
+## Recommendation
+**GitHub Pages** - already using GitHub, free, scriptable, custom domain support.
+
+## Deliverables
+- [ ] Provisioning script: `tools/provision_test_sites.sh`
+- [ ] Test page templates in `tests/fixtures/html/`
+- [ ] Documentation of test URLs
+- [ ] CI/CD to auto-deploy on change (optional)
+
+## Blocks
+- #104 (Age-restricted blocking) - needs test site to verify
+- Future manual testing issues
+
+---
+
+## Issue #106: Future: Full article context retrieval
+
+**Labels:** enhancement
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+Enable retrieval of full article content when surrounding text selection is insufficient for accurate summarization/context.
+
+## Problem
+Currently Aletheia captures the user's text selection plus surrounding context. In some cases, understanding the full article may be necessary for accurate interpretation.
+
+## Use Cases
+- Academic papers where context spans multiple sections
+- News articles where the lede doesn't capture the nuance
+- Long-form content where selected passage references earlier material
+
+## Considerations
+- Copyright implications (capturing entire articles)
+- Storage costs (full articles are large)
+- Processing time (more text = more tokens)
+- User consent (should user approve full retrieval?)
+
+## Future Work
+This is a **future enhancement** - not required for MVP or store submission.
+
+## Related
+- 0007-legal-compliance-strategy.md (copyright/fair use)
+- Summarizer/Transform layer (would process full article)
+
+---
+
+## Issue #107: Debug VSCode Mermaid diagram preview
+
+**Labels:** documentation, chore
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+VSCode is not rendering Mermaid diagrams in markdown preview. Need to debug and fix.
+
+## Current State
+- Mermaid diagrams render correctly on GitHub
+- VSCode markdown preview shows raw mermaid code blocks
+- Workaround: Copy/paste to mermaid.live (tedious)
+
+## Potential Solutions
+1. Install "Markdown Preview Mermaid Support" extension
+2. Install "Mermaid Preview" extension
+3. Check VSCode settings for markdown preview extensions
+4. Verify mermaid code block syntax (triple backticks + mermaid)
+
+## Priority
+**Low** - GitHub works as fallback. Defer until after store submission.
+
+## Acceptance Criteria
+- [ ] Mermaid diagrams render in VSCode markdown preview
+- [ ] Document working configuration in README or dev setup guide
+
+---
+
+## Issue #108: Printing pipeline: Render Mermaid diagrams to PDF
+
+**Labels:** documentation, chore
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+The markdown-to-PDF printing pipeline (tools/print/print_markdown.py) does not render Mermaid diagrams. They appear as raw code blocks in printed output.
+
+## Current State
+- Pandoc + XeLaTeX converts markdown to PDF
+- Mermaid code blocks pass through as-is (not rendered)
+- GitHub renders them correctly (web only)
+
+## Potential Solutions
+
+### Option A: Pre-process with mermaid-cli
+1. Install `@mermaid-js/mermaid-cli` (mmdc)
+2. Before pandoc, extract mermaid blocks and render to PNG/SVG
+3. Replace code blocks with image references
+4. Run pandoc on modified markdown
+
+### Option B: Pandoc filter
+1. Use a Lua filter or pandoc-mermaid-filter
+2. Automatically converts mermaid blocks during PDF generation
+
+### Option C: Export from mermaid.live manually
+1. When updating docs, export diagrams as images
+2. Embed images instead of mermaid code
+3. Keep mermaid source in comments for future edits
+
+## Recommendation
+**Option A** - cleanest integration with existing pipeline.
+
+## Priority
+**Low** - defer until after store submission. GitHub works for viewing.
+
+## Acceptance Criteria
+- [ ] Mermaid diagrams render as images in printed PDFs
+- [ ] Automated (no manual export step)
+- [ ] Update print_markdown.py or create wrapper
+
+---
+
+## Issue #109: Rename filter layers and update architecture docs
+
+**Labels:** documentation, chore
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+Rename the L1/L2/L3/L4 filter layers to functional names and update all documentation to reflect the new architecture.
+
+## Current State (Confusing)
+- L1, L2, L3, L4 implies fixed sequential order
+- Layers may move between client/server
+- "Compliance" is a bad name for the Transform/Summarizer layer
+- L2 (Denylist) is not even implemented yet (#45)
+
+## New Naming Convention
+
+### Client-Side (Browser Extension)
+| Old | New | Purpose |
+|-----|-----|---------|
+| (new) | **Age Check** | Block adult-rated sites (#104) |
+| (new) | **Robot Meta Check** | Detect noarchive flag, pass to Lambda |
+| L1 | **Selection Check** | Entropy, length, XSS detection, user feedback |
+
+### Server-Side (Lambda)
+| Old | New | Purpose |
+|-----|-----|---------|
+| L2 | **Denylist** | Hate term blocking (Issue #45 - stub for now) |
+| L3 | **Semantic** | AI-based context analysis (Haiku) |
+| L4/Compliance | **Transform** | Summarizer for noarchive content |
+
+## Documents to Update
+- [ ] `docs/0001-system-architecture.md` - Main diagram and layer definitions
+- [ ] `docs/0007-legal-compliance-strategy.md` - Rename to Signal Handling only
+- [ ] `docs/1080-wire-agent-logic.md` - Fix L2 claims, update terminology
+- [ ] `docs/0005-testing-strategy-and-protocols.md` - Module names
+- [ ] `docs/1010-semantic-guardrails.md` - L3 → Semantic
+- [ ] `docs/1011-local-guardrails.md` - L1 → Selection Check
+- [ ] `docs/1014-compliance-engine.md` - Rename to Transform
+- [ ] `docs/1045-deterministic-hate-filter.md` - L2 → Denylist
+- [ ] GitHub Issues referencing old layer names
+
+## New Architecture Diagram
+```
+┌─────────────────────────────────────────────────────────────┐
+│  BROWSER EXTENSION (Client)                                 │
+├─────────────────────────────────────────────────────────────┤
+│  Age Check → Robot Meta Check → Selection Check             │
+│  (block)     (set flags)        (validate input)            │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  AWS LAMBDA (Server)                                        │
+├─────────────────────────────────────────────────────────────┤
+│  Denylist → Semantic → Transform → DynamoDB                 │
+│  (stub)     (Haiku)    (if noarchive)                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Acceptance Criteria
+- [ ] All docs use new terminology consistently
+- [ ] No references to L1/L2/L3/L4 remain (except historical context)
+- [ ] "Compliance" renamed to "Transform" or "Summarizer"
+- [ ] Architecture diagram updated with client/server split
+- [ ] 0003-file-inventory.md updated if files renamed
+
+---
+
+## Issue #110: Find and recover lost ADR content from web conversations
+
+**Labels:** documentation, chore
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+Architecture Decision Records (ADR) content was created in previous AI conversations but never committed to the repository. Need to find and recover this content.
+
+## Where to Look
+
+### 1. Gemini Web Conversations
+- Search conversation history for "ADR", "decision record", "architecture decision"
+- Look for discussions about design choices, trade-offs, alternatives considered
+- Check conversations from project inception through December 2025
+
+### 2. Claude Web Conversations  
+- Same search terms as above
+- May have different ADR content than Gemini sessions
+- Look for any "why did we choose X over Y" discussions
+
+### 3. Git History (Branches)
+- Check for orphaned branches that may contain ADR drafts
+- `git branch -a` to list all branches
+- `git log --all --oneline | grep -i adr` to search commits
+
+### 4. Local Files
+- Check for uncommitted `.md` files mentioning decisions
+- Search `docs/` for any partial ADR content
+
+## What to Recover
+- **Why LangGraph?** (vs plain Lambda, Step Functions)
+- **Why Bedrock?** (vs OpenAI, self-hosted)
+- **Why Chrome extension?** (vs bookmarklet, standalone app)
+- **Why DynamoDB?** (vs RDS, S3)
+- **Guardrail layer decisions** (why 3+ layers?)
+- **Any "we decided X because Y" content**
+
+## Deliverables
+- [ ] Export relevant conversation excerpts
+- [ ] Create `docs/0200-ADR-index.md` as placeholder
+- [ ] Draft initial ADR entries from recovered content
+- [ ] Reference in new 02xx Decision Record series
+
+## Notes
+- Don't need perfect formatting - content recovery is priority
+- Can clean up and formalize later
+- User will need to search their own conversation histories
+
+---
+
+## Issue #112: Restructure 0007: Extract content to Decision Records
+
+**Labels:** documentation, chore
+
+**Created:** 2025-12-29
+**Updated:** 2025-12-29
+
+### Description
+
+## Summary
+Rename and restructure `docs/0007-legal-compliance-strategy.md` - extract decision content to the new 02xx DR series, leaving 0007 as a focused "Signal Handling" reference.
+
+## Current State
+0007 contains:
+1. Philosophy (Assistant vs Crawler) → **Keep in 0007**
+2. Signal Matrix (noai, noarchive, etc.) → **Keep in 0007**  
+3. "Summarization" Switch logic → **Move to 0203-DR-privacy.md**
+4. Implementation notes → **Move to relevant LLDs**
+
+## Issues Found
+- Line 15: `noai` / `noimageai` marked as "HARD STOP" but user confirmed these don't apply (Aletheia doesn't train)
+- Terminology uses "Compliance" which is being renamed to "Transform"
+
+## Proposed Changes
+
+### Rename
+`0007-legal-compliance-strategy.md` → `0007-signal-handling.md`
+
+### Keep in 0007
+- Section 1: Philosophy (we are User Agent, not Crawler)
+- Section 2: Signal Matrix (updated - see below)
+- Brief implementation pointers (which component handles what)
+
+### Updated Signal Matrix
+| Signal | Aletheia Action | Reasoning |
+|--------|-----------------|-----------|
+| `noai` / `noimageai` | **Ignore** | We do inference, not training |
+| `noarchive` | **Transform only** | Don't persist raw text |
+| `noindex` | **Ignore** | Not a search engine |
+| `nosnippet` | **Ignore** | Not a SERP |
+| `robots.txt` | **Ignore** | User Agent, not crawler |
+| `rating="adult"` | **Block site** | See #104, 0202-DR-content-safety.md |
+
+### Extract to Decision Records
+- Why we ignore noai → 0203-DR-privacy.md
+- Why Transform on noarchive → 0203-DR-privacy.md
+- Summarization approach → 0203-DR-privacy.md or 0204-DR-architecture.md
+
+## Dependencies
+- #111 (Create 02xx DR series) - must exist to receive extracted content
+- #109 (Rename layers) - terminology consistency
+
+## Acceptance Criteria
+- [ ] 0007 renamed to 0007-signal-handling.md
+- [ ] Signal matrix updated (noai → Ignore)
+- [ ] Decision rationale moved to appropriate DR docs
+- [ ] 0003-file-inventory.md updated
+- [ ] Cross-references added between 0007 and DR docs
 
 ---

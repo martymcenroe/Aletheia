@@ -98,7 +98,7 @@
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/6000-open-issues-2025-12-28.md` | **Report** | 🟢 **Stable** | - | Snapshot of all open issues (generated). |
+| `docs/6000-open-issues.md` | **Report** | 🟢 **Stable** | - | Current open GitHub issues (regenerate with `poetry run python tools/print/print_most_recent_open_issues.py`). |
 | `docs/9000-lessons-learned.md` | **Log** | 🟢 **Stable** | - | Aletheia-specific lessons (project-scoped). |
 | `docs/9001-open-investigations.md` | **Log** | 🟡 **Beta** | - | Future work and spikes. |
 | `docs/ENGINEERING-JOURNAL.md` | **Log** | 🟢 **Stable** | - | Cross-project engineering lessons (synced). |

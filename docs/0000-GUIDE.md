@@ -54,6 +54,8 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * Example: Issue #25 is documented in `1025-linkedin-auth-gate.md`.
     * **Template:** Use `0102-TEMPLATE-feature-lld.md` when creating new feature docs.
     * Feature docs remain in `1xxx` even after the issue is closed (they document what was built).
+* **`6xxx` (Reports):** Generated reports.
+    * `6000-open-issues.md` — **Current open GitHub issues.** Regenerate with `poetry run python tools/print/print_most_recent_open_issues.py`.
 * **`9xxx` (Knowledge):** The memory.
     * **9000:** Lessons Learned — **Aletheia-specific** gotchas and solutions (Chrome extension, Bedrock, this codebase).
     * **9001:** Open Investigations & Future Work (Spikes, Automation Triggers).

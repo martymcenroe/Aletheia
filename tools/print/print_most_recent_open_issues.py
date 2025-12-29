@@ -105,11 +105,10 @@ def format_issues_markdown(issues):
     return "\n".join(lines)
 
 
-def save_markdown(content, date_str):
-    """Save markdown to docs/ with numbered filename."""
+def save_markdown(content):
+    """Save markdown to docs/6000-open-issues.md (static filename)."""
     docs_dir = Path("docs")
-    filename = f"6000-open-issues-{date_str}.md"
-    filepath = docs_dir / filename
+    filepath = docs_dir / "6000-open-issues.md"
 
     print(f"Saving to {filepath}...")
     filepath.write_text(content, encoding='utf-8')
@@ -222,9 +221,7 @@ def main():
     # Workflow
     issues = fetch_open_issues()
     markdown_content = format_issues_markdown(issues)
-
-    date_str = datetime.now().strftime('%Y-%m-%d')
-    markdown_path = save_markdown(markdown_content, date_str)
+    markdown_path = save_markdown(markdown_content)
 
     pdf_path = generate_pdf(markdown_path, duplex)
     print_pdf(pdf_path, duplex)
