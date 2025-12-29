@@ -15,6 +15,7 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `.gitignore` | **Config** | 🟢 **Stable** | - | Git ignore rules. |
+| `.print-history.json` | **Log** | 🚫 **Gitignored** | - | Print tracking for markdown files (mtime + timestamp). |
 | `.session-log.md` | **Log** | 🚫 **Gitignored** | - | AI session continuity log. |
 | `CLAUDE.md` | **Config** | 🟢 **Stable** | - | Claude Code agent onboarding. |
 | `LICENSE` | **Legal** | 🟢 **Stable** | - | MIT License. |
@@ -84,6 +85,7 @@
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| `docs/6000-open-issues-2025-12-28.md` | **Report** | 🟢 **Stable** | - | Snapshot of all open issues (generated). |
 | `docs/9000-lessons-learned.md` | **Log** | 🟢 **Stable** | - | Aletheia-specific lessons (project-scoped). |
 | `docs/9001-open-investigations.md` | **Log** | 🟡 **Beta** | - | Future work and spikes. |
 | `docs/ENGINEERING-JOURNAL.md` | **Log** | 🟢 **Stable** | - | Cross-project engineering lessons (synced). |
@@ -123,6 +125,7 @@
 | `deploy.sh` | **Script** | 🟡 **Beta** | - | Lambda deployment automation. |
 | `provision.sh` | **Script** | 🟡 **Beta** | - | AWS infrastructure provisioning. |
 | `dist/` | **Output** | 🚫 **Gitignored** | - | Build artifacts (empty). |
+| `temp-pdfs/` | **Output** | 🚫 **Gitignored** | - | Temporary PDF storage (auto-deleted after successful print). |
 
 ### Tools & Utilities
 | File | Role | Status | Linked Issue | Description |
@@ -132,6 +135,10 @@
 | `tools/log_viewer.py` | **Utility** | 🟢 **Stable** | #69 | DynamoDB Inspector. |
 | `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Icon factory (Pillow). Supports `--transparent` and `--threshold N` CLI options. |
 | `tools/master_lambda.png` | **Asset** | 🟢 **Stable** | #82 | Master source for branding. |
+| `tools/print/print_markdown.py` | **Utility** | 🟢 **Stable** | - | Batch markdown→PDF printer with spooler monitoring and print tracking. |
+| `tools/print/print_most_recent_open_issues.py` | **Utility** | 🟢 **Stable** | - | GitHub issues fetcher/printer (saves to docs/6000-*.md). |
+| `tools/print/audit_long_lines.py` | **Utility** | 🟢 **Stable** | #103 | Audits markdown files for print overflow (>100 char lines). |
+| `tools/print/pandoc-header.tex` | **Asset** | 🟢 **Stable** | - | LaTeX header template for PDF generation (fancy headers). |
 
 ### Testing & Verification
 | File | Role | Status | Linked Issue | Description |

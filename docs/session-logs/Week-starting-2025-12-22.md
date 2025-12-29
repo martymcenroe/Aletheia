@@ -840,3 +840,151 @@ Completed comprehensive audit of 00xx documentation (Issue #89) based on 4 criti
 - Open PRs: 0
 - Next: All critical documentation gaps resolved, standards now explicit and enforceable
 
+
+
+---
+
+## 2025-12-28 22:00 CT - 2025-12-29 00:45 CT | Claude Sonnet 4.5
+
+### Summary
+Created comprehensive printing infrastructure for markdown→PDF with spooler monitoring, print tracking, and automatic cleanup. Successfully batch-printed all 40 documentation files double-sided. Built tools for GitHub issues printing, print overflow auditing, and general-purpose markdown printing. Reorganized printing tools into `tools/print/` directory and established PDF cleanup strategy. Created Issue #103 for log document formatting standards.
+
+### Tooling & Infrastructure
+- **Printing System:**
+  - Created `tools/print/print_markdown.py` - Batch markdown→PDF printer with:
+    - Windows Print Spooler API integration (win32print) for job monitoring
+    - Print history tracking (`.print-history.json`) with mtime detection
+    - New/modified/all file filtering for batch operations
+    - Immediate job queuing (no wait between files by default)
+    - `-wait N` for manual pickup time (garage printer on dedicated circuit)
+    - Auto-delete PDFs after successful print (temp-pdfs/ directory)
+    - 5-minute timeout per job with user override
+    - Error handling with pause/retry/skip options
+  - Created `tools/print/print_most_recent_open_issues.py`:
+    - Fetches all open GitHub issues via gh CLI
+    - Generates markdown with formatted issue details
+    - Saves to `docs/6000-open-issues-YYYY-MM-DD.md`
+    - Prints with fancy headers
+  - Created `tools/print/audit_long_lines.py`:
+    - Audits markdown files for print overflow (>100 char lines)
+    - Found 32/40 files with overflow issues
+    - Identified worst offenders (6000: 554 chars, 9000: 499 chars)
+  - Created `tools/print/pandoc-header.tex`:
+    - LaTeX header template with fancyhdr
+    - Header left: actual filepath, Header right: "Modified: YYYY-MM-DD HH:MM CT"
+    - Footer: "Page X of Y"
+    - Includes fvextra for code block wrapping, hyperref for URL breaking
+    - Supports Segoe UI font and emoji rendering
+
+- **Print Results:**
+  - **Batch 1 (manual):** 3 files (0001, 0002, 0004)
+  - **Batch 2 (automated):** 21 files (0000, 0005-0011, 01xx templates, 10xx features)
+  - **Batch 3 (resumed):** 14 files (1041-1080, 6000, 9000, 0003 - deferred to end)
+  - **Total:** 40 files printed successfully (100% success rate)
+  - **0003-file-inventory.md** correctly deferred to end as planned
+
+- **Dependencies:**
+  - Added `pywin32` (v311) via poetry for Windows Print Spooler API
+
+### Organization & Cleanup
+- **Directory Structure:**
+  - Created `tools/print/` directory for printing tools
+  - Moved pandoc-header.tex from root to tools/print/ (no longer hidden)
+  - Created `temp-pdfs/` directory (gitignored) for temporary PDF storage
+  - Deleted temporary experiment files: BRANCH-ANALYSIS-NEW-vs-MODIFIED.md, BRANCH-PDF-GENERATION-REPORT.md, gen-new-pdfs.sh, generate-branch-pdfs.sh, generate-new-files-pdfs.sh
+
+- **PDF Cleanup Strategy A (Implemented):**
+  - Generate PDFs in `temp-pdfs/` directory
+  - Auto-delete after successful print (disk space management)
+  - Keep PDFs on failure for debugging
+  - No more PDF clutter in `docs/` directory
+
+### Issues
+- **Created:** #103 (Establish standards for log documents to prevent print overflow)
+  - Documents root cause: URLs, tables, code blocks without line breaks
+  - Proposes: Max 100 chars/line, markdown link syntax, table width limits
+  - Acceptance criteria: Standards in 0002, template created, audit passes
+
+### Documentation Updates
+- **Updated `docs/0003-file-inventory.md`:**
+  - Added `.print-history.json` to Root Configuration
+  - Added `temp-pdfs/` to Infrastructure & Deployment
+  - Added all 4 new printing tools to Tools & Utilities section
+  - Added `docs/6000-open-issues-2025-12-28.md` to 90xx Journals & Logs
+  - All entries marked 🟢 **Stable**
+
+- **Updated `.gitignore`:**
+  - Added `.print-history.json` to gitignore
+  - Added `temp-pdfs/` directory pattern
+
+### Technical Implementation Details
+- **Spooler Monitoring:**
+  - Uses win32print to track job status (PRINTING, SPOOLING, COMPLETED, ERROR, PAPEROUT, OFFLINE)
+  - Handles fast-completing jobs (error 87 when job removed from queue)
+  - 3-second polling interval
+  - Pause and prompt on printer errors
+
+- **Print Tracking:**
+  - JSON file tracks: last_printed timestamp, mtime_at_print
+  - Enables intelligent filtering: new files (never printed), modified files (mtime changed)
+  - Survives Ctrl-C restart without reprinting completed files
+
+- **Header Timestamps:**
+  - Changed from "Generated: [now]" to "Modified: [file mtime]"
+  - More useful to know content age vs print time
+  - Uses PowerShell for accurate Windows timestamps
+
+### Key Decisions
+- **Immediate job queuing as default:** Since spooler monitoring detects completion, no need to wait between jobs. Use `-wait N` only for manual pickup time.
+- **Defer 0003 to end:** File inventory document updates during session, print last to capture all changes.
+- **Double-sided as default:** Saves paper, matches production printing needs.
+- **LaTeX wrapping helps but doesn't fix everything:** Issue #103 addresses root cause (formatting standards).
+- **PDFs in temp-pdfs/ with auto-delete:** Clean repository, automatic disk management.
+
+### Files Modified
+- `CLAUDE.md` - No changes (tools in tools/print/)
+- `docs/0003-file-inventory.md` - Added printing tools inventory
+- `.gitignore` - Added .print-history.json and temp-pdfs/
+- `pyproject.toml` & `poetry.lock` - Added pywin32 dependency
+
+### Commits
+1. `8705eab` - fix: use actual filepath in PDF headers, make double-sided default
+2. `958229c` - feat: add duplex control and general-purpose markdown printer
+3. `475333c` - feat: add batch printing with spooler monitoring and print tracking
+4. `6134fdd` - fix: handle fast-completing print jobs in spooler monitoring
+5. `41854f8` - feat: immediate job queuing and defer 0003-file-inventory.md to end
+6. `353bee9` - feat: add LaTeX text wrapping for print overflow (ref #103)
+7. `54ff18a` - fix: show markdown modification time instead of PDF generation time
+8. `1cc5a98` - refactor: organize printing tools and implement PDF cleanup strategy
+
+### Lessons Learned
+- **Windows timestamp commands:** `TZ='America/Chicago' date` returns UTC on Windows, not local time. Use `powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"` instead.
+- **SumatraPDF duplex:** Requires explicit `-print-settings duplex` or `-print-settings simplex` flags. Does not use printer defaults when called via command line.
+- **Spooler API quirks:** Jobs that complete quickly are removed from queue, causing error 87. Must treat as successful completion.
+- **LaTeX path separators:** Windows backslashes in filepaths must be converted to forward slashes for LaTeX headers.
+
+### Testing & Verification
+- Tested duplex printing manually (worked after adding -print-settings flag)
+- Tested batch printing on 2 files (9001, ENGINEERING-JOURNAL) - successful
+- Tested full batch (40 files) - 100% success rate
+- Verified print history tracking works (restart resumes from correct file)
+- Verified 0003 deferred to end as planned
+- Verified PDFs auto-delete after successful print
+- Verified modification timestamps show in headers (not generation time)
+
+### State on Exit
+- **Branch:** `main`
+- **Last commit:** `1cc5a98` - refactor: organize printing tools and implement PDF cleanup strategy
+- **Open PRs:** 0
+- **Lambda Status:** Unknown (printing session, not tested)
+- **Printer Status:** Successfully printed all 40 docs, ready for review in garage
+- **Print History:** 40 files tracked in `.print-history.json`
+- **Next:** Complete session log, create tomorrow's plan for store submission (Issue #80 focus)
+
+### User Feedback
+- "this is outstanding"
+- "go for it. let's see how long it takes to run out of paper!" (printer succeeded)
+- "KEEP the print-history!"
+- Printer is in garage on dedicated 20 amp circuit (house lights flicker otherwise)
+- Needs plan for Chrome Web Store and Firefox extension store submission tomorrow
+- Issue #80 identified as key functionality before submission
