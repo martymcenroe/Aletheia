@@ -58,8 +58,11 @@ We use a **4-Digit Namespace** to organize our collective memory:
 ## Prime Directives for AI Agents
 1.  **Seek Ground Truth:** Do not hallucinate file paths. Check `ls -R` or `docs/0000-GUIDE.md`.
 2.  **Log Your Learnings:** If you solve a novel error, append it to `9000-lessons-learned.md`.
-3.  **Respect the Standards:** Do not use `pip` if `0002` says "Use Poetry."
-4.  **Use the Templates:** When creating a new feature doc, copy `0102-TEMPLATE-feature-lld.md`. When creating an issue, follow `0101-TEMPLATE-issue.md`.
-5.  **Plan Before Execute:** Discuss multi-step plans before running commands. Never batch destructive operations without explicit approval.
-6.  **Use Emojis for Status:** We use emoji status indicators (e.g., green circle, yellow circle) in documentation. Ensure your terminal supports UTF-8.
-7.  **Log Your Sessions:** At session end, append a summary to `docs/session-logs/YYYY-MM-DD.md` (Monday date). Week boundary is Monday 3:00 AM CT. See `docs/0100-TEMPLATE-GUIDE.md` for format.
+3.  **NEVER Use Forbidden Commands:** Absolutely forbidden: `git reset`, `git push --force`, `git clean -fd`, `pip install`. See [0002-coding-standards.md](0002-coding-standards.md) Section 2 for complete list and safe alternatives.
+4.  **Use Poetry for Dependencies:** ALWAYS use `poetry add <package>`, NEVER `pip install`. Pip bypasses the lock file and causes dependency chaos.
+5.  **Push Branches to Remote:** NEVER keep branches local-only. Use `git push -u origin HEAD` immediately after creating branch. Local-only branches violate team collaboration.
+6.  **Delete Both Local and Remote Branches:** After merge, delete local (`git branch -d`) AND remote (`git push origin --delete`) branches. Zombie remote branches clutter the repository.
+7.  **Use the Templates:** When creating a new feature doc, copy `0102-TEMPLATE-feature-lld.md`. When creating an issue, follow `0101-TEMPLATE-issue.md`.
+8.  **Plan Before Execute:** Discuss multi-step plans before running commands. Never batch destructive operations without explicit approval.
+9.  **Use Emojis for Status:** We use emoji status indicators (e.g., green circle, yellow circle) in documentation. Ensure your terminal supports UTF-8.
+10.  **Log Your Sessions:** At session end, append a summary to `docs/session-logs/YYYY-MM-DD.md` (Monday date). Week boundary is Monday 3:00 AM CT. See `docs/0100-TEMPLATE-GUIDE.md` for format.

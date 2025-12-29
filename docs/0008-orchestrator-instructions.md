@@ -72,11 +72,15 @@ When switching between agents:
 
 | Pitfall | Prevention |
 |:--------|:-----------|
-| Zombie branches accumulating | Run `git fetch --prune` after every PR merge |
-| Issues left open after completion | Use `close #ID` keyword, not `ref #ID` |
+| Zombie remote branches accumulating | Delete BOTH local and remote branches after merge: `git branch -d {branch} && git push origin --delete {branch}` |
+| Using git reset instead of git revert | NEVER use `git reset` - see 0002 Section 2 for forbidden commands |
+| Keeping branches local-only | ALWAYS push branches to remote: `git push -u origin HEAD` |
+| Using pip instead of poetry | ALWAYS use `poetry add`, NEVER `pip install` |
+| Issues left open after completion | Use `close #ID` keyword in commit message, not `ref #ID` |
 | Stash forgotten | Check `git stash list` at session end |
 | LLD outdated after implementation | Update status to "Complete" and check DoD items |
 | Session-log not updated | Make it the last action before closing (see Section 7) |
+| Worktree removed but branches still exist | After `git worktree remove`, also delete local and remote branches |
 
 ## 6. Parallel Branch Work with Git Worktree
 
@@ -113,6 +117,24 @@ git worktree remove ../Aletheia-80
 git worktree prune
 ```
 
+### Complete Cleanup After Merge
+After merging a PR for a worktree-based branch, perform BOTH cleanup steps:
+
+```bash
+# 1. Remove the worktree directory
+git worktree remove ../Aletheia-80
+
+# 2. Delete the local branch (from main worktree)
+cd /c/Users/mcwiz/Projects/Aletheia  # Return to main worktree
+git checkout main && git pull
+git branch -d 80-wire-agent
+
+# 3. Delete the remote branch
+git push origin --delete 80-wire-agent
+```
+
+**Critical:** Removing the worktree does NOT delete the branch (local or remote). You must explicitly delete both to prevent zombie branches.
+
 ### Benefits
 - Main always clean for quick lookups and reviews
 - Multiple agents can work in parallel (each in own directory)
@@ -122,6 +144,7 @@ git worktree prune
 ### Rules
 - Never checkout the same branch in two worktrees
 - Remove worktrees after PR merge to avoid clutter
+- Delete both local AND remote branches after removing worktree
 - Run `git worktree list` periodically to audit
 
 ## 7. Session Log Management

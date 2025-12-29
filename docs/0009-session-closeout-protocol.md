@@ -21,12 +21,18 @@ git status                    # Should be clean
 # Check for forgotten stashes
 git stash list                # Document or drop
 
+# Verify branches (local and remote)
+git branch --list             # Only main should remain locally
+git branch -r                 # Check remote branches
+
+# Delete zombie remote branches if found
+git push origin --delete {branch-name}
+
 # Prune zombie remote refs
 git fetch --prune
-
-# Verify branch state
-git branch -a                 # Only main should remain locally
 ```
+
+**Note:** For comprehensive environment cleanup beyond session closeout, see `docs/0011-environment-cleanup-checklist.md`.
 
 ### 2. Issue Audit
 ```bash
@@ -102,12 +108,15 @@ gh pr list           # Empty
 git checkout main && git pull
 git status
 git stash list
+git branch --list              # Should only show main
+git branch -r                  # Check for zombie remote branches
 git fetch --prune
-git branch -a
 gh issue list --state open
 gh pr list --state open
 echo "Ready for session-log entry"
 ```
+
+**For deeper environment cleanup**, see `docs/0011-environment-cleanup-checklist.md` which covers AWS cost control, worktree hygiene, test artifacts, and more.
 
 ## Anti-Patterns
 

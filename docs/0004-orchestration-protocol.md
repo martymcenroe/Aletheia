@@ -23,10 +23,14 @@ Every feature or fix must strictly follow this 9-step execution loop to ensure h
 | **3. Edit** | Implementation | `cat << 'EOF' > file.py` or `nano file.py` |
 | **4. Stage** | Preparation | `git add file.py` |
 | **5. Commit** | Save | `git commit -m "type: desc (ref #ID)"` |
-| **6. Push** | Backup | `git push -u origin HEAD` |
+| **6. Push** | Team Visibility (REQUIRED) | `git push -u origin HEAD` - Never keep branches local-only |
 | **7. PR** | Review | `gh pr create --fill` |
 | **8. Merge** | Finalize | `gh pr merge --squash` |
-| **9. Cleanup** | Hygiene | `git checkout main && git pull && git branch -d ID-desc` |
+| **9. Cleanup** | Delete Local AND Remote | `git checkout main && git pull && git branch -d ID-desc && git push origin --delete ID-desc` |
+
+**Step 6 Rationale:** Remote branches provide backup, enable collaboration between agents, and give the orchestrator visibility into active work. Local-only branches violate team collaboration principles.
+
+**Step 9 Rationale:** Zombie remote branches clutter the repository and confuse collaborators. ALWAYS delete both local and remote branches after merge.
 
 ## 4. Emergency Recovery
 If the session context is lost or the environment destabilizes, strict **Emergency Recovery Mode** is active.
@@ -35,6 +39,7 @@ If the session context is lost or the environment destabilizes, strict **Emergen
 2.  **Single-Instruction Constraint:** The AI must downgrade to **One Command Per Turn**. Do not batch commands. Wait for explicit user confirmation after every action.
 3.  **Ground Truth:** Run `git status` to establish the state of the workspace before proceeding.
 4.  **Sync:** Pull from `main` to ensure local state matches upstream.
+5.  **Forbidden Commands:** NEVER use destructive commands in emergency recovery: `git reset`, `git push --force`, `git clean -fd`. See `docs/0002-coding-standards.md` Section 2 for complete list and safe alternatives.
 
 ## 5. Session Logging
 

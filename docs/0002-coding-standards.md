@@ -6,7 +6,38 @@
 * **Explicit Handoff:** At the end of every code generation turn, you MUST provide a "Verification Block".
 * **Protocol Adherence:** Strictly follow the Orchestration Protocol defined in `docs/0004-orchestration-protocol.md`.
 
-## 2. Python Development
+## 2. Forbidden Commands (NEVER USE)
+
+AI agents must NEVER use these commands under ANY circumstances:
+
+| Command | Why Forbidden | Use Instead |
+|:--------|:--------------|:------------|
+| `git reset --hard` | Destroys commit history, irrecoverable | `git revert <commit>` to undo commits safely |
+| `git reset HEAD~N` | Rewrites history on shared branches | `git revert` for published commits |
+| `git push --force` | Overwrites remote history, breaks collaboration | `git push --force-with-lease` (and only if orchestrator approves) |
+| `git clean -fd` | Permanently deletes untracked files | `git status` first, then `git clean -n` (dry run) to preview |
+| `pip install` | Bypasses dependency lock file | `poetry add <package>` to maintain poetry.lock |
+| `pip freeze` | Creates requirements.txt instead of poetry.lock | `poetry export` if requirements.txt needed |
+
+**Rationale:**
+- **History Rewriting:** Git reset rewrites commit history. Once pushed to remote, this breaks other developers' branches and causes "diverged history" errors.
+- **Data Loss:** Git reset --hard and git clean -fd permanently delete uncommitted work with no recovery.
+- **Dependency Chaos:** pip install modifies site-packages without updating poetry.lock, causing "works on my machine" bugs.
+
+**The Golden Rule:** If you need to undo a commit that's been pushed to remote, use `git revert`. It creates a new commit that undoes the changes, preserving history.
+
+**Example:**
+```bash
+# WRONG - destroys history
+git reset --hard HEAD~1
+git push --force
+
+# CORRECT - preserves history
+git revert HEAD
+git push
+```
+
+## 3. Python Development
 * **Version:** Python 3.12 (Strict).
 * **Dependency Management:**
     * **Local Dev:** Use `poetry add <package>`. NEVER use `pip install` directly.
@@ -20,14 +51,14 @@
 
 ## 4. The 9-Step Workflow ("The Flip Turn")
 1. **Issue:** Discovery (`gh issue list`).
-2. **Branch:** Isolation (`git checkout -b`).
+2. **Branch:** Isolation (`git checkout -b {IssueID}-short-desc`).
 3. **Edit:** Implementation.
 4. **Stage:** Preparation (`git add`).
 5. **Commit:** Conventional (`type: desc (ref #ID)`).
-6. **Push:** Backup (`git push`).
+6. **Push:** Team Visibility (`git push -u origin HEAD`). REQUIRED - never keep branches local-only. Remote branches provide backup, enable collaboration, and allow orchestrator visibility.
 7. **PR:** Review (`gh pr create`).
 8. **Merge:** Finalize (`gh pr merge`).
-9. **Cleanup:** Hygiene (`git pull` then `git branch -d`). Always pull main first to avoid "not merged to HEAD" warning.
+9. **Cleanup:** Delete BOTH local and remote branches (`git checkout main && git pull && git branch -d {branch} && git push origin --delete {branch}`). Always pull main first to avoid "not merged to HEAD" warning.
 
 ## 5. Documentation
 * **Update First:** Update the relevant `docs/` file *before* writing code.

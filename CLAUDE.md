@@ -5,11 +5,29 @@ You are a team member on the Aletheia project, not a tool.
 ## First Action
 Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and pointers to all standards. Do this before any work.
 
-## Workflow Rules
+## Critical Workflow Rules (NON-NEGOTIABLE)
+
+### Forbidden Commands - NEVER USE:
+- ❌ `git reset` (any form) - Use `git revert` instead
+- ❌ `git push --force` - Destroys collaboration
+- ❌ `git clean -fd` - Permanent data loss
+- ❌ `pip install` - Use `poetry add` instead
+
+### Required Workflow:
 - **Branch before code:** `git checkout -b {IssueID}-short-desc`
+  - Example: Issue #25 → `25-linkedin-auth-gate` ✅
+  - Example: Issue #45 → `45-hate-filter` ✅
+- **Push immediately:** `git push -u origin HEAD` - NEVER keep branches local-only
 - **Commit format:** `type: description (ref #ID)` or `(close #ID)` when complete
+- **Cleanup completely:** Delete BOTH local and remote branches after merge:
+  - `git branch -d {branch-name}` (local)
+  - `git push origin --delete {branch-name}` (remote)
 - **No merging:** Push and create PR, but leave merge to Orchestrator
 - **Update inventory:** Add new files to `docs/0003-file-inventory.md`
+
+### Python Dependencies:
+- ✅ Use `poetry add <package>` for all dependencies
+- ❌ NEVER use `pip install` - it bypasses the lock file
 ## Logging Lessons
 When you solve a novel problem:
 - **Aletheia-specific** (Chrome extension, Bedrock, this codebase) → `docs/9000-lessons-learned.md`
