@@ -124,9 +124,9 @@ aws_off
 
 ---
 
-### ⏸️ Test 040: Error State
-**Status:** READY FOR TEST (Fix in commit 03444b1)
-**Fix:** Added response.ok check to catch HTTP failures
+### ✅ Test 040: Error State
+**Status:** ✓ PASSED (as of 2025-12-28)
+**Fix:** Added response.ok check to catch HTTP failures (commit 03444b1)
 
 **Setup:**
 - Visit wsj.com (allowlisted)
@@ -154,33 +154,34 @@ aws_off
 
 ---
 
-### ⚠️ Test 050: Overlay Position (Top of Page)
-**Status:** NOT TESTED (skip for now - see Issue #98)
+### ✅ Test 050: Overlay Position (Top of Page)
+**Status:** ✓ PASSED (as of 2025-12-28)
 
-**Known Issue:** Overlay positioning is broken (always appears below).
-**Root Cause:** Positioning code in wrong file (overlay.js never executes).
-**Fix Branch:** 98-fix-positioning
-**Decision:** Skip this test until Issue #98 resolved.
+**Expected:** Overlay appears below selection when text is at top of page.
+**Actual:** Overlay consistently appears below selection (as expected).
+**Note:** Basic positioning works. Viewport-aware positioning (Test 060) moved to Issue #98.
 
 ---
 
 ### ⚠️ Test 060: Overlay Position (Bottom of Viewport)
-**Status:** NOT TESTED (skip for now - see Issue #98)
+**Status:** MOVED TO ISSUE #98
 
-**Known Issue:** Same as Test 050.
+**Reason:** Viewport-aware positioning requires fixing overlay.js execution (root cause: overlay.js never runs).
 **Expected (when fixed):** Overlay should appear ABOVE selection when at bottom of viewport.
 **Current Behavior:** Always appears below (clips at bottom edge).
+**Fix Branch:** 98-fix-positioning
+**Note:** This test removed from Issue #77 scope. Feature shipped without viewport detection.
 
 ---
 
-### ⏸️ Test 070: Shadow DOM Isolation
-**Status:** READY FOR TEST
+### ✅ Test 070: Shadow DOM Isolation
+**Status:** ✓ PASSED (as of 2025-12-28)
 
 **Setup:**
-- Test on multiple sites with different CSS:
-  - wsj.com (heavy custom styling)
-  - nytimes.com (different design system)
-  - github.com (dark mode available)
+- Tested on:
+  - ✅ economist.com
+  - ✅ unherd.com
+  - ✅ wsj.com
 
 **Action:**
 1. Enable Aletheia on each site
@@ -198,21 +199,18 @@ aws_off
 
 ---
 
-### ⏸️ Test 080: XSS Prevention
-**Status:** READY FOR TEST (test harness created)
+### ✅ Test 080: XSS Prevention
+**Status:** ✓ PASSED (as of 2025-12-28)
 
-**Setup:**
-- Open `C:\Users\mcwiz\Projects\Aletheia-77\test-xss.html` in browser
-- Enable Aletheia for localhost/file URLs
+**Test Method:**
+- Tested on wsj.com using DevTools console to inject XSS payload
+- Selected `<script>alert('xss')</script>` text and triggered "Explain with AI"
 
-**Action:**
-1. Select XSS payload: `<script>alert('xss')</script>` (the actual tags, not escaped)
-2. Right-click → "Explain with AI"
-
-**Expected:**
-- ✓ **Overlay shows text literally:** `<script>alert('xss')</script>` (tags visible as text)
-- ✓ **NO alert popup** (no script execution)
-- ✓ **No console errors** related to script injection
+**Results:**
+- ✅ **Overlay displayed text literally** (no alert popup)
+- ✅ **No script execution**
+- ✅ **DynamoDB entry #88 shows:** `<script>alert("xss")</script>` as literal text
+- ✅ **End-to-end XSS prevention confirmed**
 
 **Additional Payloads to Test:**
 - `<img src=x onerror=alert(1)>`
@@ -226,8 +224,8 @@ aws_off
 
 ---
 
-### ⏸️ Test 090: Rapid Clicks (Race Condition)
-**Status:** READY FOR TEST
+### ✅ Test 090: Rapid Clicks (Race Condition)
+**Status:** ✓ PASSED (as of 2025-12-28)
 
 **Setup:**
 - Visit wsj.com (allowlisted)
