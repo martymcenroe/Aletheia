@@ -323,3 +323,191 @@ Standardized session log naming convention to ISO 8601 Week-starting format, est
   - Test #96: Verify HTTP status check with Lambda concurrency=0
   - Complete remaining #77 smoke tests (010-090)
   - When ready for #80: Create fresh branch from main with latest 1080 LLD
+
+---
+
+## 2025-12-28 23:00 CT - Claude Sonnet 4.5
+**Session:** `fixing_77_at_overlay` (continued)
+**Duration:** ~1.5 hours
+**Branch Work:** 77-action-feedback, 98-fix-positioning (new)
+
+### Summary
+Discovered root cause of Issue #98 (overlay positioning bug): overlay.js is never executed. All positioning fixes were applied to the wrong file. The `showOverlay` function in service-worker.js line 30 is what actually runs. Created branch 98-fix-positioning with debug history, reverted 77-action-feedback to clean state, created comprehensive test script for 3-week return, and opened Issue #99 for test automation.
+
+### Breakthrough: overlay.js is Dead Code
+After 6 positioning attempts failed across Chrome Canary, Chrome, and Firefox (even when forcing unmissable 400px centered magenta box), discovered the smoking gun:
+
+**Root Cause:**
+```javascript
+// In service-worker.js lines 180-184:
+chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: showOverlay,  // <-- This serializes function from service-worker.js scope
+    args: [message, type, timeout]
+});
+```
+
+The `func: showOverlay` parameter injects the function from **service-worker.js line 30**, NOT from overlay.js. When using `func: functionName`, Chrome serializes the function from the current scope. overlay.js is never imported, loaded, or executed.
+
+**Proof:** Made overlay.js create huge centered magenta box with "DEBUG VERSION" text. After removing/re-adding extension in all browsers, still saw small dark gray overlay below selection. None of the 6 debug changes appeared.
+
+### Files Modified
+
+**Branch: 98-fix-positioning (new)**
+- `docs/ISSUE-98-DEBUG-HISTORY.md` (created) - Documents all 6 positioning attempts and why they failed
+- `overlay.js.debug-reference` (created) - Final debug version that was never executed
+
+**Branch: 77-action-feedback**
+- Reset to commit 03444b1 (removed 7 debug commits)
+- Clean state: Has fixes for #93 and #96, ready for smoke testing
+
+**Branch: main**
+- No changes this session
+
+**Worktree: Aletheia-77/**
+- `test-xss.html` (created) - Test harness for XSS prevention (Test 080)
+- `TEST-SCRIPT-77.md` (created) - Comprehensive test script for 3-week return
+
+### Issues
+
+**Updated:**
+- #98 - Added root cause comment (overlay.js never executes)
+
+**Created:**
+- #99 - Feature: Automated testing framework for browser extension
+  - Covers automation of Tests 010, 020, 030, 040, 070, 080, 090
+  - Recommends Playwright + TypeScript
+  - Includes implementation plan and acceptance criteria
+
+**Status:**
+- #93 - ✅ CLOSED (double checkmark fixed)
+- #96 - ⏸️ Ready for testing (HTTP status check in commit 03444b1)
+- #97 - ✅ CLOSED (obsolete - replaced by Section 7.2)
+- #98 - 🔍 Root cause found, moved to branch 98-fix-positioning
+- #99 - 📋 NEW (test automation)
+
+### Commits
+
+**Branch: 98-fix-positioning**
+- `2ddd61d` - docs: add debug history for Issue #98 positioning attempts (ref #98)
+
+**Branch: 77-action-feedback**
+- Reverted from `c6bdabe` to `03444b1` (removed 7 debug commits)
+- Final state: fix: check HTTP response status before showing success (ref #96)
+
+### Testing Artifacts Created
+
+1. **test-xss.html** - XSS test harness
+   - 5 XSS payloads ready to test
+   - Visual instructions for Test 080
+   - Tests: `<script>`, `<img onerror>`, `<svg onload>`, `javascript:` protocol, event handlers
+
+2. **TEST-SCRIPT-77.md** - Complete test execution guide
+   - Pre-test setup (environment, extension install, AWS control)
+   - All 9 tests (010-090) with detailed steps
+   - Expected results and verification commands
+   - Known issues and blockers documented
+   - Quick reference for common commands
+   - Context for 3-week return with "where you left off" summary
+
+3. **ISSUE-98-DEBUG-HISTORY.md** - Debug archaeology
+   - Documents all 6 positioning attempts chronologically
+   - Shows code snippets of what was tried
+   - Records browsers tested (Chrome Canary, Chrome, Firefox)
+   - Explains why each attempt failed
+   - Path forward: fix in service-worker.js line 30
+
+### Key Decisions
+
+**Branch Strategy:**
+- Created 98-fix-positioning to isolate positioning fix work
+- Kept 77-action-feedback clean for smoke testing
+- All debug history preserved in 98 branch (not lost)
+
+**Testing Strategy:**
+- Separated manual testing (TEST-SCRIPT-77.md) from automation plan (#99)
+- XSS test harness allows quick verification without complex setup
+- Test script designed for "cold start" after 3-week break
+
+**Documentation:**
+- Created detailed breadcrumbs for future work
+- Preserved all debugging attempts (learning for future)
+- Made test script exhaustive (user has no Chrome extension experience)
+
+### Browser Testing Matrix
+
+| Browser | Extension Loads | Data Saves | Positioning Bug | 
+|---------|----------------|------------|-----------------|
+| Chrome Canary | ✅ Yes | ✅ Yes | ❌ Always below |
+| Chrome (regular) | ✅ Yes | ✅ Yes | ❌ Always below |
+| Firefox | ✅ Yes* | ✅ Yes | ❌ Always below |
+
+*Firefox required manifest.json fix (commit 1cd36c9 - reverted with other debug commits)
+
+### State on Exit
+
+**Active Branches:**
+- `main` - e6d2d2a (no changes this session)
+- `77-action-feedback` - 03444b1 (reverted to clean state)
+- `98-fix-positioning` - 2ddd61d (new branch with debug history)
+
+**Active Worktrees:**
+- `Aletheia/` → main
+- `Aletheia-77/` → 77-action-feedback
+
+**Test Files (Worktree: Aletheia-77/):**
+- `test-xss.html` - XSS test harness (not committed)
+- `TEST-SCRIPT-77.md` - Complete test script (not committed)
+
+**Lambda Status:** ON (unrestricted) - User should turn OFF when done testing
+
+**Next Steps:**
+1. User completes smoke tests using TEST-SCRIPT-77.md
+2. User closes Issue #77 if tests pass
+3. User moves to Issue #80 (main priority)
+4. Issue #98 fix deferred (on separate branch)
+5. Issue #99 (test automation) - future enhancement
+
+**User Context:**
+- Running out of stamina (long debugging session)
+- Needs to finish #77 and move to #80
+- Taking 3-week break - test script designed for cold start
+- TEST-SCRIPT-77.md has all context for resuming work
+
+### Lessons Learned
+
+**Chrome Extension Architecture:**
+- `chrome.scripting.executeScript({ func: myFunc })` serializes function from CURRENT scope
+- Does NOT load external files (like overlay.js)
+- Content scripts must be either:
+  - Declared in manifest.json `content_scripts` array, OR
+  - Loaded as files via `files: ['overlay.js']` parameter, OR
+  - Inlined as functions (current approach)
+- overlay.js was architectural orphan - file existed but never executed
+
+**Debugging Approach:**
+- Visual debugging (magenta background) more effective than console.log for injected scripts
+- Removing/re-adding extension alone insufficient - must close test tabs too
+- Testing in multiple browsers (Chrome, Firefox) revealed it wasn't browser-specific bug
+- Eventually made debug changes SO obvious they couldn't be missed - proved code wasn't running
+
+**Testing Documentation:**
+- Test scripts for long breaks need:
+  - Environment setup (which directory, which branch)
+  - Verification steps (git status, aws_status)
+  - Expected outputs for each command
+  - "Where you left off" summary at end
+  - All file paths as absolute paths
+  - Quick reference card for common commands
+
+### Technical Debt Identified
+- overlay.js should be deleted or repurposed (currently dead code)
+- Firefox manifest compatibility lost in revert (can re-add if needed: `"scripts": ["service-worker.js"]`)
+- Manual testing is time-consuming (Issue #99 addresses this)
+- No automated regression testing (if #98 fix breaks something else, won't know until manual test)
+
+### Open Questions
+- Should overlay.js be deleted entirely? (Prevents future confusion)
+- Or should service-worker.js be refactored to actually use it via `files: ['overlay.js']`? (Cleaner architecture)
+- Does keeping it as external file offer any benefits? (Currently none identified)
+
