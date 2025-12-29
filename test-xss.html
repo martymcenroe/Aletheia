@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Test Page - Aletheia</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2563eb;
+        }
+        .test-section {
+            background: #f3f4f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #ef4444;
+            border-radius: 4px;
+        }
+        .payload {
+            background: #fff;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #dc2626;
+        }
+        .instructions {
+            background: #dbeafe;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #2563eb;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>XSS Prevention Test - Issue #77 Test 080</h1>
+
+    <div class="instructions">
+        <h2>Instructions</h2>
+        <ol>
+            <li>Enable Aletheia extension for this page (localhost/file)</li>
+            <li>Select any XSS payload below (click and drag to select)</li>
+            <li>Right-click → "Explain with AI"</li>
+            <li><strong>Expected:</strong> Overlay shows the text literally (e.g., "&lt;script&gt;alert('xss')&lt;/script&gt;")</li>
+            <li><strong>FAIL:</strong> If you see an alert popup or any script execution</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Payload 1: Basic Script Tag</h3>
+        <div class="payload">&lt;script&gt;alert('xss')&lt;/script&gt;</div>
+        <p><strong>To test:</strong> Select the text below (not the escaped version above):</p>
+        <p><script>alert('xss')</script></p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Payload 2: Image Error Handler</h3>
+        <div class="payload">&lt;img src=x onerror=alert(1)&gt;</div>
+        <p><strong>To test:</strong> Select the text below:</p>
+        <p><img src=x onerror=alert(1)></p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Payload 3: SVG OnLoad</h3>
+        <div class="payload">&lt;svg onload=alert('XSS')&gt;</div>
+        <p><strong>To test:</strong> Select the text below:</p>
+        <p><svg onload=alert('XSS')></p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Payload 4: Javascript Protocol</h3>
+        <div class="payload">&lt;a href="javascript:alert('xss')"&gt;click&lt;/a&gt;</div>
+        <p><strong>To test:</strong> Select the text below:</p>
+        <p><a href="javascript:alert('xss')">click</a></p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Payload 5: Event Handler</h3>
+        <div class="payload">&lt;div onmouseover="alert('xss')"&gt;hover&lt;/div&gt;</div>
+        <p><strong>To test:</strong> Select the text below:</p>
+        <p><div onmouseover="alert('xss')">hover</div></p>
+    </div>
+
+    <div class="instructions">
+        <h2>Expected Behavior</h2>
+        <p><strong>✓ PASS:</strong> The overlay displays the selected text exactly as written, with HTML tags visible as text (e.g., "&lt;script&gt;alert('xss')&lt;/script&gt;")</p>
+        <p><strong>✗ FAIL:</strong> Any JavaScript execution (alert popups, console errors, etc.)</p>
+        <p><strong>Why this matters:</strong> Using <code>textContent</code> instead of <code>innerHTML</code> prevents XSS attacks when displaying user-selected text.</p>
+    </div>
+</body>
+</html>
