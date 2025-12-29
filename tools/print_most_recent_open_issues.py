@@ -123,14 +123,34 @@ def generate_pdf(markdown_path, duplex=False):
 
     print(f"Generating PDF with pandoc...")
 
-    # Pandoc command with XeLaTeX engine and header
+    # Create custom header with actual filepath and timestamp
+    header_template = Path(PANDOC_HEADER).read_text(encoding='utf-8')
+
+    # Get actual Windows local time (not Python's potentially incorrect timezone)
+    result = subprocess.run(
+        ['powershell.exe', '-Command', 'Get-Date -Format "yyyy-MM-dd HH:mm"'],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    timestamp = result.stdout.strip()
+
+    # Replace placeholders
+    custom_header = header_template.replace('FILEPATH', 'Aletheia/Github-Open-Issues')
+    custom_header = custom_header.replace('MODTIME', f'Generated: {timestamp} CT')
+
+    # Write to temporary header file
+    temp_header = Path('.pandoc-header-temp.tex')
+    temp_header.write_text(custom_header, encoding='utf-8')
+
+    # Pandoc command with XeLaTeX engine and custom header
     cmd = [
         PANDOC_PATH,
         "-f", "gfm",  # GitHub-flavored markdown
         str(markdown_path),
         "-o", str(pdf_path),
         "--pdf-engine=xelatex",
-        "-H", PANDOC_HEADER,
+        "-H", str(temp_header),
         "-V", "geometry:margin=1in"
     ]
 
@@ -141,6 +161,10 @@ def generate_pdf(markdown_path, duplex=False):
     except subprocess.CalledProcessError as e:
         print(f"Pandoc error: {e.stderr}")
         sys.exit(1)
+    finally:
+        # Clean up temp header
+        if temp_header.exists():
+            temp_header.unlink()
 
 
 def print_pdf(pdf_path, duplex=False):
