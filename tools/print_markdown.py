@@ -79,7 +79,15 @@ def filter_markdown_files(directory, new=False, modified=False, all_files=False)
     md_files = sorted(directory.glob("*.md"))
 
     if all_files:
-        return md_files
+        # Skip 0003-file-inventory.md - save for end
+        deferred = []
+        regular = []
+        for f in md_files:
+            if f.name == "0003-file-inventory.md":
+                deferred.append(f)
+            else:
+                regular.append(f)
+        return regular + deferred
 
     # Default to new if no filters specified
     if not new and not modified:
@@ -87,14 +95,23 @@ def filter_markdown_files(directory, new=False, modified=False, all_files=False)
 
     history = load_print_history()
     filtered = []
+    deferred = []
 
     for md_file in md_files:
+        # Defer 0003-file-inventory.md to end
+        if md_file.name == "0003-file-inventory.md":
+            if new and is_new_file(md_file, history):
+                deferred.append(md_file)
+            elif modified and is_modified_file(md_file, history):
+                deferred.append(md_file)
+            continue
+
         if new and is_new_file(md_file, history):
             filtered.append(md_file)
         elif modified and is_modified_file(md_file, history):
             filtered.append(md_file)
 
-    return filtered
+    return filtered + deferred
 
 
 def generate_pdf(markdown_path):
@@ -360,8 +377,8 @@ def main():
                              help='Print single-sided')
     duplex_group.add_argument('-ds', '--double-sided', action='store_true',
                              help='Print double-sided (default)')
-    print_group.add_argument('-wait', type=int, default=5, metavar='N',
-                            help='Minutes to wait between prints (default: 5)')
+    print_group.add_argument('-wait', type=int, default=0, metavar='N',
+                            help='Minutes to wait after print completes before sending next job (default: 0 - immediate)')
 
     args = parser.parse_args()
 
@@ -379,7 +396,10 @@ def main():
         # Directory mode - batch printing
         print(f"Directory mode: {args.path}")
         print(f"Print mode: {mode_str}")
-        print(f"Wait time: {args.wait} minute(s) between files")
+        if args.wait > 0:
+            print(f"Wait time: {args.wait} minute(s) after each job completes")
+        else:
+            print(f"Wait time: Immediate (send next job as soon as current completes)")
         print("")
 
         # Filter files
@@ -415,8 +435,10 @@ def main():
                     print(f"Success: {md_file.name}")
 
                     # Wait before next file (unless last file)
-                    if i < len(files) - 1:
+                    if i < len(files) - 1 and args.wait > 0:
                         countdown_wait(args.wait)
+                    elif i < len(files) - 1:
+                        print("Sending next job immediately...")
                 else:
                     skipped += 1
                     print(f"Skipped: {md_file.name} - {error}")
