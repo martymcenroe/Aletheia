@@ -1,0 +1,40 @@
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{fontspec}
+\usepackage{newunicodechar}
+\usepackage{fvextra}
+\usepackage{hyperref}
+
+% Use Segoe UI as main font
+\setmainfont{Segoe UI}
+\setmonofont{Consolas}
+
+% Enable line breaking in code blocks and verbatim
+\fvset{breaklines=true, breakanywhere=true}
+
+% Enable URL breaking
+\PassOptionsToPackage{hyphens}{url}
+\hypersetup{breaklinks=true}
+
+% Define emoji font
+\newfontfamily\emojifont{Segoe UI Emoji}
+
+% Map specific emoji to emoji font
+\newunicodechar{✅}{{\emojifont ✅}}
+\newunicodechar{🚫}{{\emojifont 🚫}}
+\newunicodechar{🟡}{{\emojifont 🟡}}
+\newunicodechar{🟢}{{\emojifont 🟢}}
+\newunicodechar{🤖}{{\emojifont 🤖}}
+
+% Configure headers and footers
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\texttt{FILEPATH}}
+\fancyhead[R]{\small MODTIME}
+\fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Prevent orphans and widows
+\widowpenalty=10000
+\clubpenalty=10000
