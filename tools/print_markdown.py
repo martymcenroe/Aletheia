@@ -221,7 +221,9 @@ def get_job_status_info(printer_name, job_id):
 
     except pywintypes.error as e:
         # Job might have completed and been removed from queue
-        if e.winerror == 2151677952:  # Job not found
+        # Error 2151677952 = Job not found in queue
+        # Error 87 = The parameter is incorrect (job completed and removed)
+        if e.winerror == 2151677952 or e.winerror == 87:
             return 'COMPLETED', None
         raise
 
