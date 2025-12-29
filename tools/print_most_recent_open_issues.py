@@ -135,8 +135,9 @@ def generate_pdf(markdown_path, duplex=False):
     )
     timestamp = result.stdout.strip()
 
-    # Replace placeholders
-    custom_header = header_template.replace('FILEPATH', 'Aletheia/Github-Open-Issues')
+    # Replace placeholders with actual values
+    filepath_display = str(markdown_path).replace('\\', '/')  # e.g., docs/6000-open-issues-2025-12-28.md
+    custom_header = header_template.replace('FILEPATH', filepath_display)
     custom_header = custom_header.replace('MODTIME', f'Generated: {timestamp} CT')
 
     # Write to temporary header file
@@ -196,18 +197,18 @@ def print_pdf(pdf_path, duplex=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Fetch open GitHub issues, save to docs/, and print with fancy headers."
+        description="Fetch open GitHub issues, save to docs/, and print with fancy headers. Default: double-sided"
     )
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-ss', '--single-sided', action='store_true',
-                      help='Print single-sided')
+                      help='Print single-sided (overrides default)')
     group.add_argument('-ds', '--double-sided', action='store_true',
-                      help='Print double-sided (uses printer default duplex setting)')
+                      help='Print double-sided (default - uses printer duplex setting)')
 
     args = parser.parse_args()
 
-    # Determine print mode
-    duplex = args.double_sided
+    # Determine print mode (default to double-sided)
+    duplex = not args.single_sided  # True unless -ss specified
     mode_str = "double-sided" if duplex else "single-sided"
     print(f"Print mode: {mode_str}")
     print("")
