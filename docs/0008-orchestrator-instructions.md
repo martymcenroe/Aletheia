@@ -156,6 +156,18 @@ Session logs live in `docs/session-logs/` with weekly files named by Monday date
 - Sunday 11pm work → current week's file
 - Monday 9am work → new week's file
 
+### ⚠️ CRITICAL: Windows Git Bash Timestamp Issue
+**Problem:** On Windows (MINGW64), the command `TZ='America/Chicago' date` returns **UTC time with a "CT" label**, NOT actual Central Time.
+
+**Symptom:** At 9:55 PM Saturday CT, the command shows "03:55 AM Sunday CT" (6 hours ahead).
+
+**Solution:** AI agents on Windows MUST manually calculate the correct timestamp:
+- Ask user for current local time
+- OR use orchestrator's stated time
+- NEVER trust `TZ='America/Chicago' date` output in Git Bash on Windows
+
+**For Orchestrator:** Always verify the week file before agents append. If it's before Monday 3 AM CT, entries go in the CURRENT week's file, not next week's file.
+
 ### File Naming
 ```
 docs/session-logs/2025-12-16.md  ← Week of Dec 16-22
