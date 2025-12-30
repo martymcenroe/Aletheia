@@ -233,3 +233,73 @@ Emergency recovery mission to restore lost Overlay functionality (Issue #114) an
 - **Environment:** Clean (verified 0011)
 - **Open PRs:** 0
 - **Next:** Resume Issue #113 (Naked Python Architecture).
+
+---
+
+## 2025-12-30 ~15:00-16:20 CT | Claude Opus 4.5
+
+### Summary
+Major issue triage and cleanup session. Closed 8 obsolete issues, updated terminology across documentation and GitHub issues, restructured 0007, and created roadmap to Chrome/Firefox store submission.
+
+### Issues Closed (8 total)
+| Issue | Reason |
+|-------|--------|
+| #5 | LangGraph tests obsolete (ADR 0211) |
+| #14 | Superseded by Transform layer |
+| #25 | Cookie heuristic superseded by OAuth approach |
+| #85 | Already completed (renamed to Transform in #109) |
+| #88 | LLD already marked Legacy |
+| #109 | Layer renaming completed |
+| #110 | ADR recovery completed |
+| #112 | 0007 restructured |
+
+### Layer Naming Update (#109)
+Renamed L1/L2/L3/L4 to functional names across all documentation:
+- L1 → Selection Check
+- L2 → Denylist
+- L3 → Semantic
+- L4/Compliance → Transform
+
+**Files updated:** 0001, 0003, 0005, 1010, 1045, 9001
+
+### GitHub Issues Terminology Update
+Updated 3 open issues (#44, #45, #79) to use new layer names instead of L1/L2/L3.
+
+### 0007 Restructure (#112)
+- Renamed: `0007-legal-compliance-strategy.md` → `0007-signal-handling.md`
+- Fixed `noai` from "HARD STOP" to "Ignore" (we do inference, not training)
+- Added `rating="adult"` row for age-restricted content
+- Added Section 5: Decision Rationale
+- Updated terminology throughout
+
+### Issue #7 Update
+Removed LangSmith (LangChain-specific), now focused on AWS X-Ray + CloudWatch.
+
+### New Issues Created
+- **#116** - LinkedIn OAuth authentication
+- **#117** - Investigate unauthenticated user mechanisms
+
+### Complete Issue Evaluation
+Analyzed all 25 open issues and categorized:
+- **Critical Path (Chrome):** #113, #45, #51, #53
+- **Critical Path (Firefox):** #100
+- **Defer (Post-MVP):** 17 issues
+
+### Commits
+- `d5ab5f3` - docs: rename L1/L2/L3/L4 to functional layer names (close #109)
+- `2556b83` - docs: restructure 0007 as signal-handling.md (close #112)
+
+### Files Modified
+- `docs/0001-system-architecture.md`
+- `docs/0003-file-inventory.md`
+- `docs/0005-testing-strategy-and-protocols.md`
+- `docs/0007-signal-handling.md` (renamed from 0007-legal-compliance-strategy.md)
+- `docs/1010-semantic-guardrails.md`
+- `docs/1045-deterministic-hate-filter.md`
+- `docs/9001-open-investigations.md`
+
+### State on Exit
+- **Branch:** `main`
+- **Open Issues:** 23 (down from 31)
+- **Open PRs:** 0
+- **Next:** Gemini to continue #113 (Naked Python), then #51/#53 for store submission

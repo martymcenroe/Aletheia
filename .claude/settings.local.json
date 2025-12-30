@@ -25,7 +25,8 @@
       "Bash(powershell.exe -Command \"Get-Date -Format ''yyyy-MM-dd HH:mm''\")",
       "Bash(git checkout:*)",
       "Bash(aws lambda get-function:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "Bash(python:*)"
     ],
     "deny": [
       "Read(.env)",
