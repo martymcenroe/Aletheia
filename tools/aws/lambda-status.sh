@@ -2,7 +2,7 @@
 # Show Lambda concurrency status with clear ON/OFF indication
 # Usage: ./lambda-status.sh [function-name]
 
-FUNCTION_NAME="${1:-aletheia-harvester}"
+FUNCTION_NAME="${1:-AletheiaAgent}"
 
 result=$(aws lambda get-function-concurrency --function-name "$FUNCTION_NAME" 2>/dev/null)
 
