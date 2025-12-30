@@ -114,14 +114,11 @@
 ### Core Application (Python)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `agent.py` | **Logic** | 🟠 **In-Progress** | #80 | Main LangGraph agent definitions. |
-| `checkpointer.py` | **State** | 🟡 **Beta** | - | DynamoDB state management. |
-| `compliance.py` | **Logic** | 🟡 **Beta** | #14 | Compliance checking logic. |
-| `lambda_function.py` | **Entry** | 🟠 **In-Progress** | #80 | Main AWS Lambda handler (streaming). |
+| `lambda_function.py` | **Entry** | 🟠 **In-Progress** | #113 | Main AWS Lambda handler (Naked Python orchestrator). |
 | `lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
 | `src/__init__.py` | **Module** | 🟢 **Stable** | - | Package init. |
 | `src/guardrails/__init__.py` | **Module** | 🟢 **Stable** | - | Guardrails package init. |
-| `src/guardrails/engine.py` | **Logic** | 🟠 **In-Progress** | #80 | Guardrails engine (wiring Semantic + Denylist stub). |
+| `src/guardrails/engine.py` | **Logic** | 🟡 **Beta** | #113 | Guardrails engine (Selection Check + Denylist stub). |
 | `src/guardrails/validators.py` | **Logic** | 🟡 **Beta** | #11 | Validator functions. |
 | `src/guardrails/semantic.py` | **Logic** | 🟡 **Beta** | #10 | Semantic guardrail (LLM-based). |
 | `src/guardrails/resources/taxonomy.json` | **Data** | 🟢 **Stable** | #10 | Taxonomy and few-shot examples. |
