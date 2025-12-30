@@ -19,7 +19,12 @@
       "Bash(python tools/print_most_recent_open_issues.py:*)",
       "Bash(poetry add:*)",
       "Bash(poetry run python:*)",
-      "Bash(python -m json.tool:*)"
+      "Bash(python -m json.tool:*)",
+      "WebSearch",
+      "WebFetch(domain:developers.google.com)",
+      "Bash(powershell.exe -Command \"Get-Date -Format ''yyyy-MM-dd HH:mm''\")",
+      "Bash(git checkout:*)",
+      "Bash(aws lambda get-function:*)"
     ],
     "deny": [
       "Read(.env)",
