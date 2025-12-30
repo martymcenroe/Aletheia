@@ -14,6 +14,7 @@
 ### Root Configuration
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| `.claude/settings.local.json` | **Config** | 🟢 **Stable** | - | Claude Code permissions (commit to main when updated). |
 | `.gitignore` | **Config** | 🟢 **Stable** | - | Git ignore rules. |
 | `.print-history.json` | **Log** | 🚫 **Gitignored** | - | Print tracking for markdown files (mtime + timestamp). |
 | `.session-log.md` | **Log** | 🚫 **Gitignored** | - | AI session continuity log. |
@@ -62,7 +63,7 @@
 | `docs/0202-ADR-shadow-dom-isolation.md` | **ADR** | 🟢 **Stable** | #111 | Decision: Closed Shadow DOM for injected UI. |
 | `docs/0203-ADR-stateful-serverless.md` | **ADR** | 🟢 **Stable** | #111 | Decision: DynamoDB hydration/dehydration pattern. |
 | `docs/0204-ADR-defense-funnel.md` | **ADR** | 🟢 **Stable** | #111 | Decision: Ordered defense layers (fail fast). |
-| `docs/0205-ADR-langgraph-orchestration.md` | **ADR** | 🟢 **Stable** | #111 | Decision: LangGraph for agent orchestration. |
+| `docs/0205-ADR-langgraph-orchestration.md` | **ADR** | ⚫ **Legacy** | #111 | Decision: LangGraph for agent orchestration. Superseded by 0211. |
 | `docs/0206-ADR-streaming-sse.md` | **ADR** | 🟢 **Stable** | #111 | Decision: SSE for streaming responses. |
 | `docs/0207-ADR-single-identity-orchestration.md` | **ADR** | 🟢 **Stable** | - | Decision: Single human committer identity. |
 | `docs/0208-ADR-client-side-preference-storage.md` | **ADR** | 🟢 **Stable** | - | Decision: chrome.storage.local for persistence. |
@@ -127,6 +128,7 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
+| `extension/overlay.js` | **Logic** | 🟢 **Stable** | #114 | Injected overlay UI (Shadow DOM isolated). |
 | `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76 | Background script with allowlist gate. |
 | `extension/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
 | `extension/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
@@ -144,6 +146,7 @@
 | `aws-inventory-check.sh` | **Script** | 🟡 **Beta** | - | AWS resource inventory audit. |
 | `deploy.sh` | **Script** | 🟡 **Beta** | - | Lambda deployment automation. |
 | `provision.sh` | **Script** | 🟡 **Beta** | - | AWS infrastructure provisioning. |
+| `scripts/aws/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | AWS scripts directory placeholder. |
 | `dist/` | **Output** | 🚫 **Gitignored** | - | Build artifacts (empty). |
 | `temp-pdfs/` | **Output** | 🚫 **Gitignored** | - | Temporary PDF storage (auto-deleted after successful print). |
 
@@ -172,6 +175,8 @@
 | `tests/__init__.py` | **Test** | 🟢 **Stable** | - | Test package init. |
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
+| `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
+| `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
 | `docs/security/vulnerability-test.md` | **Test** | 🟢 **Stable** | #95 | Manual vulnerability reproduction scripts. |
