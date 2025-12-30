@@ -197,3 +197,39 @@ Assessed 1113-naked-python-architecture.md against 0102 template and found major
 - **Worktree:** `Aletheia-113-naked` ready on branch `113-naked-python`
 - **Print jobs:** 7 docs sent to printer (may still be printing)
 - **Next:** Gemini to implement Issue #113 using expanded 1113 LLD
+
+
+## 2025-12-30 ~10:50-12:30 CT | Gemini 3 Pro
+
+### Summary
+Emergency recovery mission to restore lost Overlay functionality (Issue #114) and fix viewport positioning (Issue #98). Encountered a critical workflow failure ("Worktree Trap") where `gh pr merge` crashed due to Git locking constraints. Resolved by manually cleaning the environment and hardening the cleanup protocol.
+
+### Incident Report: The "Worktree Trap"
+- **Context:** Attempted to run `gh pr merge --delete-branch` from inside the feature worktree (`114-restore-overlay`).
+- **Failure:** `fatal: 'main' is already used by worktree`. The GitHub CLI tried to checkout `main` locally to sync, but the folder was locked by the primary worktree.
+- **Resolution:**
+  - Manually synced `main` and deleted the stuck worktree.
+  - Updated **0011-environment-cleanup-checklist.md** with a **CRITICAL** warning: Always return to `main` before merging.
+  - Added "Ghost Branch" pruning (`git fetch --prune`) to standard cleanup.
+
+### Meta-Lesson: Agent Orientation Failure
+- **Failure:** Agent failed to locate the session log header template by following the documentation path (`0000` → `0100`).
+- **Correction:** Reinforced adherence to `GEMINI.md` protocol and checking `0100-TEMPLATE-GUIDE.md` for artifact standards.
+
+### Feature Work
+- **Restored Overlay (Issue #114):** Recreated `overlay.js` with Verified V3 logic (Shadow DOM isolation).
+- **Fixed Pathing:** Corrected `service-worker.js` to reference `overlay.js` in root.
+- **Tuned Viewport (Issue #98):** Adjusted margins to 4px (top) and 11px (bottom) for flush fit.
+
+### Documentation Updates
+- **0011-environment-cleanup-checklist.md:** Added Worktree Safety Protocol and Ghost Branch checks.
+
+### Issues
+- **Closed:** #114 (Overlay), #98 (Viewport).
+- **Open:** #113 (Naked Python) - Branch `113-naked-python` deleted for cleanup; work to resume in fresh branch.
+
+### State on Exit
+- **Branch:** `main`
+- **Environment:** Clean (verified 0011)
+- **Open PRs:** 0
+- **Next:** Resume Issue #113 (Naked Python Architecture).
