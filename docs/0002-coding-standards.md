@@ -302,3 +302,10 @@ Projects/
 * **Create:** `git worktree add ../Aletheia-99-feature -b feature/99-name`
 * **List:** `git worktree list`
 * **Remove:** `git worktree remove ../Aletheia-99-feature` (then delete the folder)
+
+### 11.3 The "No Nagging" Clause
+If you cannot execute code (e.g., Chat interface), do NOT stop to ask the user to verify.
+1.  Write the code.
+2.  Write the `manual_smoke.py` tool.
+3.  Submit both as complete.
+**Rationale:** The user is the final verifier, not your debug loop. Do not hand work back until the solution is proposed complete.
