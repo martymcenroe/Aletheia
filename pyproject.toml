@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "aletheia"
 version = "0.1.0"
-description = "Context-aware browser extension backend using LangGraph on AWS Lambda."
+description = "Context-aware browser extension backend using pure Python on AWS Lambda."
 authors = ["Marty McEnroe"]
 readme = "README.md"
 package-mode = false
@@ -9,9 +9,6 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.12"
 boto3 = "^1.34"
-langchain = "^1.0.8"
-langchain-aws = "^1.0.0"
-langgraph = "^1.0.3"
 pillow = "^12.0.0"
 tzdata = "^2025.3"
 pywin32 = "^311"
