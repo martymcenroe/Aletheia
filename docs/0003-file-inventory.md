@@ -36,7 +36,7 @@
 | `docs/0004-orchestration-protocol.md` | **Protocol** | 🟢 **Stable** | #50 | Rules for AI-User collaboration and mini-sprints. |
 | `docs/0005-testing-strategy-and-protocols.md` | **Protocol** | 🟢 **Stable** | #69 | Testing strategy and modular verification. |
 | `docs/0006-mermaid-diagrams.md` | **Standard** | 🟢 **Stable** | - | Mermaid JS diagramming standards and patterns. |
-| `docs/0007-legal-compliance-strategy.md` | **Standard** | 🟢 **Stable** | - | Legal strategy for content handling. |
+| `docs/0007-signal-handling.md` | **Standard** | 🟢 **Stable** | #112 | Signal handling strategy (noai, noarchive, robots.txt). |
 | `docs/0008-orchestrator-instructions.md` | **Guide** | 🟢 **Stable** | - | Rules for human orchestrator managing AI sessions. |
 | `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions cleanly. |
 | `docs/0010-standard-labels.md` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
