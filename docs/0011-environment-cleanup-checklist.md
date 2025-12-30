@@ -132,17 +132,18 @@ gh issue close {N} --comment "Fixed via PR #{PR_Number}"
 #### 3.1 AWS Lambda Concurrency
 
 ```bash
-aws_status
+# Use repo scripts for reliable output
+./tools/aws/lambda-status.sh
 
 ```
 
-**Expected:** `reservedConcurrentExecutions: 0` (Lambda OFF)
+**Expected:** `✗ Lambda OFF (concurrency=0)`
 
 **Action if ON:**
 
 ```bash
-aws_off
-aws_status  # Verify it's off
+./tools/aws/lambda-off.sh
+./tools/aws/lambda-status.sh  # Verify it's off
 
 ```
 
@@ -190,7 +191,7 @@ Before considering environment "clean", verify ALL of these:
 * [ ] `git branch -vv` shows **only** `main` (and active features).
 * [ ] `git branch -r` shows **only** `origin/main` (and active features).
 * [ ] `gh issue list` shows **no** issues that are actually completed.
-* [ ] `aws_status` is OFF.
+* [ ] `./tools/aws/lambda-status.sh` shows OFF.
 * [ ] `git status` is clean.
 
 ---
