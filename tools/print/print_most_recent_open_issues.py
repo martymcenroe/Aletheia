@@ -158,7 +158,14 @@ def generate_pdf(markdown_path, duplex=False):
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding='utf-8',
+            errors='replace',
+            check=True
+        )
         print(f"Generated {pdf_path}")
         return pdf_path
     except subprocess.CalledProcessError as e:
@@ -192,7 +199,14 @@ def print_pdf(pdf_path, duplex=False):
     cmd.append(str(pdf_path.absolute()))  # Use absolute path for Windows
 
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding='utf-8',
+            errors='replace',
+            check=True
+        )
         mode = "double-sided" if duplex else "single-sided"
         print(f"Sent to printer: {PRINTER_NAME} ({mode})")
     except subprocess.CalledProcessError as e:
