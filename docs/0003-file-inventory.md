@@ -76,15 +76,15 @@
 | `docs/1005-graph-tests.md` | **Spec** | ⚪ **Placeholder** | #5 | Unit tests for LangGraph nodes. |
 | `docs/1006-rag-vector.md` | **Spec** | ⚪ **Placeholder** | #6 | RAG Vector Store implementation. |
 | `docs/1007-observability.md` | **Spec** | ⚪ **Placeholder** | #7 | Observability and tracing. |
-| `docs/1010-semantic-guardrails.md` | **Spec** | 🟡 **Beta** | #10 | Layer 3 Semantic Guardrail. |
-| `docs/1011-local-guardrails.md` | **Spec** | 🟡 **Beta** | #11 | Layer 1 Local Guardrails. |
+| `docs/1010-semantic-guardrails.md` | **Spec** | 🟡 **Beta** | #10 | Semantic Guardrail (LLM-based). |
+| `docs/1011-local-guardrails.md` | **Spec** | 🟡 **Beta** | #11 | Selection Check (local validation). |
 | `docs/1014-compliance-engine.md` | **Spec** | 🟡 **Beta** | #14 | Compliance checking engine. |
 | `docs/1025-linkedin-auth-gate.md` | **Spec** | ⚫ **Legacy** | #25 | LinkedIn auth (cookie heuristic). Superseded by OAuth approach. |
 | `docs/1041-security-audit.md` | **Spec** | 🟢 **Stable** | #41 | Security audit and permission culling. |
 | `docs/1042-whitelist-mode.md` | **Spec** | 🟢 **Stable** | #42 | Whitelist mode and safety filters. |
 | `docs/1043-privacy-compliance.md` | **Spec** | 🟢 **Stable** | #43 | Privacy policy compliance. |
 | `docs/1044-warning-ui.md` | **Spec** | ⚪ **Placeholder** | #44 | Browser extension warning UI. |
-| `docs/1045-deterministic-hate-filter.md` | **Spec** | ⚪ **Placeholder** | #45 | Layer 2 Deterministic Hate Filter. |
+| `docs/1045-deterministic-hate-filter.md` | **Spec** | ⚪ **Placeholder** | #45 | Denylist (deterministic hate filter). |
 | `docs/1051-store-compliance.md` | **Spec** | 🟡 **Beta** | #51 | Chrome Web Store compliance. |
 | `docs/1053-store-assets.md` | **Spec** | ⚪ **Placeholder** | #53 | Store asset generation. |
 | `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |

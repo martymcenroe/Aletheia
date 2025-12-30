@@ -1,4 +1,4 @@
-# 1045 - Feature: Deterministic Hate Speech Filter (Layer 2)
+# 1045 - Feature: Deterministic Hate Speech Filter (Denylist)
 
 ## 1. Context & Goal
 * **Issue:** #45
@@ -31,7 +31,7 @@
 
 ### 4.2 Future Work (Ref #9001)
 * **Trigger Mechanism:**
-  - *Option A (Reactive):* EventBridge trigger when Layer 3 blocks as "Hate" but Layer 2 missed
+  - *Option A (Reactive):* EventBridge trigger when Semantic blocks as "Hate" but Denylist missed
   - *Option B (Scheduled):* Monthly cron job to scrape RSDB
 * **Storage Promotion:** Migrate to S3 + DynamoDB if list exceeds Lambda memory
 
@@ -50,7 +50,7 @@ python -c "import json; d=json.load(open('src/guardrails/resources/denylist.json
 | Scenario | Input | Expected Output | Pass Criteria |
 |:---------|:------|:----------------|:--------------|
 | Known slur | Term from denylist | Blocked | Returns rejection immediately |
-| Clean word | "hello" | Passed | No rejection, continues to Layer 3 |
+| Clean word | "hello" | Passed | No rejection, continues to Semantic |
 | Empty input | "" | Passed | No crash, continues pipeline |
 | Performance | 1000 lookups | < 5ms total | Benchmark under budget |
 

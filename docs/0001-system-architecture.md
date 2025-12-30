@@ -21,10 +21,10 @@ graph TD
         DDB[(DynamoDB State)]
 
         subgraph Logic [The Funnel]
-            L1[L1: Regex]
-            L2[L2: Hate List]
-            L3[L3: Semantic AI]
-            Comp[Compliance Engine]
+            L1[Selection Check]
+            L2[Denylist]
+            L3[Semantic]
+            Comp[Transform]
         end
 
         Brain[Bedrock Agent]
@@ -47,41 +47,41 @@ We enforce a strict, ordered defense pipeline to minimize cost and liability.
 ```mermaid
 sequenceDiagram
     participant User
-    participant L1_Syntax as L1: Syntax (Regex)
-    participant L2_Hate as L2: Hate (Denylist)
-    participant L3_Semantic as L3: Semantic (AI)
-    participant Compliance as Compliance (Future)
+    participant SelectionCheck as Selection Check
+    participant Denylist as Denylist
+    participant Semantic as Semantic
+    participant Transform as Transform
     participant Agent as Agent (DynamoDB)
 
     Note over User, Agent: The Request Pipeline
 
-    User->>L1_Syntax: 1. Input (Word)
-    
+    User->>SelectionCheck: 1. Input (Word)
+
     alt is Garbage?
-        L1_Syntax--xUser: BLOCK (Invalid Format)
+        SelectionCheck--xUser: BLOCK (Invalid Format)
     else is Valid
-        L1_Syntax->>L2_Hate: 2. Check Index
+        SelectionCheck->>Denylist: 2. Check Index
     end
 
     alt is Listed?
-        L2_Hate--xUser: BLOCK (Liability Shield)
-        Note right of L2_Hate: Store Metadata Only<br/>(Index, URL, Time)
+        Denylist--xUser: BLOCK (Liability Shield)
+        Note right of Denylist: Store Metadata Only<br/>(Index, URL, Time)
     else is Clean
-        L2_Hate->>L3_Semantic: 3. Check Context (Raw)
+        Denylist->>Semantic: 3. Check Context (Raw)
     end
 
     alt is Unsafe?
-        L3_Semantic--xUser: BLOCK (Provocative/Archaic)
+        Semantic--xUser: BLOCK (Provocative/Archaic)
     else is Safe
-        L3_Semantic->>Compliance: 4. Verification
+        Semantic->>Transform: 4. Verification
     end
 
     rect rgb(240, 240, 240)
-    Note over Compliance: DEFERRED (Copyright Engine)
-    Compliance-->>Compliance: Summarize & Vectorize
+    Note over Transform: Summarize if noarchive
+    Transform-->>Transform: Summarize & Vectorize
     end
 
-    Compliance->>Agent: 5. Hydrate & Execute
+    Transform->>Agent: 5. Hydrate & Execute
     Agent-->>User: Streaming Response
 
 ```
@@ -90,10 +90,10 @@ sequenceDiagram
 
 | Layer | Type | Mechanism | Responsibility | Storage Logic |
 | --- | --- | --- | --- | --- |
-| **L1** | Syntactic | Regex (CPU) | Block gibberish, non-words, scripts. | None (Discard). |
-| **L2** | Deterministic | Hash Lookup | Block known hate speech (RSDB). | **Metadata Only:** Store Index ID, Timestamp, URL. *Never store the word.* |
-| **L3** | Semantic | LLM (Haiku) | Block provocative/archaic nuance. | Log Rejection Category + Score. |
-| **Compliance** | Legal | LLM (Summary) | Strip copyright text before storage. | **Deferred.** (Currently passing Raw Text). |
+| **Selection Check** | Syntactic | Regex (CPU) | Block gibberish, non-words, scripts. | None (Discard). |
+| **Denylist** | Deterministic | Hash Lookup | Block known hate speech (RSDB). | **Metadata Only:** Store Index ID, Timestamp, URL. *Never store the word.* |
+| **Semantic** | Semantic | LLM (Haiku) | Block provocative/archaic nuance. | Log Rejection Category + Score. |
+| **Transform** | Legal | LLM (Summary) | Summarize if noarchive flag set. | Summary only (raw text discarded). |
 
 ## 3. Streaming UX (Server-Sent Events)
 

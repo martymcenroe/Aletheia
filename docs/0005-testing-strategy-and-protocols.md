@@ -21,7 +21,7 @@ Aletheia operates in a high-liability domain (AI Safety). Testing is not just ab
 
 These modules are the atomic units of verification.
 
-### Module A: Local Logic (L1/L2)
+### Module A: Local Logic (Selection Check / Denylist)
 
 **Goal:** Verify deterministic guardrails (Regex, Hash Lists) work without network calls.
 
@@ -29,7 +29,7 @@ These modules are the atomic units of verification.
 * **Success:** Immediate rejection.
 * **Tool:** `poetry run pytest tests/test_guardrails.py`
 
-### Module B: Semantic Intelligence (L3)
+### Module B: Semantic Intelligence
 
 **Goal:** Verify the LLM correctly classifies nuances (e.g., "Kill the process" vs. "Kill the person").
 

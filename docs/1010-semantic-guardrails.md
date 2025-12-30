@@ -1,9 +1,9 @@
-# [1010] Feature: Semantic Maturity Guardrails (Layer 3)
+# [1010] Feature: Semantic Maturity Guardrails
 
 ## 1. Context & Goal
 * **Issue:** #10
 * **Objective:** Analyze text for "Semantic Maturity" using an LLM to detect Archaic, Provocative, or Neologistic content.
-* **Placement:** Layer 3 of the Defense Funnel (Post-Syntactic, Post-Hate Filter).
+* **Placement:** Semantic layer of the Defense Funnel (after Selection Check and Denylist).
 
 ## 2. Taxonomy (Probabilistic)
 The engine returns a probability distribution (0.0 - 1.0) for:
@@ -12,7 +12,7 @@ The engine returns a probability distribution (0.0 - 1.0) for:
 3.  **Neologism:** Recent internet slang (< 2 years old).
 4.  **None:** Standard language.
 
-*Note: "Hate" is primarily handled by Layer 2 (Deterministic), but the LLM retains a "Hate" category as a fail-safe.*
+*Note: "Hate" is primarily handled by the Denylist (deterministic), but the LLM retains a "Hate" category as a fail-safe.*
 
 ## 3. Technical Approach
 * **Module:** `src/guardrails/semantic.py`
