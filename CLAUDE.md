@@ -14,9 +14,14 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 - ❌ `pip install` - Use `poetry add` instead
 
 ### Required Workflow:
-- **Branch before code:** `git checkout -b {IssueID}-short-desc`
-  - Example: Issue #25 → `25-linkedin-auth-gate` ✅
-  - Example: Issue #45 → `45-hate-filter` ✅
+- **Worktree before code:** Create isolated worktree for each feature:
+  ```bash
+  git worktree add ../Aletheia-{IssueID} -b {IssueID}-short-desc
+  cd ../Aletheia-{IssueID}
+  ```
+  - Example: Issue #45 → `git worktree add ../Aletheia-45 -b 45-denylist`
+  - ❌ NEVER use `git checkout -b` in the main folder
+  - See ADR 0210 for rationale
 - **Docs before Code:** You MUST update the relevant `docs/` file (LLD or Standard) *before* writing a single line of code.
 - **Push immediately:** `git push -u origin HEAD` - NEVER keep branches local-only
 - **Commit format:** `type: description (ref #ID)` or `(close #ID)` when complete

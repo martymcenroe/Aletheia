@@ -51,14 +51,14 @@ git push
 
 ## 4. The 9-Step Workflow ("The Flip Turn")
 1. **Issue:** Discovery (`gh issue list`).
-2. **Branch:** Isolation (`git checkout -b {IssueID}-short-desc`).
+2. **Worktree:** Isolation (`git worktree add ../Aletheia-{IssueID} -b {IssueID}-short-desc && cd ../Aletheia-{IssueID}`). See Section 10. ❌ NEVER use `git checkout -b` in the main folder.
 3. **Edit:** Implementation.
 4. **Stage:** Preparation (`git add`).
 5. **Commit:** Conventional (`type: desc (ref #ID)`).
 6. **Push:** Team Visibility (`git push -u origin HEAD`). REQUIRED - never keep branches local-only. Remote branches provide backup, enable collaboration, and allow orchestrator visibility.
 7. **PR:** Review (`gh pr create`).
-8. **Merge:** Finalize (`gh pr merge`).
-9. **Cleanup:** Delete BOTH local and remote branches (`git checkout main && git pull && git branch -d {branch} && git push origin --delete {branch}`). Always pull main first to avoid "not merged to HEAD" warning.
+8. **Merge:** Finalize - return to main folder first (`cd ../Aletheia && gh pr merge`).
+9. **Cleanup:** Remove worktree and delete branches (`git worktree remove ../Aletheia-{IssueID} && git branch -d {branch} && git push origin --delete {branch}`).
 
 ## 5. Documentation
 * **Update First:** Update the relevant `docs/` file *before* writing code.
@@ -238,38 +238,6 @@ shadow.innerHTML = `<style>/* our styles */</style><div class="overlay">Content<
 document.body.appendChild(host);
 ```
 
-
-## 10. Git Worktree Protocols
-
-### 10.1 The "Parallel Universe" Model
-We use `git worktree` to maintain isolated environments for different features without destroying local state (e.g., server logs, temp files).
-
-**Directory Structure:**
-```text
-Projects/
-├── Aletheia/              # [Main Worktree] Always kept on 'main'
-├── Aletheia-95-security/  # [Linked Worktree] Checked out to 'feature/95-...'
-└── Aletheia-80-wire/      # [Linked Worktree] Checked out to 'feature/80-...'
-
-```
-
-### 10.2 The Golden Rule
-
-**You cannot check out the same branch in two worktrees simultaneously.**
-
-* **The Error:** `fatal: 'main' is already used by worktree`
-* **The Cause:** You are in a feature folder trying to `git checkout main`, but `main` is already active in the root `Aletheia/` folder.
-* **The Fix:**
-* **To update:** Do not checkout main. Run `git fetch origin main` and `git merge origin/main`.
-* **To browse:** Open a separate terminal in the root `Aletheia/` folder.
-
-
-
-### 10.3 Common Commands
-
-* **Create:** `git worktree add ../Aletheia-99-feature -b feature/99-name`
-* **List:** `git worktree list`
-* **Remove:** `git worktree remove ../Aletheia-99-feature` (then delete the folder)
 
 ## 10. Git Worktree Protocols
 
