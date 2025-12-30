@@ -17,9 +17,12 @@
 | `.gitignore` | **Config** | 🟢 **Stable** | - | Git ignore rules. |
 | `.print-history.json` | **Log** | 🚫 **Gitignored** | - | Print tracking for markdown files (mtime + timestamp). |
 | `.session-log.md` | **Log** | 🚫 **Gitignored** | - | AI session continuity log. |
+| `CHATGPT.md` | **Config** | 🟢 **Stable** | - | ChatGPT agent onboarding. |
 | `CLAUDE.md` | **Config** | 🟢 **Stable** | - | Claude Code agent onboarding. |
+| `GEMINI.md` | **Config** | 🟢 **Stable** | - | Gemini agent onboarding. |
 | `LICENSE` | **Legal** | 🟢 **Stable** | - | MIT License. |
 | `README.md` | **Doc** | 🟢 **Stable** | - | Project overview. |
+| `TOMORROW-PLAN.md` | **Log** | 🟡 **Beta** | - | Next-day task planning (consider gitignoring). |
 | `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
 | `pyproject.toml` | **Config** | 🟢 **Stable** | - | Python dependencies. |
 
@@ -65,6 +68,7 @@
 | `docs/0208-ADR-client-side-preference-storage.md` | **ADR** | 🟢 **Stable** | - | Decision: chrome.storage.local for persistence. |
 | `docs/0209-ADR-static-compliance-hosting.md` | **ADR** | 🟢 **Stable** | - | Decision: GitHub Pages for legal docs. |
 | `docs/0210-ADR-git-worktree-isolation.md` | **ADR** | 🟢 **Stable** | - | Decision: Worktrees for feature isolation. |
+| `docs/0211-ADR-naked-python-architecture.md` | **ADR** | 🟢 **Stable** | #113 | Decision: Remove LangGraph, use boto3 directly. |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
@@ -86,8 +90,8 @@
 | `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
 | `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
 | `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
-| `docs/1080-wire-agent-logic.md` | **Spec** | 🟠 **In-Progress** | #80 | Wiring agent.py to guardrails/compliance. |
-| `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | WAF rate limiting and API key gate. |
+| `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
+| `docs/1113-naked-python-architecture.md` | **Spec** | 🟠 **In-Progress** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |
@@ -139,6 +143,8 @@
 ### Infrastructure & Deployment
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| `aws-cleanup-old-resources.sh` | **Script** | 🟡 **Beta** | - | Cleanup old AWS resources. |
+| `aws-inventory-check.sh` | **Script** | 🟡 **Beta** | - | AWS resource inventory audit. |
 | `deploy.sh` | **Script** | 🟡 **Beta** | - | Lambda deployment automation. |
 | `provision.sh` | **Script** | 🟡 **Beta** | - | AWS infrastructure provisioning. |
 | `dist/` | **Output** | 🚫 **Gitignored** | - | Build artifacts (empty). |
@@ -166,15 +172,18 @@
 | `tests/__init__.py` | **Test** | 🟢 **Stable** | - | Test package init. |
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
-| `tests/test_agent_wiring.py` | **Test** | 🟠 **In-Progress** | #80 | Unit tests for agent defense funnel wiring. |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
-| `docs/security/vulnerability-test.md` | **Test** | 🚫 **Gitignored** | #95 | Manual vulnerability reproduction scripts. |
-| `docs/security/vulnerability-test.md` | **Test** | 🚫 **Gitignored** | #95 | Manual vulnerability reproduction scripts. |
+| `docs/security/vulnerability-test.md` | **Test** | 🟢 **Stable** | #95 | Manual vulnerability reproduction scripts. |
+
+### Session Logs
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/session-logs/Week-starting-2025-12-15.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 15-21. |
+| `docs/session-logs/Week-starting-2025-12-22.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 22-28. |
+| `docs/session-logs/Week-starting-2025-12-29.md` | **Log** | 🟠 **In-Progress** | - | Session log week of Dec 29+. |
 
 ### Legacy & Abandoned
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `legacy/guardrails.py_bak` | **Archive** | ⚫ **Legacy** | - | Old guardrails implementation. |
-| `legacy/manual_test.py_bak` | **Archive** | ⚫ **Legacy** | - | Old manual test script. |
 | `prompts/` | **Archive** | ⚫ **Legacy** | - | Old text prompts. To be cleaned. |

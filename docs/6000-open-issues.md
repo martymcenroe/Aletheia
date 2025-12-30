@@ -1,6 +1,6 @@
 # Aletheia - Open Issues
 
-**Generated:** 2025-12-29 12:39 CT
+**Generated:** 2025-12-30 01:09 CT
 **Total Open Issues:** 31
 
 ---
@@ -181,42 +181,6 @@ Create a simple, static HTML page hosted on GitHub Pages (or local) to validate 
 - L1: Gibberish/Scripts
 - L2: Hate terms (mocked)
 - L3: Semantic triggers (Archaic/Provocative)
-
----
-
-## Issue #80: fix: Wire agent.py to Guardrails and Compliance Engine
-
-**Labels:** bug
-
-**Created:** 2025-12-21
-**Updated:** 2025-12-24
-
-### Description
-
-## Context
-Ref: `docs/1080-wire-agent-logic.md`
-Ref: `docs/0007-legal-compliance-strategy.md`
-
-## Objective
-Wire the `agent.py` LangGraph to enforce the security pipeline.
-**Note:** We are using the new 'Summarizer' terminology.
-
-## The Pipeline
-`Start -> Guardrails (L1-L3) -> Summarizer (No-Op) -> Agent -> End`
-
-## Requirements
-1. **Guardrails Node:** Must call `src.guardrails.engine`.
-2. **Conditional Edge:** If Guardrails fail, STOP. Do not call Agent.
-3. **Summarizer Node:** Create a **Pass-Through** node named `summarizer_node`.
-   - **Do NOT** implement summarization logic yet (That is Issue #85).
-   - Just return the state as-is for now.
-4. **Agent Node:** The existing node, but now downstream of the Summarizer.
-
-## Acceptance Criteria
-- [ ] Graph compiles and runs.
-- [ ] Blocked input stops execution before the Agent.
-- [ ] Valid input flows through the empty Summarizer node to the Agent.
-
 
 ---
 
@@ -1569,5 +1533,63 @@ Rename and restructure `docs/0007-legal-compliance-strategy.md` - extract decisi
 - [ ] Decision rationale moved to appropriate DR docs
 - [ ] 0003-file-inventory.md updated
 - [ ] Cross-references added between 0007 and DR docs
+
+---
+
+## Issue #113: Refactor: Implement "Naked Python" Architecture (Remove LangGraph)
+
+**Created:** 2025-12-30
+**Updated:** 2025-12-30
+
+### Description
+
+
+# Refactor: Implement "Naked Python" Architecture (Remove LangGraph)
+
+**Issue ID:** #113
+**Type:** Refactor
+**Priority:** High
+**Sprint:** "Naked Ridge" Refactor
+
+## 1. Context & Motivation
+We currently use **LangGraph** and **LangChain** to orchestrate a simple linear pipeline.
+* **The Problem:** This introduces ~200MB of dependencies and increases cold-start latency for a flow that has no cyclic requirements.
+* **The Goal:** Pivot to a "Naked Python" architecture. We will use standard Python logic and the native `boto3` library (already present in the Lambda runtime) to handle the flow.
+* **The Benefit:** Drastic reduction in deployment size (from ~250MB to <1MB), faster cold starts, and zero dependency hell.
+
+## 2. Technical Requirements
+
+### A. Dependency Cleanup
+* **Remove:** `langgraph`, `langchain`, `langchain-aws`, `langchain-core` from `pyproject.toml`.
+* **Keep:** `boto3` (for local dev typing), `pytest`.
+* **Update:** `deploy.sh` must be simplified. It should no longer export requirements, download binaries, or cross-compile. It should simply zip the `.py` source files.
+
+### B. Logic Refactor (`lambda_function.py`)
+Replace the graph invocation with a sequential "Defense Funnel" implemented in pure Python. The Lambda must implement the following server-side layers defined in `docs/1080-wire-agent-logic.md`:
+
+1.  **Denylist:** Execute deterministic blocking of hate terms (Stub: `return False`).
+2.  **Semantic:** Call `SemanticGuardrail` to perform AI-based context analysis (using `boto3`).
+3.  **Transform:** Execute noarchive handling (Stub: Pass-through).
+4.  **Persistence:** Write state/history to DynamoDB (using `boto3`).
+5.  **Generation:** Call Bedrock Agent or Model (using `boto3`).
+
+### C. Architecture Updates
+* **Remove:** `agent.py` (Graph definition).
+* **Remove:** `checkpointer.py` (LangGraph persistence).
+* **Update:** `src/guardrails/semantic.py` to ensure it uses `boto3` directly without LangChain wrappers.
+
+## 3. Definition of Done
+* [ ] `pyproject.toml` is stripped of LangChain/LangGraph dependencies.
+* [ ] `deploy.sh` creates a zip file containing ONLY Python source files (size < 1MB).
+* [ ] `lambda_function.py` orchestrates the sequential flow (Denylist -> Semantic -> Transform -> Save -> Bedrock) using only `boto3`.
+* [ ] `agent.py` and `checkpointer.py` are deleted.
+* [ ] Architecture diagrams in `docs/0001` are updated to reflect the linear flow.
+* [ ] **Verification:** Manual test confirms the "Explain" feature works end-to-end with the new lightweight Lambda.
+
+## 4. Documentation Impact
+* **Create:** `docs/0211-ADR-naked-python-architecture.md` (Decision record).
+* **Deprecate:** `docs/0205-ADR-langgraph-orchestration.md`.
+* **Update:** `docs/1080-wire-agent-logic.md` (Update LLD to reflect sequential Python functions).
+
 
 ---

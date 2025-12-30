@@ -174,6 +174,25 @@ gh issue close 93 --comment "Human testing verified. Closing."
 
 **Migration:** When cherry-picking or merging feature branches created before this policy, extract any NEW documentation files and commit them to `main` separately. See commit `7c8336d` for reference implementation.
 
+### 7.3 The Legacy Protocol ("The Graveyard")
+To keep the `docs/` folder focused on *active* truth, we aggressively archive outdated files.
+
+**Criteria for Archival:**
+* **Superseded:** A new Spec/ADR replaces the old one (e.g., switching from LangGraph to Naked Python).
+* **Abandoned:** A feature was cancelled or "won't fix."
+* **Deprecated:** A standard is no longer in force.
+
+**Execution:**
+1.  **Move:** Physically move the file to `docs/legacy/`.
+    ```bash
+    mkdir -p docs/legacy
+    git mv docs/1080-old-spec.md docs/legacy/1080-old-spec.md
+    ```
+2.  **Inventory:** Update `docs/0003-file-inventory.md`:
+    * **Status:** Change to ⚫ **Legacy**.
+    * **Path:** Update to `docs/legacy/...`.
+3.  **Link Rot:** Do NOT worry about breaking links in other legacy files. Active files should never link to legacy files except as historical footnotes.
+
 ## 8. File Editing Patterns
 
 ### 8.1 Appending to Sectioned Files
