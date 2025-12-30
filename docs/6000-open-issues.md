@@ -1,20 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2025-12-30 01:09 CT
-**Total Open Issues:** 31
-
----
-
-## Issue #5: test: Add Unit Tests for Graph Nodes
-
-**Labels:** chore
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-24
-
-### Description
-
-Implement pytest suite to verify agent state transitions and mock Bedrock calls.
+**Generated:** 2025-12-30 16:53 CT
+**Total Open Issues:** 24
 
 ---
 
@@ -36,57 +23,26 @@ Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
 **Labels:** chore
 
 **Created:** 2025-11-24
-**Updated:** 2025-12-24
+**Updated:** 2025-12-30
 
 ### Description
 
-Integrate AWS X-Ray or LangSmith to trace chain execution latency and token usage.
+Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
 
----
+## Updated Context
+LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
 
-## Issue #14: feat: Implement Compliance Engine
+## Goals
+- End-to-end request tracing via X-Ray
+- Bedrock token usage metrics in CloudWatch
+- Cold start latency monitoring
+- Error rate dashboards
 
-**Labels:** feature
-
-**Created:** 2025-11-29
-**Updated:** 2025-12-24
-
-### Description
-
-Objective: Implement a compliance-first context extraction pipeline that respects paywall indicators and ensures zero data retention.
-
-Architecture (The 'Traffic Light' Pattern):
-1. Frontend (Extension):
-   * Check for 'isAccessibleForFree: False' or 'noai' meta tags.
-   * IF DETECTED (Red Light): 
-       - MVP: Abort transmission. Alert user.
-       - Future (v2): Fallback to Client-Side (Edge) Vectorization to keep data local.
-   * IF NOT DETECTED (Yellow Light): 
-       - Transmit payload to AWS (User assumes TOS liability via Terms).
-
-2. Backend (Lambda - The 'Safe Harbor'):
-   * Ingest: Accept 'context' via HTTPS.
-   * Process: Generate Vector Embedding and Semantic Usage Report.
-   * Discard: Explicitly wipe 'context' from memory.
-   * Persist: Save only the synthetic report and vector.
-
-Constraints:
-* Zero logging of raw text in CloudWatch.
-* Strict separation of 'Process' vs 'Store' logic.
-* Target Platform: Chrome Desktop (Exclude Mobile/Safari for MVP).
-
----
-
-## Issue #25: Gate extension features on LinkedIn authentication
-
-**Labels:** security, feature
-
-**Created:** 2025-11-30
-**Updated:** 2025-12-24
-
-### Description
-
-Update the MV3 service worker so that the 'Explain with AI' context-menu workflow only runs when the user is logged into LinkedIn. Implement a helper that uses chrome.cookies.getAll({ domain: ".linkedin.com" }) to determine whether any LinkedIn cookies exist; if none are found, show a user-visible 'Not authenticated with LinkedIn' message (via chrome.notifications or equivalent) and abort without calling the webhook. Add the required 'cookies' permission and LinkedIn host_permissions in manifest.json so the service worker can read LinkedIn cookies.
+## Technical Approach
+- Enable X-Ray tracing on Lambda
+- Use `boto3` X-Ray SDK for custom subsegments (Guardrails, Bedrock calls)
+- CloudWatch custom metrics for token counts
+- CloudWatch Logs Insights for query patterns
 
 ---
 
@@ -95,13 +51,13 @@ Update the MV3 service worker so that the 'Explain with AI' context-menu workflo
 **Labels:** feature
 
 **Created:** 2025-12-09
-**Updated:** 2025-12-24
+**Updated:** 2025-12-30
 
 ### Description
 
 Implement a 4-tier warning system in the Chrome Extension popup based on backend guardrail scores:
 
-1. **Rejection (Red):** If blocked by L1 (Regex) or L2 (RSDB Hate List). Text: 'Blocked: Invalid format or flagged as potential hate speech (Source: RSDB). Context is not evaluated.'
+1. **Rejection (Red):** If blocked by Selection Check (Regex) or Denylist (RSDB Hate List). Text: 'Blocked: Invalid format or flagged as potential hate speech (Source: RSDB). Context is not evaluated.'
 2. **Warning (Orange):** If Score(Provocative) > 0.0. Text: 'Caution: This term has a {P}% probability of carrying sexual or provocative subtext.'
 3. **Advisory (Yellow):** If Score(Provocative) == 0.0 AND (Score(Archaic) > 0 OR Score(Neologism) > 0). Text: 'Note: Term detected as Archaic ({A}%) or Neologism ({N}%). Usage may be obscure or unstable.'
 4. **Disclaimer (Footer):** 'AI probability scores are non-deterministic and may fluctuate between checks.'
@@ -113,11 +69,11 @@ Implement a 4-tier warning system in the Chrome Extension popup based on backend
 **Labels:** security, feature
 
 **Created:** 2025-12-09
-**Updated:** 2025-12-24
+**Updated:** 2025-12-30
 
 ### Description
 
-Implement Layer 2 of the guardrail funnel: a deterministic, O(1) lookup against a local 'denylist.json' derived from RSDB. This runs *before* the semantic LLM check.
+Implement the Denylist layer of the guardrail funnel: a deterministic, O(1) lookup against a local 'denylist.json' derived from RSDB. This runs *before* the Semantic (LLM) check.
 
 ---
 
@@ -170,17 +126,17 @@ Tasks:
 **Labels:** chore
 
 **Created:** 2025-12-21
-**Updated:** 2025-12-24
+**Updated:** 2025-12-30
 
 ### Description
 
 ## Objective
-Create a simple, static HTML page hosted on GitHub Pages (or local) to validate L1, L2, and L3 guardrails without typing.
+Create a simple, static HTML page hosted on GitHub Pages (or local) to validate Selection Check, Denylist, and Semantic guardrails without typing.
 
 ## Test Cases
-- L1: Gibberish/Scripts
-- L2: Hate terms (mocked)
-- L3: Semantic triggers (Archaic/Provocative)
+- Selection Check: Gibberish/Scripts
+- Denylist: Hate terms (mocked)
+- Semantic: triggers (Archaic/Provocative)
 
 ---
 
@@ -315,83 +271,6 @@ The tool must explicitly report the state (True/False/None) of the following sig
 
 ---
 
-## Issue #85: refactor: Rename 'Compliance' to 'Summarization' and implement Signal Logic
-
-**Labels:** chore
-
-**Created:** 2025-12-22
-**Updated:** 2025-12-24
-
-### Description
-
-## Objective
-Refactor the codebase to reflect the 'Operation Glass House' strategy (Ref: `docs/0007`). Shift the module's identity from a 'Copyright Shield' to a 'Smart Summarizer' that defaults to transparency but honors 'noarchive' requests.
-
-## UX Flow
-
-### Scenario 1: Open Content (Default)
-1. User requests 'Explain this' on a standard blog.
-2. Extension detects **no** `noarchive` tags.
-3. Summarizer receives `text` + `signals={noarchive: False}`.
-4. Summarizer returns **Raw Text** in the `ContextPackage`.
-5. Agent receives full context.
-
-### Scenario 2: Restricted Content (No Archive)
-1. User requests 'Explain this' on a Paywalled/Private site.
-2. Extension detects `noarchive` tag.
-3. Summarizer receives `text` + `signals={noarchive: True}`.
-4. Summarizer calls LLM to generate 'Fair Use Summary'.
-5. Summarizer returns **Summary** (and drops raw text).
-
-## Requirements
-
-### 1. Code Refactoring
-1. **Rename File:** `compliance.py` $\rightarrow$ `summarizer.py`.
-2. **Rename Type:** `ComplianceReport` $\rightarrow$ `ContextPackage`.
-3. **Logic Update:** Implement the 'Switch' logic inside `analyze_context`:
-   - IF `signals['noarchive']` is True $\rightarrow$ Summarize.
-   - ELSE $\rightarrow$ Pass Raw Text.
-
-### 2. Documentation Updates (Critical)
-1. **System Architecture (`docs/0001`):**
-   - Update **Component Diagram**: Replace 'Compliance Engine' node with 'Summarizer'.
-   - Update **Sequence Diagram**: Reflect the 'Passthrough vs. Summarize' paths.
-   - **Constraint:** New diagrams MUST adhere to `docs/0006-mermaid-diagrams.md` (Theme, ClassDefs, Direction).
-
-## Technical Approach
-- **Module:** `summarizer.py` (formerly `compliance.py`)
-- **Dependencies:** `langchain_core`, `langchain_aws`
-- **Search & Replace:** `grep -r 'Compliance' .` to catch all references in comments and docstrings.
-
-## Files to Create/Modify
-- `compliance.py` (Delete/Move)
-- `summarizer.py` (Create/Refactor)
-- `docs/0001-system-architecture.md` (Update Diagrams)
-- `tests/test_compliance.py` $\rightarrow$ `tests/test_summarizer.py`
-
-## Acceptance Criteria
-- [ ] `summarizer.py` exists and `compliance.py` is gone.
-- [ ] `analyze_context` accepts `signals` dict.
-- [ ] Unit test confirms: `noarchive=False` returns raw text.
-- [ ] Unit test confirms: `noarchive=True` returns summary.
-- [ ] Architecture diagrams in `docs/0001` use the new 'Summarizer' terminology and conform to `docs/0006`.
-
-
----
-
-## Issue #88: chore: Rewrite LinkedIn auth gate LLD for OAuth flow
-
-**Labels:** chore
-
-**Created:** 2025-12-22
-**Updated:** 2025-12-24
-
-### Description
-
-Rewrite docs/1025-linkedin-auth-gate.md to use proper OAuth instead of cookie heuristic. Current approach is fragile.
-
----
-
 ## Issue #94: Create automated test harness for XSS prevention (Security Test 23)
 
 **Labels:** testing, security
@@ -511,54 +390,6 @@ Implement immediate "Denial of Wallet" protection via AWS WAF and restrict Lambd
 - [ ] `curl` with headers returns 200.
 - [ ] Sustained high-volume traffic triggers 429.
 
-
----
-
-## Issue #98: Bug: Overlay still clips at bottom of viewport despite positioning logic
-
-**Labels:** bug
-
-**Created:** 2025-12-28
-**Updated:** 2025-12-29
-
-### Description
-
-## Problem
-The overlay continues to appear BELOW the selection even when selected text is at the bottom of the viewport, causing it to be clipped off-screen.
-
-## Expected Behavior
-When selection is within 60px of bottom viewport edge, overlay should appear ABOVE the selection (Test 060).
-
-## Current State
-- **Branch:** 77-action-feedback
-- **Latest commit:** a9dd620
-- **File:** extension/overlay.js lines 27-38
-
-## Attempts Made
-1. **Commit 552fb7b:** Used `bottom` CSS property with calculation `window.innerHeight - rect.top + 8`
-2. **Commit a9dd620:** Switched to `top` property with calculation `rect.top - OVERLAY_HEIGHT - GAP`
-
-Both approaches still result in overlay appearing below and being clipped.
-
-## Testing Details
-- **Browser:** Chrome Canary
-- **Observable behavior:** Green checkmark flashes, overlay visible if user scrolls down quickly
-- **Console logs:** Not appearing (injected script context issue)
-
-## Debug Data Needed
-- Actual `rect.top`, `rect.bottom`, `window.innerHeight` values at time of rendering
-- Confirmation that `spaceBelow < OVERLAY_HEIGHT` condition is actually triggering
-- Verify extension reload is picking up new code
-
-## Next Steps
-1. Add visual indicator to show which branch (above/below) triggered
-2. Consider using `chrome.debugger` API or alternative logging approach
-3. Test in regular Chrome (not Canary) to rule out browser-specific issues
-
-## Related
-- Issue #77 (parent feature)
-- Test 060 in docs/1077-action-feedback.md
-- Section 4.4 in docs/1077-action-feedback.md (positioning spec)
 
 ---
 
@@ -1349,193 +1180,6 @@ The markdown-to-PDF printing pipeline (tools/print/print_markdown.py) does not r
 
 ---
 
-## Issue #109: Rename filter layers and update architecture docs
-
-**Labels:** documentation, chore
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Summary
-Rename the L1/L2/L3/L4 filter layers to functional names and update all documentation to reflect the new architecture.
-
-## Current State (Confusing)
-- L1, L2, L3, L4 implies fixed sequential order
-- Layers may move between client/server
-- "Compliance" is a bad name for the Transform/Summarizer layer
-- L2 (Denylist) is not even implemented yet (#45)
-
-## New Naming Convention
-
-### Client-Side (Browser Extension)
-| Old | New | Purpose |
-|-----|-----|---------|
-| (new) | **Age Check** | Block adult-rated sites (#104) |
-| (new) | **Robot Meta Check** | Detect noarchive flag, pass to Lambda |
-| L1 | **Selection Check** | Entropy, length, XSS detection, user feedback |
-
-### Server-Side (Lambda)
-| Old | New | Purpose |
-|-----|-----|---------|
-| L2 | **Denylist** | Hate term blocking (Issue #45 - stub for now) |
-| L3 | **Semantic** | AI-based context analysis (Haiku) |
-| L4/Compliance | **Transform** | Summarizer for noarchive content |
-
-## Documents to Update
-- [ ] `docs/0001-system-architecture.md` - Main diagram and layer definitions
-- [ ] `docs/0007-legal-compliance-strategy.md` - Rename to Signal Handling only
-- [ ] `docs/1080-wire-agent-logic.md` - Fix L2 claims, update terminology
-- [ ] `docs/0005-testing-strategy-and-protocols.md` - Module names
-- [ ] `docs/1010-semantic-guardrails.md` - L3 → Semantic
-- [ ] `docs/1011-local-guardrails.md` - L1 → Selection Check
-- [ ] `docs/1014-compliance-engine.md` - Rename to Transform
-- [ ] `docs/1045-deterministic-hate-filter.md` - L2 → Denylist
-- [ ] GitHub Issues referencing old layer names
-
-## New Architecture Diagram
-```
-┌─────────────────────────────────────────────────────────────┐
-│  BROWSER EXTENSION (Client)                                 │
-├─────────────────────────────────────────────────────────────┤
-│  Age Check → Robot Meta Check → Selection Check             │
-│  (block)     (set flags)        (validate input)            │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  AWS LAMBDA (Server)                                        │
-├─────────────────────────────────────────────────────────────┤
-│  Denylist → Semantic → Transform → DynamoDB                 │
-│  (stub)     (Haiku)    (if noarchive)                       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Acceptance Criteria
-- [ ] All docs use new terminology consistently
-- [ ] No references to L1/L2/L3/L4 remain (except historical context)
-- [ ] "Compliance" renamed to "Transform" or "Summarizer"
-- [ ] Architecture diagram updated with client/server split
-- [ ] 0003-file-inventory.md updated if files renamed
-
----
-
-## Issue #110: Find and recover lost ADR content from web conversations
-
-**Labels:** documentation, chore
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Summary
-Architecture Decision Records (ADR) content was created in previous AI conversations but never committed to the repository. Need to find and recover this content.
-
-## Where to Look
-
-### 1. Gemini Web Conversations
-- Search conversation history for "ADR", "decision record", "architecture decision"
-- Look for discussions about design choices, trade-offs, alternatives considered
-- Check conversations from project inception through December 2025
-
-### 2. Claude Web Conversations  
-- Same search terms as above
-- May have different ADR content than Gemini sessions
-- Look for any "why did we choose X over Y" discussions
-
-### 3. Git History (Branches)
-- Check for orphaned branches that may contain ADR drafts
-- `git branch -a` to list all branches
-- `git log --all --oneline | grep -i adr` to search commits
-
-### 4. Local Files
-- Check for uncommitted `.md` files mentioning decisions
-- Search `docs/` for any partial ADR content
-
-## What to Recover
-- **Why LangGraph?** (vs plain Lambda, Step Functions)
-- **Why Bedrock?** (vs OpenAI, self-hosted)
-- **Why Chrome extension?** (vs bookmarklet, standalone app)
-- **Why DynamoDB?** (vs RDS, S3)
-- **Guardrail layer decisions** (why 3+ layers?)
-- **Any "we decided X because Y" content**
-
-## Deliverables
-- [ ] Export relevant conversation excerpts
-- [ ] Create `docs/0200-ADR-index.md` as placeholder
-- [ ] Draft initial ADR entries from recovered content
-- [ ] Reference in new 02xx Decision Record series
-
-## Notes
-- Don't need perfect formatting - content recovery is priority
-- Can clean up and formalize later
-- User will need to search their own conversation histories
-
----
-
-## Issue #112: Restructure 0007: Extract content to Decision Records
-
-**Labels:** documentation, chore
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Summary
-Rename and restructure `docs/0007-legal-compliance-strategy.md` - extract decision content to the new 02xx DR series, leaving 0007 as a focused "Signal Handling" reference.
-
-## Current State
-0007 contains:
-1. Philosophy (Assistant vs Crawler) → **Keep in 0007**
-2. Signal Matrix (noai, noarchive, etc.) → **Keep in 0007**  
-3. "Summarization" Switch logic → **Move to 0203-DR-privacy.md**
-4. Implementation notes → **Move to relevant LLDs**
-
-## Issues Found
-- Line 15: `noai` / `noimageai` marked as "HARD STOP" but user confirmed these don't apply (Aletheia doesn't train)
-- Terminology uses "Compliance" which is being renamed to "Transform"
-
-## Proposed Changes
-
-### Rename
-`0007-legal-compliance-strategy.md` → `0007-signal-handling.md`
-
-### Keep in 0007
-- Section 1: Philosophy (we are User Agent, not Crawler)
-- Section 2: Signal Matrix (updated - see below)
-- Brief implementation pointers (which component handles what)
-
-### Updated Signal Matrix
-| Signal | Aletheia Action | Reasoning |
-|--------|-----------------|-----------|
-| `noai` / `noimageai` | **Ignore** | We do inference, not training |
-| `noarchive` | **Transform only** | Don't persist raw text |
-| `noindex` | **Ignore** | Not a search engine |
-| `nosnippet` | **Ignore** | Not a SERP |
-| `robots.txt` | **Ignore** | User Agent, not crawler |
-| `rating="adult"` | **Block site** | See #104, 0202-DR-content-safety.md |
-
-### Extract to Decision Records
-- Why we ignore noai → 0203-DR-privacy.md
-- Why Transform on noarchive → 0203-DR-privacy.md
-- Summarization approach → 0203-DR-privacy.md or 0204-DR-architecture.md
-
-## Dependencies
-- #111 (Create 02xx DR series) - must exist to receive extracted content
-- #109 (Rename layers) - terminology consistency
-
-## Acceptance Criteria
-- [ ] 0007 renamed to 0007-signal-handling.md
-- [ ] Signal matrix updated (noai → Ignore)
-- [ ] Decision rationale moved to appropriate DR docs
-- [ ] 0003-file-inventory.md updated
-- [ ] Cross-references added between 0007 and DR docs
-
----
-
 ## Issue #113: Refactor: Implement "Naked Python" Architecture (Remove LangGraph)
 
 **Created:** 2025-12-30
@@ -1591,5 +1235,122 @@ Replace the graph invocation with a sequential "Defense Funnel" implemented in p
 * **Deprecate:** `docs/0205-ADR-langgraph-orchestration.md`.
 * **Update:** `docs/1080-wire-agent-logic.md` (Update LLD to reflect sequential Python functions).
 
+
+---
+
+## Issue #116: feat: Authenticate users via LinkedIn OAuth
+
+**Labels:** security, feature
+
+**Created:** 2025-12-30
+**Updated:** 2025-12-30
+
+### Description
+
+## Summary
+Implement LinkedIn OAuth authentication to gate extension features and enable user identification.
+
+## Why LinkedIn?
+- LinkedIn enforces one account per person (reduces abuse vs. disposable email signups)
+- Professional identity signal
+- Foundation for future tiered access (free/paid)
+
+## Requirements
+1. **OAuth Flow:** Standard OAuth 2.0 with LinkedIn API
+2. **Token Storage:** Secure storage of access/refresh tokens
+3. **Session Management:** Handle token expiration and refresh
+4. **UI:** Login button in popup, auth status indicator
+
+## Technical Considerations
+- Chrome Identity API vs. manual OAuth flow
+- LinkedIn API scopes needed (profile, email?)
+- Backend token validation (Lambda)
+- Logout/disconnect functionality
+
+## Out of Scope (Future Issues)
+- Tiered access (free/paid)
+- Other OAuth providers (Google, GitHub)
+- Trial/anonymous access
+
+## Related
+- Supersedes #25 (cookie heuristic - closed)
+- Supersedes #88 (LLD rewrite - closed)
+- Legacy doc: `docs/1025-linkedin-auth-gate.md`
+
+---
+
+## Issue #117: spike: Investigate mechanisms to support unauthenticated users while limiting abuse
+
+**Labels:** documentation, enhancement
+
+**Created:** 2025-12-30
+**Updated:** 2025-12-30
+
+### Description
+
+## Context
+We want LinkedIn OAuth as primary auth (#116), but would like to offer some level of trial/anonymous access without requiring signup. The challenge: preventing abuse without capturing privacy-sensitive data that Chrome Web Store wouldn't approve.
+
+## Problem Statement
+How do we let users "try before they buy" while preventing:
+- One person creating unlimited trial accounts
+- Bots/scripts abusing free tier
+- Denial-of-wallet attacks on our Bedrock costs
+
+## Constraints
+- Chrome Web Store privacy requirements
+- No IP address logging (likely prohibited)
+- No invasive fingerprinting
+- Must work across browser profiles/reinstalls (ideally)
+
+## Options to Investigate
+
+### 1. No Trial (Baseline)
+- Require LinkedIn OAuth from first use
+- **Pros:** Simple, no abuse vector
+- **Cons:** High friction, loses casual users
+
+### 2. Extension Install ID
+- Use `chrome.runtime.id` or generate UUID on install
+- Track usage server-side per ID
+- **Pros:** Simple, no PII
+- **Cons:** Bypassable via reinstall, cleared on uninstall
+
+### 3. Time-Limited Trial
+- "Free for first 24/48 hours after install"
+- Store install timestamp locally + server validation
+- **Pros:** Natural expiration
+- **Cons:** Reinstall resets clock
+
+### 4. Usage-Limited Trial
+- "First N requests free"
+- Counter stored server-side keyed by install ID
+- **Pros:** Fair, predictable cost
+- **Cons:** Same bypass as #2
+
+### 5. Rate Limiting Only
+- Allow anonymous but heavily rate-limited (e.g., 5 req/day)
+- Authenticated users get higher limits
+- **Pros:** Always available, natural upgrade path
+- **Cons:** Determined abusers can still accumulate
+
+### 6. Hybrid: Generous + Decay
+- Start with N free requests
+- After exhausted, drop to rate-limited mode
+- Auth unlocks full access
+- **Pros:** Best UX for legitimate users
+- **Cons:** Complex to implement
+
+## Questions to Answer
+1. What does Chrome Web Store actually prohibit re: tracking?
+2. What's our cost-per-request? (Determines abuse tolerance)
+3. What's the conversion funnel goal? (Trial → Auth → Paid?)
+4. Can we defer this entirely for MVP and require auth?
+
+## Deliverable
+Recommendation document with chosen approach and rationale.
+
+## Related
+- #116 - LinkedIn OAuth (primary auth mechanism)
 
 ---

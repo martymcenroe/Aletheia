@@ -27,7 +27,11 @@
       "Bash(aws lambda get-function:*)",
       "Bash(git worktree:*)",
       "Bash(python:*)",
-      "Bash(poetry lock:*)"
+      "Bash(poetry lock:*)",
+      "Bash(./tools/aws/lambda-status.sh:*)",
+      "Bash(./tools/aws/lambda-off.sh:*)",
+      "Bash(aws lambda list-functions:*)",
+      "Bash(./tools/aws/lambda-on.sh:*)"
     ],
     "deny": [
       "Read(.env)",
