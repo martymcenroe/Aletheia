@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue 98: Viewport Logic Proof (v3)</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            height: 200vh;
+            padding: 20px;
+            background: #f0f0f0;
+            position: relative;
+        }
+        .instruction {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 300px;
+            z-index: 1000;
+        }
+        .target-word {
+            background: #fef08a;
+            padding: 2px 4px;
+            cursor: pointer;
+            border: 1px dashed #ca8a04;
+        }
+        
+        .overlay-mock {
+            position: absolute; 
+            background: #1f2937;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+            pointer-events: none;
+            display: none;
+            width: max-content;
+            max-width: 300px;
+        }
+        .overlay-mock::after {
+            content: '';
+            position: absolute;
+            border-style: solid;
+        }
+        
+        /* Arrow pointing UP (placed below text) */
+        .overlay-mock.below::after {
+            bottom: 100%;
+            left: 20px;
+            border-width: 0 6px 6px 6px;
+            border-color: transparent transparent #1f2937 transparent;
+        }
+        
+        /* Arrow pointing DOWN (placed above text) */
+        .overlay-mock.above::after {
+            top: 100%;
+            left: 20px;
+            border-width: 6px 6px 0 6px;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+        
+        #zone-top { margin-top: 100px; }
+        #zone-bottom { margin-top: 150vh; margin-bottom: 50px;}
+    </style>
+</head>
+<body>
+
+    <div class="instruction">
+        <h3>Willison Protocol Test (v3)</h3>
+        <p><strong>Goal:</strong> Equalize the visual gap.</p>
+        <p>Top Zone (Below): Margin reduced to <strong>4px</strong>.</p>
+        <p>Bottom Zone (Above): Margin kept at <strong>8px</strong>.</p>
+    </div>
+
+    <div id="overlay" class="overlay-mock">Analyzing Context...</div>
+
+    <div id="zone-top">
+        <h2>Top Zone</h2>
+        <p>Lorem ipsum <span class="target-word" onclick="showOverlay(this)">Select Me (Normal)</span> dolor sit amet.</p>
+    </div>
+
+    <div id="zone-bottom">
+        <h2>Bottom Zone (Danger Zone)</h2>
+        <p>This is the bottom of the viewport. <span class="target-word" onclick="showOverlay(this)">Select Me (Flip Trigger)</span> if you can.</p>
+    </div>
+
+    <script>
+        function showOverlay(element) {
+            const overlay = document.getElementById('overlay');
+            
+            // 1. Get Geometry
+            const rect = element.getBoundingClientRect();
+            
+            // 2. Constants (TUNED)
+            const OVERLAY_HEIGHT = 40; 
+            const MARGIN_ABOVE = 8; // User said this was "Good"
+            const MARGIN_BELOW = 4; // Reduced from 8px to fix visual gap
+            
+            // 3. Logic
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceNeeded = OVERLAY_HEIGHT + MARGIN_BELOW;
+
+            if (spaceBelow < spaceNeeded) {
+                // FLIP ABOVE
+                // Math: ScrollY + Top - Height - Margin
+                const absoluteTop = window.scrollY + rect.top - OVERLAY_HEIGHT - MARGIN_ABOVE;
+                
+                overlay.style.top = `${absoluteTop}px`;
+                overlay.className = 'overlay-mock above';
+            } else {
+                // NORMAL BELOW
+                // Math: ScrollY + Bottom + Margin
+                const absoluteTop = window.scrollY + rect.bottom + MARGIN_BELOW;
+                
+                overlay.style.top = `${absoluteTop}px`;
+                overlay.className = 'overlay-mock below';
+            }
+
+            overlay.style.left = `${window.scrollX + rect.left}px`;
+            overlay.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
