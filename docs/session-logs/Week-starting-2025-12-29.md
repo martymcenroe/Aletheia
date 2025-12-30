@@ -145,3 +145,55 @@ Implementation attempts reveal architectural flaws. The deployment friction wasn
 - **Branch 80:** Deleted (local and remote)
 - **Environment:** Clean (verified via 0011 checklist)
 - **Next:** New ADR documenting the decision to remove LangGraph/LangChain
+
+---
+
+## 2025-12-30 ~01:00-01:35 CT | Claude Opus 4.5
+
+### Summary
+Housekeeping session: fixed print script encoding bug, comprehensive inventory audit, and expanded 1113 LLD to full template compliance. Prepared documentation for Gemini handoff on Issue #113.
+
+### Print Script Fix
+- Fixed `UnicodeDecodeError` in `tools/print/print_most_recent_open_issues.py`
+- Added `encoding='utf-8', errors='replace'` to subprocess calls for `generate_pdf()` and `print_pdf()`
+- Windows cp1252 codec couldn't handle SumatraPDF output characters
+
+### Inventory Audit (0003)
+Comprehensive audit found discrepancies:
+- **Added:** CHATGPT.md, GEMINI.md, TOMORROW-PLAN.md, aws-cleanup/inventory scripts, session logs section, ADR 0211
+- **Removed:** Non-existent entries (legacy/, test_agent_wiring.py, 1095-security-hardening.md), duplicate vulnerability-test.md
+- **Moved:** 0211 and 1113 from Legacy section to proper 02xx/10xx sections
+- **Updated:** 1080 marked as Legacy (superseded by #113)
+
+### 1113 LLD Expansion
+Assessed 1113-naked-python-architecture.md against 0102 template and found major gaps. Expanded document:
+- Fixed bugs: supersedes #80 (not #1080), JSON format in example
+- Added Section 2: Requirements (6 acceptance criteria)
+- Added Section 3: Alternatives table with ADR 0211 cross-ref
+- Added Section 4: Mermaid flowchart of defense pipeline
+- Added Section 6.2/6.3: Function signatures and pseudocode
+- Added Section 7: Security table (7 concerns including CloudWatch log leakage)
+- Added Section 8: Performance table (cold start < 1s target, TTFT metric)
+- Added Section 9: Risks & Mitigations (5 risks)
+- Expanded Section 10: Test scenarios table (11 test cases with IDs 010-110)
+- Added Section 11: Definition of Done checklist (17 items across Code/Tests/Docs/Deploy/Review)
+
+### Commits
+- `ec388a7` - fix: encoding error in print script subprocess calls
+- `510bbef` - docs: comprehensive inventory update and Issue #113 prep
+- `271440c` - docs: expand 1113 LLD to full template compliance
+
+### Files Modified
+- `tools/print/print_most_recent_open_issues.py`
+- `docs/0003-file-inventory.md`
+- `docs/1113-naked-python-architecture.md`
+- `docs/6000-open-issues.md` (regenerated)
+
+### Files Moved
+- `docs/1080-wire-agent-logic.md` → `docs/legacy/1080-wire-agent-logic-langgraph.md`
+
+### State on Exit
+- **Branch:** `main` @ 271440c
+- **Worktree:** `Aletheia-113-naked` ready on branch `113-naked-python`
+- **Print jobs:** 7 docs sent to printer (may still be printing)
+- **Next:** Gemini to implement Issue #113 using expanded 1113 LLD

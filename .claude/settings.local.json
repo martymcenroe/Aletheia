@@ -24,7 +24,8 @@
       "WebFetch(domain:developers.google.com)",
       "Bash(powershell.exe -Command \"Get-Date -Format ''yyyy-MM-dd HH:mm''\")",
       "Bash(git checkout:*)",
-      "Bash(aws lambda get-function:*)"
+      "Bash(aws lambda get-function:*)",
+      "Bash(git worktree:*)"
     ],
     "deny": [
       "Read(.env)",
