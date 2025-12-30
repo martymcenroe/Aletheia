@@ -87,3 +87,61 @@ Created comprehensive ADR (Architecture Decision Record) infrastructure for Alet
 - **Branch:** `main`
 - **Open PRs:** 0
 - **Next:** Commit ADR infrastructure, then continue with Issue #80 (Wire Agent)
+
+---
+
+## 2025-12-29 ~13:00-16:30 CT | Claude Opus 4.5
+
+### Summary
+Attempted to implement Issue #80 (Wire Agent to Defense Funnel). Completed all code changes per LLD, then discovered fundamental infrastructure gaps during testing. Investigation revealed the deployment pipeline was incomplete and, more significantly, that the LangGraph/LangChain architecture was overengineered for the actual requirements. Session concluded with decision to abandon the complex orchestration framework in favor of plain Python.
+
+### Implementation Completed (Later Abandoned)
+- Created branch `80-wire-agent-logic`
+- Refactored `src/guardrails/engine.py` to integrate SemanticGuardrail with Defense Funnel pattern
+- Rewrote `agent.py` with `guardrails_node`, `summarizer_node`, `should_continue` router
+- Updated `lambda_function.py` for new state structure
+- Created `tests/test_agent_wiring.py` with 7 test scenarios
+
+### Infrastructure Investigation
+Tests failed with `ImportError` for langgraph components. Investigation revealed:
+- Current `deploy.sh` only deploys harvester function (no dependencies)
+- Original `deploy.sh` (commit a329f1f) had `poetry export` + `pip install` but was replaced
+- AWS Lambda has no layers attached; full agent never successfully deployed
+- Engineering Journal (2025-12-04) documented Windows→Lambda binary incompatibility
+
+### Architectural Analysis
+The investigation prompted a requirements review:
+
+| Aletheia's Actual Flow | LangGraph/LangChain Purpose |
+|------------------------|----------------------------|
+| Validate input (if-else) | Multi-turn agent conversations |
+| Call Bedrock once | Complex tool orchestration |
+| Return response | Iterative refinement loops |
+
+**Conclusion:** The orchestration framework solves problems Aletheia doesn't have. The validation pipeline is sequential if-else logic. The AI interaction is a single request/response. No reflection, no iteration, no multi-agent coordination.
+
+### Decision
+Abandon LangGraph/LangChain in favor of plain Python:
+- Validation: Standard conditionals
+- Bedrock: Direct `boto3.client("bedrock-runtime").invoke_model()`
+- State: Extension-managed or simple DynamoDB
+
+This removes deployment complexity (no dependency packaging needed beyond boto3, which Lambda provides) and aligns implementation with actual requirements.
+
+### Key Insight
+Implementation attempts reveal architectural flaws. The deployment friction wasn't a bug to fix—it was a signal that the architecture was misaligned with requirements. MVP for Chrome Web Store needs working software, not sophisticated infrastructure.
+
+### Files Modified (Reverted)
+- `agent.py`, `lambda_function.py`, `src/guardrails/engine.py`
+- `docs/0003-file-inventory.md`, `docs/1080-wire-agent-logic.md`
+
+### Workflow Improvements
+- **Settings.local.json policy:** Commit to main immediately when permissions are granted (via main worktree). Prevents permission loss when branches are abandoned. Added to `CLAUDE.md`.
+- **Worktree cleanup:** Primary repo should stay on main; feature branches use worktrees created FROM main.
+
+### State on Exit
+- **Branch:** `main` @ e6c56e7
+- **Issue #80:** Closed as superseded by architectural simplification
+- **Branch 80:** Deleted (local and remote)
+- **Environment:** Clean (verified via 0011 checklist)
+- **Next:** New ADR documenting the decision to remove LangGraph/LangChain
