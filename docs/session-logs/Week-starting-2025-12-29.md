@@ -510,3 +510,44 @@ Analyzed the academic paper "Professional Software Developers Don't Vibe, They C
 ### State on Exit
 - **Branch:** `main`
 - **Next:** Implement Feature #3 (Hard vs. Soft Blocking) or Feature #1 (Digital Etymologist).
+
+---
+
+## 2025-12-31 ~16:25-17:40 CT | Claude Opus 4.5
+
+### Summary
+Major process and documentation session. Discovered #45 and #113 were both complete but not reflected in IMMEDIATE-PLAN. Reframed "CMS" as "Agent Operating System (AOS)". Mined session logs for 14 missing lessons. Established clear 0009/0011 relationship with escalation criteria.
+
+### Issues Discovered Complete
+- **#45 (Denylist)** - Code existed (`src/guardrails/denylist.py`), issue never closed → CLOSED
+- **#119 (RSDB utility)** - Tool existed (`tools/rsdb_download.py`), issue never closed → CLOSED
+- Updated IMMEDIATE-PLAN.md to reflect reality (next: #51/#53 Store submission)
+
+### Agent Operating System (AOS) Reframing
+- Reframed "CMS" as "Agent Operating System" in 0000-GUIDE.md
+- Added layer table: Process Automation, Context Persistence, Agent Orchestration, Reality Verification
+- Added OS metaphor: Docs=Programs, Logs=State, IMMEDIATE-PLAN=Foreground Process
+- Created Issue #123 (blog) to capture concept for publication
+
+### Process Improvements (0009/0011)
+- **0011 Section 6:** Added IMMEDIATE-PLAN Verification ("Don't trust issue status—verify actual code exists")
+- **0009:** Added escalation criteria for when to run full 0011
+- **Both:** Now regenerate 6000-open-issues.md
+
+### Session Log Mining
+Mined 3 weeks of session logs, found 14 missing lessons:
+- **9000 (+8):** Lambda kill switch, False success bug, Dead code trap, file:// URLs, AWS_REGION, Bedrock model, Bedrock streaming
+- **ENGINEERING-JOURNAL (+6):** Visual debugging, Cold start tests, Implementation friction, Willison Protocol, Print Spooler, SumatraPDF
+
+### Journal Sync
+Synced `docs/ENGINEERING-JOURNAL.md` → `~/Projects/martymcenroe/` (d4f89f7)
+
+### Issues
+- **Closed:** #45, #119
+- **Created:** #123 (blog: AOS concept)
+
+### State on Exit
+- **Branch:** `main` @ b7d90e8
+- **Open PRs:** 0
+- **Lambda:** OFF
+- **Next:** #51/#53 (Chrome Web Store) per IMMEDIATE-PLAN.md
