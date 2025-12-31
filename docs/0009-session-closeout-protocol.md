@@ -66,10 +66,19 @@ gh pr list --state open       # Should be empty
 
 | Check | Command/Action |
 |:------|:---------------|
+| Regenerate 6000 | `python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md` (do not print) |
 | Inventory current? | Review `docs/0003-file-inventory.md` |
 | LLD status updated? | Change "Approved" → "Complete" for finished features |
 | Lessons captured? | Append to `docs/9000-lessons-learned.md` |
 | Journal updated? | Append cross-project lessons to `ENGINEERING-JOURNAL.md` |
+
+```bash
+# Regenerate and commit 6000
+python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
+git add docs/6000-open-issues.md
+git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
+git push
+```
 
 ### 5. Session Log Entry
 Append to `.session-log.md` using the template from `docs/0100-TEMPLATE-GUIDE.md`:
