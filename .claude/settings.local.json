@@ -37,7 +37,8 @@
       "WebFetch(domain:gist.github.com)",
       "Bash(bash:*)",
       "Bash(MSYS_NO_PATHCONV=1 aws logs:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(./tools/aws/lambda-status.sh:*)"
     ],
     "deny": [
       "Read(.env)",
