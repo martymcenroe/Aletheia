@@ -1,33 +1,20 @@
-# Aletheia - Open Issues
+Print mode: double-sided
 
-**Generated:** 2025-12-31 16:36 CT
-**Total Open Issues:** 23
+Fetching open issues from GitHub...
+Fetched 30 open issues
+Saving to docs\6000-open-issues.md...
+Saved docs\6000-open-issues.md
+Generating PDF with pandoc...
+Generated temp-pdfs\6000-open-issues.pdf
+Printing temp-pdfs\6000-open-issues.pdf...
+Double-sided printing requested.
+Sent to printer: Brother HL-L6300DW series Printer (double-sided)
 
----
-
-## Issue #6: feat: Implement RAG Vector Store
-
-**Labels:** feature
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-24
-
-### Description
-
-Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
-
----
-
-## Issue #7: chore: Add Observability Tracing
-
-**Labels:** chore
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-30
-
-### Description
-
-Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
+Complete!
+   Markdown: docs\6000-open-issues.md
+   PDF: temp-pdfs\6000-open-issues.pdf (deleted after print)
+   Printed to: Brother HL-L6300DW series Printer (double-sided)
+en usage.
 
 ## Updated Context
 LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
@@ -1331,5 +1318,293 @@ Issue #119 implemented a workaround using a third-party GitHub Gist for RSDB dat
 
 ## Labels
 enhancement, post-mvp, data-source
+
+---
+
+## Issue #123: blog: Agent Operating System (AOS) - Beyond CMS for AI Collaboration
+
+**Labels:** blog
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+## Concept
+
+The Aletheia documentation system has evolved beyond a Content Management System (CMS) into something more fundamental: an **Agent Operating System (AOS)**—executable documentation that AI agents run as their program.
+
+## The Insight
+
+"CMS" undersells what this is. The docs aren't just reference material—they're the instructions agents execute.
+
+## The AOS Layers
+
+| Layer | What It Does | Examples |
+|-------|--------------|----------|
+| **Process Automation** | Checklists that execute, not just document | 0009 (Closeout), 0011 (Cleanup) |
+| **Context Persistence** | State preserved across sessions and agents | Session logs, IMMEDIATE-PLAN |
+| **Agent Orchestration** | Who does what, when, how | CLAUDE.md, GEMINI.md, 0004 |
+| **Reality Verification** | Don't trust metadata—verify actual state | 0011 Section 6 |
+| **Executable Standards** | Rules that agents can follow literally | 0002, Forbidden Commands |
+
+## The Operating System Metaphor
+
+- **Docs = Programs** — Agents read and execute them
+- **Session Logs = Process State** — Preserved across restarts
+- **IMMEDIATE-PLAN = Current Task** — The foreground process
+- **Checklists = Subroutines** — Called when conditions are met
+- **Orchestrator = Scheduler** — Decides which agent runs which task
+
+## What Makes This New
+
+Traditional OS manages hardware resources. AOS manages **cognitive resources** across:
+- Multiple agents with different capabilities
+- Limited context windows
+- No persistent memory within agents
+- Varying instruction-following fidelity
+
+## Key Lessons Discovered
+
+1. **Don't trust metadata—verify reality.** Issue status can be wrong. Check if the code actually exists.
+
+2. **Docs are programs.** If you can't execute the instruction literally, it's not clear enough.
+
+3. **Orchestrator is scheduler, not programmer.** The human's job is to route agents to the right docs, not to remember context.
+
+4. **Session logs are process state.** Without them, context dies when the session ends.
+
+## Origin
+
+Discovered during Aletheia development when a session closeout revealed that Issue #45 and #113 were both complete but the IMMEDIATE-PLAN still listed them as pending. The instruction "update IMMEDIATE-PLAN" was insufficient—agents needed to be told to **verify reality, not trust metadata**.
+
+This led to the realization that what we'd built wasn't just documentation—it was an operating system for AI-human collaboration.
+
+## References
+
+- `docs/0000-GUIDE.md` - AOS philosophy section
+- `docs/0011-environment-cleanup-checklist.md` - Section 6 (IMMEDIATE-PLAN verification)
+- `docs/0009-session-closeout-protocol.md` - Escalation to 0011
+
+## Publication Notes
+
+- Target audience: AI/ML practitioners, developer tooling engineers, anyone working with AI agents
+- Angle: Novel framing of documentation as executable infrastructure
+- Could include diagrams showing the "OS layers" and agent execution flow
+
+---
+
+## Issue #124: feat: Implement 'Digital Etymologist' Persona & Structured JSON Response
+
+**Labels:** feature, backend
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+
+## Objective
+Transform the Bedrock generation layer to act as an objective 'Digital Etymologist' rather than a generic assistant.
+
+## Requirements
+1. **System Prompt:** Update the prompt to enforce a neutral, academic tone (no scolding).
+2. **Structured Output:** The Lambda must return a JSON object (not raw string) with three tiers:
+   - **Signal:** 2-4 word classification (e.g., 'Archaic Pejorative').
+   - **Gem:** Single sentence summary (max 25 words).
+   - **Context:** 3-sentence historical detail (max 100 words).
+3. **Fail-Safe:** If the LLM produces invalid JSON, fallback to a standard error message.
+
+## Architecture
+- **Input:** User text + Context.
+- **Processing:** Bedrock (Claude 3 Haiku/Sonnet).
+- **Output:** JSON Payload to frontend.
+
+## Acceptance Criteria
+- [ ] Returns valid JSON structure.
+- [ ] Tone is encyclopedic, not conversational.
+- [ ] Latency remains under 3s.
+
+
+---
+
+## Issue #125: feat: Implement 'Museum Label' Progressive Disclosure UI
+
+**Labels:** feature, frontend
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+
+## Objective
+Update the overlay UI to support the 'Signal -> Gem -> Context' progressive disclosure flow.
+
+## The 'Museum Label' Concept
+Users should not be overwhelmed. They should see the artifact (Signal) and a brief description (Gem). The deep history (Context) is opt-in.
+
+## UX Flow
+1. **Tier 1 (Glance):** Show the Amber/Red Badge + The 'Signal' (Category).
+2. **Tier 2 (Hover):** Show The 'Gem' (1-sentence summary).
+3. **Tier 3 (Click/Expand):** Reveal The 'Context' (Full historical detail).
+
+## Technical Changes
+- Update `overlay.js` to parse the new JSON response.
+- Create CSS animations for the expansion (smooth slide-down).
+- Ensure the 'Close' button is always accessible.
+
+## Acceptance Criteria
+- [ ] UI defaults to compact view (Signal + Gem).
+- [ ] 'Expand' action reveals full context.
+- [ ] Visual hierarchy clearly distinguishes the three tiers.
+
+
+---
+
+## Issue #126: feat: Implement Hard vs. Soft Blocking Logic
+
+**Labels:** feature, core-logic
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+
+## Objective
+Differentiate between 'Forbidden' terms (Denylist) and 'Educational' terms (Semantic Analysis).
+
+## The Split
+1. **Hard Block (The Denylist):**
+   - **Source:** `src/guardrails/resources/denylist.json`
+   - **Action:** Immediate 403 Forbidden.
+   - **UX:** 'Blocked: Hate Speech detected.' (No further interaction allowed).
+   - **Target:** Well-known slurs, severe hate speech (e.g., words that a writer replaces with just one letter and -word e.g. Z-word).
+
+2. **Soft Block (The Semantic Warning):**
+   - **Source:** Bedrock Semantic Analysis.
+   - **Action:** 200 OK (with Warning payload).
+   - **UX:** Show 'Potential Issue' Amber Badge. User *can* read the 'Erudite' explanation and choose to dismiss/ignore.
+   - **Target:** Nuanced terms, archaic phrases, dogwhistles.
+
+## Implementation
+- Update `lambda_function.py` to ensure Denylist remains 'Fail Closed'.
+- Update Semantic layer to return a 'Warning' classification instead of a hard block, passing the context to the frontend.
+
+## Acceptance Criteria
+- [ ] Denylist terms trigger immediate blocking (Green tests).
+- [ ] Semantic 'gray area' terms allow the user to see the explanation.
+
+
+---
+
+## Issue #127: process: Implement 'Active Plan' and 'Context Injection' Protocols
+
+**Labels:** process, workflow
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+
+## Context (From Paper 2512.14012)
+Research indicates that expert developers do not 'vibe'; they control. Two specific techniques identified for maintaining control are **Plan Files** (externalizing state) and **Context Injection** (referencing specific domain objects/files).
+
+## Objective
+Update our Orchestration Protocols (0004/0008) to force agents to explicitly track state and reference context, rather than relying on implicit context window retention.
+
+## Requirements
+
+### 1. The 'Active Plan' File
+During a Mini-Sprint, the working Agent must maintain a temporary file in the worktree (e.g., `CURRENT_STATUS.md`).
+- **Content:** The specific steps from the LLD being executed.
+- **Update Frequency:** Must be updated *before* claiming a step is done.
+- **Goal:** Prevents the agent from 'claiming victory so soon' and provides a save point if the session crashes.
+
+### 2. 'Context Type' Injection in Prompts
+Update `docs/0008-orchestrator-instructions.md` to require **Plan-Referenced Prompting**.
+- **Forbidden:** 'Fix the validation function.'
+- **Required:** 'Implement **Step 3** of `docs/1113-naked-python.md`. Modify **only** `lambda_function.py`. The input is the **Event Object** defined in Section 6.2.'
+- **Key Context Types to Reference:**
+    - Reference to Step in Plan
+    - Reference to Output File (Target)
+    - Domain Object (Specific terminology)
+
+## Definition of Done
+- [ ] `docs/0004-orchestration-protocol.md` updated with 'Active Plan' requirement.
+- [ ] `docs/0008-orchestrator-instructions.md` updated with Prompting Templates.
+
+
+---
+
+## Issue #128: process: Formalize 'Scaffolding vs. Logic' Task Splitting
+
+**Labels:** core-logic, process
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+
+## Context (From Paper 2512.14012)
+The paper identifies a distinct split in Agent Suitability:
+- **Highly Suitable:** Scaffolding, Boilerplate, Writing Tests.
+- **Unsuitable/Risky:** Complex Business Logic, Core Decision Making.
+
+## Objective
+Update our Issue Template and LLD process to split complex features into two distinct passes. We should not ask the agent to do both simultaneously.
+
+## The Protocol Change
+Modify `docs/0102-TEMPLATE-feature-lld.md` or `docs/0004-orchestration-protocol.md` to define the **Two-Pass Implementation**:
+
+### Pass 1: The Skeleton (High Agent Autonomy)
+- Create directory structures.
+- Define function signatures (with type hints and docstrings).
+- Create **Failing Tests** (The Test Harness).
+- *Agent Mode:* Fast, high-autonomy.
+
+### Pass 2: The Brain (High Human Control)
+- Implement the specific business rules inside the signatures.
+- Connect the actual logic.
+- Verify against the Test Harness.
+- *Agent Mode:* Step-by-step, high-supervision.
+
+## Definition of Done
+- [ ] Documentation updated to reflect the Two-Pass workflow.
+- [ ] Example provided in `0004-orchestration-protocol.md`.
+
+
+---
+
+## Issue #129: audit: Integrate 'Red Team' Architecture Challenge
+
+**Labels:** process, audit
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+
+## Context (From Paper 2512.14012)
+Experts use agents not just for code, but to 'collaboratively talk out problems' and challenge assumptions. The current workflow moves from LLD to Code too quickly without a critique phase.
+
+## Objective
+Insert a **'Red Team Challenge'** step into the Feature Lifecycle (`docs/0004`) before the LLD is marked 'Approved'.
+
+## The Protocol
+Before coding begins, a separate Model (e.g., Gemini if Claude wrote the LLD) must perform a hostile critique of the plan.
+
+### The 'Critic' Persona
+- **Goal:** Find hallucinations, over-engineering, and security gaps.
+- **Prompt:** 'You are the Red Team. Attack this LLD. Find 3 ways it will fail in production. Find 1 dependency that doesn't exist.'
+
+## Definition of Done
+- [ ] `docs/0004-orchestration-protocol.md` updated with the Red Team step.
+- [ ] `docs/0109-gemini-lld-review-procedure.md` updated to include specific 'Red Team' attack vectors.
+
 
 ---
