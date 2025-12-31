@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2025-12-31 16:18 CT
-**Total Open Issues:** 25
+**Generated:** 2025-12-31 16:31 CT
+**Total Open Issues:** 24
 
 ---
 
@@ -1294,62 +1294,6 @@ Recommendation document with chosen approach and rationale.
 
 ## Related
 - #116 - LinkedIn OAuth (primary auth mechanism)
-
----
-
-## Issue #119: feat: create RSDB download utility for denylist population
-
-**Created:** 2025-12-31
-**Updated:** 2025-12-31
-
-### Description
-
-## Context
-Issue #45 implemented the denylist filter, but `denylist.json` is empty. We need a utility to populate it from [rsdb.org](http://www.rsdb.org/).
-
-## Requirements
-
-### R1: Download RSDB Data
-- Scrape/fetch terms from rsdb.org
-- Store in a local directory (NOT in `src/guardrails/resources/`)
-
-### R2: .gitignore Protection
-- Create dedicated directory (e.g., `data/rsdb/` or `.rsdb/`)
-- Add to `.gitignore` - these terms must NEVER be committed
-
-### R3: Output Format
-- Generate JSON matching `denylist.json` schema:
-```json
-{
-    "version": "1.0",
-    "source": "rsdb.org",
-    "updated": "YYYY-MM-DD",
-    "terms": ["term1", "term2", ...]
-}
-```
-
-### R4: Update Strategy
-**Decision needed in LLD:**
-- Option A: Full pull each time (simpler, always fresh)
-- Option B: Incremental update (check for changes)
-
-Given RSDB is likely small (hundreds to low thousands of terms), **Option A (full pull)** is recommended for simplicity.
-
-## Open Questions for LLD
-
-1. **Storage location:** `.rsdb/` (hidden) vs `data/rsdb/` (visible but ignored)?
-2. **Manual vs automated:** Run manually by Orchestrator, or scheduled?
-3. **Deployment pipeline:** How does this file get to Lambda? (See integration question below)
-
-## Acceptance Criteria
-- [ ] Utility script in `tools/` directory
-- [ ] Directory and output file .gitignored
-- [ ] Outputs valid JSON matching denylist schema
-- [ ] Documented usage in script docstring
-
-## Related
-- #45 - Denylist implementation (this populates it)
-- #113 - Naked Python Architecture (may affect file paths)
 
 ---
 
