@@ -407,3 +407,74 @@ Expanded from 70 to 216 lines with full template compliance:
 - **Open PRs:** 0
 - **Environment:** Clean
 - **Next:** Issue #45 (Denylist) ready for implementation per IMMEDIATE-PLAN.md
+
+---
+
+## 2025-12-31 ~14:00-16:25 CT | Claude Opus 4.5
+
+### Summary
+Fixed broken deployment pipeline, created smoke test automation, resolved multiple deployment issues, merged PR #122 (Issue #113 Naked Python), and enhanced 0011 cleanup checklist with comprehensive agent/human action markers and failure detection.
+
+### Deployment Pipeline Fix
+- **deploy.sh** - Fixed to target `lambda_function.py` instead of obsolete `lambda_harvester_function.py`
+- Added recursive zipping of `src/` directory
+- Changed handler to `lambda_function.lambda_handler`
+- Added package verification step
+- Removed `AWS_REGION` (reserved Lambda variable)
+
+### Smoke Test Automation
+- Created `tools/smoke_test.py` with 3 test scenarios:
+  - Valid input (should pass, no block)
+  - Blocked input (should be blocked by denylist)
+  - Empty input (should fail validation)
+- Dynamic denylist term selection from `.rsdb/denylist.json`
+- Uses regex `\w+` matching to find single-word terms that tokenize correctly
+
+### Deployment Issues Resolved
+| Issue | Fix |
+|-------|-----|
+| `AccessDeniedException` on Bedrock | Added `bedrock:InvokeModelWithResponseStream` to IAM policy |
+| `ValidationException` on model | Changed from Claude 3.5 Sonnet v2 to `anthropic.claude-3-sonnet-20240229-v1:0` (on-demand compatible) |
+| Empty denylist in Lambda | Ran `rsdb_download.py` and copied to `src/guardrails/resources/` |
+| IAM not persisted | Updated `provision.sh` with new permission |
+
+### 0011 Cleanup Checklist Enhancement
+Major rewrite with:
+- 🤖/👤/⚠️ symbols for agent/human/warning actions
+- Pre-cleanup AWS ON reminder for testing
+- Branch-without-worktree detection as failure condition
+- Unexpected condition summary table
+- Session log entry made required
+- Permission consolidation note for session-log
+- Removed 0003 update requirement
+
+### PR #122 Merged
+- Issue #113 (Naked Python Architecture) completed
+- Branch `113-naked-python` deleted (local and remote)
+- Worktree `Aletheia-113` removed
+
+### Commits
+- `b4b322f` - Various PR #122 commits (deployment fixes, smoke test, IAM update)
+- `963e014` - docs: enhance 0011 with agent/human markers and failure flags (ref #80)
+- `c57ed03` - chore: update Claude Code permissions
+- `1e5291b` - docs: regenerate 6000-open-issues.md
+
+### Files Created
+- `tools/smoke_test.py`
+
+### Files Modified
+- `deploy.sh`
+- `lambda_function.py` (model ID fix)
+- `provision.sh` (IAM permission)
+- `docs/0011-environment-cleanup-checklist.md`
+- `.claude/settings.local.json`
+
+### Issues Closed
+- #113 (Naked Python Architecture) - via PR #122 merge
+
+### State on Exit
+- **Branch:** `main` @ 1e5291b
+- **Open PRs:** 0
+- **Lambda:** OFF (concurrency=0)
+- **Environment:** Clean (verified via 0011 checklist)
+- **Next:** Issue #45 (Denylist) per IMMEDIATE-PLAN.md
