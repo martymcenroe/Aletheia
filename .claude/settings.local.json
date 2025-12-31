@@ -32,7 +32,12 @@
       "Bash(./tools/aws/lambda-off.sh:*)",
       "Bash(aws lambda list-functions:*)",
       "Bash(./tools/aws/lambda-on.sh:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(poetry run pytest:*)",
+      "Bash(poetry install:*)",
+      "Bash(git stash:*)",
+      "WebFetch(domain:www.rsdb.org)",
+      "WebFetch(domain:gist.github.com)"
     ],
     "deny": [
       "Read(.env)",
