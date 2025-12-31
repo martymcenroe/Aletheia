@@ -142,6 +142,24 @@ poetry run python tools/rsdb_download.py --dry-run
 | Gist deleted/moved | High | Low | Save raw backup, document alternative sources |
 | Data format changes | Med | Low | Validate expected fields before processing |
 | Terms missing/incomplete | Med | Med | Log statistics, manual review before deploy |
+| **Data staleness** | Med | High | **See Known Limitations below** |
+
+### 9.1 Known Limitations (Technical Debt)
+
+**This implementation is a workaround, not a permanent solution.**
+
+| Limitation | Impact | Future Work |
+|------------|--------|-------------|
+| Uses third-party Gist, not official RSDB | Data may be stale (Gist last updated ~2022) | Contact RSDB.org for official API/export |
+| Unknown data collection method | Cannot verify completeness | Scrape rsdb.org directly or get official export |
+| No automated refresh | Manual re-run required | Future: scheduled Lambda or GitHub Action |
+
+**Why this is acceptable for MVP:**
+- Unblocks #45 denylist testing immediately
+- 2,584 terms is sufficient for functional testing
+- Production deployment can use same file until official source available
+
+**Follow-up Issue:** #121 - Integrate official RSDB data source (post-MVP)
 
 ## 10. Verification & Testing
 
