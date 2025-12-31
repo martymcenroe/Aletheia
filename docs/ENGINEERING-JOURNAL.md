@@ -42,6 +42,7 @@ This is my running log of hard-won lessons, gotchas, and rules I've established 
 | 2025-12-04 | Pip on Windows installs `.pyd` binaries; Lambda needs Linux `.so`. | **Always** use `deploy.sh` with `--platform manylinux2014_x86_64` (or `manylinux_2_28` for AL2023). |
 | 2025-12-04 | `awslambda` (streaming) is strictly incompatible with standard handlers. | Use standard JSON buffering for MVP. Revisit streaming only if latency demands it. |
 | 2025-12-08 | Console access requires `iam:CreateLoginProfile` and is separate from CLI keys. | If Console access is disabled, use `aws iam create-login-profile` from an Admin CLI profile. |
+| 2025-12-24 | Lambda concurrency=0 is instant kill switch. Use for cost control ("Denial of Wallet" defense). | Create on/off/status scripts in `tools/aws/`. Run off script at end of every session. |
 
 ## Python & Testing
 
@@ -52,6 +53,8 @@ This is my running log of hard-won lessons, gotchas, and rules I've established 
 | 2025-12-20 | Windows Python lacks IANA timezones; `zoneinfo` fails without `tzdata`. | **Dependency:** Always add `tzdata` to Poetry on Windows projects. |
 | 2025-12-20 | Logs in UTC/ISO8601 are unreadable for humans. | **Standard:** Display timestamps in `America/Chicago` using `%b %d %H:%M` format. |
 | 2025-12-22 | PIL transparency threshold is R+G+B sum (0-765). Low values (30) leave anti-aliasing artifacts; 250 worked for clean edges. | Use `--threshold 250` for icon generation with black-to-transparent conversion. |
+| 2025-12-28 | Windows Print Spooler removes jobs that complete quickly, causing error 87 when polling. | Treat error 87 as "job completed successfully" in spooler monitoring code. |
+| 2025-12-28 | SumatraPDF command-line printing doesn't use printer defaults. | Always specify `-print-settings duplex` or `-print-settings simplex` explicitly. |
 
 ---
 
@@ -68,6 +71,10 @@ This is my running log of hard-won lessons, gotchas, and rules I've established 
 |:-----|:-------|:------------|
 | 2025-12-09 | Multi-user LLM accounts create auth friction and cost ($4/mo). | Adopt Single-User CLI model. Orchestrator commits all code. |
 | 2025-12-22 | Windows Explorer caches file metadata. Files show old timestamps even after modification. | Trust ls -la in terminal, not Explorer's Date column. |
+| 2025-12-28 | Visual debugging (bright magenta backgrounds, large text) is more effective than console.log for injected scripts. If you can't see debug output, the code isn't running. | When debugging injected content, make changes SO obvious they can't be missed. Proves whether code executes at all. |
+| 2025-12-28 | Test scripts for long breaks need: environment setup, verification steps, expected outputs, "where you left off" summary. | Design test docs for "cold start"—assume reader has zero context. Include absolute paths and verification commands. |
+| 2025-12-29 | Implementation friction signals architectural misalignment. Deployment pain wasn't a bug—it was feedback that LangGraph/LangChain solved problems Aletheia didn't have. | When deployment is painful, question whether the architecture matches requirements. Simplify before debugging. |
+| 2025-12-31 | Willison Protocol: "Your job is to deliver code you have proven to work." Tests must fail on revert (not "green by default"). | Capture proof artifacts (screenshots, logs). If you can't prove it works, you haven't finished. |
 
 ---
 
