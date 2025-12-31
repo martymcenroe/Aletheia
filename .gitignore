@@ -67,6 +67,9 @@ _full_project_context.txt
 # Security
 docs/security/
 
+# RSDB Data (downloaded hate speech terms - never commit)
+.rsdb/
+
 # Temporary PDF generation
 temp-pdfs/
 temp-*.pdf
