@@ -23,6 +23,7 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 | `0103-TEMPLATE-implementation-report.md` | Post-implementation report for completed features | Active |
 | `0104-TEMPLATE-adr.md` | Architecture Decision Record | Active |
 | `0108-lld-pre-implementation-review.md` | LLD review checklist (run BEFORE coding) | Active |
+| `0109-gemini-lld-review-procedure.md` | Full prompt for Gemini LLD reviews | Active |
 
 ### 011x: Testing Templates
 | File | Purpose | Status |
