@@ -19,9 +19,11 @@
 | R2 | O(1) hash lookup for every input term | Must |
 | R3 | Immediate rejection with generic message | Must |
 | R4 | Do not ship denylist to client (server-side only) | Must |
-| R5 | Normalize input (lowercase, strip whitespace) | Must |
-| R6 | Support partial word matching for compound slurs | Should |
-| R7 | Log blocked attempts (redacted) for monitoring | Should |
+| R5 | Normalize input (lowercase, strip whitespace, NFKC) | Must |
+| R6 | Log blocked attempts (redacted) for monitoring | Should |
+
+**Deferred to Future:**
+- Partial word matching for compound slurs (requires Trie/Aho-Corasick, incompatible with O(1) hash lookup)
 
 ## 3. Alternatives Considered
 
@@ -55,7 +57,7 @@ flowchart TD
 
 * **Module:** `src/guardrails/denylist.py`
 * **Data Source:** `src/guardrails/resources/denylist.json`
-* **Dependencies:** None (pure Python set operations)
+* **Dependencies:** Standard library only (`re`, `unicodedata`, `json`)
 * **Pattern:** Singleton pattern for denylist loader (load once on cold start)
 
 ## 6. Interface Specification
@@ -84,7 +86,7 @@ def load_denylist(path: str = "src/guardrails/resources/denylist.json") -> set[s
     ...
 
 def normalize_text(text: str) -> str:
-    """Lowercase and strip whitespace from input."""
+    """Normalize input: NFKC unicode, lowercase, strip whitespace."""
     ...
 
 def check_denylist(text: str, denylist: set[str]) -> DenylistResult:
@@ -96,23 +98,31 @@ def check_denylist(text: str, denylist: set[str]) -> DenylistResult:
 ```
 1. GLOBAL denylist = None
 
-2. FUNCTION check_denylist(text):
+2. FUNCTION normalize_text(text):
+   a. text = unicodedata.normalize('NFKC', text)  # Handle unicode bypass
+   b. text = text.lower().strip()
+   c. RETURN text
+
+3. FUNCTION check_denylist(text):
    a. IF denylist is None THEN load_denylist()
    b. normalized = normalize_text(text)
-   c. tokens = normalized.split()
+   c. tokens = set(re.findall(r'\w+', normalized))  # Handles punctuation
    d. FOR each token in tokens:
       - IF token IN denylist THEN
         - RETURN {blocked: True, term: "[REDACTED]", reason: "denylist"}
    e. RETURN {blocked: False, term: None, reason: "clean"}
 ```
 
+**Note:** Using `re.findall(r'\w+', ...)` instead of `split()` to handle punctuation-attached tokens (e.g., "badword!" → "badword").
+
 ## 7. Security Considerations
 
 | Concern | Mitigation | Status |
 |---------|------------|--------|
-| Denylist shipped to client | Server-side only, never in extension bundle | TODO |
-| Blocked term logged in plaintext | Log "[REDACTED]" instead of actual term | TODO |
-| Bypass via Unicode normalization | Use NFKC normalization | TODO |
+| Denylist shipped to client | Server-side only, never in extension bundle | Addressed |
+| Blocked term logged in plaintext | Log "[REDACTED]" instead of actual term | Addressed |
+| Bypass via Unicode normalization | Use `unicodedata.normalize('NFKC', text)` | Addressed |
+| Bypass via punctuation attachment | Use `re.findall(r'\w+', ...)` tokenization | Addressed |
 | Bypass via l33t speak (h4te) | Future: Add common substitutions | Deferred |
 
 **Fail Mode:** Fail Open - If denylist fails to load, log error and continue to Semantic layer (defense in depth).
@@ -160,6 +170,9 @@ def check_denylist(text: str, denylist: set[str]) -> DenylistResult:
 * **Unit Tests:** `poetry run pytest tests/test_denylist.py -v`
 * **Semantic (Module B):** No - Denylist is deterministic
 * **End-to-End (Module C):** Yes - Verify blocked terms don't reach LLM
+
+**Test Data Hygiene (per 0005):**
+Unit tests MUST mock `load_denylist()` to return safe placeholder terms (e.g., `{"test_block_term", "forbidden_fruit"}`). Do NOT hardcode real slurs in test files. Real denylist validation occurs in manual smoke tests only.
 
 ### 10.3 Willison Protocol Compliance
 
