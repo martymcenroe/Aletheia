@@ -38,7 +38,7 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 
 ### Claude Code Permissions:
 - When you are granted a new permission, **commit `.claude/settings.local.json` to main immediately**
-- Use the main worktree to commit: `cd /c/Users/mcwiz/Projects/Aletheia-main && git add .claude/settings.local.json && git commit -m "chore: update Claude Code permissions" && git push`
+- Use the main worktree to commit: `cd /c/Users/mcwiz/Projects/Aletheia && git add .claude/settings.local.json && git commit -m "chore: update Claude Code permissions" && git push`
 - This prevents permission loss when branches are abandoned
 ## Logging Lessons
 When you solve a novel problem:

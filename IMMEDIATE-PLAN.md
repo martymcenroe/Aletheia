@@ -46,7 +46,7 @@ Questions before starting?
 
 ### Critical Path
 1. **#45 (Denylist)** ← YOU ARE HERE
-2. **#113 (Naked Python)** - Wire the full pipeline
+2. ~~**#113 (Naked Python)**~~ ✅ COMPLETE (PR #122, 2025-12-31)
 3. **#51/#53 (Store)** - Chrome Web Store submission
 4. **#100 (Firefox)** - Firefox Add-ons compatibility
 
@@ -61,12 +61,12 @@ Questions before starting?
 
 ---
 
-## Files to Create
+## Files to Create/Modify
 
 ```
-src/guardrails/denylist.py              # Implementation
-src/guardrails/resources/denylist.json  # Term list from RSDB
-tests/test_denylist.py                  # Automated tests (MOCKED data)
+src/guardrails/denylist.py              # Implementation (CREATE)
+src/guardrails/resources/denylist.json  # Already exists (populated from RSDB)
+tests/test_denylist.py                  # Automated tests (CREATE, MOCKED data)
 docs/reports/45/implementation-report.md
 docs/reports/45/test-report.md
 ```
