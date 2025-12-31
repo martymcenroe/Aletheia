@@ -1,4 +1,3 @@
-```markdown
 # 0011 - Environment Cleanup Checklist
 
 ## Purpose
@@ -12,80 +11,108 @@ Comprehensive checklist to ensure development environment is clean before starti
 
 ---
 
+## Agent vs Human Actions
+
+| Symbol | Meaning |
+|--------|---------|
+| 🤖 | Agent can/should do this automatically |
+| 👤 | Human must do this (agent cannot) |
+| ⚠️ | Unexpected condition - report to human |
+
+---
+
+## Pre-Cleanup: Session Start Reminder
+
+**If you're about to test Lambda functionality:**
+```bash
+🤖 ./tools/aws/lambda-on.sh
+🤖 ./tools/aws/lambda-status.sh  # Verify: ✓ Lambda ON
+```
+
+---
+
 ## Cleanup Checklist
 
 ### 1. Git Branch & Worktree Hygiene
 
 #### 1.1 CRITICAL: Worktree Safety Protocol
-**STOP and READ:** If you are using Git Worktrees, you **MUST** return to the `main` folder before merging or cleaning up.
+**STOP and READ:** You **MUST** use Git Worktrees for feature work, not direct branches.
 
 **Action:** Return to Main Control Tower
 ```bash
-cd /c/Users/mcwiz/Projects/Aletheia
-
+🤖 cd /c/Users/mcwiz/Projects/Aletheia
 ```
 
-#### 1.2 Check Worktrees
+#### 1.2 Branch Without Worktree Detection
+
+**Run this check FIRST:**
+```bash
+🤖 git branch --list | grep -v "^\* main$" | grep -v "^  main$"
+```
+
+**Expected:** Empty (no output).
+
+**⚠️ FAILURE FLAG:** If branches exist that aren't associated with worktrees:
+```
+⚠️ UNEXPECTED: Detected branch without worktree: {branch-name}
+   This violates CLAUDE.md workflow rules.
+   Investigate: Was checkout -b used instead of worktree add?
+```
+
+**Agent Action:** Report this to human before proceeding.
+
+#### 1.3 Check Worktrees
 
 ```bash
-git worktree list
-
+🤖 git worktree list
 ```
 
-**Expected:** Only `main`.
+**Expected:** Only the main worktree.
 **Risk:** If you see other worktrees, ensure no uncommitted work exists inside them before deletion.
 
 **Action:** Remove stale worktrees
-
 ```bash
 # 1. Check for uncommitted work inside the worktree
-git -C ../Aletheia-{IssueNumber} status
+🤖 git -C ../Aletheia-{IssueNumber} status
 
 # 2. If clean, remove the worktree
-git worktree remove ../Aletheia-{IssueNumber}
-
+🤖 git worktree remove ../Aletheia-{IssueNumber}
 ```
 
-#### 1.3 Check Local Branches
+#### 1.4 Check Local Branches
 
 ```bash
-git branch -vv
-
+🤖 git branch -vv
 ```
 
-**Expected:** Only `main` and active feature branches.
+**Expected:** Only `main`.
 
 **Action:** Delete merged/abandoned branches
-
 ```bash
 # Delete local branch (if already merged to main)
-git branch -d {branch-name}
+🤖 git branch -d {branch-name}
 
 # Force delete (if not merged but work is abandoned/saved elsewhere)
-git branch -D {branch-name}
-
+🤖 git branch -D {branch-name}
 ```
 
-#### 1.4 Check Remote Branches (The "Ghost" Check)
+#### 1.5 Check Remote Branches (The "Ghost" Check)
 
-Local Git often lists remote branches that were already deleted on GitHub. We must prune the list first to avoid "remote ref does not exist" errors.
+Local Git often lists remote branches that were already deleted on GitHub. We must prune the list first.
 
 ```bash
 # 1. Update local cache and remove "ghost" branches
-git fetch --prune origin
+🤖 git fetch --prune origin
 
 # 2. View TRUE list of remote branches
-git branch -r
-
+🤖 git branch -r
 ```
 
-**Expected:** Only `origin/main` and active feature branches.
+**Expected:** Only `origin/main`.
 
 **Action:** Delete stale remote branches
-
 ```bash
-git push origin --delete {branch-name}
-
+🤖 git push origin --delete {branch-name}
 ```
 
 ---
@@ -95,13 +122,11 @@ git push origin --delete {branch-name}
 #### 2.1 Check Open PRs
 
 ```bash
-gh pr list --state open
-
+🤖 gh pr list --state open
 ```
 
 **Action:**
-
-* **Merge:** `gh pr merge {N} --squash --delete-branch` (RUN FROM MAIN FOLDER ONLY)
+* **Merge:** `gh pr merge {N} --merge --delete-branch` (RUN FROM MAIN FOLDER ONLY)
 * **Close:** `gh pr close {N} --comment "Reason"`
 
 #### 2.2 Check Open Issues (Verification Step)
@@ -109,21 +134,23 @@ gh pr list --state open
 Merging a PR does not always automatically close the issue, especially if the "Fixes #N" keyword was missing or the merge script crashed.
 
 ```bash
-gh issue list --state open
-
+🤖 gh issue list --state open
 ```
 
 **Review each issue:**
-
 * [ ] **Is the work done?** → Close it immediately.
 ```bash
-gh issue close {N} --comment "Fixed via PR #{PR_Number}"
-
+🤖 gh issue close {N} --comment "Fixed via PR #{PR_Number}"
 ```
-
-
 * [ ] **Is it blocked?** → Add "blocked" label.
 * [ ] **Is it obsolete?** → Close as "not planned".
+
+**⚠️ FAILURE FLAG:** If you have evidence you tried to close an issue but it's still open:
+```
+⚠️ UNEXPECTED: Issue #{N} should be closed but is still open.
+   Evidence: Commit message said "close #{N}" or PR merged.
+   Investigate: Check GitHub for merge issues or keyword problems.
+```
 
 ---
 
@@ -133,18 +160,15 @@ gh issue close {N} --comment "Fixed via PR #{PR_Number}"
 
 ```bash
 # Use repo scripts for reliable output
-./tools/aws/lambda-status.sh
-
+🤖 ./tools/aws/lambda-status.sh
 ```
 
 **Expected:** `✗ Lambda OFF (concurrency=0)`
 
 **Action if ON:**
-
 ```bash
-./tools/aws/lambda-off.sh
-./tools/aws/lambda-status.sh  # Verify it's off
-
+🤖 ./tools/aws/lambda-off.sh
+🤖 ./tools/aws/lambda-status.sh  # Verify it's off
 ```
 
 ---
@@ -154,8 +178,7 @@ gh issue close {N} --comment "Fixed via PR #{PR_Number}"
 #### 4.1 Check Git Status
 
 ```bash
-git status
-
+🤖 git status
 ```
 
 **Expected:** "nothing to commit, working tree clean"
@@ -163,36 +186,95 @@ git status
 #### 4.2 Check for Temporary Files
 
 ```bash
-# Find temporary files
-ls -la | grep -E "(temp|tmp|\.bak|\.old|debug|test-)"
-
+🤖 ls -la | grep -E "(temp|tmp|\.bak|\.old|debug|test-)"
 ```
 
 **Action:** Delete temp files not needed.
 
 ---
 
-### 5. Browser Extension Cleanup
+### 5. Documentation Updates
 
-#### 5.1 Extension Installation Status
+#### 5.1 Regenerate Open Issues List
 
-**Chrome:** `chrome://extensions/`
+**Always run (do not print output):**
+```bash
+🤖 python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
+🤖 git add docs/6000-open-issues.md
+🤖 git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
+🤖 git push
+```
 
-1. **Reload Extension:** Ensure you are running the latest code from `main`.
-2. **Verify Version:** Check that the version number matches `manifest.json`.
+#### 5.2 Permission Consolidation Note
+
+If new permissions were granted during the session, note in session-log:
+- What permissions were added to `.claude/settings.local.json`
+- Why they were needed
+- Consider if they should be broader patterns
 
 ---
 
-### 6. Final Verification Checklist
+### 6. Session Log Entry
+
+**🤖 REQUIRED:** Write session log entry before ending.
+
+```bash
+🤖 powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
+```
+
+Append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md` using template from `docs/0100-TEMPLATE-GUIDE.md`.
+
+**Include in session log:**
+- Summary of work completed
+- Issues created/closed
+- Any permission changes made
+- State on exit (branch, last commit, next steps)
+
+---
+
+### 7. Browser Extension Cleanup
+
+#### 7.1 Extension Installation Status (👤 Human Only)
+
+**Chrome:** `chrome://extensions/`
+
+1. 👤 **Reload Extension:** Ensure you are running the latest code from `main`.
+2. 👤 **Verify Version:** Check that the version number matches `manifest.json`.
+
+*Agent cannot access browser - human must verify.*
+
+---
+
+### 8. Final Verification Checklist
 
 Before considering environment "clean", verify ALL of these:
 
-* [ ] `git worktree list` shows **only** `main`.
-* [ ] `git branch -vv` shows **only** `main` (and active features).
-* [ ] `git branch -r` shows **only** `origin/main` (and active features).
-* [ ] `gh issue list` shows **no** issues that are actually completed.
-* [ ] `./tools/aws/lambda-status.sh` shows OFF.
-* [ ] `git status` is clean.
+```bash
+🤖 # Run all checks
+git worktree list              # Should show only main
+git branch -vv                 # Should show only main
+git branch -r                  # Should show only origin/main
+gh pr list --state open        # Should be empty
+gh issue list --state open     # Review - none should be "done but unclosed"
+./tools/aws/lambda-status.sh   # Should show OFF
+git status                     # Should be clean
+```
+
+**⚠️ Report any unexpected conditions to human before proceeding.**
+
+---
+
+## Unexpected Condition Summary
+
+Report to human if any of these occur:
+
+| Condition | Message |
+|-----------|---------|
+| Branch exists without worktree | `⚠️ UNEXPECTED: Detected branch without worktree: {name}` |
+| Issue should be closed but isn't | `⚠️ UNEXPECTED: Issue #{N} should be closed but is still open` |
+| PR merge failed silently | `⚠️ UNEXPECTED: PR #{N} merge may have failed - verify on GitHub` |
+| Lambda still ON after off command | `⚠️ UNEXPECTED: Lambda still showing ON after lambda-off.sh` |
+| Uncommitted work in worktree | `⚠️ UNEXPECTED: Uncommitted changes in ../Aletheia-{N}` |
 
 ---
 
@@ -210,7 +292,19 @@ git branch -r
 git worktree list
 git branch -vv
 
-# 4. Check Issues
-gh issue list --state open
+# 4. Check for branch-without-worktree violation
+git branch --list | grep -v "^\* main$" | grep -v "^  main$"
 
+# 5. Check Issues & PRs
+gh issue list --state open
+gh pr list --state open
+
+# 6. Regenerate open issues
+python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
+
+# 7. Turn off Lambda
+./tools/aws/lambda-off.sh
+
+# 8. Write session log
+powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
 ```

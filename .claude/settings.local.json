@@ -34,7 +34,10 @@
       "WebSearch",
       "WebFetch(domain:developers.google.com)",
       "WebFetch(domain:www.rsdb.org)",
-      "WebFetch(domain:gist.github.com)"
+      "WebFetch(domain:gist.github.com)",
+      "Bash(bash:*)",
+      "Bash(MSYS_NO_PATHCONV=1 aws logs:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [
       "Read(.env)",
