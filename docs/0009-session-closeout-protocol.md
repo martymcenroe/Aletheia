@@ -7,6 +7,17 @@ A checklist for ending sessions cleanly, ensuring continuity for tomorrow.
 
 A proper closeout takes 5-10 minutes but saves 30+ minutes of confusion in the next session.
 
+## When to Escalate to Full Cleanup (0011)
+
+**🤖 Run `docs/0011-environment-cleanup-checklist.md` instead of this quick closeout when:**
+- You completed a feature (Issue #N closed)
+- You're about to start new feature work
+- Before a break (weekend, vacation, project pause)
+- Environment feels messy or you're unsure of state
+- You changed multiple files across multiple issues
+
+**0011 includes everything here PLUS:** IMMEDIATE-PLAN verification, AWS cost control, worktree hygiene, and failure detection.
+
 ## The Closeout Checklist
 
 ### 1. Git Hygiene

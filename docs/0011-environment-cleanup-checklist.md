@@ -8,6 +8,7 @@ Comprehensive checklist to ensure development environment is clean before starti
 - **After completing a feature** (Issue #N closed)
 - **Before taking a break** (weekend, vacation, project pause)
 - **When environment feels "messy"** (gut check)
+- **When 0009 (Session Closeout) instructs you to run this**
 
 ---
 
@@ -214,7 +215,40 @@ If new permissions were granted during the session, note in session-log:
 
 ---
 
-### 6. Session Log Entry
+### 6. IMMEDIATE-PLAN Verification
+
+**🤖 CRITICAL:** Do not trust issue status—verify actual state.
+
+```bash
+🤖 # Read the current plan
+cat IMMEDIATE-PLAN.md
+```
+
+**Verification Steps:**
+1. For each "pending" item in the plan, check if the code/files actually exist
+2. For each "complete" item, verify the issue is actually closed
+3. If reality differs from the plan, the plan is wrong—not reality
+
+**⚠️ FAILURE FLAGS:**
+- Plan says pending, but code exists → Close the issue, update plan
+- Plan says complete, but issue is open → Close the issue
+- Plan references obsolete issues → Rewrite the plan
+
+**Action:** Rewrite `IMMEDIATE-PLAN.md` to reflect:
+- Current reality (what's actually done)
+- Nearest-term objective (what's next on Critical Path)
+- Simplified scope (remove completed items, focus on next step)
+
+```bash
+🤖 # After updating, commit the plan
+git add IMMEDIATE-PLAN.md
+git commit -m "docs: update IMMEDIATE-PLAN to reflect current state"
+git push
+```
+
+---
+
+### 7. Session Log Entry
 
 **🤖 REQUIRED:** Write session log entry before ending.
 
@@ -232,9 +266,9 @@ Append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md` using template f
 
 ---
 
-### 7. Browser Extension Cleanup
+### 8. Browser Extension Cleanup
 
-#### 7.1 Extension Installation Status (👤 Human Only)
+#### 8.1 Extension Installation Status (👤 Human Only)
 
 **Chrome:** `chrome://extensions/`
 
@@ -245,7 +279,7 @@ Append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md` using template f
 
 ---
 
-### 8. Final Verification Checklist
+### 9. Final Verification Checklist
 
 Before considering environment "clean", verify ALL of these:
 
@@ -302,9 +336,15 @@ gh pr list --state open
 # 6. Regenerate open issues
 python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
 
-# 7. Turn off Lambda
+# 7. Verify IMMEDIATE-PLAN (DO NOT TRUST - VERIFY!)
+cat IMMEDIATE-PLAN.md
+# Check each "pending" item - does the code exist?
+# Check each "complete" item - is the issue closed?
+# Rewrite if reality differs from plan
+
+# 8. Turn off Lambda
 ./tools/aws/lambda-off.sh
 
-# 8. Write session log
+# 9. Write session log
 powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
 ```

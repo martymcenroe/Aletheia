@@ -1,17 +1,37 @@
 # 0000 - The Aletheia Documentation System
 
 ## The "AI Workforce" Paradigm
-This repository is structured as a **Content Management System (CMS) for Large Language Models**.
-We treat AI agents not as tools, but as distinct team members who require context, onboarding, and standard operating procedures.
+This repository is structured as an **Agent Operating System (AOS)**—executable documentation that AI agents run as their program.
+
+We treat AI agents not as tools, but as distinct team members who require context, onboarding, and standard operating procedures. The docs aren't just reference material—they're the instructions agents execute.
 
 If you are an AI reading this: **You are being onboarded.**
 Your goal is not just to write code, but to maintain the integrity of this system.
 
-## CMS Philosophy: Eliminating Context Burden
+## Agent Operating System: What This Really Is
+
+This is more than a Content Management System. It's:
+
+| Layer | What It Does | Examples |
+|-------|--------------|----------|
+| **Process Automation** | Checklists that execute, not just document | 0009 (Closeout), 0011 (Cleanup) |
+| **Context Persistence** | State preserved across sessions and agents | Session logs, IMMEDIATE-PLAN |
+| **Agent Orchestration** | Who does what, when, how | CLAUDE.md, GEMINI.md, 0004 |
+| **Reality Verification** | Don't trust metadata—verify actual state | 0011 Section 6 (IMMEDIATE-PLAN check) |
+| **Executable Standards** | Rules that agents can follow literally | 0002 (Coding), Forbidden Commands |
+
+**The Operating System Metaphor:**
+- **Docs = Programs** — Agents read and execute them
+- **Session Logs = Process State** — Preserved across restarts
+- **IMMEDIATE-PLAN = Current Task** — The foreground process
+- **Checklists = Subroutines** — Called when conditions are met
+- **Orchestrator = Scheduler** — Decides which agent runs which task
+
+## Philosophy: Eliminating Context Burden
 
 **The Problem:** LLM sessions have limited context windows. Orchestrators (humans) cannot reliably remember what was discussed across dozens of sessions with multiple AI agents. Web-based chat sessions are ephemeral and hard to search. Context is lost, work is repeated, momentum dies.
 
-**The Solution:** Everything an LLM needs to know lives in this CMS. The orchestrator's job is NOT to remember context—it's to point the LLM at the right documents.
+**The Solution:** Everything an LLM needs to know lives in this system. The orchestrator's job is NOT to remember context—it's to point the LLM at the right documents.
 
 **How to Start Any Session:**
 1. Read this file (`docs/0000-GUIDE.md`) - understand the system
@@ -19,9 +39,9 @@ Your goal is not just to write code, but to maintain the integrity of this syste
 3. Read `docs/6000-open-issues.md` - what's open
 4. Read relevant session logs in `docs/session-logs/` - recent history
 
-**The Guarantee:** If you follow these steps, you have everything you need. No asking "what did we discuss last time?" No orchestrator scrambling to recall context. The CMS is the single source of truth.
+**The Guarantee:** If you follow these steps, you have everything you need. No asking "what did we discuss last time?" No orchestrator scrambling to recall context. The AOS is the single source of truth.
 
-**Your Responsibility:** Maintain this guarantee. Update documentation. Write session logs. Keep the CMS accurate so the next agent (or your future self) can pick up seamlessly.
+**Your Responsibility:** Maintain this guarantee. Update documentation. Write session logs. Keep the system accurate so the next agent (or your future self) can pick up seamlessly.
 
 ---
 
