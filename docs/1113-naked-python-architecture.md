@@ -5,7 +5,7 @@
 * **Issue:** #113
 * **Objective:** Replace LangGraph/LangChain with pure boto3 for faster cold starts and simpler debugging.
 * **Status:** In Progress
-* **Related Issues:** #80 (superseded), #10 (semantic), #45 (denylist), #119 (RSDB utility)
+* **Related Issues:** #80 (superseded), #10 (semantic), #45 (denylist), #119 (RSDB utility), #116 (LinkedIn Auth - future)
 * **ADR:** [0211-ADR-naked-python-architecture.md](0211-ADR-naked-python-architecture.md)
 
 ## 2. Requirements
@@ -61,6 +61,8 @@ User Input → Lambda → Denylist Check → Semantic Check → DynamoDB → Bed
 
 **Test Data Hygiene:** Tests use mock blocked terms (e.g., `test_block_term`), never real slurs. Real denylist validation occurs in manual smoke tests only.
 
+**Dependency Injection:** `lambda_handler` and `GuardrailEngine` must accept optional parameters for denylist injection to enable mocking. This satisfies the Willison Protocol: tests pass using mocked data, and the repo never contains real slurs in test files.
+
 ### 4.4 Deployment Pipeline
 
 1. Run `poetry run python tools/rsdb_download.py` → populates `.rsdb/denylist.json`
@@ -98,6 +100,10 @@ flowchart LR
 * **Dependencies:** `boto3` (built into Lambda runtime)
 * **Pattern:** Sequential pipeline with early-exit on failure
 
+**CRITICAL: Sequential Execution is Mandatory**
+
+The guardrail pipeline MUST execute sequentially: Denylist → Semantic → Generation. This is NOT an optimization candidate. Rationale: We must fail closed on Semantic check to prevent the Generation step from politely explaining a sexually explicit term. If Semantic fails, Generation MUST NOT run.
+
 ### 6.1 Component Map
 
 | Layer | Implementation | Lib |
@@ -118,9 +124,16 @@ flowchart LR
   "text": "Selected text",
   "url": "https://example.com",
   "domContext": "Surrounding paragraph...",
-  "userId": "uuid"
+  "userId": "uuid"  // Optional until Issue #116 (LinkedIn Auth)
 }
 ```
+
+**Temporary Identity Strategy (Pre-#116):**
+Until Issue #116 (LinkedIn Auth) is implemented, `userId` may be missing. The system must:
+- Accept requests without `userId`
+- Generate a session-based identifier (e.g., hash of URL + timestamp) for DynamoDB PK
+- Not crash `save_state` if `userId` is `None`
+- Mark all temporary identity code with `# TODO: Issue #116` comments
 
 **DynamoDB Schema (Unchanged):**
 * **PK:** `thread_id` (URL hash or User ID)
@@ -188,6 +201,10 @@ def validate_input(event: dict) -> tuple[bool, str | None]:
     # Type
     if not isinstance(event['text'], str):
         return False, "Field 'text' must be string"
+
+    # Empty/whitespace (Aletheia should not process empty inputs)
+    if not event['text'].strip():
+        return False, "Field 'text' cannot be empty"
 
     # Length (prevent payload attacks)
     if len(event['text']) > 20_000:
