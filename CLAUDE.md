@@ -12,6 +12,7 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 - ❌ `git push --force` - Destroys collaboration
 - ❌ `git clean -fd` - Permanent data loss
 - ❌ `pip install` - Use `poetry add` instead
+- ❌ `TZ='America/Chicago' date` - Returns UTC on Windows, not local time
 
 ### Required Workflow:
 - **Worktree before code:** Create isolated worktree for each feature:
@@ -56,6 +57,7 @@ Other agents work on this project. Check `docs/session-logs/` for recent context
 At end of session, append a summary to the current week's file in `docs/session-logs/Week-starting-YYYY-MM-DD.md`.
 - **Week boundary:** Monday 3:00 AM CT to following Monday 2:59 AM CT
 - **Format:** Use ISO 8601 dates (YYYY-MM-DD) where the date is the Monday starting the week
+- **Timestamp command:** `powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"`
 - See `docs/0100-TEMPLATE-GUIDE.md` for the full entry template
 - Include: date/time, model name, summary, files, issues, state on exit
 - **Entries must be sorted chronologically** within each file

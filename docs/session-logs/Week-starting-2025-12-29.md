@@ -303,3 +303,107 @@ Analyzed all 25 open issues and categorized:
 - **Open Issues:** 23 (down from 31)
 - **Open PRs:** 0
 - **Next:** Gemini to continue #113 (Naked Python), then #51/#53 for store submission
+
+---
+
+## 2025-12-31 ~09:00-11:40 CT | Claude Opus 4.5
+
+### Summary
+Major documentation and process improvement session. Established "Willison Protocol" for proving code works, created Feature Development Lifecycle with three-document system (LLD, Implementation Report, Test Report), added CMS Philosophy section, enforced worktree workflow, and conducted vague terms audit. Session continued from summarized context.
+
+### Willison Protocol (0005 Section 5)
+Documented Simon Willison's principle: *"Your job is to deliver code you have proven to work."*
+- **Manual Testing:** See it work, capture screenshots/recordings
+- **Automated Testing:** Tests must fail on revert (not "green by default")
+- **Proof Artifacts:** Include evidence in Test Reports
+- Added Playwright as solution for browser/UI testing limitations
+- Created agent capability matrix for different testing approaches
+
+### Feature Development Lifecycle (0004 Section 8)
+Established three-document system with clear relationships:
+- **LLD (1xxx)** = The Plan (architectural blueprints)
+- **Implementation Report** = The Narrative (construction journal)
+- **Test Report** = The Evidence (building inspection certificate)
+Added Mermaid flowchart showing full lifecycle from issue creation through merge.
+
+### CMS Philosophy (0000-GUIDE.md)
+Added new section explaining why the CMS exists: eliminate orchestrator context burden. Everything an LLM needs lives in documentation. Orchestrator doesn't manage context across sessions.
+
+### Worktree Enforcement
+- Updated CLAUDE.md: `git checkout -b` added to Forbidden Commands
+- Updated 0002 Section 4: Flip-Turn workflow now uses worktrees
+- Updated 0004 Section 3: Same worktree requirement
+- Removed duplicate Section 10 from 0002
+
+### Template Updates
+- **0103-TEMPLATE-implementation-report.md:** Now 10 sections including Deviations, Test Harness, Willison Protocol compliance, Orchestrator Review (In-Scope/New-Scope/Meta)
+- **0113-TEMPLATE-test-report.md:** Added Willison Protocol section, Manual Verification checklist for orchestrator
+
+### Lambda Status Scripts
+Created `tools/aws/` scripts with clear output:
+- `lambda-status.sh` - Shows ON/OFF with concurrency info
+- `lambda-on.sh` - Enables Lambda
+- `lambda-off.sh` - Disables Lambda (concurrency=0)
+Fixed function name from `aletheia-harvester` to `AletheiaAgent`.
+
+### Retroactive Documentation
+- Created `docs/reports/80/` nested directory structure
+- Wrote `implementation-report.md` for abandoned #80 (LangGraph wiring)
+- Documents lessons learned from the architectural pivot
+
+### Vague Terms Audit
+Tightened three problematic uses:
+- 0003: "comprehensive test coverage" → "full test coverage (all LLD scenarios)"
+- 0004: "critical features" → added criteria (security, privacy, API, >500 LOC)
+- 0004: "significant deviation" → replaced with specific examples
+
+### Timestamp Command Fix
+- Added `TZ='America/Chicago' date` to Forbidden Commands in CLAUDE.md
+- Added explicit timestamp command to Session Logging section
+- Lesson: Documentation was correct; I failed to follow it
+
+### Files Renamed
+- `TOMORROW-PLAN.md` → `IMMEDIATE-PLAN.md` (time-independent naming)
+
+### 1045 LLD Expansion
+Expanded from 70 to 216 lines with full template compliance:
+- Added Mermaid flowchart
+- Added function signatures with type hints
+- Added 9 test scenarios (010-090)
+- Added Willison Protocol compliance section
+
+### Commits
+- `b68b1f6` - docs: add session log and settings policy
+- `e6c56e7` - chore: update Claude Code permissions
+- `eb46efe` - docs: update standards, inventory, and add ADRs 207-210 (ref #80)
+- `cc82f5e` - docs: enforce worktrees and sync ADRs (ref #80)
+- `00cb69f` - docs: use static filename for open issues list
+- `ea4b1ce` - docs: tighten vague terms in standards (ref #80)
+
+### Files Created
+- `tools/aws/lambda-status.sh`
+- `tools/aws/lambda-on.sh`
+- `tools/aws/lambda-off.sh`
+- `docs/reports/80/implementation-report.md`
+
+### Files Modified
+- `CLAUDE.md` (worktrees, forbidden commands, timestamp)
+- `IMMEDIATE-PLAN.md` (renamed)
+- `docs/0000-GUIDE.md` (CMS Philosophy)
+- `docs/0002-coding-standards.md` (worktrees, removed dup Section 10)
+- `docs/0003-file-inventory.md` (sync + vague terms)
+- `docs/0004-orchestration-protocol.md` (worktrees, lifecycle, vague terms)
+- `docs/0005-testing-strategy-and-protocols.md` (Willison Protocol)
+- `docs/0103-TEMPLATE-implementation-report.md` (10-section overhaul)
+- `docs/0113-TEMPLATE-test-report.md` (Willison + Manual Verification)
+- `docs/1045-deterministic-hate-filter.md` (full template compliance)
+
+### Issues Referenced
+- #80 (ref) - Documentation improvements derived from abandoned implementation
+
+### State on Exit
+- **Branch:** `main`
+- **Last commit:** `ea4b1ce`
+- **Open PRs:** 0
+- **Environment:** Clean
+- **Next:** Issue #45 (Denylist) ready for implementation per IMMEDIATE-PLAN.md
