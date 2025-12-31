@@ -35,7 +35,7 @@ aws iam put-role-policy --role-name "$ROLE_NAME" --policy-name "${APP_NAME}Acces
     "Version": "2012-10-17",
     "Statement": [
         {"Effect": "Allow","Action": ["dynamodb:PutItem","dynamodb:GetItem","dynamodb:UpdateItem","dynamodb:DeleteItem","dynamodb:Query","dynamodb:Scan"],"Resource": "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'"},
-        {"Effect": "Allow","Action": "bedrock:InvokeModel","Resource": "*"}
+        {"Effect": "Allow","Action": ["bedrock:InvokeModel","bedrock:InvokeModelWithResponseStream"],"Resource": "*"}
     ]
 }'
 sleep 5
