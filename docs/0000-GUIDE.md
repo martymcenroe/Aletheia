@@ -7,6 +7,23 @@ We treat AI agents not as tools, but as distinct team members who require contex
 If you are an AI reading this: **You are being onboarded.**
 Your goal is not just to write code, but to maintain the integrity of this system.
 
+## CMS Philosophy: Eliminating Context Burden
+
+**The Problem:** LLM sessions have limited context windows. Orchestrators (humans) cannot reliably remember what was discussed across dozens of sessions with multiple AI agents. Web-based chat sessions are ephemeral and hard to search. Context is lost, work is repeated, momentum dies.
+
+**The Solution:** Everything an LLM needs to know lives in this CMS. The orchestrator's job is NOT to remember context—it's to point the LLM at the right documents.
+
+**How to Start Any Session:**
+1. Read this file (`docs/0000-GUIDE.md`) - understand the system
+2. Read `IMMEDIATE-PLAN.md` (repository root) - current focus and context
+3. Read `docs/6000-open-issues.md` - what's open
+4. Read relevant session logs in `docs/session-logs/` - recent history
+
+**The Guarantee:** If you follow these steps, you have everything you need. No asking "what did we discuss last time?" No orchestrator scrambling to recall context. The CMS is the single source of truth.
+
+**Your Responsibility:** Maintain this guarantee. Update documentation. Write session logs. Keep the CMS accurate so the next agent (or your future self) can pick up seamlessly.
+
+---
 
 # Project Aletheia: AI Workforce Guide
 

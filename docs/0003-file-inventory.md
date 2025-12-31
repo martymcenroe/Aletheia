@@ -23,7 +23,7 @@
 | `GEMINI.md` | **Config** | 🟢 **Stable** | - | Gemini agent onboarding. |
 | `LICENSE` | **Legal** | 🟢 **Stable** | - | MIT License. |
 | `README.md` | **Doc** | 🟢 **Stable** | - | Project overview. |
-| `TOMORROW-PLAN.md` | **Log** | 🟡 **Beta** | - | Next-day task planning (consider gitignoring). |
+| `IMMEDIATE-PLAN.md` | **Log** | 🟢 **Stable** | - | Current session focus and context handoff. |
 | `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
 | `pyproject.toml` | **Config** | 🟢 **Stable** | - | Python dependencies. |
 
@@ -99,10 +99,11 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/prototypes/popup-prototype.jsx` | **Prototype** | 🟢 **Stable** | #76 | React prototype for allowlist popup UI. |
 
-### Implementation Reports
+### Implementation Reports (Nested by Issue)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/reports/77-implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
+| `docs/reports/77/implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
+| `docs/reports/80/implementation-report.md` | **Report** | 🟢 **Stable** | #80 | Retroactive report for abandoned LangGraph implementation. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |

@@ -1,4 +1,4 @@
-# Tomorrow's Plan: Issue #45 (Denylist) - First Willison Protocol Feature
+# Immediate Plan: Issue #45 (Denylist) - First Willison Protocol Feature
 
 **Created:** 2025-12-31
 **Goal:** Implement deterministic hate speech filter with full test automation

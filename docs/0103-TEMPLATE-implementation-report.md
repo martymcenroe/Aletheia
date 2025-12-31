@@ -1,9 +1,23 @@
 # 0103 - Template: Implementation Report
 
-## Usage
-After completing implementation of a feature, create a report in `docs/reports/` named `{IssueID}-implementation-report.md`.
+## Purpose
 
-This captures what was actually built, enabling future reference and audit.
+The Implementation Report documents **what was actually built** versus what was planned in the LLD. It is the narrative companion to the Test Report (which provides evidence).
+
+**Analogy:**
+- LLD = Architectural blueprints (the plan)
+- Implementation Report = Construction journal (what happened)
+- Test Report = Building inspection certificate (proof it works)
+
+## Usage
+
+After completing implementation of a feature:
+1. Create directory `docs/reports/{IssueID}/`
+2. Create `implementation-report.md` using this template
+3. Create `test-report.md` using template 0113
+4. Optionally save raw test output to `test-output.log`
+
+**Always create an Implementation Report**, even if there are no deviations from the LLD.
 
 ---
 
@@ -12,54 +26,111 @@ This captures what was actually built, enabling future reference and audit.
 ```markdown
 # {IssueID} - Implementation Report: {Feature Title}
 
-## Metadata
-* **Issue:** #{IssueID}
-* **LLD:** `docs/1{IssueID}-{feature-name}.md`
-* **Implementer:** {Model Name} via {Interface}
-* **Date:** {YYYY-MM-DD}
-* **Branch:** {branch-name}
+## 1. Metadata
 
-## Files Created
+| Field | Value |
+|-------|-------|
+| **Issue** | #{IssueID} |
+| **LLD** | `docs/1{IssueID}-{feature-name}.md` |
+| **Test Report** | `docs/reports/{IssueID}/test-report.md` |
+| **Implementer** | {Model Name} via {Interface} |
+| **Date** | {YYYY-MM-DD} |
+| **PR** | #{PR_Number} |
 
-| File | Size | Description |
-|:-----|:-----|:------------|
-| `path/to/file.js` | X.X KB | {What it does} |
+## 2. Summary
 
-## Files Modified
+{Concise description of what was built. May be multiple paragraphs if needed, but stay focused. Reference the LLD for full context.}
+
+## 3. Files Created
+
+| File | Description |
+|------|-------------|
+| `path/to/file.py` | {What it does} |
+| `tests/test_file.py` | {Test coverage} |
+
+## 4. Files Modified
 
 | File | Changes | Description |
-|:-----|:--------|:------------|
-| `path/to/file.js` | +XX lines | {What changed} |
+|------|---------|-------------|
+| `path/to/existing.py` | +XX/-YY lines | {What changed and why} |
 
-## Implementation Details
+## 5. Deviations from LLD
 
-### {Component 1}
-- {Specific implementation detail}
-- {Line numbers if helpful}
+{Always fill this section. If no deviations, state "None - implementation matches LLD exactly."}
 
-### {Component 2}
-- {Specific implementation detail}
+| Deviation | Reason | Impact |
+|-----------|--------|--------|
+| {What changed from plan} | {Why it changed} | {Effect on system} |
 
-## Security Compliance
+## 6. Test Harness
 
-*Reference ADRs and coding standards that were followed.*
+{Describe any test infrastructure created for this feature.}
 
-- [ ] {Security requirement from LLD} — {How it was met}
-- [ ] {Security requirement} — {How it was met}
+- **Test file:** `tests/test_{feature}.py`
+- **Fixtures:** {Any pytest fixtures created}
+- **Test data:** {Any test data files}
+- **Utilities:** {Any helper functions for testing}
 
-## Ready for Testing
+## 7. Test Coverage
 
-{Brief statement of readiness and pointer to smoke test in LLD}
+| Area | Coverage | Notes |
+|------|----------|-------|
+| {Happy path} | Covered | {Test IDs from LLD} |
+| {Edge cases} | Covered | {Test IDs} |
+| {Error handling} | Partial | {What's not covered and why} |
+| {Performance} | Not covered | {Reason - e.g., "deferred to integration testing"} |
 
-1. {Key test area}
-2. {Key test area}
+**Willison Protocol Compliance:**
+- [ ] Automated tests written
+- [ ] Tests fail on revert (verified)
+- [ ] Proof captured in Test Report
+
+## 8. Lessons Learned
+
+{What would you do differently? What surprised you? What should future implementers know?}
+
+- {Lesson 1}
+- {Lesson 2}
+
+## 9. Open Issues
+
+{Any follow-up work identified during implementation.}
+
+| Issue | Type | Description |
+|-------|------|-------------|
+| #{NewIssueID} | Bug/Enhancement | {Created during implementation} |
+| N/A | Note | {Something to consider for future} |
+
+## 10. Orchestrator Review Notes
+
+**Reviewer:** {Orchestrator name}
+**Date:** {YYYY-MM-DD}
+
+### In-Scope Observations
+{Observations about this feature that were addressed before merge.}
+- {Observation}
+
+### New-Scope Observations
+{Observations that warrant new issues.}
+- Created: #{IssueID} - {description}
+
+### Meta Observations
+{Process improvements identified during this review.}
+- {Suggestion for CMS/workflow changes}
+
+### Approval
+- [ ] Code reviewed
+- [ ] Manual tests passed (see Test Report)
+- [ ] Ready for merge
 ```
 
 ---
 
 ## Tips for Good Reports
 
-1. **Be specific:** Include file sizes, line counts, line numbers where helpful
-2. **Reference the LLD:** Link to the design doc for context
-3. **Security checklist:** Explicitly confirm each security requirement was met
-4. **Keep it factual:** This is a record, not a narrative
+1. **Always fill Deviations:** Even "None" is valuable information
+2. **Be specific about files:** Include all created/modified files
+3. **Test coverage honesty:** Document what's NOT covered and why
+4. **Link to Test Report:** The evidence lives there, not here
+5. **Lessons are gold:** Future you (or another agent) will thank you
+6. **Orchestrator section:** LLM fills this based on orchestrator feedback via prompts

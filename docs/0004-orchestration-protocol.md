@@ -19,19 +19,21 @@ Every feature or fix must strictly follow this 9-step execution loop to ensure h
 | Step | Action | Command Pattern |
 | :--- | :--- | :--- |
 | **1. Issue** | Discovery & Claim | `gh issue create` or `gh issue list` |
-| **2. Branch** | Isolation | `git checkout main && git pull && git checkout -b ID-desc` |
-| **3a. Docs** | Update Specs/Standards | `nano docs/10xx-feature.md` |
-| **3b. Code** | Implementation | `nano file.py` |
+| **2. Worktree** | Isolation | `git worktree add ../Aletheia-ID -b ID-desc` (See 0002 Section 10) |
+| **3a. Docs** | Update Specs/Standards | Edit `docs/10xx-feature.md` |
+| **3b. Code** | Implementation | Edit source files |
 | **4. Stage** | Preparation | `git add file.py` |
 | **5. Commit** | Save | `git commit -m "type: desc (ref #ID)"` |
 | **6. Push** | Team Visibility (REQUIRED) | `git push -u origin HEAD` - Never keep branches local-only |
 | **7. PR** | Review | `gh pr create --fill` |
-| **8. Merge** | Finalize | `gh pr merge --squash` |
-| **9. Cleanup** | Delete Local AND Remote | `git checkout main && git pull && git branch -d ID-desc && git push origin --delete ID-desc` |
+| **8. Merge** | Finalize (from main folder) | `cd ../Aletheia && gh pr merge --squash` |
+| **9. Cleanup** | Remove worktree + branches | `git worktree remove ../Aletheia-ID && git branch -d ID-desc && git push origin --delete ID-desc` |
+
+**Step 2 Rationale:** Worktrees provide complete isolation without affecting main. Never use `git checkout -b` in the main folder.
 
 **Step 6 Rationale:** Remote branches provide backup, enable collaboration between agents, and give the orchestrator visibility into active work. Local-only branches violate team collaboration principles.
 
-**Step 9 Rationale:** Zombie remote branches clutter the repository and confuse collaborators. ALWAYS delete both local and remote branches after merge.
+**Step 9 Rationale:** Zombie worktrees and remote branches clutter the system. ALWAYS clean up completely after merge.
 
 ## 4. Emergency Recovery
 If the session context is lost or the environment destabilizes, strict **Emergency Recovery Mode** is active.
@@ -109,3 +111,113 @@ When passing context between models, the Orchestrator shall provide:
 * The specific "Lens" for review (e.g., "Review for Privacy," "Review for Coding Standards").
 * The Issue numbers being reviewed.
 * Any prior review feedback to incorporate (if Pass 2 or 3).
+
+## 8. Feature Development Lifecycle
+
+Every feature produces three document types that work together:
+
+| Document | Purpose | Analogy |
+|----------|---------|---------|
+| **LLD (1xxx)** | The Plan | Architectural blueprints |
+| **Implementation Report** | The Narrative | Construction journal |
+| **Test Report** | The Evidence | Building inspection certificate |
+
+### 8.1 Document Lifecycle Diagram
+
+```mermaid
+flowchart TD
+    subgraph "ON MAIN (Before Implementation)"
+        A[Issue Created] --> B[LLD Written]
+        B --> C{Architectural Decision?}
+        C -->|Yes| D[ADR Written]
+        C -->|No| E[Ready for Implementation]
+        D --> E
+    end
+
+    E --> F[Create Worktree]
+
+    subgraph "ON WORKTREE (Implementation)"
+        F --> G[Write Code]
+        G --> H[Write Tests]
+        H --> I{Tests Pass?}
+        I -->|No| G
+        I -->|Yes| J[Create Implementation Report]
+        J --> K[Create Test Report]
+        K --> L[Push + Create PR]
+    end
+
+    subgraph "REVIEW CYCLE"
+        L --> M[Orchestrator Reviews]
+        M --> N[Manual Smoke Tests]
+        N --> O{Issues Found?}
+        O -->|Yes, Bug| P[LLM Fixes on Worktree]
+        P --> I
+        O -->|Yes, New Feature| Q[Create New Issue]
+        Q --> R[Note in Reports]
+        R --> S{Blocking?}
+        S -->|No| T[Continue Review]
+        O -->|No| T
+        S -->|Yes| U[Defer Merge]
+    end
+
+    T --> V{Approved?}
+    V -->|No| P
+    V -->|Yes| W[Squash Merge]
+
+    subgraph "ON MAIN (After Merge)"
+        W --> X[Delete Worktree]
+        X --> Y[Update LLD if Deviations]
+        Y --> Z[Update Lessons Learned]
+        Z --> AA[Write Session Log]
+    end
+
+    style A fill:#e1f5fe
+    style W fill:#c8e6c9
+    style Q fill:#fff9c4
+```
+
+### 8.2 Document Locations
+
+All documents live on `main` after merge:
+
+```
+docs/
+├── 1{IssueID}-{feature-name}.md     # LLD (plan)
+├── reports/
+│   └── {IssueID}/
+│       ├── implementation-report.md  # Narrative
+│       ├── test-report.md            # Evidence
+│       └── test-output.log           # Raw pytest output (optional)
+```
+
+### 8.3 When to Update LLD on Main
+
+Update the LLD on main **immediately** during implementation if:
+- Significant deviation from plan discovered
+- New requirements emerge
+- Architectural change needed
+
+This protects against context loss if session terminates unexpectedly. The Implementation Report then documents what changed and why.
+
+### 8.4 Willison Protocol Integration
+
+*"Your job is to deliver code you have proven to work."* — Simon Willison
+
+Every feature must comply with the Willison Protocol (see `0005` Section 5):
+
+1. **Manual Testing:** See it work, capture proof
+2. **Automated Testing:** Write tests that fail on revert
+3. **Proof in Test Report:** Include terminal output, screenshots, or logs
+
+### 8.5 Orchestrator Review Notes
+
+Orchestrator feedback is captured in both reports via LLM updates:
+
+**In Implementation Report:**
+- In-Scope Observations (about this feature)
+- New-Scope Observations (warrant new issues)
+- Meta Observations (process improvements)
+
+**In Test Report:**
+- Manual Verification results
+- Issues discovered during testing
