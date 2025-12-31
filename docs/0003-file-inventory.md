@@ -2,7 +2,7 @@
 
 ## 1. Status Taxonomy
 * 🟢 **Stable:** Verified, Documented, Production-Ready.
-* 🟡 **Beta:** Functional but lacks comprehensive test coverage/docs.
+* 🟡 **Beta:** Functional but lacks full test coverage (all LLD scenarios) or documentation.
 * 🟠 **In-Progress:** Active development; expect instability.
 * ⚪ **Placeholder:** Skeleton or empty file; do not run.
 * ⚫ **Legacy:** Deprecated/Archived (Reference only).
