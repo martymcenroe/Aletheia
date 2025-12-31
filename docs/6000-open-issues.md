@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2025-12-31 16:31 CT
-**Total Open Issues:** 24
+**Generated:** 2025-12-31 16:36 CT
+**Total Open Issues:** 23
 
 ---
 
@@ -61,19 +61,6 @@ Implement a 4-tier warning system in the Chrome Extension popup based on backend
 2. **Warning (Orange):** If Score(Provocative) > 0.0. Text: 'Caution: This term has a {P}% probability of carrying sexual or provocative subtext.'
 3. **Advisory (Yellow):** If Score(Provocative) == 0.0 AND (Score(Archaic) > 0 OR Score(Neologism) > 0). Text: 'Note: Term detected as Archaic ({A}%) or Neologism ({N}%). Usage may be obscure or unstable.'
 4. **Disclaimer (Footer):** 'AI probability scores are non-deterministic and may fluctuate between checks.'
-
----
-
-## Issue #45: feat: Implement Deterministic Hate Speech Filter
-
-**Labels:** security, feature
-
-**Created:** 2025-12-09
-**Updated:** 2025-12-30
-
-### Description
-
-Implement the Denylist layer of the guardrail funnel: a deterministic, O(1) lookup against a local 'denylist.json' derived from RSDB. This runs *before* the Semantic (LLM) check.
 
 ---
 
