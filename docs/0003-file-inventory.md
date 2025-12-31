@@ -80,7 +80,7 @@
 | `docs/1010-semantic-guardrails.md` | **Spec** | 🟡 **Beta** | #10 | Semantic Guardrail (LLM-based). |
 | `docs/1011-local-guardrails.md` | **Spec** | 🟡 **Beta** | #11 | Selection Check (local validation). |
 | `docs/1014-compliance-engine.md` | **Spec** | 🟡 **Beta** | #14 | Compliance checking engine. |
-| `docs/1025-linkedin-auth-gate.md` | **Spec** | ⚫ **Legacy** | #25 | LinkedIn auth (cookie heuristic). Superseded by OAuth approach. |
+| `docs/legacy/1025-linkedin-auth-gate.md` | **Spec** | ⚫ **Legacy** | #25 | LinkedIn auth (cookie heuristic). Superseded by #116 (OAuth). |
 | `docs/1041-security-audit.md` | **Spec** | 🟢 **Stable** | #41 | Security audit and permission culling. |
 | `docs/1042-whitelist-mode.md` | **Spec** | 🟢 **Stable** | #42 | Whitelist mode and safety filters. |
 | `docs/1043-privacy-compliance.md` | **Spec** | 🟢 **Stable** | #43 | Privacy policy compliance. |

@@ -1,3 +1,5 @@
+> **STATUS: DEPRECATED**
+> Superseded by Issue #116 (OAuth approach). Preserved for historical context.
 
 # LinkedIn Authentication Gate for Context-Aware Vocabulary
 
