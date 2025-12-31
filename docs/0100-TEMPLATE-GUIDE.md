@@ -7,7 +7,8 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 1. Find the appropriate template below
 2. Copy the template file to the correct location
 3. Rename according to conventions (see `0002-coding-standards.md`)
-4. Fill in all sections; delete "Future" placeholders if not applicable
+4. Fill in all sections; write "N/A" for sections that don't apply
+5. **Never delete numbered sections** - this breaks cross-document references
 
 ---
 
@@ -21,6 +22,7 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 | `0102-TEMPLATE-feature-lld.md` | Low-Level Design doc for features | Active |
 | `0103-TEMPLATE-implementation-report.md` | Post-implementation report for completed features | Active |
 | `0104-TEMPLATE-adr.md` | Architecture Decision Record | Active |
+| `0108-lld-pre-implementation-review.md` | LLD review checklist (run BEFORE coding) | Active |
 
 ### 011x: Testing Templates
 | File | Purpose | Status |

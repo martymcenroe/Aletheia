@@ -18,8 +18,40 @@
 
 **Rationale:** {Why the selected option was chosen}
 
-## 4. Diagram
-{Mermaid sequence or flow diagram visualizing the logic}
+## 4. Data & Fixtures
+
+*Per [0108-lld-pre-implementation-review.md](0108-lld-pre-implementation-review.md) - complete this section BEFORE implementation.*
+
+### 4.1 Data Sources
+
+| Attribute | Value |
+|-----------|-------|
+| Source | {URL, API, database, user input, etc.} |
+| Format | {JSON, CSV, API response, etc.} |
+| Size | {Approximate size or record count} |
+| Refresh | {Manual, scheduled, real-time} |
+| Copyright/License | {License or "N/A"} |
+
+### 4.2 Data Pipeline
+
+```
+{Source} ──{method}──► {Transform} ──{method}──► {Destination}
+```
+
+### 4.3 Test Fixtures
+
+| Fixture | Source | Notes |
+|---------|--------|-------|
+| {e.g., Mock API response} | {Generated / Downloaded / Hardcoded} | {Data hygiene concerns?} |
+
+### 4.4 Deployment Pipeline
+
+{How does data get from dev → test → production?}
+
+**If data source is external:** Is a separate utility needed? Create issue if yes.
+
+## 5. Diagram
+*{Write "N/A" if not applicable - do not delete sections}*
 
 ```mermaid
 sequenceDiagram
@@ -34,22 +66,22 @@ sequenceDiagram
 
 ```
 
-## 5. Technical Approach
+## 6. Technical Approach
 
 * **Module:** `src/...`
 * **Dependencies:** {packages, APIs}
 * **Pattern:** {Design pattern if applicable}
 
-## 6. Interface Specification
+## 7. Interface Specification
 
-### 6.1 Data Structures
+### 7.1 Data Structures
 ```python
 # Pseudocode - NOT implementation
 class ExampleState(TypedDict):
     field_name: type  # Description
 ```
 
-### 6.2 Function Signatures
+### 7.2 Function Signatures
 ```python
 # Signatures only - implementation in source files
 def function_name(param: Type) -> ReturnType:
@@ -57,7 +89,7 @@ def function_name(param: Type) -> ReturnType:
     ...
 ```
 
-### 6.3 Logic Flow (Pseudocode)
+### 7.3 Logic Flow (Pseudocode)
 ```
 1. Receive input
 2. Validate input
@@ -68,7 +100,7 @@ def function_name(param: Type) -> ReturnType:
 4. Return result
 ```
 
-## 7. Security Considerations
+## 8. Security Considerations
 
 | Concern | Mitigation | Status |
 |---------|------------|--------|
@@ -77,7 +109,7 @@ def function_name(param: Type) -> ReturnType:
 
 **Fail Mode:** {Fail Open / Fail Closed} - {Justification}
 
-## 8. Performance Considerations
+## 9. Performance Considerations
 
 | Metric | Budget | Approach |
 |--------|--------|----------|
@@ -87,17 +119,17 @@ def function_name(param: Type) -> ReturnType:
 
 **Bottlenecks:** {Known performance concerns}
 
-## 9. Risks & Mitigations
+## 10. Risks & Mitigations
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
 | {Risk description} | High/Med/Low | High/Med/Low | {How addressed} |
 
-## 10. Verification & Testing
+## 11. Verification & Testing
 
 *Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
 
-### 10.1 Test Scenarios
+### 11.1 Test Scenarios
 
 | ID | Scenario | Type | Input | Expected Output | Pass Criteria |
 |----|----------|------|-------|-----------------|---------------|
@@ -107,13 +139,13 @@ def function_name(param: Type) -> ReturnType:
 
 *Note: Use 3-digit IDs with gaps of 10 (010, 020, 030...) to allow insertions.*
 
-### 10.2 Test Modules (from 0005)
+### 11.2 Test Modules (from 0005)
 
 * **Unit Tests:** `poetry run pytest tests/test_{module}.py -v`
 * **Semantic (Module B):** {Applicable? Yes/No}
 * **End-to-End (Module C):** {Applicable? Yes/No}
 
-### 10.3 Manual Smoke Test
+### 11.3 Manual Smoke Test
 
 1. {Step 1}
 2. {Step 2}
@@ -121,7 +153,7 @@ def function_name(param: Type) -> ReturnType:
 
 *Full test results recorded in Implementation Report (0103) or Test Report (0113).*
 
-## 11. Definition of Done
+## 12. Definition of Done
 
 ### Code
 - [ ] Implementation complete and linted
