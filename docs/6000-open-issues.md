@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2025-12-31 11:47 CT
-**Total Open Issues:** 24
+**Generated:** 2025-12-31 16:18 CT
+**Total Open Issues:** 25
 
 ---
 
@@ -1180,64 +1180,6 @@ The markdown-to-PDF printing pipeline (tools/print/print_markdown.py) does not r
 
 ---
 
-## Issue #113: Refactor: Implement "Naked Python" Architecture (Remove LangGraph)
-
-**Created:** 2025-12-30
-**Updated:** 2025-12-30
-
-### Description
-
-
-# Refactor: Implement "Naked Python" Architecture (Remove LangGraph)
-
-**Issue ID:** #113
-**Type:** Refactor
-**Priority:** High
-**Sprint:** "Naked Ridge" Refactor
-
-## 1. Context & Motivation
-We currently use **LangGraph** and **LangChain** to orchestrate a simple linear pipeline.
-* **The Problem:** This introduces ~200MB of dependencies and increases cold-start latency for a flow that has no cyclic requirements.
-* **The Goal:** Pivot to a "Naked Python" architecture. We will use standard Python logic and the native `boto3` library (already present in the Lambda runtime) to handle the flow.
-* **The Benefit:** Drastic reduction in deployment size (from ~250MB to <1MB), faster cold starts, and zero dependency hell.
-
-## 2. Technical Requirements
-
-### A. Dependency Cleanup
-* **Remove:** `langgraph`, `langchain`, `langchain-aws`, `langchain-core` from `pyproject.toml`.
-* **Keep:** `boto3` (for local dev typing), `pytest`.
-* **Update:** `deploy.sh` must be simplified. It should no longer export requirements, download binaries, or cross-compile. It should simply zip the `.py` source files.
-
-### B. Logic Refactor (`lambda_function.py`)
-Replace the graph invocation with a sequential "Defense Funnel" implemented in pure Python. The Lambda must implement the following server-side layers defined in `docs/1080-wire-agent-logic.md`:
-
-1.  **Denylist:** Execute deterministic blocking of hate terms (Stub: `return False`).
-2.  **Semantic:** Call `SemanticGuardrail` to perform AI-based context analysis (using `boto3`).
-3.  **Transform:** Execute noarchive handling (Stub: Pass-through).
-4.  **Persistence:** Write state/history to DynamoDB (using `boto3`).
-5.  **Generation:** Call Bedrock Agent or Model (using `boto3`).
-
-### C. Architecture Updates
-* **Remove:** `agent.py` (Graph definition).
-* **Remove:** `checkpointer.py` (LangGraph persistence).
-* **Update:** `src/guardrails/semantic.py` to ensure it uses `boto3` directly without LangChain wrappers.
-
-## 3. Definition of Done
-* [ ] `pyproject.toml` is stripped of LangChain/LangGraph dependencies.
-* [ ] `deploy.sh` creates a zip file containing ONLY Python source files (size < 1MB).
-* [ ] `lambda_function.py` orchestrates the sequential flow (Denylist -> Semantic -> Transform -> Save -> Bedrock) using only `boto3`.
-* [ ] `agent.py` and `checkpointer.py` are deleted.
-* [ ] Architecture diagrams in `docs/0001` are updated to reflect the linear flow.
-* [ ] **Verification:** Manual test confirms the "Explain" feature works end-to-end with the new lightweight Lambda.
-
-## 4. Documentation Impact
-* **Create:** `docs/0211-ADR-naked-python-architecture.md` (Decision record).
-* **Deprecate:** `docs/0205-ADR-langgraph-orchestration.md`.
-* **Update:** `docs/1080-wire-agent-logic.md` (Update LLD to reflect sequential Python functions).
-
-
----
-
 ## Issue #116: feat: Authenticate users via LinkedIn OAuth
 
 **Labels:** security, feature
@@ -1352,5 +1294,111 @@ Recommendation document with chosen approach and rationale.
 
 ## Related
 - #116 - LinkedIn OAuth (primary auth mechanism)
+
+---
+
+## Issue #119: feat: create RSDB download utility for denylist population
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+## Context
+Issue #45 implemented the denylist filter, but `denylist.json` is empty. We need a utility to populate it from [rsdb.org](http://www.rsdb.org/).
+
+## Requirements
+
+### R1: Download RSDB Data
+- Scrape/fetch terms from rsdb.org
+- Store in a local directory (NOT in `src/guardrails/resources/`)
+
+### R2: .gitignore Protection
+- Create dedicated directory (e.g., `data/rsdb/` or `.rsdb/`)
+- Add to `.gitignore` - these terms must NEVER be committed
+
+### R3: Output Format
+- Generate JSON matching `denylist.json` schema:
+```json
+{
+    "version": "1.0",
+    "source": "rsdb.org",
+    "updated": "YYYY-MM-DD",
+    "terms": ["term1", "term2", ...]
+}
+```
+
+### R4: Update Strategy
+**Decision needed in LLD:**
+- Option A: Full pull each time (simpler, always fresh)
+- Option B: Incremental update (check for changes)
+
+Given RSDB is likely small (hundreds to low thousands of terms), **Option A (full pull)** is recommended for simplicity.
+
+## Open Questions for LLD
+
+1. **Storage location:** `.rsdb/` (hidden) vs `data/rsdb/` (visible but ignored)?
+2. **Manual vs automated:** Run manually by Orchestrator, or scheduled?
+3. **Deployment pipeline:** How does this file get to Lambda? (See integration question below)
+
+## Acceptance Criteria
+- [ ] Utility script in `tools/` directory
+- [ ] Directory and output file .gitignored
+- [ ] Outputs valid JSON matching denylist schema
+- [ ] Documented usage in script docstring
+
+## Related
+- #45 - Denylist implementation (this populates it)
+- #113 - Naked Python Architecture (may affect file paths)
+
+---
+
+## Issue #121: feat: integrate official RSDB data source
+
+**Labels:** enhancement
+
+**Created:** 2025-12-31
+**Updated:** 2025-12-31
+
+### Description
+
+## Context
+Issue #119 implemented a workaround using a third-party GitHub Gist for RSDB data. This issue tracks the work to get official data from rsdb.org.
+
+**Current State (from #119):**
+- Uses Gist: https://gist.github.com/Vizdun/0e9d76834d609dde09842be9bab53db7
+- Last updated ~2022 (3+ years stale)
+- Unknown collection method
+- 2,584 terms (may be incomplete)
+
+## Requirements
+
+### R1: Official Data Source
+- Contact rsdb.org maintainers about official API or data export
+- If no API: implement web scraper for rsdb.org
+
+### R2: Data Freshness
+- Document refresh frequency (monthly? quarterly?)
+- Consider automated refresh (GitHub Action or Lambda)
+
+### R3: Validation
+- Compare official source against current Gist data
+- Document any missing/added terms
+
+## Options to Explore
+
+1. **Email rsdb.org** - Request official export or API access
+2. **Web scraper** - Parse rsdb.org HTML directly
+3. **Alternative sources** - Wikipedia list of ethnic slurs, HateSonar, etc.
+
+## Priority
+**Post-MVP** - Current workaround is sufficient for MVP testing.
+
+## Related
+- #119 - RSDB download utility (workaround implementation)
+- #45 - Denylist filter (consumer of this data)
+
+## Labels
+enhancement, post-mvp, data-source
 
 ---
