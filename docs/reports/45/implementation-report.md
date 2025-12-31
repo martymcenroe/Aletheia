@@ -80,9 +80,25 @@ if result["blocked"]:
     return {"statusCode": 400, "body": "Request blocked"}
 ```
 
+## Lessons Learned (Post-Implementation)
+
+**Gap Identified:** The LLD specified `denylist.json` but never documented:
+- Where the data comes from (RSDB)
+- How to download/transform it
+- How it gets deployed to Lambda
+
+**Impact:** Implementation is complete but not usable without additional work (#119 RSDB utility).
+
+**Process Improvements:**
+1. Created `docs/0108-lld-pre-implementation-review.md` - reviewer checklist for data sources
+2. LLD template should require a "Data & Fixtures" section
+3. Added entries to `docs/9000-lessons-learned.md`
+
+**Recommendation:** Run the pre-implementation review prompt on all future LLDs before coding begins.
+
 ## Next Steps for Orchestrator
 
-1. Review this PR
-2. Populate `denylist.json` with RSDB terms on server
-3. Integrate with Lambda pipeline
+1. ~~Review this PR~~ ✅
+2. Complete #119 (RSDB download utility) to populate `denylist.json`
+3. Integrate with Lambda pipeline (#113 Naked Python)
 4. Deploy and verify via CloudWatch logs
