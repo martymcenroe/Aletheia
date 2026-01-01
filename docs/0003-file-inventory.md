@@ -93,6 +93,7 @@
 | `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
 | `docs/1113-naked-python-architecture.md` | **Spec** | 🟠 **In-Progress** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
+| `docs/1121-wikipedia-denylist.md` | **Spec** | 🟠 **In-Progress** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |
