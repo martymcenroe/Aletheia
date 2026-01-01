@@ -1,0 +1,216 @@
+{
+  "version": "1.0.0",
+  "description": "Golden set for Digital Etymologist regression testing. 20+ diverse terms across categories.",
+  "categories": {
+    "archaic_medical": "Historical medical terms now considered offensive",
+    "neologisms": "Recent slang and internet-born terms",
+    "archaic_general": "Old English or dated terms",
+    "innocent": "Neutral words with interesting etymology",
+    "foreign_origin": "Loanwords from other languages",
+    "compound_phrases": "Multi-word expressions with notable origins"
+  },
+  "terms": [
+    {
+      "input": "lunatic",
+      "context": "historical medical terminology",
+      "category": "archaic_medical",
+      "notes": "Derived from Latin 'luna' (moon), once believed to cause mental illness"
+    },
+    {
+      "input": "consumptive",
+      "context": "19th century literature",
+      "category": "archaic_medical",
+      "notes": "Historical term for tuberculosis patients"
+    },
+    {
+      "input": "hysteria",
+      "context": "medical history discussion",
+      "category": "archaic_medical",
+      "notes": "From Greek 'hystera' (womb), historically misogynistic diagnosis"
+    },
+    {
+      "input": "imbecile",
+      "context": "historical psychology terms",
+      "category": "archaic_medical",
+      "notes": "Former clinical classification, now considered pejorative"
+    },
+    {
+      "input": "cripple",
+      "context": "disability rights history",
+      "category": "archaic_medical",
+      "notes": "Once neutral, now considered ableist"
+    },
+    {
+      "input": "stan",
+      "context": "social media discussion",
+      "category": "neologisms",
+      "notes": "From Eminem song, meaning obsessive fan"
+    },
+    {
+      "input": "rizz",
+      "context": "Gen Z slang article",
+      "category": "neologisms",
+      "notes": "Shortening of charisma, popularized 2022"
+    },
+    {
+      "input": "slay",
+      "context": "internet culture blog",
+      "category": "neologisms",
+      "notes": "Ballroom culture origin, meaning to excel spectacularly"
+    },
+    {
+      "input": "forsooth",
+      "context": "Shakespeare study guide",
+      "category": "archaic_general",
+      "notes": "Middle English for 'in truth'"
+    },
+    {
+      "input": "wherefore",
+      "context": "Romeo and Juliet analysis",
+      "category": "archaic_general",
+      "notes": "Means 'why' not 'where'"
+    },
+    {
+      "input": "hitherto",
+      "context": "legal document",
+      "category": "archaic_general",
+      "notes": "Formal English meaning 'until now'"
+    },
+    {
+      "input": "hello",
+      "context": "greeting etymology article",
+      "category": "innocent",
+      "notes": "Surprisingly recent origin, popularized by telephone"
+    },
+    {
+      "input": "computer",
+      "context": "technology history",
+      "category": "innocent",
+      "notes": "Originally meant a person who computes"
+    },
+    {
+      "input": "nice",
+      "context": "word evolution study",
+      "category": "innocent",
+      "notes": "From Latin 'nescius' meaning ignorant"
+    },
+    {
+      "input": "karaoke",
+      "context": "entertainment article",
+      "category": "foreign_origin",
+      "notes": "Japanese: kara (empty) + oke (orchestra)"
+    },
+    {
+      "input": "safari",
+      "context": "travel blog",
+      "category": "foreign_origin",
+      "notes": "From Swahili/Arabic meaning journey"
+    },
+    {
+      "input": "kindergarten",
+      "context": "education history",
+      "category": "foreign_origin",
+      "notes": "German: children's garden"
+    },
+    {
+      "input": "rule of thumb",
+      "context": "common expressions",
+      "category": "compound_phrases",
+      "notes": "Debunked myth about domestic violence, actually from carpentry"
+    },
+    {
+      "input": "sold down the river",
+      "context": "American history",
+      "category": "compound_phrases",
+      "notes": "Slavery origin: selling enslaved people to plantations further south"
+    },
+    {
+      "input": "grandfather clause",
+      "context": "legal history",
+      "category": "compound_phrases",
+      "notes": "Jim Crow era voting restriction origin"
+    }
+  ],
+  "extraction_test_cases": [
+    {
+      "id": "clean_json",
+      "raw_response": "{\"signal\": \"Test Signal\", \"gem\": \"A test gem.\", \"context\": \"Test context here.\"}",
+      "expected_signal": "Test Signal",
+      "should_extract": true
+    },
+    {
+      "id": "markdown_wrapped",
+      "raw_response": "```json\n{\"signal\": \"Wrapped Signal\", \"gem\": \"Wrapped gem.\", \"context\": \"Wrapped context.\"}\n```",
+      "expected_signal": "Wrapped Signal",
+      "should_extract": true
+    },
+    {
+      "id": "markdown_no_lang",
+      "raw_response": "```\n{\"signal\": \"No Lang\", \"gem\": \"No language tag.\", \"context\": \"Still valid.\"}\n```",
+      "expected_signal": "No Lang",
+      "should_extract": true
+    },
+    {
+      "id": "chatter_prefix",
+      "raw_response": "Here is the analysis of the term:\n\n{\"signal\": \"Chatter Test\", \"gem\": \"After chatter.\", \"context\": \"The extractor should find this.\"}",
+      "expected_signal": "Chatter Test",
+      "should_extract": true
+    },
+    {
+      "id": "chatter_suffix",
+      "raw_response": "{\"signal\": \"Suffix Test\", \"gem\": \"Before suffix.\", \"context\": \"Valid JSON here.\"}\n\nI hope this helps!",
+      "expected_signal": "Suffix Test",
+      "should_extract": true
+    },
+    {
+      "id": "no_json",
+      "raw_response": "This response contains no JSON at all, just plain text explanation.",
+      "expected_signal": null,
+      "should_extract": false
+    },
+    {
+      "id": "malformed_json",
+      "raw_response": "{\"signal\": \"Broken, \"gem\": missing quote}",
+      "expected_signal": null,
+      "should_extract": false
+    },
+    {
+      "id": "nested_braces",
+      "raw_response": "Analysis: {\"signal\": \"Nested Test\", \"gem\": \"Has {braces} inside.\", \"context\": \"Context with {more} braces.\"}",
+      "expected_signal": "Nested Test",
+      "should_extract": true
+    }
+  ],
+  "validation_test_cases": [
+    {
+      "id": "valid_complete",
+      "response": {"signal": "Valid Signal", "gem": "A valid gem sentence.", "context": "First sentence. Second sentence. Third sentence."},
+      "expected_valid": true
+    },
+    {
+      "id": "missing_signal",
+      "response": {"gem": "Missing signal field.", "context": "Context present."},
+      "expected_valid": false
+    },
+    {
+      "id": "missing_gem",
+      "response": {"signal": "Has signal", "context": "But no gem."},
+      "expected_valid": false
+    },
+    {
+      "id": "missing_context",
+      "response": {"signal": "Has signal", "gem": "Has gem."},
+      "expected_valid": false
+    },
+    {
+      "id": "empty_signal",
+      "response": {"signal": "", "gem": "Gem here.", "context": "Context here."},
+      "expected_valid": false
+    },
+    {
+      "id": "signal_too_long",
+      "response": {"signal": "This signal is way too long and has many many many words that exceed the fifteen word limit we set", "gem": "Short gem.", "context": "Short context."},
+      "expected_valid": false
+    }
+  ]
+}

@@ -145,7 +145,7 @@ class TestLambdaHandler:
     """Integration tests for lambda_handler - LLD Section 11.1."""
 
     def test_010_valid_input_safe_text(self):
-        """Scenario 010: Valid input with safe text returns 200."""
+        """Scenario 010: Valid input with safe text returns 200 with structured output."""
         event = {"text": "apple"}
 
         with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic, patch(
@@ -163,30 +163,35 @@ class TestLambdaHandler:
             # Mock DynamoDB
             mock_dynamo.return_value = MagicMock()
 
-            # Mock Bedrock streaming response
-            mock_stream = MagicMock()
-            mock_stream.get.return_value = [
-                {
-                    "chunk": {
-                        "bytes": json.dumps(
+            # Mock Bedrock buffered response (Issue #124: no streaming)
+            mock_response = {
+                "body": MagicMock(
+                    read=MagicMock(
+                        return_value=json.dumps(
                             {
-                                "type": "content_block_delta",
-                                "delta": {"type": "text_delta", "text": "Response"},
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": '{"signal": "Common Noun", "gem": "A sweet fruit.", "context": "First sentence. Second sentence. Third sentence."}',
+                                    }
+                                ]
                             }
                         ).encode()
-                    }
-                }
-            ]
-            mock_bedrock.return_value.invoke_model_with_response_stream.return_value = (
-                mock_stream
-            )
+                    )
+                )
+            }
+            mock_bedrock.return_value.invoke_model.return_value = mock_response
 
             result = lambda_handler(event, None, denylist=MOCK_DENYLIST)
 
             assert result["statusCode"] == 200
             body = json.loads(result["body"])
-            assert "response" in body
+            # Issue #124: Verify structured response
             assert "thread_id" in body
+            assert "signal" in body
+            assert "gem" in body
+            assert "context" in body
+            assert body["status"] == "success"
 
     def test_020_blocked_text(self):
         """Scenario 020: Blocked text returns 403."""
