@@ -18,14 +18,16 @@ async function showFeedback(tabId, message, type) {
         // 1. Inject Library (Idempotent)
         await chrome.scripting.executeScript({
             target: { tabId },
-            files: ['overlay.js']
+            files: ['overlay.js'],
+            world: 'MAIN'
         });
 
         // 2. Call Function
         await chrome.scripting.executeScript({
             target: { tabId },
             func: (m, t) => window.showAletheiaOverlay(m, t),
-            args: [message, type]
+            args: [message, type],
+            world: 'MAIN'
         });
 
         // 3. Set Toolbar Badge
@@ -68,11 +70,13 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         console.log("[Aletheia] Showing immediate 'Saving...' feedback");
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            files: ['overlay.js']
+            files: ['overlay.js'],
+            world: 'MAIN'
         });
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: () => window.showAletheiaOverlay("Saving...", "warning")
+            func: () => window.showAletheiaOverlay("Saving...", "warning"),
+            world: 'MAIN'
         });
 
         const injectionResults = await chrome.scripting.executeScript({
@@ -101,12 +105,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         if (response.ok) {
             await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: () => window.updateAletheiaOverlay("Context Saved", "success")
+                func: () => window.updateAletheiaOverlay("Context Saved", "success"),
+                world: 'MAIN'
             });
         } else {
             await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: () => window.updateAletheiaOverlay("Error Saving", "error")
+                func: () => window.updateAletheiaOverlay("Error Saving", "error"),
+                world: 'MAIN'
             });
         }
 
@@ -121,7 +127,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         console.error("[CV-6] Error:", error);
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: () => window.updateAletheiaOverlay("Connection Error", "error")
+            func: () => window.updateAletheiaOverlay("Connection Error", "error"),
+            world: 'MAIN'
         });
         chrome.action.setBadgeText({ tabId: tab.id, text: '✗' });
         chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
