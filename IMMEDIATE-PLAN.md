@@ -51,8 +51,24 @@ Without rate limiting, a malicious actor could run up AWS costs by hammering the
 | Lambda (Bedrock + DynamoDB) | ✅ Deployed |
 | Denylist (803 Wikipedia terms) | ✅ Integrated |
 | Semantic guardrails | ✅ Active |
+| Age gate (#104) | ⏳ Code complete, pending E2E tests |
 | Rate limiting / WAF | ❌ Not deployed |
 | Store assets | ❌ Not created |
+
+---
+
+## Parallel Track: Age Gate Testing (#104 + #105)
+
+**Status:** #104 code complete (PR #133), blocked by #105
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| #104 | Age-restricted content blocking | Code complete, 33 unit tests passing |
+| #105 | Test site infrastructure | LLD written (`docs/1105-test-site-infrastructure.md`), needs review |
+
+**Why not blocking MVP:** Age gate is a safety enhancement, not a store requirement. Can ship MVP and add age gate verification in parallel.
+
+**Next:** Review `docs/1105-test-site-infrastructure.md`, then implement Playwright E2E tests to unblock #104 merge.
 
 ---
 
