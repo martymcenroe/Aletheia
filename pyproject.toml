@@ -25,3 +25,8 @@ dev = [
     "pytest (>=9.0.1,<10.0.0)",
     "responses (>=0.25.8,<0.26.0)"
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "live: tests that hit real websites (may be slow/flaky)",
+]

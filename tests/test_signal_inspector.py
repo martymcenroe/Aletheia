@@ -394,3 +394,86 @@ class TestSignalResultSerialization:
         # Should be valid JSON
         json_str = json.dumps(data)
         assert json_str is not None
+
+
+@pytest.mark.live
+class TestLiveWebsites:
+    """Live integration tests against real websites.
+
+    These tests hit actual URLs and verify the tool works end-to-end.
+    Run with: poetry run pytest -v -m live
+
+    Note: These tests may be slower and can fail if sites change or are unavailable.
+    """
+
+    def test_wikipedia_allows(self):
+        """Test Wikipedia returns ALLOW (permissive, no restrictive signals)."""
+        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        from inspect_signals import inspect_url
+
+        result = inspect_url(
+            url="https://en.wikipedia.org/wiki/Main_Page",
+            user_agent="AletheiaBot/1.0 (Compliance Auditor)",
+            timeout=15,
+            force=False,
+        )
+
+        assert result.fetch_status == FetchStatus.SUCCESS
+        assert result.http_status == 200
+        assert result.aletheia_action == AletheiaAction.ALLOW
+        # Wikipedia should not have noarchive
+        assert result.merged.noarchive is False
+
+    def test_bbc_transforms_via_header(self):
+        """Test BBC returns TRANSFORM (has X-Robots-Tag: noarchive header)."""
+        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        from inspect_signals import inspect_url
+
+        result = inspect_url(
+            url="https://www.bbc.com",
+            user_agent="AletheiaBot/1.0 (Compliance Auditor)",
+            timeout=15,
+            force=False,
+        )
+
+        assert result.fetch_status == FetchStatus.SUCCESS
+        assert result.http_status == 200
+        # BBC sends X-Robots-Tag: noarchive header
+        assert result.headers.x_robots_tag_present is True
+        assert "noarchive" in result.headers.x_robots_tag_values
+        assert result.merged.noarchive is True
+        assert result.aletheia_action == AletheiaAction.TRANSFORM
+
+    def test_noarchive_net_with_force(self):
+        """Test noarchive.net has noarchive meta tag (requires --force due to robots.txt)."""
+        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        from inspect_signals import inspect_url
+
+        result = inspect_url(
+            url="https://noarchive.net",
+            user_agent="AletheiaBot/1.0 (Compliance Auditor)",
+            timeout=15,
+            force=True,  # Site blocks via robots.txt
+        )
+
+        assert result.fetch_status == FetchStatus.SUCCESS
+        assert result.http_status == 200
+        # noarchive.net has <meta name="robots" content="noarchive">
+        assert result.meta_tags.noarchive is True
+        assert result.merged.noarchive is True
+        assert result.aletheia_action == AletheiaAction.TRANSFORM
+
+    def test_noarchive_net_blocked_without_force(self):
+        """Test noarchive.net is blocked by robots.txt without --force."""
+        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        from inspect_signals import inspect_url
+
+        result = inspect_url(
+            url="https://noarchive.net",
+            user_agent="AletheiaBot/1.0 (Compliance Auditor)",
+            timeout=15,
+            force=False,
+        )
+
+        assert result.fetch_status == FetchStatus.ROBOTS_BLOCKED
+        assert result.aletheia_action == AletheiaAction.BLOCK
