@@ -96,11 +96,11 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         console.log("[Aletheia] Domain is allowlisted, proceeding...");
 
         try {
-            // IMMEDIATE FEEDBACK - show "Saving..." right away
+            // IMMEDIATE FEEDBACK - show "Saving..." with long timeout (won't expire before response)
             console.log("[Aletheia] Showing immediate 'Saving...' feedback");
             await browser.tabs.executeScript(tab.id, { file: 'overlay.js' });
             await browser.tabs.executeScript(tab.id, {
-                code: `window.showAletheiaOverlay("Saving...", "warning");`
+                code: `window.showAletheiaOverlay("Saving...", "warning", 30000);`
             });
 
             // MV2: executeScript returns array of results

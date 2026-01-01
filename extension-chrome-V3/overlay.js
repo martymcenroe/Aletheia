@@ -3,11 +3,17 @@
 
 if (!window.updateAletheiaOverlay) {
     // Update existing overlay in place (no flicker)
-    window.updateAletheiaOverlay = function(message, type) {
+    // Also resets the dismiss timer so the new message gets full screen time
+    window.updateAletheiaOverlay = function(message, type, timeout = 4000) {
         const host = document.getElementById('aletheia-overlay-host');
         if (!host || !host.shadowRoot) {
-            window.showAletheiaOverlay(message, type);
+            window.showAletheiaOverlay(message, type, timeout);
             return;
+        }
+
+        // Clear the existing timer (stop the 'Saving...' countdown)
+        if (host._dismissTimer) {
+            clearTimeout(host._dismissTimer);
         }
 
         const colors = {
@@ -22,12 +28,17 @@ if (!window.updateAletheiaOverlay) {
             overlay.textContent = message;
             overlay.style.borderLeftColor = borderColor;
         }
+
+        // Start a NEW timer so the updated message gets its full screen time
+        host._dismissTimer = setTimeout(() => {
+            if (host.isConnected) host.remove();
+        }, timeout);
     };
 }
 
 if (!window.showAletheiaOverlay) {
 
-    window.showAletheiaOverlay = function(message, type) {
+    window.showAletheiaOverlay = function(message, type, timeout = 4000) {
         // 1. Cleanup existing overlay
         const existing = document.getElementById('aletheia-overlay-host');
         if (existing) existing.remove();
@@ -115,9 +126,9 @@ if (!window.showAletheiaOverlay) {
 
         document.body.appendChild(host);
 
-        // 8. Auto-Dismiss
-        setTimeout(() => {
+        // 8. Auto-Dismiss (store timer ID so updateAletheiaOverlay can cancel it)
+        host._dismissTimer = setTimeout(() => {
             if (host.isConnected) host.remove();
-        }, 4000);
+        }, timeout);
     };
 }

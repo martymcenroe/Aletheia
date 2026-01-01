@@ -5,14 +5,21 @@ console.log("[Aletheia] overlay.js injected");
 
 if (!window.updateAletheiaOverlay) {
     // Update existing overlay in place (no flicker)
-    window.updateAletheiaOverlay = function(message, type) {
+    // Also resets the dismiss timer so the new message gets full screen time
+    window.updateAletheiaOverlay = function(message, type, timeout = 4000) {
         console.log("[Aletheia] updateAletheiaOverlay called:", message, type);
 
         const host = document.getElementById('aletheia-overlay-host');
         if (!host || !host.shadowRoot) {
             console.log("[Aletheia] No existing overlay to update, creating new one");
-            window.showAletheiaOverlay(message, type);
+            window.showAletheiaOverlay(message, type, timeout);
             return;
+        }
+
+        // Clear the existing timer (stop the 'Saving...' countdown)
+        if (host._dismissTimer) {
+            clearTimeout(host._dismissTimer);
+            console.log("[Aletheia] Cleared existing dismiss timer");
         }
 
         const colors = {
@@ -28,14 +35,22 @@ if (!window.updateAletheiaOverlay) {
             overlay.style.borderLeftColor = borderColor;
             console.log("[Aletheia] Overlay updated in place");
         }
+
+        // Start a NEW timer so the updated message gets its full screen time
+        host._dismissTimer = setTimeout(() => {
+            if (host.isConnected) {
+                console.log("[Aletheia] Auto-dismissing overlay after update");
+                host.remove();
+            }
+        }, timeout);
     };
 }
 
 if (!window.showAletheiaOverlay) {
     console.log("[Aletheia] Defining showAletheiaOverlay function");
 
-    window.showAletheiaOverlay = function(message, type) {
-        console.log("[Aletheia] showAletheiaOverlay called:", message, type);
+    window.showAletheiaOverlay = function(message, type, timeout = 4000) {
+        console.log("[Aletheia] showAletheiaOverlay called:", message, type, "timeout:", timeout);
 
         // 1. Cleanup existing overlay
         const existing = document.getElementById('aletheia-overlay-host');
@@ -155,13 +170,13 @@ if (!window.showAletheiaOverlay) {
         document.body.appendChild(host);
         console.log("[Aletheia] Overlay appended to DOM");
 
-        // 8. Auto-Dismiss
-        setTimeout(() => {
+        // 8. Auto-Dismiss (store timer ID so updateAletheiaOverlay can cancel it)
+        host._dismissTimer = setTimeout(() => {
             if (host.isConnected) {
                 console.log("[Aletheia] Auto-dismissing overlay");
                 host.remove();
             }
-        }, 4000);
+        }, timeout);
     };
 
     console.log("[Aletheia] showAletheiaOverlay function defined");

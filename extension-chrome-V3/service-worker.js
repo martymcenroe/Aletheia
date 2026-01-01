@@ -64,7 +64,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 
     try {
-        // IMMEDIATE FEEDBACK - show "Saving..." right away
+        // IMMEDIATE FEEDBACK - show "Saving..." with long timeout (won't expire before response)
         console.log("[Aletheia] Showing immediate 'Saving...' feedback");
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
@@ -72,7 +72,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         });
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: () => window.showAletheiaOverlay("Saving...", "warning")
+            func: () => window.showAletheiaOverlay("Saving...", "warning", 30000)
         });
 
         const injectionResults = await chrome.scripting.executeScript({
