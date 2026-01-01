@@ -117,6 +117,8 @@
 | `docs/reports/80/implementation-report.md` | **Report** | 🟢 **Stable** | #80 | Retroactive report for abandoned LangGraph implementation. |
 | `docs/reports/113/implementation-report.md` | **Report** | 🟢 **Stable** | #113 | Implementation report for Naked Python architecture. |
 | `docs/reports/113/test-report.md` | **Report** | 🟢 **Stable** | #113 | Test report for Naked Python architecture. |
+| `docs/reports/121/implementation-report.md` | **Report** | 🟢 **Stable** | #121 | Implementation report for Wikipedia denylist integration. |
+| `docs/reports/121/test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
@@ -129,8 +131,8 @@
 ### Core Application (Python)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `lambda_function.py` | **Entry** | 🟢 **Stable** | #113 | Main AWS Lambda handler (Naked Python orchestrator). |
-| `lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
+| `src/lambda_function.py` | **Entry** | 🟢 **Stable** | #113 | Main AWS Lambda handler (Naked Python orchestrator). |
+| `src/lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
 | `src/__init__.py` | **Module** | 🟢 **Stable** | - | Package init. |
 | `src/guardrails/__init__.py` | **Module** | 🟢 **Stable** | - | Guardrails package init. |
 | `src/guardrails/denylist.py` | **Logic** | 🟢 **Stable** | #45 | Denylist guardrail (hash-based term blocking). |
