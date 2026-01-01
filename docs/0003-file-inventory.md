@@ -111,6 +111,7 @@
 | `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
 | `docs/1124-digital-etymologist.md` | **Spec** | 🟠 **In-Progress** | #124 | Digital Etymologist persona with structured JSON response. |
 | `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
+| `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
 
 ### Prototypes & Design Artifacts
