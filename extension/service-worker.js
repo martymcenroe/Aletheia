@@ -19,8 +19,11 @@ async function showFeedback(tabId, message, type) {
             target: { tabId },
             files: ['overlay.js']
         });
-        
-        // 2. Call Function
+
+        // 2. Wait for script to execute (Firefox timing issue)
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // 3. Call Function
         await chrome.scripting.executeScript({
             target: { tabId },
             func: (m, t) => window.showAletheiaOverlay(m, t),
