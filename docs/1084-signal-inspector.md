@@ -603,11 +603,22 @@ poetry run python tools/inspect_signals.py -u https://www.wsj.com -o data/smoke_
 
 ### 11.3 Manual Smoke Test
 
-1. Run: `poetry run python tools/inspect_signals.py -u https://en.wikipedia.org/wiki/Main_Page`
-2. Verify: Console shows green "ALLOW" (Wikipedia is permissive)
-3. Run: `poetry run python tools/inspect_signals.py -u https://www.wsj.com`
-4. Verify: Console shows yellow "TRANSFORM" (WSJ has noarchive)
-5. Check: `data/signal_audit.jsonl` contains 2 records
+**Test 1: Permissive site (ALLOW)**
+```bash
+poetry run python tools/inspect_signals.py -u https://en.wikipedia.org/wiki/Main_Page
+```
+Verify: Console shows green "ALLOW" (Wikipedia is permissive)
+
+**Test 2: Verify JSONL output**
+```bash
+cat data/signal_audit.jsonl | python -m json.tool
+```
+Verify: Valid JSON with expected schema
+
+**Note:** Many news sites (WSJ, Reuters) block unknown user agents or require auth.
+Use `--ua chrome` to test with Chrome user-agent, but results may still vary
+due to paywalls and bot detection. The unit tests (Test 020) verify noarchive
+parsing using fixtures.
 
 ---
 
