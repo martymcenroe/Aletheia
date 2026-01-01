@@ -124,9 +124,12 @@
 | `docs/reports/45/implementation-report.md` | **Report** | 🟢 **Stable** | #45 | Implementation report for denylist feature. |
 | `docs/reports/45/test-report.md` | **Report** | 🟢 **Stable** | #45 | Test report for denylist feature. |
 | `docs/reports/77/implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
+| `docs/reports/77/test-report.md` | **Report** | 🟢 **Stable** | #77 | Test report for action feedback feature. |
 | `docs/reports/80/implementation-report.md` | **Report** | 🟢 **Stable** | #80 | Retroactive report for abandoned LangGraph implementation. |
 | `docs/reports/113/implementation-report.md` | **Report** | 🟢 **Stable** | #113 | Implementation report for Naked Python architecture. |
 | `docs/reports/113/test-report.md` | **Report** | 🟢 **Stable** | #113 | Test report for Naked Python architecture. |
+| `docs/reports/114/implementation-report.md` | **Report** | 🟢 **Stable** | #114 | Implementation report for overlay restore (also closes #98). |
+| `docs/reports/114/test-report.md` | **Report** | 🟢 **Stable** | #114 | Test report for overlay restore. |
 | `docs/reports/121/implementation-report.md` | **Report** | 🟢 **Stable** | #121 | Implementation report for Wikipedia denylist integration. |
 | `docs/reports/121/test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
 
