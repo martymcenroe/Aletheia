@@ -8,10 +8,15 @@ if (!window.showAletheiaOverlay) {
         const existing = document.getElementById('aletheia-overlay-host');
         if (existing) existing.remove();
 
-        // 2. Get Selection Geometry
+        // 2. Get Selection Geometry (with fallback for Firefox timing)
         const selection = window.getSelection();
-        if (selection.rangeCount === 0) return;
-        const rect = selection.getRangeAt(0).getBoundingClientRect();
+        let rect;
+        if (selection.rangeCount > 0) {
+            rect = selection.getRangeAt(0).getBoundingClientRect();
+        } else {
+            // Fallback: top-right corner if selection lost (Firefox issue)
+            rect = { top: 20, bottom: 20, left: window.innerWidth - 250, right: window.innerWidth - 50 };
+        }
 
         // 3. Create Shadow DOM (Isolation)
         const host = document.createElement('div');
