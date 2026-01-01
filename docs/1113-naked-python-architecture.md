@@ -5,7 +5,7 @@
 * **Issue:** #113
 * **Objective:** Replace LangGraph/LangChain with pure boto3 for faster cold starts and simpler debugging.
 * **Status:** In Progress
-* **Related Issues:** #80 (superseded), #10 (semantic), #45 (denylist), #119 (RSDB utility), #116 (LinkedIn Auth - future)
+* **Related Issues:** #80 (superseded), #10 (semantic), #45 (denylist), #121 (Wikipedia denylist), #116 (LinkedIn Auth - future)
 * **ADR:** [0211-ADR-naked-python-architecture.md](0211-ADR-naked-python-architecture.md)
 
 ## 2. Requirements
@@ -39,7 +39,7 @@ When this feature is complete:
 | Attribute | Value |
 |-----------|-------|
 | **Input** | JSON payload from API Gateway/Function URL |
-| **Denylist** | `src/guardrails/resources/denylist.json` (populated via #119) |
+| **Denylist** | `src/guardrails/resources/denylist.json` (populated via #121 Wikipedia) |
 | **State** | DynamoDB table `aletheia-state` |
 | **LLM** | Bedrock Claude (Haiku for semantic, Sonnet for generation) |
 
@@ -65,11 +65,10 @@ User Input → Lambda → Denylist Check → Semantic Check → DynamoDB → Bed
 
 ### 4.4 Deployment Pipeline
 
-1. Run `poetry run python tools/rsdb_download.py` → populates `.rsdb/denylist.json`
-2. Copy `.rsdb/denylist.json` → `src/guardrails/resources/denylist.json`
-3. Run `./deploy.sh` → zips source and uploads to Lambda
-4. Verify DynamoDB table `aletheia-state` exists
-5. Verify Bedrock model access configured (IAM role)
+1. Run `poetry run python tools/fetch_denylist.py` → populates `src/guardrails/resources/denylist.json`
+2. Run `./deploy.sh` → zips source and uploads to Lambda
+3. Verify DynamoDB table `aletheia-state` exists
+4. Verify Bedrock model access configured (IAM role)
 
 ## 5. Diagram
 
@@ -308,7 +307,7 @@ def lambda_handler(event, context):
 5. Verify 403 response with "blocked" reason
 6. Check CloudWatch logs do NOT contain raw text
 
-**Note:** For automated tests, use mock term `test_block_term`. For manual smoke tests, use a real term from `.rsdb/denylist.json` (do not document the term in this LLD).
+**Note:** For automated tests, use mock term `test_block_term`. For manual smoke tests, use a real term from `src/guardrails/resources/denylist.json` (do not document the term in this LLD).
 
 ## 12. Definition of Done
 
@@ -331,9 +330,8 @@ def lambda_handler(event, context):
 - [ ] Implementation Report (0103) completed
 
 ### Deployment
-- [ ] Denylist populated: `poetry run python tools/rsdb_download.py`
-- [ ] Denylist copied: `.rsdb/denylist.json` → `src/guardrails/resources/denylist.json`
-- [ ] Lambda deployed to dev
+- [x] Denylist populated: `poetry run python tools/fetch_denylist.py`
+- [x] Lambda deployed to dev
 - [ ] Cold start measured < 1s
 - [ ] Manual smoke test passed
 - [ ] CloudWatch logs verified (no raw text)

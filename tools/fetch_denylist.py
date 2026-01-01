@@ -10,7 +10,7 @@ Sources:
     3. Category:Profanity - enumerate category members
 
 Usage:
-    poetry run python tools/fetch_denylist.py           # Download to .rsdb/
+    poetry run python tools/fetch_denylist.py           # Download to src/guardrails/resources/
     poetry run python tools/fetch_denylist.py --dry-run # Stats only, no save
     poetry run python tools/fetch_denylist.py --deploy  # Also copy to src/
 """
@@ -54,7 +54,7 @@ CATEGORIES = [
 ]
 
 # Output paths
-DEFAULT_OUTPUT_DIR = ".rsdb"
+DEFAULT_OUTPUT_DIR = "src/guardrails/resources"
 DEPLOY_TARGET = "src/guardrails/resources/denylist.json"
 
 # =============================================================================

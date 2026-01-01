@@ -217,7 +217,7 @@ await chrome.scripting.executeScript({
 | **030** | Success state | "Explain with AI" on allowlisted site | Overlay: "Saved: [word]", Badge: "✓" green | ✅ PASSED |
 | **040** | Error state | "Explain with AI" with network offline | Overlay: error message, Badge: "✗" red | ✅ PASSED |
 | **050** | Overlay position (top) | Select text at top of page | Overlay appears below selection | ✅ PASSED |
-| ~~**060**~~ | ~~Overlay position (bottom)~~ | ~~Select text at bottom of viewport~~ | ~~Overlay appears ABOVE selection~~ | **Moved to #98** |
+| **060** | Overlay position (bottom) | Select text at bottom of viewport | Overlay appears ABOVE selection | **Passed** (Fixed in #114) |
 | **070** | Shadow DOM isolation | Test on Economist, UnHerd, WSJ | Overlay styling consistent | ✅ PASSED |
 | **080** | XSS prevention | Select `<script>alert('xss')</script>` | Text displayed literally | ✅ PASSED |
 | **090** | Rapid clicks | Click "Explain with AI" 5x quickly | Badge state coherent | ✅ PASSED |
@@ -261,13 +261,13 @@ await chrome.scripting.executeScript({
 20. Right-click → "Explain with AI"
 21. Verify overlay appears BELOW selection, fully visible
 
-**Test 060: Overlay Position (Bottom)** — **MOVED TO ISSUE #98**
-~~22. Scroll to bottom of page~~
-~~23. Select text at bottom of viewport (last visible line)~~
-~~24. Right-click → "Explain with AI"~~
-~~25. Verify overlay appears ABOVE selection, fully visible (not clipped)~~
+**Test 060: Overlay Position (Bottom)** — **PASSED** ✓
+22. Scroll to bottom of page
+23. Select text at bottom of viewport (last visible line)
+24. Right-click → "Explain with AI"
+25. Verify overlay appears ABOVE selection, fully visible (not clipped)
 
-**Note:** Viewport-aware positioning moved to Issue #98 after discovering overlay.js is never executed (root cause documented in ISSUE-98-DEBUG-HISTORY.md).
+**Note:** Fixed in Issue #114 (restored viewport flipping logic in overlay.js). Original issue tracked in #98.
 
 **Test 070: Shadow DOM Isolation**
 26. Test on wsj.com, nytimes.com, github.com

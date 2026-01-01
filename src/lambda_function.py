@@ -16,8 +16,8 @@ from typing import Any, Iterator
 import boto3
 from botocore.exceptions import ClientError
 
-from src.guardrails.denylist import check_denylist, load_denylist
-from src.guardrails.semantic import SemanticGuardrail
+from .guardrails.denylist import check_denylist, load_denylist
+from .guardrails.semantic import SemanticGuardrail
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

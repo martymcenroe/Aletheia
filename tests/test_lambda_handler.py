@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from lambda_function import (
+from src.lambda_function import (
     generate_thread_id,
     lambda_handler,
     run_guardrails,
@@ -83,7 +83,7 @@ class TestRunGuardrails:
     def test_safe_text_passes_denylist(self):
         """Safe text passes denylist check."""
         # Mock semantic to also pass
-        with patch("lambda_function.get_semantic_guardrail") as mock_semantic:
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic:
             mock_guard = MagicMock()
             mock_guard.check_safety.return_value = {
                 "is_safe": True,
@@ -99,7 +99,7 @@ class TestRunGuardrails:
 
     def test_blocked_by_semantic(self):
         """Text blocked by semantic guardrail returns correct metadata."""
-        with patch("lambda_function.get_semantic_guardrail") as mock_semantic:
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic:
             mock_guard = MagicMock()
             mock_guard.check_safety.return_value = {
                 "is_safe": False,
@@ -148,9 +148,9 @@ class TestLambdaHandler:
         """Scenario 010: Valid input with safe text returns 200."""
         event = {"text": "apple"}
 
-        with patch("lambda_function.get_semantic_guardrail") as mock_semantic, patch(
-            "lambda_function.get_dynamodb_client"
-        ) as mock_dynamo, patch("lambda_function.get_bedrock_client") as mock_bedrock:
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic, patch(
+            "src.lambda_function.get_dynamodb_client"
+        ) as mock_dynamo, patch("src.lambda_function.get_bedrock_client") as mock_bedrock:
             # Mock semantic to pass
             mock_guard = MagicMock()
             mock_guard.check_safety.return_value = {
@@ -235,8 +235,8 @@ class TestLambdaHandler:
 
         event = {"text": "apple"}
 
-        with patch("lambda_function.get_semantic_guardrail") as mock_semantic, patch(
-            "lambda_function.get_dynamodb_client"
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic, patch(
+            "src.lambda_function.get_dynamodb_client"
         ) as mock_dynamo:
             # Mock semantic to pass
             mock_guard = MagicMock()
@@ -274,7 +274,7 @@ class TestLambdaHandler:
     def test_sequential_execution_denylist_before_semantic(self):
         """Verifies denylist runs before semantic (sequential execution)."""
         # If denylist blocks, semantic should NOT be called
-        with patch("lambda_function.get_semantic_guardrail") as mock_semantic:
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic:
             mock_guard = MagicMock()
             mock_semantic.return_value = mock_guard
 

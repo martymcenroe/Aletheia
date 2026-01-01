@@ -91,7 +91,7 @@ sequenceDiagram
 | Layer | Type | Mechanism | Responsibility | Storage Logic |
 | --- | --- | --- | --- | --- |
 | **Selection Check** | Syntactic | Regex (CPU) | Block gibberish, non-words, scripts. | None (Discard). |
-| **Denylist** | Deterministic | Hash Lookup | Block known hate speech (RSDB). | **Metadata Only:** Store Index ID, Timestamp, URL. *Never store the word.* |
+| **Denylist** | Deterministic | Hash Lookup | Block known hate speech (Wikipedia). | **Metadata Only:** Store Index ID, Timestamp, URL. *Never store the word.* |
 | **Semantic** | Semantic | LLM (Haiku) | Block provocative/archaic nuance. | Log Rejection Category + Score. |
 | **Transform** | Legal | LLM (Summary) | Summarize if noarchive flag set. | Summary only (raw text discarded). |
 

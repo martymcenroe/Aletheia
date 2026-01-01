@@ -7,7 +7,7 @@
 * **Related Issues:** #113 (Naked Python Architecture), ADR 0211
 
 **Why:**
-- **Liability:** Shifts responsibility to an external database (RSDB).
+- **Liability:** Shifts responsibility to an external database (Wikipedia).
 - **Cost/Latency:** Fails fast (O(1) lookup) without incurring LLM costs.
 - **Safety:** Prevents toxic tokens from even entering the inference pipeline.
 
@@ -66,8 +66,9 @@ flowchart TD
 ```python
 # denylist.json format
 {
-    "version": "1.0",
-    "source": "rsdb.org",
+    "version": "2.0",
+    "source": "wikipedia",
+    "generated_by": "tools/fetch_denylist.py",
     "updated": "2025-01-01",
     "terms": ["term1", "term2", ...]
 }
@@ -145,7 +146,7 @@ def check_denylist(text: str, denylist: set[str]) -> DenylistResult:
 | Denylist file missing/corrupt | High | Low | Fail open, log error, alert |
 | List grows too large for memory | Med | Low | Migrate to S3 + lazy load |
 | False positives (e.g., "Scunthorpe") | Med | Med | Manual review of list, allow exceptions |
-| RSDB goes offline | Low | Low | Cache local copy, update monthly |
+| Wikipedia API changes | Low | Low | Cache local copy, verify with canary terms |
 
 ## 10. Verification & Testing
 
@@ -203,10 +204,10 @@ poetry run pytest tests/test_denylist.py -v  # Must PASS
 ## 11. Definition of Done
 
 ### Code
-- [ ] `src/guardrails/denylist.py` implemented
-- [ ] `src/guardrails/resources/denylist.json` created with RSDB data
-- [ ] Integration with `lambda_function.py` pipeline
-- [ ] Code comments reference this LLD
+- [x] `src/guardrails/denylist.py` implemented
+- [x] `src/guardrails/resources/denylist.json` created with Wikipedia data
+- [x] Integration with `lambda_function.py` pipeline
+- [x] Code comments reference this LLD
 
 ### Tests (Willison Protocol)
 - [ ] `tests/test_denylist.py` covers all scenarios in 10.1

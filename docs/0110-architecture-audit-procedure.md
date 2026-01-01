@@ -37,7 +37,7 @@ Compare **Code vs. Docs** using the specific categories from `docs/0109`.
 ### Tier 2: Testing & Compliance (High Priority)
 * **Willison Protocol:** Check `tests/`. Do the tests match the "Fail on Revert" promise? Are there gaps where code exists but tests do not?
 * **Manifest Permissions:** Open `extension/manifest.json`. specificially check `permissions` and `host_permissions`. Do they exceed the "Privacy First" ADR `0201`?
-* **Data Pipeline:** Does the `denylist.json` loading logic in `src/` match the update strategy defined in `1119-rsdb-download-utility.md`?
+* **Data Pipeline:** Does the `denylist.json` loading logic in `src/` match the update strategy defined in `1121-wikipedia-denylist.md`?
 
 ### Tier 3: Maintainability (Suggestions)
 * **Structure:** Has the code evolved into "Spaghetti" that contradicts the modular design in `0001`?

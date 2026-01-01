@@ -97,7 +97,7 @@
 | `docs/1104-age-restricted-blocking.md` | **Spec** | 🟠 **In-Progress** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
 | `docs/1113-naked-python-architecture.md` | **Spec** | 🟢 **Stable** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
 | `docs/1116-linkedin-oauth.md` | **Spec** | 🟠 **In-Progress** | #116 | LinkedIn OAuth authentication for user gating. |
-| `docs/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
+| `docs/legacy/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
 | `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
 | `docs/1124-digital-etymologist.md` | **Spec** | 🟠 **In-Progress** | #124 | Digital Etymologist persona with structured JSON response. |
 | `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
@@ -199,7 +199,6 @@
 | `tests/test_fetch_denylist.py` | **Test** | 🟢 **Stable** | #121 | Unit tests for Wikipedia denylist fetcher (26 tests). |
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
 | `tests/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113 | Unit tests for Lambda handler. |
-| `tests/test_rsdb_download.py` | **Test** | ⚫ **Legacy** | #119 | Tests for RSDB download (superseded by #121). |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
 | `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |

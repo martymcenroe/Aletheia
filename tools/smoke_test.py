@@ -23,7 +23,7 @@ def get_blocked_payload() -> dict:
     """Get a blocked payload using a real term from denylist (for smoke testing only)."""
     import os
     import re
-    denylist_path = os.path.join(os.path.dirname(__file__), "..", ".rsdb", "denylist.json")
+    denylist_path = os.path.join(os.path.dirname(__file__), "..", "src", "guardrails", "resources", "denylist.json")
     try:
         with open(denylist_path, "r", encoding="utf-8") as f:
             data = json.load(f)

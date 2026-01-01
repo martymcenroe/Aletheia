@@ -6,10 +6,34 @@ set -e
 
 FUNC_NAME="AletheiaAgent"
 ZIP_FILE="function.zip"
-HANDLER_NAME="lambda_function.lambda_handler"
+HANDLER_NAME="src.lambda_function.lambda_handler"
 REGION="us-east-1"
 
 echo "=== Deploying Naked Python Orchestrator ==="
+
+# 0. Ensure denylist is fresh
+DENYLIST_PATH="src/guardrails/resources/denylist.json"
+if [ ! -f "$DENYLIST_PATH" ]; then
+    echo "-> Denylist not found. Fetching from Wikipedia..."
+    python tools/fetch_denylist.py
+    if [ ! -f "$DENYLIST_PATH" ]; then
+        echo "ERROR: Failed to create denylist.json"
+        exit 1
+    fi
+else
+    echo "-> Denylist exists: $DENYLIST_PATH"
+    # Show age of denylist
+    DENYLIST_AGE=$(python -c "import json; d=json.load(open('$DENYLIST_PATH')); print(d.get('updated', 'unknown'))")
+    echo "   Last updated: $DENYLIST_AGE"
+fi
+
+# Verify denylist has content
+TERM_COUNT=$(python -c "import json; d=json.load(open('$DENYLIST_PATH')); print(len(d.get('terms', [])))")
+if [ "$TERM_COUNT" -lt 500 ]; then
+    echo "WARNING: Denylist has only $TERM_COUNT terms (expected 500+)"
+    echo "         Consider running: python tools/fetch_denylist.py"
+fi
+echo "   Term count: $TERM_COUNT"
 
 # 1. Create deployment package
 # MUST include lambda_function.py AND src/ directory
@@ -20,10 +44,7 @@ import zipfile
 import os
 
 with zipfile.ZipFile('function.zip', 'w', zipfile.ZIP_DEFLATED) as z:
-    # Add main handler
-    z.write('lambda_function.py')
-
-    # Recursively add src/ directory (required for imports)
+    # Recursively add src/ directory (includes lambda_function.py and all modules)
     for root, dirs, files in os.walk('src'):
         for file in files:
             if file.endswith('.py') or file.endswith('.json'):
@@ -44,9 +65,13 @@ python -c "
 import zipfile
 with zipfile.ZipFile('function.zip', 'r') as z:
     files = z.namelist()
-    assert 'lambda_function.py' in files, 'Missing lambda_function.py!'
+    assert 'src/lambda_function.py' in files, 'Missing src/lambda_function.py!'
     assert any('src/guardrails' in f for f in files), 'Missing src/guardrails!'
+    assert 'src/guardrails/resources/denylist.json' in files, 'Missing denylist.json!'
     print(f'  Package contains {len(files)} files')
+    print('  ✓ src/lambda_function.py')
+    print('  ✓ src/guardrails/')
+    print('  ✓ denylist.json')
 "
 
 # 3. Update Configuration (Handler)
