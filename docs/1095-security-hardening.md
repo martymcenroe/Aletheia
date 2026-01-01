@@ -268,14 +268,14 @@ The `API_ENDPOINT` change from Lambda Function URL to CloudFront URL does NOT re
 | 010 | Request without header | **Auto** | `verify_waf.sh` | 403 Forbidden | Script asserts exit 0 |
 | 020 | Request with valid header | **Auto** | `verify_waf.sh` | 200 OK | Script asserts exit 0 |
 | 030 | Rate limit trigger | **Auto** | `verify_waf.sh --test-rate-limit` | 429 after limit | Script asserts exit 0 |
-| 040 | Extension end-to-end | Manual | Select text, "Explain with AI" | Success overlay | Human verification |
+| 040 | Extension E2E via Playwright | **Auto** | `npm run test:waf` | All tests pass | Playwright assertions pass |
 | 050 | Invalid version format | **Auto** | `verify_waf.sh` | 403 Forbidden | Script asserts exit 0 |
 
 ### 11.2 Test Modules
 
 * **Infrastructure Tests:** `tests/infra/verify_waf.sh` (automated assertions)
+* **E2E Tests:** `tests/e2e/waf-integration.spec.js` (Playwright, browser + extension)
 * **Unit Tests:** N/A (infrastructure change)
-* **End-to-End (Module C):** Manual browser testing (scenario 040 only)
 
 ### 11.3 Automated WAF Verification Script
 

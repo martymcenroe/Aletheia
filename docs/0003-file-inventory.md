@@ -26,6 +26,8 @@
 | `IMMEDIATE-PLAN.md` | **Log** | 🟢 **Stable** | - | Current session focus and context handoff. |
 | `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
 | `pyproject.toml` | **Config** | 🟢 **Stable** | - | Python dependencies. |
+| `package.json` | **Config** | 🟢 **Stable** | #95 | Node.js dependencies (Playwright E2E). |
+| `playwright.config.js` | **Config** | 🟢 **Stable** | #95 | Playwright test configuration. |
 
 ### 00xx Core Standards
 | File | Role | Status | Linked Issue | Description |
@@ -226,6 +228,8 @@
 | `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
 | `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |
 | `tests/infra/verify_waf.sh` | **Test** | 🟢 **Stable** | #95 | Automated WAF verification (no vibes testing). |
+| `tests/e2e/waf-integration.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for WAF integration. |
+| `tests/fixtures/html/test-waf.html` | **Fixture** | 🟢 **Stable** | #95 | Test page for WAF E2E tests. |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
 | `docs/security/vulnerability-test.md` | **Test** | 🟢 **Stable** | #95 | Manual vulnerability reproduction scripts. |
