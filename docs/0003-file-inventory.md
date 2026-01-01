@@ -105,6 +105,7 @@
 | `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
 | `docs/1104-age-restricted-blocking.md` | **Spec** | 🟠 **In-Progress** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
+| `docs/1105-test-site-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #105 | Scriptable test site infrastructure (GitHub Pages + Playwright). |
 | `docs/1113-naked-python-architecture.md` | **Spec** | 🟢 **Stable** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
 | `docs/1116-linkedin-oauth.md` | **Spec** | 🟠 **In-Progress** | #116 | LinkedIn OAuth authentication for user gating. |
 | `docs/legacy/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
@@ -140,6 +141,8 @@
 | `docs/reports/114/test-report.md` | **Report** | 🟢 **Stable** | #114 | Test report for overlay restore. |
 | `docs/reports/121/implementation-report.md` | **Report** | 🟢 **Stable** | #121 | Implementation report for Wikipedia denylist integration. |
 | `docs/reports/121/test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
+| `docs/reports/84/implementation-report.md` | **Report** | 🟢 **Stable** | #84 | Implementation report for Signal Inspector CLI. |
+| `docs/reports/84/test-report.md` | **Report** | 🟢 **Stable** | #84 | Test report for Signal Inspector CLI. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
