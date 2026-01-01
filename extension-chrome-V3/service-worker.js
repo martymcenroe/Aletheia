@@ -97,16 +97,35 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             body: JSON.stringify(payload)
         });
 
-        // === FEEDBACK FOR SUCCESS/ERROR ===
+        // === UPDATE OVERLAY IN PLACE (no flicker) ===
         if (response.ok) {
-            await showFeedback(tab.id, "Context Saved", "success");
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.updateAletheiaOverlay("Context Saved", "success")
+            });
         } else {
-            await showFeedback(tab.id, "Error Saving", "error");
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.updateAletheiaOverlay("Error Saving", "error")
+            });
         }
+
+        // Set badge
+        const badgeText = response.ok ? '✓' : '✗';
+        const badgeColor = response.ok ? '#22C55E' : '#EF4444';
+        chrome.action.setBadgeText({ tabId: tab.id, text: badgeText });
+        chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: badgeColor });
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
 
     } catch (error) {
         console.error("[CV-6] Error:", error);
-        await showFeedback(tab.id, "Connection Error", "error");
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => window.updateAletheiaOverlay("Connection Error", "error")
+        });
+        chrome.action.setBadgeText({ tabId: tab.id, text: '✗' });
+        chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
     }
   }
 });

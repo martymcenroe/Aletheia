@@ -3,6 +3,36 @@
 
 console.log("[Aletheia] overlay.js injected");
 
+// Store reference to shadow (since mode:'closed' hides shadowRoot)
+window._aletheiaShadow = window._aletheiaShadow || null;
+
+if (!window.updateAletheiaOverlay) {
+    // Update existing overlay in place (no flicker)
+    window.updateAletheiaOverlay = function(message, type) {
+        console.log("[Aletheia] updateAletheiaOverlay called:", message, type);
+
+        if (!window._aletheiaShadow) {
+            console.log("[Aletheia] No existing overlay to update, creating new one");
+            window.showAletheiaOverlay(message, type);
+            return;
+        }
+
+        const colors = {
+            'warning': '#FBBF24',
+            'success': '#22C55E',
+            'error':   '#EF4444'
+        };
+        const borderColor = colors[type] || colors['warning'];
+
+        const overlay = window._aletheiaShadow.querySelector('.overlay');
+        if (overlay) {
+            overlay.textContent = message;
+            overlay.style.borderLeftColor = borderColor;
+            console.log("[Aletheia] Overlay updated in place");
+        }
+    };
+}
+
 if (!window.showAletheiaOverlay) {
     console.log("[Aletheia] Defining showAletheiaOverlay function");
 
@@ -50,6 +80,9 @@ if (!window.showAletheiaOverlay) {
         const host = document.createElement('div');
         host.id = 'aletheia-overlay-host';
         const shadow = host.attachShadow({ mode: 'closed' });
+
+        // Store reference for updateAletheiaOverlay
+        window._aletheiaShadow = shadow;
 
         // 4. Constants
         const OVERLAY_HEIGHT = 40;

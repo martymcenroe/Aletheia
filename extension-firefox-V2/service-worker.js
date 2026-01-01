@@ -129,18 +129,34 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
 
             console.log("[Aletheia] Response status:", response.status);
 
-            // === FEEDBACK FOR SUCCESS/ERROR ===
+            // === UPDATE OVERLAY IN PLACE (no flicker) ===
             if (response.ok) {
-                console.log("[Aletheia] Success, showing feedback...");
-                await showFeedback(tab.id, "Context Saved", "success");
+                console.log("[Aletheia] Success, updating overlay...");
+                await browser.tabs.executeScript(tab.id, {
+                    code: `window.updateAletheiaOverlay("Context Saved", "success");`
+                });
             } else {
-                console.log("[Aletheia] Error response, showing feedback...");
-                await showFeedback(tab.id, "Error Saving", "error");
+                console.log("[Aletheia] Error response, updating overlay...");
+                await browser.tabs.executeScript(tab.id, {
+                    code: `window.updateAletheiaOverlay("Error Saving", "error");`
+                });
             }
+
+            // Set badge
+            const badgeText = response.ok ? '✓' : '✗';
+            const badgeColor = response.ok ? '#22C55E' : '#EF4444';
+            browser.browserAction.setBadgeText({ tabId: tab.id, text: badgeText });
+            browser.browserAction.setBadgeBackgroundColor({ tabId: tab.id, color: badgeColor });
+            setTimeout(() => browser.browserAction.setBadgeText({ tabId: tab.id, text: '' }), 3000);
 
         } catch (error) {
             console.error("[Aletheia] Error:", error);
-            await showFeedback(tab.id, "Connection Error", "error");
+            await browser.tabs.executeScript(tab.id, {
+                code: `window.updateAletheiaOverlay("Connection Error", "error");`
+            });
+            browser.browserAction.setBadgeText({ tabId: tab.id, text: '✗' });
+            browser.browserAction.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
+            setTimeout(() => browser.browserAction.setBadgeText({ tabId: tab.id, text: '' }), 3000);
         }
     }
 });

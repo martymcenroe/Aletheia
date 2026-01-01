@@ -1,6 +1,32 @@
 // extension-chrome-V3/overlay.js
 // V3 Implementation
 
+// Store reference to shadow (since mode:'closed' hides shadowRoot)
+window._aletheiaShadow = window._aletheiaShadow || null;
+
+if (!window.updateAletheiaOverlay) {
+    // Update existing overlay in place (no flicker)
+    window.updateAletheiaOverlay = function(message, type) {
+        if (!window._aletheiaShadow) {
+            window.showAletheiaOverlay(message, type);
+            return;
+        }
+
+        const colors = {
+            'warning': '#FBBF24',
+            'success': '#22C55E',
+            'error':   '#EF4444'
+        };
+        const borderColor = colors[type] || colors['warning'];
+
+        const overlay = window._aletheiaShadow.querySelector('.overlay');
+        if (overlay) {
+            overlay.textContent = message;
+            overlay.style.borderLeftColor = borderColor;
+        }
+    };
+}
+
 if (!window.showAletheiaOverlay) {
 
     window.showAletheiaOverlay = function(message, type) {
@@ -17,6 +43,9 @@ if (!window.showAletheiaOverlay) {
         const host = document.createElement('div');
         host.id = 'aletheia-overlay-host';
         const shadow = host.attachShadow({ mode: 'closed' });
+
+        // Store reference for updateAletheiaOverlay
+        window._aletheiaShadow = shadow;
 
         // 4. Constants (Verified in manual_overlay_math.html)
         const OVERLAY_HEIGHT = 40;
