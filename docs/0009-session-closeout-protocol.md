@@ -67,10 +67,12 @@ gh pr list --state open       # Should be empty
 | Check | Command/Action |
 |:------|:---------------|
 | Regenerate 6000 | `python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md` (do not print) |
-| Inventory current? | Review `docs/0003-file-inventory.md` |
+| Inventory current? | If you created/deleted files → Run full audit per 0011 §5.2 |
 | LLD status updated? | Change "Approved" → "Complete" for finished features |
 | Lessons captured? | Append to `docs/9000-lessons-learned.md` |
 | Journal updated? | Append cross-project lessons to `ENGINEERING-JOURNAL.md` |
+
+**Note on Inventory:** The file inventory (`docs/0003-file-inventory.md`) drifts constantly. If you created, deleted, or renamed any files during this session, escalate to 0011 for a full inventory audit. Quick closeout does NOT include inventory verification.
 
 ```bash
 # Regenerate and commit 6000

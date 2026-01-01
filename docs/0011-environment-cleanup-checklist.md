@@ -206,7 +206,42 @@ Merging a PR does not always automatically close the issue, especially if the "F
 🤖 git push
 ```
 
-#### 5.2 Permission Consolidation Note
+#### 5.2 File Inventory Audit (0003)
+
+**🤖 CRITICAL:** The inventory drifts constantly. Audit it every cleanup.
+
+**Step 1: Find files NOT in inventory**
+```bash
+🤖 # List all tracked source files
+find . -type f \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.json" -o -name "*.sh" -o -name "*.html" -o -name "*.css" -o -name "*.ts" \) ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.venv/*" | sort > /tmp/actual_files.txt
+
+🤖 # Compare against inventory (manual review required)
+# Look for files in actual_files.txt not mentioned in docs/0003-file-inventory.md
+```
+
+**Step 2: Find inventory entries for DELETED files**
+```bash
+🤖 # Check if any files listed in 0003 no longer exist
+# Read 0003 and verify each path exists
+```
+
+**Step 3: Verify closed issue statuses**
+- Issues marked 🟠 **In-Progress** → Check if issue is closed → Update to 🟢 **Stable**
+- Issues marked ⚪ **Placeholder** → Check if code now exists → Update status
+
+**⚠️ FAILURE FLAGS:**
+- File exists but not in inventory → Add it
+- Inventory lists deleted file → Remove it
+- Status says "In-Progress" but issue is closed → Update to "Stable"
+
+**Action:** Update `docs/0003-file-inventory.md` and commit:
+```bash
+🤖 git add docs/0003-file-inventory.md
+🤖 git commit -m "docs: inventory audit and update"
+🤖 git push
+```
+
+#### 5.3 Permission Consolidation Note
 
 If new permissions were granted during the session, note in session-log:
 - What permissions were added to `.claude/settings.local.json`
@@ -309,6 +344,8 @@ Report to human if any of these occur:
 | PR merge failed silently | `⚠️ UNEXPECTED: PR #{N} merge may have failed - verify on GitHub` |
 | Lambda still ON after off command | `⚠️ UNEXPECTED: Lambda still showing ON after lambda-off.sh` |
 | Uncommitted work in worktree | `⚠️ UNEXPECTED: Uncommitted changes in ../Aletheia-{N}` |
+| File exists but not in inventory | `⚠️ DRIFT: File {path} not in 0003-file-inventory.md` |
+| Inventory lists deleted file | `⚠️ DRIFT: 0003 lists {path} but file doesn't exist` |
 
 ---
 
@@ -336,15 +373,20 @@ gh pr list --state open
 # 6. Regenerate open issues
 python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
 
-# 7. Verify IMMEDIATE-PLAN (DO NOT TRUST - VERIFY!)
+# 7. Audit file inventory (0003)
+# List actual files, compare to inventory, fix discrepancies
+find . -type f \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.sh" \) ! -path "./.git/*" | wc -l
+# If count differs significantly from inventory entries, investigate
+
+# 8. Verify IMMEDIATE-PLAN (DO NOT TRUST - VERIFY!)
 cat IMMEDIATE-PLAN.md
 # Check each "pending" item - does the code exist?
 # Check each "complete" item - is the issue closed?
 # Rewrite if reality differs from plan
 
-# 8. Turn off Lambda
+# 9. Turn off Lambda
 ./tools/aws/lambda-off.sh
 
-# 9. Write session log
+# 10. Write session log
 powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
 ```
