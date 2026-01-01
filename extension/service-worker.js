@@ -20,13 +20,19 @@ async function showFeedback(tabId, message, type) {
             files: ['overlay.js']
         });
 
-        // 2. Wait for script to execute (Firefox timing issue)
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        // 3. Call Function
+        // 2. Call Function (with retry for Firefox timing)
         await chrome.scripting.executeScript({
             target: { tabId },
-            func: (m, t) => window.showAletheiaOverlay(m, t),
+            func: (m, t) => {
+                const tryCall = (attempts) => {
+                    if (typeof window.showAletheiaOverlay === 'function') {
+                        window.showAletheiaOverlay(m, t);
+                    } else if (attempts > 0) {
+                        setTimeout(() => tryCall(attempts - 1), 50);
+                    }
+                };
+                tryCall(10); // Retry up to 10 times, 50ms apart
+            },
             args: [message, type]
         });
         
