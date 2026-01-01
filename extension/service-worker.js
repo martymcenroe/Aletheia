@@ -1,7 +1,12 @@
 // extension/service-worker.js
 
 // [CV-7] CONSTANTS - WIRED TO AWS LAMBDA
+// Note: After WAF deployment, update to CloudFront URL
 const API_ENDPOINT = "https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/";
+
+// [#95] Client version for WAF header validation
+// Must start with "1." to pass WAF rule (see docs/1095-security-hardening.md)
+const CLIENT_VERSION = "1.0";
 
 function extractDomain(url) {
   try {
@@ -82,7 +87,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Aletheia-Client-Version': CLIENT_VERSION  // [#95] WAF header validation
+            },
             body: JSON.stringify(payload)
         });
 
