@@ -11,15 +11,7 @@
   ],
   "host_permissions": [],
   "background": {
-    "scripts": [
-      "service-worker.js"
-    ]
-  },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "extension@aletheia.study",
-      "strict_min_version": "109.0"
-    }
+    "service_worker": "service-worker.js"
   },
   "icons": {
     "16": "icons/icon16.png",

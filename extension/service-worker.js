@@ -1,4 +1,5 @@
 // extension/service-worker.js
+// MV2 version for Firefox
 
 // [CV-7] CONSTANTS - WIRED TO AWS LAMBDA
 const API_ENDPOINT = "https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/";
@@ -11,74 +12,59 @@ function extractDomain(url) {
   }
 }
 
-// === NEW: HELPER FUNCTION ===
+// === HELPER FUNCTION (MV2 API) ===
 async function showFeedback(tabId, message, type) {
     try {
-        // 1. Inject Library (Idempotent)
-        await chrome.scripting.executeScript({
-            target: { tabId },
-            files: ['overlay.js']
-        });
+        // 1. Inject Library
+        await browser.tabs.executeScript(tabId, { file: 'overlay.js' });
 
-        // 2. Call Function (with retry for Firefox timing)
-        await chrome.scripting.executeScript({
-            target: { tabId },
-            func: (m, t) => {
-                const tryCall = (attempts) => {
-                    if (typeof window.showAletheiaOverlay === 'function') {
-                        window.showAletheiaOverlay(m, t);
-                    } else if (attempts > 0) {
-                        setTimeout(() => tryCall(attempts - 1), 50);
-                    }
-                };
-                tryCall(10); // Retry up to 10 times, 50ms apart
-            },
-            args: [message, type]
-        });
-        
-        // 3. Set Toolbar Badge
+        // 2. Call Function (MV2 uses code string, not func)
+        const code = `window.showAletheiaOverlay(${JSON.stringify(message)}, ${JSON.stringify(type)});`;
+        await browser.tabs.executeScript(tabId, { code });
+
+        // 3. Set Toolbar Badge (MV2: browserAction, not action)
         const badgeText = type === 'success' ? '✓' : (type === 'error' ? '✗' : '!');
         const badgeColor = type === 'success' ? '#22C55E' : (type === 'error' ? '#EF4444' : '#FBBF24');
-        
-        chrome.action.setBadgeText({ tabId, text: badgeText });
-        chrome.action.setBadgeBackgroundColor({ tabId, color: badgeColor });
-        
-        setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 3000);
+
+        browser.browserAction.setBadgeText({ tabId, text: badgeText });
+        browser.browserAction.setBadgeBackgroundColor({ tabId, color: badgeColor });
+
+        setTimeout(() => browser.browserAction.setBadgeText({ tabId, text: '' }), 3000);
 
     } catch (e) {
         console.error("Overlay Injection Failed:", e);
     }
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
+browser.runtime.onInstalled.addListener(() => {
+  browser.contextMenus.create({
     id: "explain-with-ai",
     title: "Explain with AI",
     contexts: ["selection"],
   });
 });
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "explain-with-ai") {
-    
+
     // ALLOWLIST GATE
     const domain = extractDomain(info.pageUrl);
-    const { allowlist = [] } = await chrome.storage.local.get('allowlist');
+    const result = await browser.storage.local.get('allowlist');
+    const allowlist = result.allowlist || [];
 
     if (!allowlist.includes(domain)) {
       console.log(`[Aletheia] Blocked: ${domain}`);
-      // === RESTORED FUNCTIONALITY ===
       await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
       return;
     }
 
     try {
-        const injectionResults = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: () => document.body.innerText,
+        // MV2: executeScript returns array of results
+        const results = await browser.tabs.executeScript(tab.id, {
+            code: 'document.body.innerText'
         });
 
-        const fullPageText = injectionResults[0].result;
+        const fullPageText = results[0];
 
         const payload = {
             text: info.selectionText,
@@ -104,7 +90,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     } catch (error) {
         console.error("[CV-6] Error:", error);
-        // === FEEDBACK FOR NETWORK ERROR ===
         await showFeedback(tab.id, "Connection Error", "error");
     }
   }
