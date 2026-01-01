@@ -1106,3 +1106,35 @@ Found working sites after WSJ blocked bots:
 - **Lambda:** (not checked)
 - **Tests:** 31 passed (signal inspector) + existing tests
 - **Next:** Per IMMEDIATE-PLAN.md
+
+---
+
+## 2026-01-01 ~16:21 CT | Claude Opus 4.5
+
+### Summary
+Brief session: created `docs/6001-closed-issues.md` (concatenation of all 61 closed GitHub issues, mirroring 6000 format). Updated file inventory. Configured statusline in `~/.claude/` based on user's PS1 configuration. Executed 0009 closeout protocol.
+
+### Documentation
+- **Created:** `docs/6001-closed-issues.md` - All closed issues for historical reference
+- **Updated:** `docs/0003-file-inventory.md` - Added 6001 to 90xx section
+- **Regenerated:** `docs/6000-open-issues.md` - Now shows 29 open issues
+
+### Configuration
+- Created `~/.claude/statusline-command.sh` - Matches user's PS1 format
+- Updated `~/.claude/settings.json` - StatusLine config
+
+### Git Hygiene (0009 Verified)
+- 4 active worktrees: 104-age-block, 124-digital-etymologist, 53-100-firefox-build, 95-security-hardening
+- 2 open PRs: #133 (104-age-block), #131 (124-digital-etymologist)
+- Pruned zombie remote: origin/84-signal-inspector
+- No stashes
+
+### Commits
+- `6c12a9e` - docs: add 6001-closed-issues.md report and update inventory
+
+### State on Exit
+- **Branch:** `main`
+- **Last commit:** `6c12a9e`
+- **Open PRs:** 2 (existing feature work)
+- **Lambda:** OFF
+- **Next:** Per IMMEDIATE-PLAN.md (Security Hardening #95 blocking, then Store Compliance #51/#53)
