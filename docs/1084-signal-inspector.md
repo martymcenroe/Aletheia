@@ -601,24 +601,27 @@ poetry run pytest tests/test_signal_inspector.py -v -m integration
 poetry run python tools/inspect_signals.py -u https://www.wsj.com -o data/smoke_test.jsonl
 ```
 
-### 11.3 Manual Smoke Test
+### 11.3 Live Website Tests (Automated)
 
-**Test 1: Permissive site (ALLOW)**
+The `TestLiveWebsites` class contains automated integration tests against real sites:
+
 ```bash
-poetry run python tools/inspect_signals.py -u https://en.wikipedia.org/wiki/Main_Page
-```
-Verify: Console shows green "ALLOW" (Wikipedia is permissive)
+# Run all tests including live website tests
+poetry run pytest tests/test_signal_inspector.py -v
 
-**Test 2: Verify JSONL output**
-```bash
-cat data/signal_audit.jsonl | python -m json.tool
+# Run ONLY live website tests
+poetry run pytest tests/test_signal_inspector.py -v -m live
 ```
-Verify: Valid JSON with expected schema
 
-**Note:** Many news sites (WSJ, Reuters) block unknown user agents or require auth.
-Use `--ua chrome` to test with Chrome user-agent, but results may still vary
-due to paywalls and bot detection. The unit tests (Test 020) verify noarchive
-parsing using fixtures.
+| Test | URL | Expected Action | Signal Source |
+|------|-----|-----------------|---------------|
+| `test_wikipedia_allows` | en.wikipedia.org | ALLOW | No restrictive signals |
+| `test_bbc_transforms_via_header` | www.bbc.com | TRANSFORM | X-Robots-Tag: noarchive |
+| `test_noarchive_net_with_force` | noarchive.net | TRANSFORM | `<meta>` noarchive |
+| `test_noarchive_net_blocked_without_force` | noarchive.net | BLOCK | robots.txt Disallow |
+
+**Note:** Live tests may be slower (~3s) and can fail if sites change.
+Use `-m "not live"` to skip them in CI if needed.
 
 ---
 
@@ -706,7 +709,7 @@ ALETHEIA ACTION:    TRANSFORM (per docs/0007)
 - [ ] Code comments reference this LLD
 
 ### Tests
-- [ ] All 13 test scenarios pass
+- [ ] All 31 tests pass (27 mocked + 4 live website tests)
 - [ ] Coverage > 80% on `src/signal_inspector/`
 
 ### Documentation
