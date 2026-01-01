@@ -144,6 +144,7 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/6000-open-issues.md` | **Report** | 🟢 **Stable** | - | Current open GitHub issues (regenerate with `poetry run python tools/print/print_most_recent_open_issues.py`). |
+| `docs/6001-closed-issues.md` | **Report** | 🟢 **Stable** | - | All closed GitHub issues (historical reference). |
 | `docs/9000-lessons-learned.md` | **Log** | 🟢 **Stable** | - | Aletheia-specific lessons (project-scoped). |
 | `docs/9001-open-investigations.md` | **Log** | 🟡 **Beta** | - | Future work and spikes. |
 | `docs/ENGINEERING-JOURNAL.md` | **Log** | 🟢 **Stable** | - | Cross-project engineering lessons (synced). |

@@ -42,7 +42,9 @@
       "WebFetch(domain:www.mediawiki.org)",
       "WebFetch(domain:en.wikipedia.org)",
       "Bash(for issue in 114 96 77 76 82 69)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(./tools/aws/waf-setup.sh:*)",
+      "Bash(./tests/infra/verify_waf.sh:*)"
     ],
     "deny": [
       "Read(.env)",
