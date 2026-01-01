@@ -1,8 +1,8 @@
 // extension/service-worker.js
 
-// [CV-7] CONSTANTS - WIRED TO AWS LAMBDA
-// Note: After WAF deployment, update to CloudFront URL
-const API_ENDPOINT = "https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/";
+// [CV-7] CONSTANTS - WIRED TO CLOUDFRONT (WAF-protected)
+// Direct Lambda URL: https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/
+const API_ENDPOINT = "https://d1fkpkls2wesse.cloudfront.net/";
 
 // [#95] Client version for WAF header validation
 // Must start with "1." to pass WAF rule (see docs/1095-security-hardening.md)

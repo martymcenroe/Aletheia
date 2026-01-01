@@ -16,6 +16,18 @@
 
 set -e
 
+# Use portable temp directory (works on Windows Git Bash)
+# Force $HOME/tmp instead of system TMPDIR which may not work on Windows
+SCRIPT_TMPDIR="$HOME/tmp/aletheia-waf"
+mkdir -p "$SCRIPT_TMPDIR"
+
+# Convert to Windows path for AWS CLI (required on Git Bash)
+if command -v cygpath &> /dev/null; then
+    SCRIPT_TMPDIR_WIN=$(cygpath -w "$SCRIPT_TMPDIR")
+else
+    SCRIPT_TMPDIR_WIN="$SCRIPT_TMPDIR"
+fi
+
 # Configuration
 LAMBDA_URL="sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws"
 WAF_NAME="AletheiaWebACL"
@@ -69,8 +81,8 @@ if [ "$TEARDOWN" == "true" ]; then
         echo "-> Disabling distribution..."
         ETAG=$(aws cloudfront get-distribution-config --id "$CF_ID" --query 'ETag' --output text)
         aws cloudfront get-distribution-config --id "$CF_ID" --query 'DistributionConfig' --output json | \
-            jq '.Enabled = false' > /tmp/cf-config.json
-        aws cloudfront update-distribution --id "$CF_ID" --if-match "$ETAG" --distribution-config file:///tmp/cf-config.json > /dev/null
+            jq '.Enabled = false' > "$SCRIPT_TMPDIR/cf-config.json"
+        aws cloudfront update-distribution --id "$CF_ID" --if-match "$ETAG" --distribution-config "file://$SCRIPT_TMPDIR_WIN/cf-config.json" > /dev/null
 
         echo "-> Waiting for distribution to deploy (this takes 5-10 minutes)..."
         aws cloudfront wait distribution-deployed --id "$CF_ID"
@@ -116,7 +128,7 @@ if [ -n "$EXISTING_WAF" ] && [ "$EXISTING_WAF" != "None" ]; then
     WAF_ARN="$EXISTING_WAF"
 else
     # Create WAF Web ACL with rules
-    cat > /tmp/waf-rules.json << 'WAFRULES'
+    cat > "$SCRIPT_TMPDIR/waf-rules.json" << 'WAFRULES'
 {
   "Name": "AletheiaWebACL",
   "Scope": "CLOUDFRONT",
@@ -133,8 +145,8 @@ else
             "ByteMatchStatement": {
               "FieldToMatch": { "SingleHeader": { "Name": "x-aletheia-client-version" } },
               "PositionalConstraint": "STARTS_WITH",
-              "SearchString": "MS4",
-              "TextTransformations": [{ "Priority": 0, "Type": "BASE64_DECODE" }]
+              "SearchString": "MS4=",
+              "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
             }
           }
         }
@@ -185,14 +197,14 @@ else
 WAFRULES
 
     # Replace placeholders with actual values
-    sed -i "s/RATE_LIMIT_PLACEHOLDER/$RATE_LIMIT/g" /tmp/waf-rules.json
-    sed -i "s/RATE_WINDOW_PLACEHOLDER/$RATE_WINDOW/g" /tmp/waf-rules.json
+    sed -i "s/RATE_LIMIT_PLACEHOLDER/$RATE_LIMIT/g" "$SCRIPT_TMPDIR/waf-rules.json"
+    sed -i "s/RATE_WINDOW_PLACEHOLDER/$RATE_WINDOW/g" "$SCRIPT_TMPDIR/waf-rules.json"
 
     # Note: ByteMatchStatement with BASE64_DECODE looks for "1." which is "MS4" in base64
     # This allows matching "1.0", "1.1", etc.
 
     WAF_ARN=$(aws wafv2 create-web-acl \
-        --cli-input-json file:///tmp/waf-rules.json \
+        --cli-input-json "file://$SCRIPT_TMPDIR_WIN/waf-rules.json" \
         --region "$REGION" \
         --query 'Summary.ARN' \
         --output text)
@@ -213,7 +225,7 @@ if [ -n "$EXISTING_CF" ] && [ "$EXISTING_CF" != "None" ]; then
     CF_DOMAIN=$(aws cloudfront get-distribution --id "$CF_ID" --query 'Distribution.DomainName' --output text)
 else
     # Create distribution config
-    cat > /tmp/cf-config.json << CFCONFIG
+    cat > "$SCRIPT_TMPDIR/cf-config.json" << CFCONFIG
 {
   "CallerReference": "aletheia-$(date +%s)",
   "Comment": "$CF_COMMENT",
@@ -239,8 +251,8 @@ else
     "TargetOriginId": "lambda-origin",
     "ViewerProtocolPolicy": "https-only",
     "AllowedMethods": {
-      "Quantity": 3,
-      "Items": ["GET", "HEAD", "POST"],
+      "Quantity": 7,
+      "Items": ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"],
       "CachedMethods": { "Quantity": 2, "Items": ["GET", "HEAD"] }
     },
     "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
@@ -257,7 +269,7 @@ CFCONFIG
     # Note: OriginRequestPolicyId "b689b0a8-..." is AWS managed "AllViewerExceptHostHeader"
 
     CF_RESULT=$(aws cloudfront create-distribution \
-        --distribution-config file:///tmp/cf-config.json \
+        --distribution-config "file://$SCRIPT_TMPDIR_WIN/cf-config.json" \
         --output json)
 
     CF_ID=$(echo "$CF_RESULT" | jq -r '.Distribution.Id')
@@ -311,7 +323,7 @@ echo "   CLOUDFRONT_URL=\"https://$CF_DOMAIN\" ./tests/infra/verify_waf.sh"
 echo ""
 
 # Save config for other scripts
-echo "CLOUDFRONT_URL=https://$CF_DOMAIN" > /tmp/aletheia-waf-config.env
-echo "CLOUDFRONT_ID=$CF_ID" >> /tmp/aletheia-waf-config.env
-echo "WAF_ARN=$WAF_ARN" >> /tmp/aletheia-waf-config.env
-echo "-> Config saved to /tmp/aletheia-waf-config.env"
+echo "CLOUDFRONT_URL=https://$CF_DOMAIN" > "$SCRIPT_TMPDIR/aletheia-waf-config.env"
+echo "CLOUDFRONT_ID=$CF_ID" >> "$SCRIPT_TMPDIR/aletheia-waf-config.env"
+echo "WAF_ARN=$WAF_ARN" >> "$SCRIPT_TMPDIR/aletheia-waf-config.env"
+echo "-> Config saved to $SCRIPT_TMPDIR/aletheia-waf-config.env"

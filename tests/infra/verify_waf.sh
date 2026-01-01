@@ -50,9 +50,10 @@ done
 
 # Validate configuration
 if [ -z "$CLOUDFRONT_URL" ]; then
-    # Try to load from config file
-    if [ -f /tmp/aletheia-waf-config.env ]; then
-        source /tmp/aletheia-waf-config.env
+    # Try to load from config file (portable temp directory)
+    SCRIPT_TMPDIR="$HOME/tmp/aletheia-waf"
+    if [ -f "$SCRIPT_TMPDIR/aletheia-waf-config.env" ]; then
+        source "$SCRIPT_TMPDIR/aletheia-waf-config.env"
     fi
 fi
 
@@ -78,20 +79,20 @@ TESTS_FAILED=0
 # Helper function for test results
 pass() {
     echo -e "${GREEN}PASS${NC}: $1"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 fail() {
     echo -e "${RED}FAIL${NC}: $1"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 warn() {
     echo -e "${YELLOW}WARN${NC}: $1"
 }
 
-# Valid test payload
-VALID_PAYLOAD='{"word":"test","url":"https://example.com","title":"Test Page","context":"This is test context for verification."}'
+# Valid test payload (Lambda expects "text" field, not "word")
+VALID_PAYLOAD='{"text":"test","url":"https://example.com","title":"Test Page","context":"This is test context for verification."}'
 
 # ============================================
 # Test 010: Missing header should return 403
