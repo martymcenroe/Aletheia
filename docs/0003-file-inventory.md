@@ -92,8 +92,14 @@
 | `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
 | `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
+| `docs/1104-age-restricted-blocking.md` | **Spec** | 🟠 **In-Progress** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
 | `docs/1113-naked-python-architecture.md` | **Spec** | 🟠 **In-Progress** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
+| `docs/1116-linkedin-oauth.md` | **Spec** | 🟠 **In-Progress** | #116 | LinkedIn OAuth authentication for user gating. |
+| `docs/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
 | `docs/1121-wikipedia-denylist.md` | **Spec** | 🟠 **In-Progress** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
+| `docs/1124-digital-etymologist.md` | **Spec** | 🟠 **In-Progress** | #124 | Digital Etymologist persona with structured JSON response. |
+| `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
+| `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |
