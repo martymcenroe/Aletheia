@@ -96,10 +96,12 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         console.log("[Aletheia] Domain is allowlisted, proceeding...");
 
         try {
-            // PRE-INJECT overlay.js immediately so it's ready when we need it
-            console.log("[Aletheia] Pre-injecting overlay.js...");
+            // IMMEDIATE FEEDBACK - show "Saving..." right away
+            console.log("[Aletheia] Showing immediate 'Saving...' feedback");
             await browser.tabs.executeScript(tab.id, { file: 'overlay.js' });
-            console.log("[Aletheia] overlay.js pre-injected");
+            await browser.tabs.executeScript(tab.id, {
+                code: `window.showAletheiaOverlay("Saving...", "warning");`
+            });
 
             // MV2: executeScript returns array of results
             console.log("[Aletheia] Getting page text...");
