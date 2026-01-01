@@ -64,6 +64,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 
     try {
+        // PRE-INJECT overlay.js immediately so it's ready when we need it
+        console.log("[Aletheia] Pre-injecting overlay.js...");
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['overlay.js']
+        });
+        console.log("[Aletheia] overlay.js pre-injected");
+
         const injectionResults = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => document.body.innerText,
