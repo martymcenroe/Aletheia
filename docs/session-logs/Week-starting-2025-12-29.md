@@ -787,3 +787,116 @@ Session continuation from summarized context. Updated final LLD (#1125 Museum La
 - **Lambda:** OFF
 - **All LLDs Reviewed:** #104, #116, #124, #125, #126 ✓
 - **Next:** Awaiting orchestrator approval to begin implementation
+
+2026-01-01 ~01:40-02:05 CT | Gemini 3.0 Pro
+Summary
+Conducted rigorous "As-Built" audit (Protocol 0110) and aligned the Open Issues register with the new architectural direction. Validated the "Naked Python" implementation but identified procedural drift in deployment scripts and documentation. Orchestrated the strategic pivot from RSDB to Wikipedia, defining a "Cleanup & Alignment" sprint for Claude.
+
+As-Built Audit Results
+Status: PASS (High fidelity to 0001/1113).
+
+Drift Detected:
+
+Deployment Gap: deploy.sh does not automate denylist.json copy (risks stale data).
+
+Repo Clutter: lambda_function.py remains in root (violates #102 modularity).
+
+Stale Docs: docs/1077 lists overlay tests as broken, but code analysis confirms fix in #114.
+
+Strategic Pivot: RSDB → Wikipedia
+Decision: "RSDB" artifacts (docs/1119, tools/rsdb_download.py) declared OBSOLETE.
+
+New Standard: Issue #121 (Wikipedia Integration) is the single source of truth.
+
+Action Plan: Defined "RSDB Purge" to grep references, move legacy docs, and rename tests.
+
+Issue Register Alignment (docs/6000)
+#53 (Store Assets): Expanded from one-liner to detailed specification (Icons, Tiles, Zip exclusions) to prevent "lazy agent" execution.
+
+#126 (Blocking Logic): Updated definition to explicitly reference "Wikipedia-sourced Denylist".
+
+#117 (Unauth Spike): Marked Deprioritized/Post-MVP (conflicts with #116 OAuth).
+
+#84 (Signal Inspector): Marked Backlog (not on critical path for Store).
+
+State on Exit
+Branch: main
+
+Next: Claude to execute "Cleanup & Alignment" sprint (RSDB Purge, Repo Restructure, Pipeline Fix).
+
+---
+
+## 2026-01-01 ~01:45-02:05 CT | Claude Opus 4.5
+
+### Summary
+Executed "Cleanup & Alignment" sprint as directed by Gemini's audit. Completed all 4 tasks: RSDB Purge (replaced all references with Wikipedia), Deployment Pipeline Fix (denylist freshness check), Stale Documentation Fix (1077 Test 060 passed), and Repository Restructuring (lambda files to src/). Also addressed Gemini's Issue Register Alignment audit.
+
+### Task 1: RSDB Purge
+- Moved `docs/1119-rsdb-download-utility.md` to `docs/legacy/`
+- Deleted `tests/test_rsdb_download.py` (superseded by `test_fetch_denylist.py`)
+- Updated RSDB → Wikipedia references in:
+  - `docs/1045-deterministic-hate-filter.md`
+  - `docs/1113-naked-python-architecture.md`
+  - `docs/0001-system-architecture.md`
+  - `docs/0110-architecture-audit-procedure.md`
+  - `tools/fetch_denylist.py` (output dir)
+  - `tools/smoke_test.py` (denylist path)
+
+### Task 2: Deployment Pipeline Fix
+- Added Step 0 to `deploy.sh`: denylist freshness check
+- Auto-fetches from Wikipedia if missing
+- Shows age and term count
+- Warns if count < 500
+
+### Task 3: Documentation Fix
+- Updated `docs/1077-action-feedback.md` Test 060
+- Changed status from "MOVED TO ISSUE #98" to "PASSED"
+- Added note: "Fixed in Issue #114"
+
+### Task 4: Repository Restructuring
+- Moved `lambda_function.py` → `src/lambda_function.py`
+- Moved `lambda_harvester_function.py` → `src/lambda_harvester_function.py`
+- Updated imports to relative (`from .guardrails import ...`)
+- Updated `deploy.sh` handler to `src.lambda_function.lambda_handler`
+- Updated all test patches to use `src.lambda_function` module path
+
+### Issue Register Alignment (Gemini Audit)
+- Updated #126: Added "(Wikipedia-sourced via Issue #121)" to denylist source
+- Updated #53: Expanded from one-liner to detailed spec (Icons, Tiles, Zip)
+- Deprioritized #117 & #84: Created `post-mvp` label and applied to both
+
+### Verification
+- All 77 tests pass
+- `deploy.sh` syntax verified
+
+### Commits
+- `a58d5ae` - refactor: technical debt cleanup sprint
+
+### Files Modified
+- `deploy.sh` (major rewrite)
+- `docs/0001-system-architecture.md`
+- `docs/0003-file-inventory.md`
+- `docs/0110-architecture-audit-procedure.md`
+- `docs/1045-deterministic-hate-filter.md`
+- `docs/1077-action-feedback.md`
+- `docs/1113-naked-python-architecture.md`
+- `docs/legacy/1119-rsdb-download-utility.md` (moved)
+- `src/lambda_function.py` (moved + updated imports)
+- `src/lambda_harvester_function.py` (moved)
+- `tests/test_lambda_handler.py` (updated patches)
+- `tests/test_rsdb_download.py` (deleted)
+- `tools/fetch_denylist.py`
+- `tools/smoke_test.py`
+
+### GitHub Issues Updated
+- #126: Clarified Wikipedia source
+- #53: Expanded definition (per Gemini spec)
+- #117: Added `post-mvp` label
+- #84: Added `post-mvp` label
+
+### State on Exit
+- **Branch:** `main` @ a58d5ae
+- **Open PRs:** 0
+- **Lambda:** OFF
+- **Tests:** 77 passed
+- **Next:** Awaiting orchestrator direction
