@@ -87,3 +87,7 @@ format-issues.py
 
 # Print history tracking
 .print-history.json
+
+# Playwright test artifacts
+playwright-report/
+test-results/
