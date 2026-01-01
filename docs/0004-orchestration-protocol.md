@@ -244,3 +244,21 @@ Orchestrator feedback is captured in both reports via LLM updates:
 **In Test Report:**
 - Manual Verification results
 - Issues discovered during testing
+
+### 8.6 Issue Closure Requirements (MANDATORY)
+
+Before an issue can be marked closed (via PR merge or manual close), the following MUST exist:
+
+| Requirement | Location | Exception |
+|-------------|----------|-----------|
+| **Implementation Report** | `docs/reports/{IssueID}/implementation-report.md` | None |
+| **Test Report** | `docs/reports/{IssueID}/test-report.md` | None |
+| **Inventory Updated** | `docs/0003-file-inventory.md` | No new files created |
+
+**Process:**
+1. Before merging PR that closes an issue, verify reports exist
+2. If reports missing, create them BEFORE merge
+3. Run `0802-reports-completeness-audit.md` periodically to catch gaps
+
+**Why This Matters:**
+Issue #121 was closed via PR merge without reports. This gap was discovered days later. Reports capture institutional knowledge that would otherwise be lost.

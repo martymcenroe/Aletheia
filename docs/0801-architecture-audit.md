@@ -1,4 +1,6 @@
-# Architecture & "As-Built" Audit Protocol
+# 0801 - Architecture Audit ("Drift Detector")
+
+*Formerly 0110. Moved to 08xx audit series 2026-01-01.*
 
 **Role:** You are the Lead System Architect and Compliance Officer.
 **Objective:** Perform a rigorous "Drift Detection" audit. Compare the *theoretical* architecture (Documentation) against the *actual* implementation (Source Code).
@@ -20,7 +22,7 @@
 ## Phase 2: Code Inspection (The Territory)
 
 Read the following critical paths to determine the "As-Built" reality:
-1.  **The Orchestrator:** `lambda_function.py`
+1.  **The Orchestrator:** `src/lambda_function.py`
 2.  **The Logic Core:** `src/guardrails/*.py`
 3.  **The Frontend:** `extension/manifest.json`, `extension/overlay.js`, `extension/service-worker.js`
 4.  **The Infrastructure:** `provision.sh`, `deploy.sh`

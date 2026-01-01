@@ -53,7 +53,6 @@
 | `docs/0104-TEMPLATE-adr.md` | **Template** | 🟢 **Stable** | #111 | Architecture Decision Record template. |
 | `docs/0108-lld-pre-implementation-review.md` | **Protocol** | 🟢 **Stable** | - | LLD pre-implementation review checklist. |
 | `docs/0109-gemini-lld-review-procedure.md` | **Protocol** | 🟢 **Stable** | - | Gemini LLD review prompt and procedure. |
-| `docs/0110-architecture-audit-procedure.md` | **Protocol** | 🟢 **Stable** | - | Architecture audit ("Drift Detector") procedure. |
 | `docs/0111-TEMPLATE-test-script.md` | **Template** | 🟢 **Stable** | - | Manual test script template (generic). |
 | `docs/0112-TEMPLATE-browser-extension-test-script.md` | **Template** | 🟢 **Stable** | #77 | Browser extension test script template for non-technical users. |
 | `docs/0113-TEMPLATE-test-report.md` | **Template** | 🟢 **Stable** | - | Test report template for recording test execution results. |
@@ -73,6 +72,17 @@
 | `docs/0209-ADR-static-compliance-hosting.md` | **ADR** | 🟢 **Stable** | - | Decision: GitHub Pages for legal docs. |
 | `docs/0210-ADR-git-worktree-isolation.md` | **ADR** | 🟢 **Stable** | - | Decision: Worktrees for feature isolation. |
 | `docs/0211-ADR-naked-python-architecture.md` | **ADR** | 🟢 **Stable** | #113 | Decision: Remove LangGraph, use boto3 directly. |
+
+### 08xx Audit Procedures
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/0800-common-audits.md` | **Index** | 🟢 **Stable** | - | Master index of all audit procedures. |
+| `docs/0801-architecture-audit.md` | **Protocol** | 🟢 **Stable** | - | Architecture drift detection (formerly 0110). |
+| `docs/0802-reports-completeness-audit.md` | **Protocol** | 🟢 **Stable** | - | Verify closed issues have reports. |
+| `docs/0803-open-issues-audit.md` | **Protocol** | 🟢 **Stable** | - | Check for complete/deprecated/stale issues. |
+| `docs/0804-terminology-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect stale terminology after renaming. |
+| `docs/0805-inventory-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect file inventory drift. |
+| `docs/0806-lld-code-audit.md` | **Protocol** | 🟢 **Stable** | - | Verify implementation matches LLD. |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |

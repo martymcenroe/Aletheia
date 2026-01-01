@@ -18,6 +18,17 @@ A proper closeout takes 5-10 minutes but saves 30+ minutes of confusion in the n
 
 **0011 includes everything here PLUS:** IMMEDIATE-PLAN verification, AWS cost control, worktree hygiene, and failure detection.
 
+## Audits During Closeout
+
+See `docs/0800-common-audits.md` for full audit index. During session closeout, consider:
+
+| Audit | When to Run | Reference |
+|-------|-------------|-----------|
+| **Reports Completeness** | If you closed any issues | 0802 |
+| **Inventory Drift** | If you created/deleted/moved files | 0805 |
+| **Open Issues Currency** | Weekly or before sprint planning | 0803 |
+| **Terminology** | After renaming (layers, components) | 0804 |
+
 ## The Closeout Checklist
 
 ### 1. Git Hygiene
