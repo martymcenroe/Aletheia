@@ -38,7 +38,9 @@
       "Bash(bash:*)",
       "Bash(MSYS_NO_PATHCONV=1 aws logs:*)",
       "Bash(git fetch:*)",
-      "Bash(./tools/aws/lambda-status.sh:*)"
+      "Bash(./tools/aws/lambda-status.sh:*)",
+      "WebFetch(domain:www.mediawiki.org)",
+      "WebFetch(domain:en.wikipedia.org)"
     ],
     "deny": [
       "Read(.env)",
