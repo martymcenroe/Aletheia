@@ -8,7 +8,8 @@ const { test, expect, chromium } = require('@playwright/test');
 const path = require('path');
 
 // Test configuration
-const TEST_BASE_URL = process.env.TEST_BASE_URL || 'https://martymcenroe.github.io/Aletheia/tests/fixtures/html';
+// Default to local server; override with TEST_BASE_URL for CI/deployed fixtures
+const TEST_BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 const EXTENSION_PATH = path.join(__dirname, '../../extension');
 
 // Helper: Launch browser with extension loaded

@@ -10,7 +10,8 @@
     "test:waf": "playwright test tests/e2e/waf-integration.spec.js"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0"
+    "@playwright/test": "^1.40.0",
+    "serve": "^14.2.0"
   },
   "engines": {
     "node": ">=18.0.0"

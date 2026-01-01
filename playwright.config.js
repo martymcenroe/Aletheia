@@ -74,10 +74,10 @@ module.exports = defineConfig({
     // Output directory for test artifacts
     outputDir: './test-results/',
 
-    // Web server for local testing (optional)
-    // webServer: {
-    //     command: 'npx serve tests/fixtures/html -p 3000',
-    //     port: 3000,
-    //     reuseExistingServer: !process.env.CI
-    // }
+    // Web server for local testing
+    webServer: {
+        command: 'npx serve tests/fixtures/html -p 3000 -C',
+        port: 3000,
+        reuseExistingServer: !process.env.CI
+    }
 });
