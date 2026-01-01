@@ -1,7 +1,7 @@
 Print mode: double-sided
 
 Fetching open issues from GitHub...
-Fetched 30 open issues
+Fetched 28 open issues
 Saving to docs\6000-open-issues.md...
 Saved docs\6000-open-issues.md
 Generating PDF with pandoc...
@@ -30,24 +30,6 @@ LangSmith removed from scope (LangChain-specific, we're using Naked Python per A
 - Use `boto3` X-Ray SDK for custom subsegments (Guardrails, Bedrock calls)
 - CloudWatch custom metrics for token counts
 - CloudWatch Logs Insights for query patterns
-
----
-
-## Issue #44: feat: Implement Browser Extension Warning UI
-
-**Labels:** feature
-
-**Created:** 2025-12-09
-**Updated:** 2025-12-30
-
-### Description
-
-Implement a 4-tier warning system in the Chrome Extension popup based on backend guardrail scores:
-
-1. **Rejection (Red):** If blocked by Selection Check (Regex) or Denylist (RSDB Hate List). Text: 'Blocked: Invalid format or flagged as potential hate speech (Source: RSDB). Context is not evaluated.'
-2. **Warning (Orange):** If Score(Provocative) > 0.0. Text: 'Caution: This term has a {P}% probability of carrying sexual or provocative subtext.'
-3. **Advisory (Yellow):** If Score(Provocative) == 0.0 AND (Score(Archaic) > 0 OR Score(Neologism) > 0). Text: 'Note: Term detected as Archaic ({A}%) or Neologism ({N}%). Usage may be obscure or unstable.'
-4. **Disclaimer (Footer):** 'AI probability scores are non-deterministic and may fluctuate between checks.'
 
 ---
 
@@ -1268,56 +1250,6 @@ Recommendation document with chosen approach and rationale.
 
 ## Related
 - #116 - LinkedIn OAuth (primary auth mechanism)
-
----
-
-## Issue #121: feat: integrate official RSDB data source
-
-**Labels:** enhancement
-
-**Created:** 2025-12-31
-**Updated:** 2025-12-31
-
-### Description
-
-## Context
-Issue #119 implemented a workaround using a third-party GitHub Gist for RSDB data. This issue tracks the work to get official data from rsdb.org.
-
-**Current State (from #119):**
-- Uses Gist: https://gist.github.com/Vizdun/0e9d76834d609dde09842be9bab53db7
-- Last updated ~2022 (3+ years stale)
-- Unknown collection method
-- 2,584 terms (may be incomplete)
-
-## Requirements
-
-### R1: Official Data Source
-- Contact rsdb.org maintainers about official API or data export
-- If no API: implement web scraper for rsdb.org
-
-### R2: Data Freshness
-- Document refresh frequency (monthly? quarterly?)
-- Consider automated refresh (GitHub Action or Lambda)
-
-### R3: Validation
-- Compare official source against current Gist data
-- Document any missing/added terms
-
-## Options to Explore
-
-1. **Email rsdb.org** - Request official export or API access
-2. **Web scraper** - Parse rsdb.org HTML directly
-3. **Alternative sources** - Wikipedia list of ethnic slurs, HateSonar, etc.
-
-## Priority
-**Post-MVP** - Current workaround is sufficient for MVP testing.
-
-## Related
-- #119 - RSDB download utility (workaround implementation)
-- #45 - Denylist filter (consumer of this data)
-
-## Labels
-enhancement, post-mvp, data-source
 
 ---
 
