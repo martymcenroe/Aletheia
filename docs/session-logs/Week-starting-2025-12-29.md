@@ -1034,3 +1034,75 @@ Red Team review of Firefox compatibility (#100) and build script (#53) LLDs. Imp
 - **Open PRs:** Ready to create for 53-100-firefox-build
 - **Lambda:** Not checked
 - **Next:** Manual smoke test in Chrome/Firefox, then PR and merge
+
+---
+
+## 2026-01-01 ~12:30-15:50 CT | Claude Opus 4.5
+
+### Summary
+Implemented Issue #84 (Signal Inspector CLI). Created full tool for auditing compliance signals from URLs. Incorporated architect review feedback (robots.txt gatekeeper, --force flag). User rejected manual smoke tests—automated everything. Created PR #135 and merged. Session continued with closeout protocol improvements.
+
+### Implementation (#84 Signal Inspector)
+- **src/signal_inspector/**: Complete module (models.py, fetcher.py, parser.py, reporter.py)
+- **tools/inspect_signals.py**: CLI with argparse (single URL, batch file, UA modes, --force)
+- **tests/test_signal_inspector.py**: 31 tests (27 mocked + 4 live website tests)
+- **tests/fixtures/signal_inspector/**: 7 HTML/txt fixtures
+
+### Key Design Decisions
+- **Gatekeeper Pattern**: robots.txt checked FIRST; if blocked, STOP (unless --force)
+- **OR Merge Logic**: Meta tags + X-Robots-Tag headers combined ("No" trumps "Yes")
+- **Action Derivation**: adult_blocked→BLOCK, noarchive→TRANSFORM, else→ALLOW (per 0007)
+
+### Live Website Tests (Automated)
+Found working sites after WSJ blocked bots:
+- en.wikipedia.org → ALLOW (no restrictive signals)
+- www.bbc.com → TRANSFORM (X-Robots-Tag: noarchive header)
+- noarchive.net → BLOCK (robots.txt) or TRANSFORM with --force
+
+### User Feedback & Corrections
+- **"Wrong smoke test instructions"**: Fixed LLD to use `poetry run python`
+- **"Not aggressive enough on automation"**: Converted all manual tests to automated
+- **"After you merge"**: Merged PR #135 directly (user does not merge)
+
+### Closeout Protocol Improvements
+- **0102-TEMPLATE-feature-lld.md**: Updated to emphasize automation over manual tests
+- **0009-session-closeout-protocol.md**: Added "Section 0: Issue Completion Reports"
+- **9000-lessons-learned.md**: Added 2 lessons (automation, poetry run)
+
+### Reports Created
+- `docs/reports/84/implementation-report.md`
+- `docs/reports/84/test-report.md`
+
+### Issues
+- **Closed**: #84 (Signal Inspector CLI) via PR #135
+
+### Commits
+- `6c12a9e` - docs: add 6001-closed-issues.md report and update inventory
+- (prior commits via PR #135 merge)
+
+### Files Created
+- `src/signal_inspector/__init__.py`
+- `src/signal_inspector/models.py`
+- `src/signal_inspector/fetcher.py`
+- `src/signal_inspector/parser.py`
+- `src/signal_inspector/reporter.py`
+- `tools/inspect_signals.py`
+- `tests/test_signal_inspector.py`
+- `tests/fixtures/signal_inspector/*.html/.txt` (7 files)
+- `docs/reports/84/implementation-report.md`
+- `docs/reports/84/test-report.md`
+
+### Files Modified
+- `docs/1084-signal-inspector.md` (status→Complete)
+- `docs/0102-TEMPLATE-feature-lld.md` (testing philosophy)
+- `docs/0009-session-closeout-protocol.md` (Section 0 reports)
+- `docs/0003-file-inventory.md` (added #84 files + reports)
+- `docs/9000-lessons-learned.md` (2 new lessons)
+- `pyproject.toml` (added requests, beautifulsoup4, colorama, responses)
+
+### State on Exit
+- **Branch:** `main`
+- **Open PRs:** 0
+- **Lambda:** (not checked)
+- **Tests:** 31 passed (signal inspector) + existing tests
+- **Next:** Per IMMEDIATE-PLAN.md
