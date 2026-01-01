@@ -51,6 +51,9 @@
 | `docs/0102-TEMPLATE-feature-lld.md` | **Template** | 🟢 **Stable** | - | Low-Level Design doc template for features. |
 | `docs/0103-TEMPLATE-implementation-report.md` | **Template** | 🟢 **Stable** | #77 | Implementation report template for completed features. |
 | `docs/0104-TEMPLATE-adr.md` | **Template** | 🟢 **Stable** | #111 | Architecture Decision Record template. |
+| `docs/0108-lld-pre-implementation-review.md` | **Protocol** | 🟢 **Stable** | - | LLD pre-implementation review checklist. |
+| `docs/0109-gemini-lld-review-procedure.md` | **Protocol** | 🟢 **Stable** | - | Gemini LLD review prompt and procedure. |
+| `docs/0110-architecture-audit-procedure.md` | **Protocol** | 🟢 **Stable** | - | Architecture audit ("Drift Detector") procedure. |
 | `docs/0111-TEMPLATE-test-script.md` | **Template** | 🟢 **Stable** | - | Manual test script template (generic). |
 | `docs/0112-TEMPLATE-browser-extension-test-script.md` | **Template** | 🟢 **Stable** | #77 | Browser extension test script template for non-technical users. |
 | `docs/0113-TEMPLATE-test-report.md` | **Template** | 🟢 **Stable** | - | Test report template for recording test execution results. |
@@ -84,7 +87,7 @@
 | `docs/1041-security-audit.md` | **Spec** | 🟢 **Stable** | #41 | Security audit and permission culling. |
 | `docs/1042-whitelist-mode.md` | **Spec** | 🟢 **Stable** | #42 | Whitelist mode and safety filters. |
 | `docs/1043-privacy-compliance.md` | **Spec** | 🟢 **Stable** | #43 | Privacy policy compliance. |
-| `docs/1045-deterministic-hate-filter.md` | **Spec** | ⚪ **Placeholder** | #45 | Denylist (deterministic hate filter). |
+| `docs/1045-deterministic-hate-filter.md` | **Spec** | 🟢 **Stable** | #45 | Denylist (deterministic hate filter). |
 | `docs/1051-store-compliance.md` | **Spec** | 🟡 **Beta** | #51 | Chrome Web Store compliance. |
 | `docs/1053-store-assets.md` | **Spec** | ⚪ **Placeholder** | #53 | Store asset generation. |
 | `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
@@ -92,10 +95,10 @@
 | `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
 | `docs/1104-age-restricted-blocking.md` | **Spec** | 🟠 **In-Progress** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
-| `docs/1113-naked-python-architecture.md` | **Spec** | 🟠 **In-Progress** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
+| `docs/1113-naked-python-architecture.md` | **Spec** | 🟢 **Stable** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
 | `docs/1116-linkedin-oauth.md` | **Spec** | 🟠 **In-Progress** | #116 | LinkedIn OAuth authentication for user gating. |
 | `docs/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
-| `docs/1121-wikipedia-denylist.md` | **Spec** | 🟠 **In-Progress** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
+| `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
 | `docs/1124-digital-etymologist.md` | **Spec** | 🟠 **In-Progress** | #124 | Digital Etymologist persona with structured JSON response. |
 | `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
@@ -108,8 +111,12 @@
 ### Implementation Reports (Nested by Issue)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| `docs/reports/45/implementation-report.md` | **Report** | 🟢 **Stable** | #45 | Implementation report for denylist feature. |
+| `docs/reports/45/test-report.md` | **Report** | 🟢 **Stable** | #45 | Test report for denylist feature. |
 | `docs/reports/77/implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
 | `docs/reports/80/implementation-report.md` | **Report** | 🟢 **Stable** | #80 | Retroactive report for abandoned LangGraph implementation. |
+| `docs/reports/113/implementation-report.md` | **Report** | 🟢 **Stable** | #113 | Implementation report for Naked Python architecture. |
+| `docs/reports/113/test-report.md` | **Report** | 🟢 **Stable** | #113 | Test report for Naked Python architecture. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
@@ -122,13 +129,15 @@
 ### Core Application (Python)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `lambda_function.py` | **Entry** | 🟠 **In-Progress** | #113 | Main AWS Lambda handler (Naked Python orchestrator). |
+| `lambda_function.py` | **Entry** | 🟢 **Stable** | #113 | Main AWS Lambda handler (Naked Python orchestrator). |
 | `lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
 | `src/__init__.py` | **Module** | 🟢 **Stable** | - | Package init. |
 | `src/guardrails/__init__.py` | **Module** | 🟢 **Stable** | - | Guardrails package init. |
+| `src/guardrails/denylist.py` | **Logic** | 🟢 **Stable** | #45 | Denylist guardrail (hash-based term blocking). |
 | `src/guardrails/engine.py` | **Logic** | 🟡 **Beta** | #113 | Guardrails engine (Selection Check + Denylist stub). |
 | `src/guardrails/validators.py` | **Logic** | 🟡 **Beta** | #11 | Validator functions. |
 | `src/guardrails/semantic.py` | **Logic** | 🟡 **Beta** | #10 | Semantic guardrail (LLM-based). |
+| `src/guardrails/resources/denylist.json` | **Data** | 🟢 **Stable** | #121 | Denylist terms (803 terms from Wikipedia). |
 | `src/guardrails/resources/taxonomy.json` | **Data** | 🟢 **Stable** | #10 | Taxonomy and few-shot examples. |
 
 ### Chrome Extension
@@ -151,8 +160,11 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `aws-cleanup-old-resources.sh` | **Script** | 🟡 **Beta** | - | Cleanup old AWS resources. |
 | `aws-inventory-check.sh` | **Script** | 🟡 **Beta** | - | AWS resource inventory audit. |
-| `deploy.sh` | **Script** | 🟡 **Beta** | - | Lambda deployment automation. |
-| `provision.sh` | **Script** | 🟡 **Beta** | - | AWS infrastructure provisioning. |
+| `batch-pdf.sh` | **Script** | 🟡 **Beta** | - | Batch PDF generation script. |
+| `deploy.sh` | **Script** | 🟢 **Stable** | #113 | Lambda deployment automation. |
+| `print-all-pdfs.sh` | **Script** | 🟡 **Beta** | - | Print all markdown files to PDF. |
+| `print-docs.sh` | **Script** | 🟡 **Beta** | - | Print documentation to PDF. |
+| `provision.sh` | **Script** | 🟢 **Stable** | #113 | AWS infrastructure provisioning. |
 | `scripts/aws/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | AWS scripts directory placeholder. |
 | `dist/` | **Output** | 🚫 **Gitignored** | - | Build artifacts (empty). |
 | `temp-pdfs/` | **Output** | 🚫 **Gitignored** | - | Temporary PDF storage (auto-deleted after successful print). |
@@ -160,11 +172,14 @@
 ### Tools & Utilities
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| `format-issues.py` | **Utility** | 🟡 **Beta** | - | GitHub issues formatter. |
 | `harvest_test_data.py` | **Utility** | 🟡 **Beta** | #72 | Log puller. Pending move to tools/. |
+| `tools/fetch_denylist.py` | **Utility** | 🟢 **Stable** | #121 | Wikipedia denylist fetcher (multi-pass wikitext parser). |
 | `tools/generate_store_assets.py` | **Utility** | ⚪ **Placeholder** | #53 | Store asset generator. |
 | `tools/log_viewer.py` | **Utility** | 🟢 **Stable** | #69 | DynamoDB Inspector. |
 | `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Icon factory (Pillow). Supports `--transparent` and `--threshold N` CLI options. |
 | `tools/master_lambda.png` | **Asset** | 🟢 **Stable** | #82 | Master source for branding. |
+| `tools/smoke_test.py` | **Utility** | 🟢 **Stable** | #113 | Lambda smoke test (3 scenarios). |
 | `tools/print/print_markdown.py` | **Utility** | 🟢 **Stable** | - | Batch markdown→PDF printer with spooler monitoring and print tracking. |
 | `tools/print/print_most_recent_open_issues.py` | **Utility** | 🟢 **Stable** | - | GitHub issues fetcher/printer (saves to docs/6000-*.md). |
 | `tools/print/audit_long_lines.py` | **Utility** | 🟢 **Stable** | #103 | Audits markdown files for print overflow (>100 char lines). |
@@ -180,7 +195,11 @@
 | `test_ground_truth.json` | **Data** | 🟢 **Stable** | - | Gold standard test dataset. |
 | `test_holistic_data.json` | **Data** | 🟡 **Beta** | - | Raw harvested test data. |
 | `tests/__init__.py` | **Test** | 🟢 **Stable** | - | Test package init. |
+| `tests/test_denylist.py` | **Test** | 🟢 **Stable** | #45 | Unit tests for denylist guardrail. |
+| `tests/test_fetch_denylist.py` | **Test** | 🟢 **Stable** | #121 | Unit tests for Wikipedia denylist fetcher (26 tests). |
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
+| `tests/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113 | Unit tests for Lambda handler. |
+| `tests/test_rsdb_download.py` | **Test** | ⚫ **Legacy** | #119 | Tests for RSDB download (superseded by #121). |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
 | `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |
