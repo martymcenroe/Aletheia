@@ -99,31 +99,102 @@ sequenceDiagram
 
 ## 6. Technical Approach
 
-* **Module:** `extension/service-worker.js`, `extension/content-check.js` (new)
+* **Module:** `extension/service-worker.js`, `extension/content-check.js` (new), `extension/content-safety.js` (new - pure logic)
 * **Dependencies:** Chrome Extension APIs (`scripting`, `tabs`, `action`)
+* **Required Permissions:** `scripting` (already in manifest.json - verified)
 * **Pattern:** Event-driven state machine per tab
 
-### 6.1 Detection Logic
+### 6.1 Constants
 
 ```javascript
-// Content script detection
-const ratingMeta = document.querySelector('meta[name="rating"]');
-const content = ratingMeta?.getAttribute('content')?.toLowerCase() || '';
-
-const isRestricted =
-    content === 'adult' ||
-    content.includes('rta-5042-1996-1400-1577-rta');
+// content-safety.js - Shared constants
+const RTA_LABEL_PATTERN = 'rta-5042-1996-1400-1577-rta';
+const ADULT_RATING = 'adult';
+const MATURE_RATING = 'mature';  // Explicitly allowed
 ```
 
-### 6.2 State Management
+### 6.2 Detection Logic (Pure Function - Testable)
+
+```javascript
+// content-safety.js - Pure logic, no DOM dependencies
+function isAgeRestricted(ratingContent) {
+    if (!ratingContent || typeof ratingContent !== 'string') {
+        return false;
+    }
+    const normalized = ratingContent.toLowerCase().trim();
+    return normalized === ADULT_RATING ||
+           normalized.includes(RTA_LABEL_PATTERN);
+}
+
+// content-check.js - DOM wrapper (calls pure function)
+function checkPageRating() {
+    const ratingMeta = document.querySelector('meta[name="rating"]');
+    const content = ratingMeta?.getAttribute('content') || '';
+    return {
+        type: 'RATING_CHECK',
+        isRestricted: isAgeRestricted(content),
+        ratingValue: content || null
+    };
+}
+```
+
+### 6.3 State Management
 
 Tab states stored in memory (not `chrome.storage`):
 ```javascript
 // service-worker.js
-const tabStates = new Map(); // tabId -> 'restricted' | 'allowed'
+const TabState = {
+    UNKNOWN: 'unknown',      // Not yet checked (race condition safe)
+    RESTRICTED: 'restricted', // Adult content detected
+    ALLOWED: 'allowed'        // No adult content
+};
+
+const tabStates = new Map(); // tabId -> TabState value
 ```
 
 Cleared automatically when tab closes via `chrome.tabs.onRemoved`.
+
+### 6.4 URL Scheme Filtering
+
+Only inject detection script on navigable web pages:
+```javascript
+// service-worker.js - in onUpdated handler
+function shouldCheckTab(url) {
+    if (!url) return false;
+    return url.startsWith('http://') || url.startsWith('https://');
+    // Ignore: chrome://, chrome-extension://, file://, about:, etc.
+}
+```
+
+### 6.5 Race Condition Handling
+
+**Problem:** User may open popup before content script completes detection.
+
+**Solution:** Three-state model with explicit UNKNOWN state:
+
+```javascript
+// popup.js - on open
+async function getTabStatus(tabId) {
+    const state = await chrome.runtime.sendMessage({
+        type: 'GET_TAB_STATE',
+        tabId
+    });
+
+    if (state === TabState.UNKNOWN) {
+        // Show "Checking..." UI, trigger re-check
+        await chrome.runtime.sendMessage({ type: 'RECHECK_TAB', tabId });
+        return 'checking';
+    }
+    return state;
+}
+```
+
+**Popup behavior by state:**
+| State | UI Display | Controls |
+|-------|------------|----------|
+| UNKNOWN | "Checking site..." spinner | Disabled |
+| RESTRICTED | "Not permitted on this site" | Disabled |
+| ALLOWED | Normal Aletheia UI | Enabled |
 
 ## 7. Interface Specification
 
@@ -132,6 +203,7 @@ Cleared automatically when tab closes via `chrome.tabs.onRemoved`.
 ```javascript
 // Tab state (in-memory only)
 const TabState = {
+    UNKNOWN: 'unknown',        // Not yet checked (initial state)
     RESTRICTED: 'restricted',  // Adult content detected
     ALLOWED: 'allowed',        // No adult content
 };
@@ -141,6 +213,17 @@ const RatingCheckMessage = {
     type: 'RATING_CHECK',
     isRestricted: boolean,
     ratingValue: string | null,  // For logging
+};
+
+// Message from popup to service worker
+const GetTabStateMessage = {
+    type: 'GET_TAB_STATE',
+    tabId: number,
+};
+
+const RecheckTabMessage = {
+    type: 'RECHECK_TAB',
+    tabId: number,
 };
 ```
 
@@ -188,8 +271,14 @@ function clearTabState(tabId: number): void;
 | Injection from page | Content script runs in isolated world | Addressed |
 | False positives | Only block exact patterns per Google spec | Addressed |
 | Storage of adult site visits | No persistence - memory only, cleared on tab close | Addressed |
+| CSP blocks script injection | Fail open - treat as allowed (see below) | Addressed |
+| Race condition (popup before check) | Three-state model with UNKNOWN state | Addressed |
 
-**Fail Mode:** Fail Open - If detection fails, site is treated as allowed. We cannot risk blocking legitimate sites. Adult site operators who want to be blocked must properly tag their content.
+**Fail Mode:** Fail Open - If detection fails (including CSP blocking script injection), site is treated as allowed. Rationale:
+1. We cannot risk blocking legitimate sites that happen to have strict CSP
+2. Adult site operators who want to be blocked must properly tag their content
+3. CSP-heavy sites are typically enterprise/banking - not adult content
+4. This is a content safety feature, not a security boundary
 
 ## 9. Performance Considerations
 
@@ -216,22 +305,58 @@ function clearTabState(tabId: number): void;
 
 | ID | Scenario | Type | Input | Expected Output | Pass Criteria |
 |----|----------|------|-------|-----------------|---------------|
-| 010 | Detect adult rating | Manual | Page with `content="adult"` | Badge shows prohibition | Icon changes |
-| 020 | Detect RTA pattern | Manual | Page with RTA content | Badge shows prohibition | Icon changes |
-| 030 | Allow mature rating | Manual | Page with `content="mature"` | Normal operation | No blocking |
-| 040 | Allow no rating | Manual | Page without rating meta | Normal operation | No blocking |
+| 010 | Detect adult rating | Auto | `"adult"` | `isAgeRestricted() === true` | Unit test passes |
+| 011 | Detect ADULT (uppercase) | Auto | `"ADULT"` | `isAgeRestricted() === true` | Case insensitive |
+| 012 | Detect adult with whitespace | Auto | `" adult "` | `isAgeRestricted() === true` | Trim handled |
+| 020 | Detect RTA pattern | Auto | `"RTA-5042-1996-1400-1577-RTA"` | `isAgeRestricted() === true` | Unit test passes |
+| 021 | Detect RTA lowercase | Auto | `"rta-5042-1996-1400-1577-rta"` | `isAgeRestricted() === true` | Case insensitive |
+| 022 | Detect RTA embedded | Auto | `"some-RTA-5042-1996-1400-1577-RTA-text"` | `isAgeRestricted() === true` | Pattern found |
+| 030 | Allow mature rating | Auto | `"mature"` | `isAgeRestricted() === false` | Not blocked |
+| 040 | Allow no rating | Auto | `""` or `null` | `isAgeRestricted() === false` | Not blocked |
+| 041 | Allow undefined | Auto | `undefined` | `isAgeRestricted() === false` | No crash |
 | 050 | Text selection blocked | Manual | Select text on adult page | "Not permitted" message | No "Enable" prompt |
 | 060 | State clears on tab close | Manual | Close restricted tab, reopen site | Fresh state check | No persistent block |
 | 070 | Popup disabled state | Manual | Open popup on restricted tab | All controls disabled | Explanation shown |
 | 080 | Multiple tabs independent | Manual | Adult tab + normal tab | Each has correct state | States don't leak |
+| 090 | Popup during UNKNOWN state | Manual | Open popup immediately on load | Shows "Checking..." | Not assumed allowed |
+| 100 | CSP blocks injection | Manual | Test on CSP-strict site | Fail open (allowed) | No crash, site works |
 
 ### 11.2 Test Modules (from 0005)
 
-* **Unit Tests:** N/A - extension code, manual testing
+* **Unit Tests:** `tests/test_content_safety.js` - Pure logic tests for `isAgeRestricted()`
 * **Semantic (Module B):** No
 * **End-to-End (Module C):** Yes - requires test site hosting (#105)
 
-### 11.3 Manual Smoke Test
+### 11.3 Unit Test Implementation
+
+```javascript
+// tests/test_content_safety.js
+const { isAgeRestricted, RTA_LABEL_PATTERN } = require('../extension/content-safety.js');
+
+describe('isAgeRestricted', () => {
+    // Blocked cases
+    test('blocks "adult"', () => expect(isAgeRestricted('adult')).toBe(true));
+    test('blocks "ADULT" (case insensitive)', () => expect(isAgeRestricted('ADULT')).toBe(true));
+    test('blocks " adult " (whitespace)', () => expect(isAgeRestricted(' adult ')).toBe(true));
+    test('blocks RTA pattern', () => expect(isAgeRestricted('RTA-5042-1996-1400-1577-RTA')).toBe(true));
+    test('blocks RTA lowercase', () => expect(isAgeRestricted('rta-5042-1996-1400-1577-rta')).toBe(true));
+    test('blocks RTA embedded in string', () => expect(isAgeRestricted('x-RTA-5042-1996-1400-1577-RTA-y')).toBe(true));
+
+    // Allowed cases
+    test('allows "mature"', () => expect(isAgeRestricted('mature')).toBe(false));
+    test('allows empty string', () => expect(isAgeRestricted('')).toBe(false));
+    test('allows null', () => expect(isAgeRestricted(null)).toBe(false));
+    test('allows undefined', () => expect(isAgeRestricted(undefined)).toBe(false));
+    test('allows random string', () => expect(isAgeRestricted('general')).toBe(false));
+    test('allows partial RTA', () => expect(isAgeRestricted('RTA-5042')).toBe(false));
+});
+
+describe('RTA_LABEL_PATTERN constant', () => {
+    test('is lowercase', () => expect(RTA_LABEL_PATTERN).toBe('rta-5042-1996-1400-1577-rta'));
+});
+```
+
+### 11.4 Manual Smoke Test
 
 1. Deploy test pages (per #105)
 2. Load `test-adult.html` - verify prohibition badge appears
@@ -240,18 +365,23 @@ function clearTabState(tabId: number): void;
 5. Close tab
 6. Load `test-mature.html` - verify normal operation
 7. Load `test-clean.html` - verify normal operation
+8. **NEW:** Rapidly click extension icon on slow page load - verify "Checking..." state (not assumed allowed)
 
 ## 12. Definition of Done
 
 ### Code
-- [ ] `content-check.js` created with meta tag detection
-- [ ] `service-worker.js` updated with tab state management
+- [ ] `content-safety.js` created with pure detection logic and constants
+- [ ] `content-check.js` created with DOM wrapper calling `isAgeRestricted()`
+- [ ] `service-worker.js` updated with three-state tab management (UNKNOWN/RESTRICTED/ALLOWED)
+- [ ] `service-worker.js` filters by URL scheme before injection
+- [ ] `popup.js` handles UNKNOWN state with "Checking..." UI
 - [ ] Prohibition badge implementation
 - [ ] "Not permitted" overlay message
 - [ ] Popup disabled state UI
 
 ### Tests
-- [ ] All manual test scenarios pass (010-080)
+- [ ] Unit tests pass (`tests/test_content_safety.js`) - scenarios 010-041
+- [ ] All manual test scenarios pass (050-100)
 - [ ] Test pages created and deployed (#105)
 
 ### Documentation
