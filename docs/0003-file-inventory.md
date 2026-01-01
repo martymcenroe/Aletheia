@@ -84,7 +84,6 @@
 | `docs/1041-security-audit.md` | **Spec** | 🟢 **Stable** | #41 | Security audit and permission culling. |
 | `docs/1042-whitelist-mode.md` | **Spec** | 🟢 **Stable** | #42 | Whitelist mode and safety filters. |
 | `docs/1043-privacy-compliance.md` | **Spec** | 🟢 **Stable** | #43 | Privacy policy compliance. |
-| `docs/1044-warning-ui.md` | **Spec** | ⚪ **Placeholder** | #44 | Browser extension warning UI. |
 | `docs/1045-deterministic-hate-filter.md` | **Spec** | ⚪ **Placeholder** | #45 | Denylist (deterministic hate filter). |
 | `docs/1051-store-compliance.md` | **Spec** | 🟡 **Beta** | #51 | Chrome Web Store compliance. |
 | `docs/1053-store-assets.md` | **Spec** | ⚪ **Placeholder** | #53 | Store asset generation. |
