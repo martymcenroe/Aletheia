@@ -123,9 +123,15 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/reports/45/implementation-report.md` | **Report** | 🟢 **Stable** | #45 | Implementation report for denylist feature. |
 | `docs/reports/45/test-report.md` | **Report** | 🟢 **Stable** | #45 | Test report for denylist feature. |
+| `docs/reports/69/implementation-report.md` | **Report** | 🟢 **Stable** | #69 | Implementation report for log inspector tool. |
+| `docs/reports/69/test-report.md` | **Report** | 🟢 **Stable** | #69 | Test report for log inspector tool. |
+| `docs/reports/76/implementation-report.md` | **Report** | 🟢 **Stable** | #76 | Implementation report for allowlist popup. |
+| `docs/reports/76/test-report.md` | **Report** | 🟢 **Stable** | #76 | Test report for allowlist popup. |
 | `docs/reports/77/implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
 | `docs/reports/77/test-report.md` | **Report** | 🟢 **Stable** | #77 | Test report for action feedback feature. |
 | `docs/reports/80/implementation-report.md` | **Report** | 🟢 **Stable** | #80 | Retroactive report for abandoned LangGraph implementation. |
+| `docs/reports/82/implementation-report.md` | **Report** | 🟢 **Stable** | #82 | Implementation report for icon assets. |
+| `docs/reports/82/test-report.md` | **Report** | 🟢 **Stable** | #82 | Test report for icon assets. |
 | `docs/reports/113/implementation-report.md` | **Report** | 🟢 **Stable** | #113 | Implementation report for Naked Python architecture. |
 | `docs/reports/113/test-report.md` | **Report** | 🟢 **Stable** | #113 | Test report for Naked Python architecture. |
 | `docs/reports/114/implementation-report.md` | **Report** | 🟢 **Stable** | #114 | Implementation report for overlay restore (also closes #98). |
