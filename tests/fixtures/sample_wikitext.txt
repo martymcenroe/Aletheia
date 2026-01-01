@@ -1,0 +1,24 @@
+{{Short description|Wikipedia list article}}
+This is a sample wikitext for testing purposes.
+
+== Section A ==
+{| class="wikitable"
+|-
+! Term !! Target !! Origin
+|-
+| Beaner || Mexicans || From beans
+|-
+| '''Cracker''' || White people || Historical
+|-
+| Gringo || Americans || Spanish
+|}
+
+== Section B ==
+;Honky : A slur for white people
+;'''Kike''' : Anti-Jewish slur
+;Spic : Anti-Hispanic slur
+
+== Section C ==
+* '''Wetback''' - derogatory term
+* '''Chink''' - anti-Asian slur
+* Regular text without bold
