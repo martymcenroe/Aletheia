@@ -1,0 +1,17 @@
+{
+  "name": "aletheia-extension-tests",
+  "version": "1.0.0",
+  "description": "Tests for Aletheia Chrome extension",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/unit/**/*.js"],
+    "verbose": true
+  }
+}
