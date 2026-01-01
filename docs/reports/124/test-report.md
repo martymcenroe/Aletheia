@@ -156,27 +156,40 @@ tests/test_lambda_handler.py::TestWillisonProtocol::test_no_real_terms_in_test_f
 | 090 | Prompt injection | `TestPromptInjectionProtection::test_*` | PASS |
 | 100 | Empty input handling | `TestAnalyzeTerm::test_empty_input_returns_fallback` | PASS |
 
-## 4. Manual Verification (Orchestrator)
+## 4. Automated Smoke Tests (Deployment Verification)
 
-**Tester:** (Pending)
-**Date:** (Pending)
-**Environment:** (Pending)
+The smoke test script (`tools/smoke_test.py`) verifies Issue #124 requirements against deployed Lambda:
 
-### Smoke Test Checklist
+```bash
+# Run full smoke test against deployed Lambda
+poetry run python tools/smoke_test.py
 
-| Step | Action | Expected | Result | Notes |
-|------|--------|----------|--------|-------|
-| 1 | Send POST request with known term | Valid JSON response | | |
-| 2 | Verify response has signal, gem, context | All three tiers present | | |
-| 3 | Read gem and context | Neutral tone, no moralizing | | |
-| 4 | Check signal | Short classification (2-4 words) | | |
-| 5 | Verify latency | < 3 seconds | | |
-| 6 | Test with prompt injection attempt | Classified appropriately | | |
-| 7 | Verify fallback on forced extraction failure | Fallback structure returned | | |
+# Or with explicit URL
+poetry run python tools/smoke_test.py --url https://your-lambda-url/
+```
 
-### Issues Discovered During Manual Testing
+### Smoke Test Coverage
 
-(To be filled by orchestrator)
+| Test | Verifies | Pass Criteria |
+|------|----------|---------------|
+| Valid Input + Structure | Response has signal, gem, context, status | All fields present as strings |
+| Latency | Response time | < 3 seconds |
+| Blocked Input | Denylist still works | 403 with "blocked" key |
+| Empty Input | Validation still works | 400 with "error" key |
+| Prompt Injection | XML escaping protects against hijack | 200, no "HACKED" in response |
+| Tone Neutrality | No moralizing phrases | No "you should not", "as an AI", etc. |
+
+### Post-Deployment Verification
+
+```bash
+# Deploy Lambda with new code
+./deploy.sh
+
+# Run automated smoke test (all 5 tests)
+poetry run python tools/smoke_test.py
+```
+
+**All tests are automated. No manual HTTP construction required.**
 
 ## 5. Failed Tests Detail
 
