@@ -9,7 +9,7 @@
 | **Test Report** | `docs/reports/124/test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-01 |
-| **PR** | TBD |
+| **PR** | #131 |
 
 ## 2. Summary
 
