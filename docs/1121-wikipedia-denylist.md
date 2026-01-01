@@ -22,11 +22,16 @@ Issue #119 created `tools/rsdb_download.py` which fetches denylist data from a t
 | R2 | Fetch profanity terms | Enumerate Category:Profanity members |
 | R3 | Fetch sexual slang terms | Enumerate Category:Sexual_slang members |
 | R4 | API-first approach | Use MediaWiki API only - no HTML scraping |
-| R5 | Politeness protocol | User-Agent header, 1 req/sec rate limit |
+| R5 | Politeness protocol | Custom User-Agent header, `time.sleep(1.0)` between ALL API calls |
 | R6 | Merge and deduplicate | Combine all sources, lowercase, unique terms |
 | R7 | Log source statistics | Report term counts per source |
-| R8 | Output schema v2.0 | Match specified JSON schema |
+| R8 | Output schema v2.0 | Match specified JSON schema with `generated_by` and `safety_checks` metadata |
 | R9 | Deploy option | Copy to `src/guardrails/resources/denylist.json` |
+| R10 | **Safety Stop-List** | FAIL BUILD if any term matches top 100 common English words |
+| R11 | **Minimum Threshold** | FAIL BUILD if `total_terms < 500` |
+| R12 | **Canary Assertions** | FAIL BUILD if known immutable terms (Seven Dirty Words) are missing |
+| R13 | **Multi-Pass Parsing** | Extract from wikitables, definition lists, AND bulleted bold terms |
+| R14 | **Tool Consolidation** | Delete `tools/rsdb_download.py` after implementation |
 
 ## 3. Alternatives Considered
 
@@ -67,25 +72,35 @@ Wikipedia API ──GET──► Python Utility ──parse──► .rsdb/denyl
 
 | Fixture | Source | Notes |
 |---------|--------|-------|
-| Mock API response (ethnic slurs) | Captured from live API | Sanitized sample for unit tests |
-| Mock category response | Captured from live API | Small subset for testing |
-| Expected output JSON | Generated | Golden file for regression testing |
+| `tests/fixtures/ethnic_slurs_wikitext.txt` | Captured from live API | Sanitized wikitext sample with all 3 formats |
+| `tests/fixtures/category_profanity.json` | Captured from live API | Mock API response for category enumeration |
+| `tests/fixtures/category_sexual_slang.json` | Captured from live API | Mock API response for category enumeration |
+| `tests/fixtures/expected_output.json` | Generated | Golden file for regression testing |
+
+**Mocking Strategy (Willison Protocol Compliance):**
+- All unit tests MUST use mocked responses from fixtures
+- Tests MUST run without network access
+- Fixtures captured once from live API, then frozen for deterministic testing
+- If Wikipedia format changes, update fixtures and verify parsing still works
 
 ### 4.4 Deployment Pipeline
 
-1. Developer runs: `poetry run python tools/wikipedia_denylist.py`
-2. Output saved to: `.rsdb/denylist.json` (gitignored staging area)
-3. Developer runs with `--deploy` flag to copy to `src/guardrails/resources/denylist.json`
-4. Commit and deploy with Lambda package
+1. Developer runs: `poetry run python tools/fetch_denylist.py`
+2. Safety checks run automatically (stop-list, threshold, canaries)
+3. If checks pass: Output saved to `.rsdb/denylist.json` (gitignored staging area)
+4. Developer runs with `--deploy` flag to copy to `src/guardrails/resources/denylist.json`
+5. Commit and deploy with Lambda package
 
-**Separate utility:** This replaces `tools/rsdb_download.py` (or creates new `tools/wikipedia_denylist.py`).
+**Tool Consolidation:**
+- Create `tools/fetch_denylist.py` (new canonical name)
+- Delete `tools/rsdb_download.py` (superseded - prevents zombie code)
 
 ## 5. Diagram
 
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant Script as wikipedia_denylist.py
+    participant Script as fetch_denylist.py
     participant API as Wikipedia API
     participant Stage as .rsdb/denylist.json
     participant Deploy as src/.../denylist.json
@@ -93,20 +108,33 @@ sequenceDiagram
     Dev->>Script: Run utility
 
     Script->>API: GET /w/api.php?action=query&titles=List_of_ethnic_slurs&prop=revisions
+    Note over Script: time.sleep(1.0)
     API-->>Script: Wikitext content
-    Note over Script: Parse definition lists, bold terms
+    Note over Script: Multi-pass parse: tables, definitions, bullets
 
-    Script->>API: GET /w/api.php?action=query&list=categorymembers&cmtitle=Category:Sexual_slang
+    Script->>API: GET /w/api.php?list=categorymembers&cmtitle=Category:Sexual_slang
+    Note over Script: time.sleep(1.0)
     API-->>Script: Page titles array
 
-    Script->>API: GET /w/api.php?action=query&list=categorymembers&cmtitle=Category:Profanity
+    Script->>API: GET /w/api.php?list=categorymembers&cmtitle=Category:Profanity
+    Note over Script: time.sleep(1.0)
     API-->>Script: Page titles array
 
     Note over Script: Merge, lowercase, deduplicate
-    Note over Script: Log per-source statistics
 
-    Script->>Stage: Write denylist.json
-    Stage-->>Dev: Report: N terms saved
+    rect rgb(255, 200, 200)
+        Note over Script: SAFETY CHECKS
+        Note over Script: 1. Stop-List (common words)
+        Note over Script: 2. Threshold (≥500 terms)
+        Note over Script: 3. Canaries (Seven Dirty Words)
+    end
+
+    alt Safety checks FAIL
+        Script-->>Dev: EXIT 1 - Build failed
+    else Safety checks PASS
+        Script->>Stage: Write denylist.json
+        Stage-->>Dev: Report: N terms saved, checks passed
+    end
 
     opt --deploy flag
         Script->>Deploy: Copy denylist.json
@@ -116,9 +144,9 @@ sequenceDiagram
 
 ## 6. Technical Approach
 
-* **Module:** `tools/wikipedia_denylist.py` (standalone utility, not runtime code)
-* **Dependencies:** Python stdlib only (`urllib.request`, `json`, `re`) - no new packages required
-* **Pattern:** ETL (Extract-Transform-Load) utility script
+* **Module:** `tools/fetch_denylist.py` (standalone utility, not runtime code)
+* **Dependencies:** Python stdlib only (`urllib.request`, `json`, `re`, `time`) - no new packages required
+* **Pattern:** ETL (Extract-Transform-Load) with Safety Gates
 
 ### 6.1 MediaWiki API Details
 
@@ -148,17 +176,31 @@ cmtype=page
 
 **Continuation:** API returns `continue.cmcontinue` token if more results exist. Must loop until no continuation token.
 
-### 6.2 Wikitext Parsing Strategy
+### 6.2 Multi-Pass Wikitext Parsing Strategy
 
-The "List of ethnic slurs" article uses multiple formats:
+The "List of ethnic slurs" article uses multiple formats. A single regex approach WILL miss terms. **All three passes are REQUIRED:**
 
-1. **Definition lists:** `;Term : definition` or `;'''Term''' : definition`
-2. **Bold terms:** `'''term'''` within text
-3. **Table cells:** `| Term ||` format
+| Pass | Format | Pattern | Example |
+|------|--------|---------|---------|
+| 1 | **Wikitables** | `{\|` table start, `\|` cell delimiter | `\| Beaner \|\| Mexican` |
+| 2 | **Definition Lists** | `^;` at line start | `;Beaner : A slur for...` |
+| 3 | **Bulleted Bold** | `* '''term'''` | `* '''beaner''' - offensive` |
 
-Regex patterns needed:
-- Definition list: `^;\s*(?:''')?([^':|\n\[\]]+?)(?:''')?(?:\s*:|\s*$)`
-- Bold terms: `'''([^'|\[\]]{2,50})'''`
+**Regex patterns:**
+```python
+# Pass 1: Wikitable cells - first cell often contains the term
+TABLE_CELL = r"^\|\s*(?:''')?([A-Za-z][^|'\n\[\]]{1,40}?)(?:''')?\s*(?:\|\||$)"
+
+# Pass 2: Definition list format
+DEFINITION_LIST = r"^;\s*(?:''')?([^':|\n\[\]]+?)(?:''')?(?:\s*:|\s*$)"
+
+# Pass 3: Bulleted bold terms
+BULLETED_BOLD = r"^\*+\s*'''([^']{2,50})'''"
+```
+
+**Aggregation:** Results from ALL passes are merged into a single set before normalization.
+
+**No subcategory traversal:** Graph depth = 0. Only direct category members are fetched to reduce noise.
 
 ### 6.3 Category Member Extraction
 
@@ -188,6 +230,55 @@ Split on: ` / `, `, `, ` or `
 - Filter terms < 2 characters
 - Sort alphabetically
 
+### 6.5 Safety Checks (BLOCKING)
+
+These checks run BEFORE any file is written. If ANY check fails, the build exits with code 1.
+
+#### 6.5.1 Safety Stop-List (Data Poisoning Defense)
+
+Hardcoded list of top 100 most common English words. If Wikipedia is vandalized to include common words, this prevents a DoS via over-blocking.
+
+```python
+SAFETY_STOP_LIST = {
+    "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
+    "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
+    "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
+    "or", "an", "will", "my", "one", "all", "would", "there", "their", "what",
+    "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
+    "when", "make", "can", "like", "time", "no", "just", "him", "know", "take",
+    "people", "into", "year", "your", "good", "some", "could", "them", "see", "other",
+    "than", "then", "now", "look", "only", "come", "its", "over", "think", "also",
+    "back", "after", "use", "two", "how", "our", "work", "first", "well", "way",
+    "even", "new", "want", "because", "any", "these", "give", "day", "most", "us",
+    # Additional safety words
+    "hello", "world", "cloud", "computer", "phone", "email", "name", "home", "help",
+}
+```
+
+**Check:** `if term in SAFETY_STOP_LIST: FAIL`
+
+#### 6.5.2 Minimum Threshold
+
+```python
+MINIMUM_TERM_COUNT = 500
+```
+
+If parsing returns fewer than 500 terms, Wikipedia's format likely changed and parsing failed silently.
+
+**Check:** `if len(terms) < MINIMUM_TERM_COUNT: FAIL`
+
+#### 6.5.3 Canary Assertions (Seven Dirty Words)
+
+Known immutable terms that MUST be present. If these are missing, extraction is broken.
+
+```python
+CANARY_TERMS = {
+    "shit", "piss", "fuck", "cunt", "cocksucker", "motherfucker", "tits",
+}
+```
+
+**Check:** `if not CANARY_TERMS.issubset(terms): FAIL`
+
 ## 7. Interface Specification
 
 ### 7.1 Data Structures
@@ -197,6 +288,8 @@ Split on: ` / `, `, `, ` or `
 DenylistSchema = {
     "version": "2.0",
     "source": "wikipedia",
+    "generated_by": "tools/fetch_denylist.py",  # Tier 3: provenance
+    "safety_checks": "passed",                   # Tier 3: audit trail
     "sources": {
         "ethnic_slurs": "https://en.wikipedia.org/wiki/List_of_ethnic_slurs",
         "sexual-slang": "https://en.wikipedia.org/wiki/Category:Sexual_slang",
@@ -216,8 +309,9 @@ DenylistSchema = {
 ### 7.2 Function Signatures
 
 ```python
+# --- API Layer ---
 def api_request(params: dict) -> dict:
-    """Make a request to Wikipedia API with proper User-Agent."""
+    """Make a request to Wikipedia API with proper User-Agent. Includes time.sleep(1.0)."""
     ...
 
 def fetch_page_wikitext(title: str) -> str:
@@ -228,10 +322,24 @@ def fetch_category_members(category: str) -> list[str]:
     """Enumerate all page titles in a Wikipedia category (handles continuation)."""
     ...
 
-def parse_ethnic_slurs_wikitext(wikitext: str) -> set[str]:
-    """Extract slur terms from the ethnic slurs article wikitext."""
+# --- Multi-Pass Parsing ---
+def parse_wikitables(wikitext: str) -> set[str]:
+    """Pass 1: Extract terms from wikitable cells."""
     ...
 
+def parse_definition_lists(wikitext: str) -> set[str]:
+    """Pass 2: Extract terms from definition list format (^;Term:)."""
+    ...
+
+def parse_bulleted_bold(wikitext: str) -> set[str]:
+    """Pass 3: Extract terms from bulleted bold format (* '''term''')."""
+    ...
+
+def parse_ethnic_slurs_wikitext(wikitext: str) -> set[str]:
+    """Aggregate all three parsing passes into a single set."""
+    ...
+
+# --- Normalization ---
 def extract_terms_from_title(title: str) -> list[str]:
     """Extract usable terms from a Wikipedia article title (filters non-terms)."""
     ...
@@ -244,6 +352,24 @@ def merge_and_normalize(sources: dict[str, set[str]]) -> list[str]:
     """Merge all sources, normalize to lowercase, deduplicate, sort."""
     ...
 
+# --- Safety Checks (BLOCKING) ---
+def check_safety_stop_list(terms: set[str]) -> list[str]:
+    """Return list of terms that match the stop-list. Empty = pass."""
+    ...
+
+def check_minimum_threshold(terms: set[str]) -> bool:
+    """Return True if term count >= MINIMUM_TERM_COUNT."""
+    ...
+
+def check_canary_terms(terms: set[str]) -> list[str]:
+    """Return list of missing canary terms. Empty = pass."""
+    ...
+
+def run_safety_checks(terms: set[str]) -> tuple[bool, str]:
+    """Run all safety checks. Returns (passed: bool, message: str)."""
+    ...
+
+# --- Entry Point ---
 def main() -> None:
     """CLI entry point with --dry-run and --deploy options."""
     ...
@@ -257,15 +383,18 @@ def main() -> None:
 
 3. FETCH ethnic slurs article:
    - Call API for wikitext
-   - Parse with regex patterns
-   - Extract terms to set
-   - Sleep 1 second (rate limit)
+   - time.sleep(1.0)  # MANDATORY rate limit
+   - MULTI-PASS PARSE:
+     - Pass 1: parse_wikitables(wikitext)
+     - Pass 2: parse_definition_lists(wikitext)
+     - Pass 3: parse_bulleted_bold(wikitext)
+   - Merge all passes into single set
 
 4. FOR EACH category in [Sexual_slang, Profanity]:
    - Call API for category members
-   - Handle continuation (loop until done)
+   - time.sleep(1.0)  # MANDATORY rate limit
+   - Handle continuation (loop until done, sleep between pages)
    - Filter titles to extract terms
-   - Sleep 1 second between requests
 
 5. LOG per-source statistics
 
@@ -277,27 +406,35 @@ def main() -> None:
    - Deduplicate
    - Sort alphabetically
 
-7. IF dry-run:
+7. RUN SAFETY CHECKS (BLOCKING):
+   - Check 1: Stop-List (common words) → FAIL if any match
+   - Check 2: Threshold (≥500 terms) → FAIL if below
+   - Check 3: Canaries (Seven Dirty Words) → FAIL if any missing
+   - IF any check fails: EXIT 1 with error message
+
+8. IF dry-run:
    - Log stats and sample terms
-   - Exit without saving
+   - Exit without saving (but still run safety checks)
    ELSE:
-   - Save to .rsdb/denylist.json
+   - Save to .rsdb/denylist.json (with safety_checks: "passed")
    - IF --deploy: copy to src/guardrails/resources/
 
-8. Report success with term count
+9. Report success with term count
 ```
 
 ## 8. Security Considerations
 
 | Concern | Mitigation | Status |
 |---------|------------|--------|
-| API abuse / rate limiting | 1 req/sec rate limit, proper User-Agent | Addressed |
+| **Data Poisoning (Wikipedia Vandalism)** | Safety Stop-List blocks top 100 common words; build fails if matched | Addressed |
+| **Silent Parsing Failure** | Minimum threshold (500 terms) catches empty/broken extraction | Addressed |
+| **Extraction Regression** | Canary terms (Seven Dirty Words) must be present or build fails | Addressed |
+| API abuse / rate limiting | `time.sleep(1.0)` between ALL requests, custom User-Agent | Addressed |
 | Injection via term content | Terms only used for string matching, not executed | Addressed |
-| Malicious content in Wikipedia | Wikipedia is community-moderated; terms are lowercased strings | Addressed |
 | Network errors | Proper exception handling with informative messages | TODO |
 | Stale data | Manual refresh process; `updated` field tracks freshness | Addressed |
 
-**Fail Mode:** Fail Closed - If API fails, utility exits with error. No partial data written.
+**Fail Mode:** Fail Closed - If ANY safety check fails, build exits with code 1. No partial data written.
 
 ## 9. Performance Considerations
 
@@ -315,12 +452,14 @@ def main() -> None:
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
-| Wikipedia article structure changes | Med | Low | Regex patterns designed for flexibility; monitor for failures |
+| **Wikipedia vandalism (data poisoning)** | High | Med | Safety Stop-List + build failure on common words |
+| **Silent parsing failure** | High | Low | Minimum threshold (500) + canary assertions |
+| Wikipedia article structure changes | Med | Low | Multi-pass parsing (3 formats); threshold catches total failures |
 | Category reorganization | Med | Low | Log warnings if expected categories empty |
 | API deprecation | High | Very Low | MediaWiki API is stable; version pinning not required |
 | Terms extracted incorrectly (false positives) | Low | Med | Manual review of output; sample in dry-run mode |
-| Terms missed (false negatives) | Med | Med | Multiple extraction patterns; log statistics for monitoring |
-| Rate limit exceeded / IP blocked | High | Low | Strict 1 req/sec; proper User-Agent with contact info |
+| Terms missed (false negatives) | Med | Med | Multi-pass parsing; log statistics for monitoring |
+| Rate limit exceeded / IP blocked | High | Low | `time.sleep(1.0)` enforced; proper User-Agent with contact info |
 
 ## 11. Verification & Testing
 
@@ -332,41 +471,56 @@ def main() -> None:
 | 020 | Full run creates file | Manual | (no args) | `.rsdb/denylist.json` created | File exists, valid JSON |
 | 030 | Deploy copies to resources | Manual | `--deploy` | Both files created | Files match |
 | 040 | Rate limiting respected | Manual | Observe logs | 1+ second between requests | Timestamps show delays |
-| 050 | Ethnic slurs extracted | Auto | Mock wikitext | Known terms present | Set contains expected terms |
-| 060 | Category members extracted | Auto | Mock API response | Titles converted to terms | Filter rules applied |
-| 070 | Compound terms split | Auto | `"abo / abbo"` | `["abo", "abbo"]` | Both terms in output |
-| 080 | Invalid titles filtered | Auto | `"List of profane words"` | Empty list | Title not in output |
-| 090 | Schema validation | Auto | Output JSON | Matches DenylistSchema | All required fields present |
-| 100 | Network error handling | Manual | Disconnect network | Graceful exit with error | No partial file, error logged |
-| 110 | Continuation handling | Auto | Mock paginated response | All pages fetched | Loop terminates correctly |
+| 050 | Wikitable parsing | Auto | Mock wikitext with `{\|...\|}` | Terms from tables extracted | Pass 1 populates set |
+| 055 | Definition list parsing | Auto | Mock wikitext with `;Term:` | Terms from definitions extracted | Pass 2 populates set |
+| 058 | Bulleted bold parsing | Auto | Mock wikitext with `* '''term'''` | Terms from bullets extracted | Pass 3 populates set |
+| 060 | Multi-pass aggregation | Auto | Mock wikitext (all formats) | All terms merged | Union of all passes |
+| 070 | Category members extracted | Auto | Mock API response | Titles converted to terms | Filter rules applied |
+| 080 | Compound terms split | Auto | `"abo / abbo"` | `["abo", "abbo"]` | Both terms in output |
+| 090 | Invalid titles filtered | Auto | `"List of profane words"` | Empty list | Title not in output |
+| 100 | Schema validation | Auto | Output JSON | Matches DenylistSchema | All fields incl. `generated_by`, `safety_checks` |
+| **110** | **Stop-List blocks common words** | Auto | Terms including "the" | Build fails (exit 1) | Error message names violating term |
+| **120** | **Threshold catches empty result** | Auto | < 500 terms | Build fails (exit 1) | Error message shows count |
+| **130** | **Canary catches missing terms** | Auto | Terms missing "fuck" | Build fails (exit 1) | Error message lists missing canaries |
+| **140** | **All safety checks pass** | Auto | Valid term set | `safety_checks: "passed"` in JSON | Build succeeds (exit 0) |
+| 150 | Network error handling | Manual | Disconnect network | Graceful exit with error | No partial file, error logged |
+| 160 | Continuation handling | Auto | Mock paginated response | All pages fetched | Loop terminates correctly |
 
 ### 11.2 Test Modules (from 0005)
 
-* **Unit Tests:** `poetry run pytest tests/test_wikipedia_denylist.py -v`
+* **Unit Tests:** `poetry run pytest tests/test_fetch_denylist.py -v`
+* **Fixtures Required:** All tests use mocked responses (Willison Protocol - no network)
 * **Semantic (Module B):** No - utility script, not runtime
 * **End-to-End (Module C):** No - offline utility
 
 ### 11.3 Manual Smoke Test
 
-1. Run: `poetry run python tools/wikipedia_denylist.py --dry-run`
+1. Run: `poetry run python tools/fetch_denylist.py --dry-run`
 2. Verify: Logs show term counts from 3 sources
-3. Verify: No file created in `.rsdb/`
-4. Run: `poetry run python tools/wikipedia_denylist.py`
-5. Verify: `.rsdb/denylist.json` exists with valid JSON
-6. Verify: `term_count` matches array length
-7. Run: `poetry run python tools/wikipedia_denylist.py --deploy`
-8. Verify: `src/guardrails/resources/denylist.json` matches staging file
+3. Verify: Logs show "Safety checks: PASSED"
+4. Verify: No file created in `.rsdb/`
+5. Run: `poetry run python tools/fetch_denylist.py`
+6. Verify: `.rsdb/denylist.json` exists with valid JSON
+7. Verify: `term_count` >= 500
+8. Verify: `generated_by` and `safety_checks` fields present
+9. Run: `poetry run python tools/fetch_denylist.py --deploy`
+10. Verify: `src/guardrails/resources/denylist.json` matches staging file
 
 ## 12. Definition of Done
 
 ### Code
-- [ ] `tools/wikipedia_denylist.py` implemented
-- [ ] Replaces or supplements `tools/rsdb_download.py`
+- [ ] `tools/fetch_denylist.py` implemented (new canonical name)
+- [ ] `tools/rsdb_download.py` DELETED (prevents zombie code)
+- [ ] Multi-pass parsing (wikitables, definitions, bullets)
+- [ ] Safety checks implemented (stop-list, threshold, canaries)
+- [ ] `time.sleep(1.0)` between ALL API calls
 - [ ] All functions have docstrings
 - [ ] Logging provides visibility into progress
 
 ### Tests
-- [ ] Unit tests for parsing functions (050-090)
+- [ ] Test fixtures created (`tests/fixtures/`)
+- [ ] Unit tests use mocked responses (no network)
+- [ ] Safety check tests pass (110-140)
 - [ ] Manual smoke test passes (010-040)
 - [ ] Output validated against schema
 
