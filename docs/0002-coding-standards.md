@@ -238,6 +238,24 @@ shadow.innerHTML = `<style>/* our styles */</style><div class="overlay">Content<
 document.body.appendChild(host);
 ```
 
+### 9.3 Dual-Extension Requirement (Chrome + Firefox)
+The extension is maintained as **two separate codebases**:
+- `extension-chrome-V3/` — Manifest V3 for Chrome (uses `chrome.*` APIs)
+- `extension-firefox-V2/` — Manifest V2 for Firefox (uses `browser.*` APIs)
+
+**Rule:** When making ANY change to extension logic, you MUST:
+1. Apply the change to BOTH directories
+2. Test in BOTH Chrome and Firefox before committing
+3. Note in the commit message that both were updated
+
+**API Differences:**
+| Chrome V3 | Firefox V2 |
+|:----------|:-----------|
+| `chrome.scripting.executeScript()` | `browser.tabs.executeScript()` |
+| `chrome.action.*` | `browser.browserAction.*` |
+| `chrome.storage.local.get()` | `browser.storage.local.get()` |
+
+**Rationale:** Firefox MV3 support is immature. Maintaining separate codebases avoids cross-browser timing bugs that are nearly impossible to debug.
 
 ## 10. Git Worktree Protocols
 
