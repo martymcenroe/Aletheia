@@ -13,27 +13,32 @@ To eliminate the friction of managing multiple GitHub accounts and the cost of O
 * **Git (`git`):** Used for version control.
 * **No GUIs:** Do not rely on the GitHub web interface or IDE buttons for core workflow tasks.
 
-## 3. The "Flip Turn" Workflow (9 Steps)
-Every feature or fix must strictly follow this 9-step execution loop to ensure hygiene and recoverability.
+## 3. The "Flip Turn" Workflow (11 Steps)
+Every feature or fix must strictly follow this 11-step execution loop to ensure hygiene and recoverability.
 
 | Step | Action | Command Pattern |
 | :--- | :--- | :--- |
 | **1. Issue** | Discovery & Claim | `gh issue create` or `gh issue list` |
-| **2. Worktree** | Isolation | `git worktree add ../Aletheia-ID -b ID-desc` (See 0002 Section 10) |
-| **3a. Docs** | Update Specs/Standards | Edit `docs/10xx-feature.md` |
-| **3b. Code** | Implementation | Edit source files |
-| **4. Stage** | Preparation | `git add file.py` |
-| **5. Commit** | Save | `git commit -m "type: desc (ref #ID)"` |
-| **6. Push** | Team Visibility (REQUIRED) | `git push -u origin HEAD` - Never keep branches local-only |
-| **7. PR** | Review | `gh pr create --fill` |
-| **8. Merge** | Finalize (from main folder) | `cd ../Aletheia && gh pr merge --squash` |
-| **9. Cleanup** | Remove worktree + branches | `git worktree remove ../Aletheia-ID && git branch -d ID-desc && git push origin --delete ID-desc` |
+| **2. Docs** | Write LLD (on main) | Create/edit `docs/1xxx-feature.md` |
+| **3. Review** | Submit for feedback | Orchestrator routes to senior LLM architect |
+| **4. Iterate** | Incorporate feedback | Edit LLD until all questions resolved |
+| **5. Gate** | Request permission | State: "All feedback incorporated. May I proceed?" |
+| **6. Worktree** | Isolation (after approval) | `git worktree add ../Aletheia-ID -b ID-desc` |
+| **7. Code** | Implementation | Edit source files |
+| **8. Commit** | Save | `git commit -m "type: desc (ref #ID)"` |
+| **9. Push** | Team Visibility (REQUIRED) | `git push -u origin HEAD` |
+| **10. PR** | Review | `gh pr create --fill` |
+| **11. Cleanup** | Remove worktree + branches | After merge: `git worktree remove` + branch cleanup |
 
-**Step 2 Rationale:** Worktrees provide complete isolation without affecting main. Never use `git checkout -b` in the main folder.
+**Step 2 Rationale:** LLDs are written on main before any worktree exists. This ensures the plan is reviewed before implementation begins.
 
-**Step 6 Rationale:** Remote branches provide backup, enable collaboration between agents, and give the orchestrator visibility into active work. Local-only branches violate team collaboration principles.
+**Step 5 Rationale (CRITICAL):** The agent must explicitly ask permission to code. This gate prevents wasted implementation effort on flawed designs.
 
-**Step 9 Rationale:** Zombie worktrees and remote branches clutter the system. ALWAYS clean up completely after merge.
+**Step 6 Rationale:** Worktrees provide complete isolation without affecting main. Never use `git checkout -b` in the main folder. Only create worktree AFTER Step 5 approval.
+
+**Step 9 Rationale:** Remote branches provide backup, enable collaboration between agents, and give the orchestrator visibility into active work. Local-only branches violate team collaboration principles.
+
+**Step 11 Rationale:** Zombie worktrees and remote branches clutter the system. ALWAYS clean up completely after merge.
 
 ## 4. Emergency Recovery
 If the session context is lost or the environment destabilizes, strict **Emergency Recovery Mode** is active.
@@ -130,51 +135,69 @@ flowchart TD
         A[Issue Created] --> B[LLD Written]
         B --> C{Architectural Decision?}
         C -->|Yes| D[ADR Written]
-        C -->|No| E[Ready for Implementation]
+        C -->|No| E[Submit for Review]
         D --> E
     end
 
-    E --> F[Create Worktree]
+    subgraph "DESIGN REVIEW GATE"
+        E --> F[Orchestrator Reviews]
+        F --> G[Senior LLM Architect Feedback]
+        G --> H{Feedback?}
+        H -->|Yes| I[Incorporate into LLD]
+        I --> J{Questions Remain?}
+        J -->|Yes| K[Discuss with Orchestrator]
+        K --> J
+        J -->|No| L[Agent States: All feedback incorporated]
+        H -->|No| L
+        L --> M[Agent Asks: May I proceed?]
+        M --> N{Permission Granted?}
+        N -->|No| I
+    end
+
+    N -->|Yes| O[Create Worktree]
 
     subgraph "ON WORKTREE (Implementation)"
-        F --> G[Write Code]
-        G --> H[Write Tests]
-        H --> I{Tests Pass?}
-        I -->|No| G
-        I -->|Yes| J[Create Implementation Report]
-        J --> K[Create Test Report]
-        K --> L[Push + Create PR]
+        O --> P[Write Code]
+        P --> Q[Write Tests]
+        Q --> R{Tests Pass?}
+        R -->|No| P
+        R -->|Yes| S[Create Implementation Report]
+        S --> T[Create Test Report]
+        T --> U[Push + Create PR]
     end
 
-    subgraph "REVIEW CYCLE"
-        L --> M[Orchestrator Reviews]
-        M --> N[Manual Smoke Tests]
-        N --> O{Issues Found?}
-        O -->|Yes, Bug| P[LLM Fixes on Worktree]
-        P --> I
-        O -->|Yes, New Feature| Q[Create New Issue]
-        Q --> R[Note in Reports]
-        R --> S{Blocking?}
-        S -->|No| T[Continue Review]
-        O -->|No| T
-        S -->|Yes| U[Defer Merge]
+    subgraph "CODE REVIEW CYCLE"
+        U --> V[Orchestrator Reviews]
+        V --> W[Manual Smoke Tests]
+        W --> X{Issues Found?}
+        X -->|Yes, Bug| Y[LLM Fixes on Worktree]
+        Y --> R
+        X -->|Yes, New Feature| Z[Create New Issue]
+        Z --> AA[Note in Reports]
+        AA --> AB{Blocking?}
+        AB -->|No| AC[Continue Review]
+        X -->|No| AC
+        AB -->|Yes| AD[Defer Merge]
     end
 
-    T --> V{Approved?}
-    V -->|No| P
-    V -->|Yes| W[Squash Merge]
+    AC --> AE{Approved?}
+    AE -->|No| Y
+    AE -->|Yes| AF[Squash Merge]
 
     subgraph "ON MAIN (After Merge)"
-        W --> X[Delete Worktree]
-        X --> Y[Update LLD if Deviations]
-        Y --> Z[Update Lessons Learned]
-        Z --> AA[Write Session Log]
+        AF --> AG[Delete Worktree]
+        AG --> AH[Update LLD if Deviations]
+        AH --> AI[Update Lessons Learned]
+        AI --> AJ[Write Session Log]
     end
 
     style A fill:#e1f5fe
-    style W fill:#c8e6c9
-    style Q fill:#fff9c4
+    style N fill:#ff8a65
+    style AF fill:#c8e6c9
+    style Z fill:#fff9c4
 ```
+
+**Note:** The orange diamond (Permission Granted?) is the critical gate. No code is written until the agent explicitly asks and receives permission.
 
 ### 8.2 Document Locations
 

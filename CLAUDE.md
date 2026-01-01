@@ -15,6 +15,16 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 - ❌ `TZ='America/Chicago' date` - Returns UTC on Windows, not local time
 
 ### Required Workflow:
+- **Docs before Code:** You MUST write the relevant `docs/` file (LLD or Standard) *before* writing a single line of code.
+- **Review Gate (MANDATORY):** After writing the LLD:
+  1. **STOP.** Do not create a worktree or write any code.
+  2. Submit the LLD for orchestrator review.
+  3. Orchestrator routes to senior LLM architect for feedback.
+  4. Incorporate all feedback into the LLD.
+  5. Discuss until there are no remaining questions.
+  6. Make explicit statement: *"All feedback has been incorporated. I am ready to code."*
+  7. **ASK PERMISSION:** *"May I proceed with implementation?"*
+  8. Only after orchestrator approval: create worktree and code.
 - **Worktree before code:** Create isolated worktree for each feature:
   ```bash
   git worktree add ../Aletheia-{IssueID} -b {IssueID}-short-desc
@@ -23,7 +33,6 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
   - Example: Issue #45 → `git worktree add ../Aletheia-45 -b 45-denylist`
   - ❌ NEVER use `git checkout -b` in the main folder
   - See ADR 0210 for rationale
-- **Docs before Code:** You MUST update the relevant `docs/` file (LLD or Standard) *before* writing a single line of code.
 - **Push immediately:** `git push -u origin HEAD` - NEVER keep branches local-only
 - **Commit format:** `type: description (ref #ID)` or `(close #ID)` when complete
 - **Cleanup completely:** Delete BOTH local and remote branches after merge:
