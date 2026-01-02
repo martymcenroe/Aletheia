@@ -26,6 +26,8 @@
 | `IMMEDIATE-PLAN.md` | **Log** | 🟢 **Stable** | - | Current session focus and context handoff. |
 | `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
 | `pyproject.toml` | **Config** | 🟢 **Stable** | - | Python dependencies. |
+| `package.json` | **Config** | 🟢 **Stable** | #95 | Node.js dependencies (Playwright E2E). |
+| `playwright.config.js` | **Config** | 🟢 **Stable** | #95 | Playwright test configuration. |
 
 ### 00xx Core Standards
 | File | Role | Status | Linked Issue | Description |
@@ -112,7 +114,7 @@
 | `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
 | `docs/1124-digital-etymologist.md` | **Spec** | 🟠 **In-Progress** | #124 | Digital Etymologist persona with structured JSON response. |
 | `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
-| `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
+| `docs/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
 | `docs/1084-signal-inspector.md` | **Spec** | 🟢 **Stable** | #84 | Signal Inspector CLI for compliance auditing. |
 
@@ -143,6 +145,8 @@
 | `docs/reports/121/test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
 | `docs/reports/84/implementation-report.md` | **Report** | 🟢 **Stable** | #84 | Implementation report for Signal Inspector CLI. |
 | `docs/reports/84/test-report.md` | **Report** | 🟢 **Stable** | #84 | Test report for Signal Inspector CLI. |
+| `docs/reports/95/implementation-report.md` | **Report** | 🟢 **Stable** | #95 | Implementation report for security hardening via CloudFront + WAF. |
+| `docs/reports/95/test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
@@ -177,7 +181,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
 | `extension/overlay.js` | **Logic** | 🟢 **Stable** | #114 | Injected overlay UI (Shadow DOM isolated). |
-| `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76 | Background script with allowlist gate. |
+| `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76, #95 | Background script with allowlist gate and WAF header. |
 | `extension/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
 | `extension/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
 | `extension/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
@@ -220,6 +224,7 @@
 | `tools/aws/lambda-status.sh` | **Utility** | 🟢 **Stable** | - | Show Lambda concurrency status (ON/OFF). |
 | `tools/aws/lambda-on.sh` | **Utility** | 🟢 **Stable** | - | Enable Lambda (remove concurrency limit). |
 | `tools/aws/lambda-off.sh` | **Utility** | 🟢 **Stable** | - | Disable Lambda (set concurrency=0). |
+| `tools/aws/waf-setup.sh` | **Utility** | 🟢 **Stable** | #95 | CloudFront + WAF setup with rate limiting (--env dev/prod). |
 
 ### Testing & Verification
 | File | Role | Status | Linked Issue | Description |
@@ -237,6 +242,9 @@
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
 | `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |
+| `tests/infra/verify_waf.sh` | **Test** | 🟢 **Stable** | #95 | Automated WAF verification (no vibes testing). |
+| `tests/e2e/waf-integration.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for WAF integration. |
+| `tests/fixtures/html/test-waf.html` | **Fixture** | 🟢 **Stable** | #95 | Test page for WAF E2E tests. |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
 | `docs/security/vulnerability-test.md` | **Test** | 🟢 **Stable** | #95 | Manual vulnerability reproduction scripts. |
