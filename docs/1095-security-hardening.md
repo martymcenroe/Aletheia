@@ -3,7 +3,7 @@
 ## 1. Context & Goal
 * **Issue:** #95
 * **Objective:** Protect Lambda from abuse via AWS WAF (rate limiting + header validation)
-* **Status:** Draft
+* **Status:** Complete
 * **Related Issues:** #116 (OAuth - future auth gate)
 
 ## 2. Requirements

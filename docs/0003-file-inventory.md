@@ -113,7 +113,7 @@
 | `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
 | `docs/1124-digital-etymologist.md` | **Spec** | 🟠 **In-Progress** | #124 | Digital Etymologist persona with structured JSON response. |
 | `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
-| `docs/1095-security-hardening.md` | **Spec** | 🟠 **In-Progress** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
+| `docs/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
 
 ### Prototypes & Design Artifacts
@@ -141,6 +141,8 @@
 | `docs/reports/114/test-report.md` | **Report** | 🟢 **Stable** | #114 | Test report for overlay restore. |
 | `docs/reports/121/implementation-report.md` | **Report** | 🟢 **Stable** | #121 | Implementation report for Wikipedia denylist integration. |
 | `docs/reports/121/test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
+| `docs/reports/95/implementation-report.md` | **Report** | 🟢 **Stable** | #95 | Implementation report for security hardening via CloudFront + WAF. |
+| `docs/reports/95/test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
@@ -169,7 +171,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
 | `extension/overlay.js` | **Logic** | 🟢 **Stable** | #114 | Injected overlay UI (Shadow DOM isolated). |
-| `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76 | Background script with allowlist gate. |
+| `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76, #95 | Background script with allowlist gate and WAF header. |
 | `extension/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
 | `extension/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
 | `extension/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
