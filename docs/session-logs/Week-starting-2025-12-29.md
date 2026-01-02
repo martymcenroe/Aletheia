@@ -1265,3 +1265,33 @@ Completed Firefox MV2 extension support and Chrome/Firefox extension separation.
 - **Open PRs:** 3 (#138, #133, #131)
 - **Lambda:** Not checked
 - **Next:** Merge PR #138, then Store Compliance #51/#53
+
+---
+
+## 2026-01-01 19:30-19:36 CT | Claude Opus 4.5
+
+### Summary
+Continuation session to verify Issue #95 closeout was complete. Re-executed full 0009-session-closeout-protocol from beginning. All steps verified complete. Committed pending permissions update and regenerated 6000-open-issues.md. Turned Lambda OFF for cost control.
+
+### 0009 Protocol Verification
+| Step | Status | Notes |
+|------|--------|-------|
+| 0. Reports | Verified | `docs/reports/95/` contains both reports |
+| 1. Git Hygiene | Verified | Clean tree, no #95 branches remain |
+| 2. Issue Audit | Verified | Issue #95 CLOSED |
+| 3. PR Audit | Verified | PR #136 MERGED |
+| 4. Doc Sync | Verified | LLD status = Complete, 6000 regenerated |
+| 5. Inventory | Verified | 11 entries reference #95 |
+| 6. Lessons | Verified | 5 lessons captured |
+| 7. Session Log | Verified | Previous entry exists |
+| 8. Final State | Verified | Main clean |
+
+### Commits Made
+- `chore: update Claude Code permissions` (git restore permission)
+- `docs: regenerate 6000-open-issues.md`
+
+### State on Exit
+- **Branch:** `main` @ 37ed5f6
+- **Open PRs:** 3 (#138, #133, #131)
+- **Lambda:** OFF
+- **Next:** Per IMMEDIATE-PLAN.md
