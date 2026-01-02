@@ -112,7 +112,7 @@
 | `docs/1116-linkedin-oauth.md` | **Spec** | 🟠 **In-Progress** | #116 | LinkedIn OAuth authentication for user gating. |
 | `docs/legacy/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
 | `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
-| `docs/1124-digital-etymologist.md` | **Spec** | 🟠 **In-Progress** | #124 | Digital Etymologist persona with structured JSON response. |
+| `docs/1124-digital-etymologist.md` | **Spec** | 🟢 **Stable** | #124 | Digital Etymologist persona with structured JSON response. |
 | `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
 | `docs/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
@@ -149,6 +149,8 @@
 | `docs/reports/95/test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
 | `docs/reports/100/implementation-report.md` | **Report** | 🟢 **Stable** | #100 | Implementation report for Firefox compatibility. |
 | `docs/reports/100/test-report.md` | **Report** | 🟢 **Stable** | #100 | Test report for Firefox compatibility. |
+| `docs/reports/124/implementation-report.md` | **Report** | 🟢 **Stable** | #124 | Implementation report for Digital Etymologist. |
+| `docs/reports/124/test-report.md` | **Report** | 🟢 **Stable** | #124 | Test report for Digital Etymologist. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
@@ -162,8 +164,9 @@
 ### Core Application (Python)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `src/lambda_function.py` | **Entry** | 🟢 **Stable** | #113 | Main AWS Lambda handler (Naked Python orchestrator). |
+| `src/lambda_function.py` | **Entry** | 🟢 **Stable** | #113, #124 | Main AWS Lambda handler (Naked Python orchestrator, Digital Etymologist). |
 | `src/lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
+| `src/etymologist.py` | **Logic** | 🟢 **Stable** | #124 | Digital Etymologist persona with structured JSON output. |
 | `src/__init__.py` | **Module** | 🟢 **Stable** | - | Package init. |
 | `src/guardrails/__init__.py` | **Module** | 🟢 **Stable** | - | Guardrails package init. |
 | `src/guardrails/denylist.py` | **Logic** | 🟢 **Stable** | #45 | Denylist guardrail (hash-based term blocking). |
@@ -243,12 +246,14 @@
 | `tests/test_denylist.py` | **Test** | 🟢 **Stable** | #45 | Unit tests for denylist guardrail. |
 | `tests/test_fetch_denylist.py` | **Test** | 🟢 **Stable** | #121 | Unit tests for Wikipedia denylist fetcher (26 tests). |
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
-| `tests/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113 | Unit tests for Lambda handler. |
+| `tests/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113, #124 | Unit tests for Lambda handler. |
+| `tests/test_etymologist.py` | **Test** | 🟢 **Stable** | #124 | Unit tests for Digital Etymologist (51 tests). |
 | `tests/test_signal_inspector.py` | **Test** | 🟢 **Stable** | #84 | Unit + live tests for Signal Inspector (31 tests). |
 | `tests/fixtures/signal_inspector/` | **Data** | 🟢 **Stable** | #84 | HTML/txt test fixtures for signal parsing. |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
 | `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |
+| `tests/data/etymology_golden_set.json` | **Data** | 🟢 **Stable** | #124 | Golden set for Digital Etymologist (20 terms, 8 extraction tests, 6 validation tests). |
 | `tests/infra/verify_waf.sh` | **Test** | 🟢 **Stable** | #95 | Automated WAF verification (no vibes testing). |
 | `tests/e2e/waf-integration.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for WAF integration. |
 | `tests/fixtures/html/test-waf.html` | **Fixture** | 🟢 **Stable** | #95 | Test page for WAF E2E tests. |

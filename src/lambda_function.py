@@ -4,18 +4,22 @@ Lambda Function - Naked Python Orchestrator.
 Replaces LangGraph/LangChain with pure boto3 for faster cold starts.
 See: docs/1113-naked-python-architecture.md
 
-Pipeline: Input → Validate → Denylist → Semantic → Persist → Generate → Stream
+Pipeline: Input → Validate → Denylist → Semantic → Persist → Generate (Buffered)
+
+Updated by Issue #124 to use Digital Etymologist persona with structured JSON output.
+See: docs/1124-digital-etymologist.md
 """
 import hashlib
 import json
 import logging
 import os
 import time
-from typing import Any, Iterator
+from typing import Any
 
 import boto3
 from botocore.exceptions import ClientError
 
+from .etymologist import HAIKU_MODEL_ID, analyze_term
 from .guardrails.denylist import check_denylist, load_denylist
 from .guardrails.semantic import SemanticGuardrail
 
@@ -24,9 +28,8 @@ logger.setLevel(logging.INFO)
 
 # Configuration
 DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", "aletheia-state")
-BEDROCK_MODEL_ID = os.environ.get(
-    "BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0"
-)
+# Issue #124: Use Haiku for <3s latency requirement
+BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", HAIKU_MODEL_ID)
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 # Lazy-initialized clients (warm start optimization)
@@ -134,53 +137,27 @@ def save_state(thread_id: str, data: dict) -> None:
         raise
 
 
-def generate(prompt: str, context: str = "") -> Iterator[str]:
+def generate_etymology(word: str, context: str = "") -> dict:
     """
-    Stream response chunks from Bedrock.
+    Generate etymology analysis using Digital Etymologist persona.
 
-    See: docs/1113-naked-python-architecture.md Section 7.2
+    Uses buffered Bedrock invocation (not streaming) for reliable JSON extraction.
+    See: docs/1124-digital-etymologist.md
+
+    Args:
+        word: The term to analyze.
+        context: Page context for disambiguation.
+
+    Returns:
+        AnalysisResult dict with status, response, and metadata.
     """
     client = get_bedrock_client()
-
-    system_prompt = (
-        "You are Aletheia, a helpful assistant that provides context and "
-        "historical information about words and phrases. Be educational, "
-        "respectful, and avoid reproducing harmful content. "
-        "If the term has problematic origins, explain them sensitively."
+    return analyze_term(
+        word=word,
+        context=context,
+        bedrock_client=client,
+        model_id=BEDROCK_MODEL_ID,
     )
-
-    if context:
-        system_prompt += f"\n\nContext from the page: {context}"
-
-    payload = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1024,
-        "system": system_prompt,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"Please explain the origin and meaning of: {prompt}",
-                    }
-                ],
-            }
-        ],
-    }
-
-    response = client.invoke_model_with_response_stream(
-        modelId=BEDROCK_MODEL_ID, body=json.dumps(payload)
-    )
-
-    for event in response.get("body", []):
-        chunk = event.get("chunk")
-        if chunk:
-            chunk_data = json.loads(chunk.get("bytes", b"{}"))
-            if chunk_data.get("type") == "content_block_delta":
-                delta = chunk_data.get("delta", {})
-                if delta.get("type") == "text_delta":
-                    yield delta.get("text", "")
 
 
 def run_guardrails(
@@ -271,20 +248,28 @@ def lambda_handler(
             },
         )
 
-        # 5. Generate response
+        # 5. Generate etymology analysis (buffered, not streaming)
+        # Issue #124: Digital Etymologist returns structured JSON
         context_text = body.get("domContext", "")
-        response_chunks = []
-        for chunk in generate(text, context_text):
-            response_chunks.append(chunk)
+        result = generate_etymology(text, context_text)
 
-        full_response = "".join(response_chunks)
+        # Build response with structured output
+        response_body = {
+            "thread_id": thread_id,
+            "status": result["status"],
+            "signal": result["response"]["signal"],
+            "gem": result["response"]["gem"],
+            "context": result["response"]["context"],
+        }
+
+        # Include latency for monitoring
+        if result.get("metadata", {}).get("latency_ms"):
+            response_body["latency_ms"] = result["metadata"]["latency_ms"]
 
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(
-                {"response": full_response, "thread_id": thread_id}
-            ),
+            "body": json.dumps(response_body),
         }
 
     except ClientError as e:
