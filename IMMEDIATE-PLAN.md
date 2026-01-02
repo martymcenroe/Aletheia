@@ -1,7 +1,7 @@
 # Immediate Plan: MVP Path to Store Submission
 
-**Updated:** 2026-01-01 19:21 CT
-**Status:** PR #138 ready for merge, then Store Compliance
+**Updated:** 2026-01-01 20:11 CT
+**Status:** Implement #105 → merge #104 → then Store Compliance
 
 ---
 
@@ -22,7 +22,7 @@
 
 ## Critical Path to Store Submission
 
-### Step 1: Merge PR #138 (Firefox Support) ← IMMEDIATE
+### Step 1: Merge PR #138 (Firefox Support)
 **PR:** #138 - feat: Firefox MV2 support and Chrome/Firefox extension separation (ref #100)
 **Status:** Ready for orchestrator merge
 
@@ -33,7 +33,31 @@
 - Stateful timer management for smooth overlay transitions
 - Build script for release ZIPs
 
-### Step 2: Store Compliance (#51)
+### Step 2: Test Infrastructure (#105) ← NEXT
+**LLD:** `docs/1105-test-site-infrastructure.md`
+**Status:** LLD approved (Gemini reviewed), ready for implementation
+**Worktree:** Create `Aletheia-105`
+
+**What it adds:**
+- GitHub Pages test site hosting
+- Playwright E2E test framework
+- 8 test HTML fixtures (age gate + XSS)
+- `TEST_BASE_URL` env var for flexibility
+- QA Sandbox disclaimers for GitHub ToS compliance
+
+### Step 3: Age-Restricted Blocking (#104)
+**LLD:** `docs/1104-age-restricted-blocking.md`
+**PR:** #133 (code complete, 33 unit tests passing)
+**Status:** Blocked by #105 for E2E test verification
+**Worktree:** `Aletheia-104` (active)
+
+**What it adds:**
+- Blocks `rating="adult"` and RTA pattern
+- Allows `rating="mature"`
+- Three-state tab management (UNKNOWN/RESTRICTED/ALLOWED)
+- "Not Permitted" popup and badge
+
+### Step 5: Store Compliance (#51)
 **LLD:** `docs/1051-store-compliance.md`
 **Status:** Needs LLD update
 
@@ -41,7 +65,7 @@
 - Privacy policy (may need GitHub Pages)
 - Store listing description
 
-### Step 3: Store Assets (#53)
+### Step 6: Store Assets (#53)
 **LLD:** `docs/1053-store-assets.md`
 **Status:** LLD updated, partially implemented
 
@@ -49,7 +73,7 @@
 - Screenshots (1280x800 or 640x400) - NOT DONE
 - Promotional tiles (440x280) - NOT DONE
 
-### Step 4: Submit to Chrome Web Store
+### Step 7: Submit to Chrome Web Store
 - Developer account ($5 one-time)
 - Upload zip and assets
 - Submit for review (takes 1-3 days)

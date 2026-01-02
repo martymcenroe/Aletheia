@@ -1390,3 +1390,84 @@ Session continued from context summary. Completed Issue #124 (Digital Etymologis
 - **Worktrees:** 1 (Aletheia-104 - other agent's work)
 - **Lambda:** OFF
 - **Next:** #51/#53 Store Compliance per IMMEDIATE-PLAN.md
+
+## 2026-01-01 20:09 CST - Gemini 3.0 Pro
+
+**Summary:**
+Diagnosed the "Saving..." overlay latency issue (#137) as a backend architectural bottleneck where Lambda buffers the full Bedrock generation before responding. Proposed a "True Streaming" fix and defined a verification plan for Opus (fix frontend timer gap -> test backend with `max_tokens=10`). Reviewed and approved LLD 1105 (Test Site Infrastructure) with no blocking issues. Clarified the contents of the denylist and test data files.
+
+**Files Analyzed:**
+- `docs/GEMINI-HANDOFF-OVERLAY-TIMING.md`
+- `src/lambda_function.py`
+- `extension-chrome-V3/overlay.js`
+- `docs/1105-test-site-infrastructure.md`
+- `src/guardrails/resources/denylist.json`
+- `test_ground_truth.json`
+
+**Issues Updated:**
+- **#137 (Lambda Latency):** Diagnosis complete. Root cause identified as synchronous full-text buffering. Fix plan defined (decouple "Saved" from "Generation").
+- **#105 (Test Sites):** LLD approved. Ready for implementation.
+
+**State on Exit:**
+- **Blocking:** None.
+- **Next Steps:**
+    1. Opus to refactor `overlay.js` to fix the timer gap (stateful management).
+    2. Opus to verify backend speedup by hardcoding `max_tokens=10` in Lambda.
+    3. Implement `docs/1105-test-site-infrastructure.md`.
+
+---
+
+## 2026-01-01 20:11 CT | Claude Opus 4.5
+
+### Summary
+Implemented Issue #104 (Age-Restricted Blocking) - the "Age Gate" to prevent Aletheia from running on adult content websites. Created pure detection logic with 33 unit tests following TDD/Willison Protocol. Also wrote LLD for Issue #105 (Test Site Infrastructure) to unblock E2E verification. Updated IMMEDIATE-PLAN.md to prioritize #105 and #104 before store assets.
+
+### Feature Work
+- **#104 Age Gate Implementation:**
+  - `extension/content-safety.js` - Pure detection logic (`isAgeRestricted()`)
+  - `extension/content-check.js` - DOM wrapper for meta tag query
+  - `extension/service-worker.js` - Three-state tab management (UNKNOWN/RESTRICTED/ALLOWED)
+  - `extension/popup.js/html/css` - Restricted and Checking views
+  - `tests/unit/test_content_safety.js` - 33 unit tests (all passing)
+  - `package.json` - Jest test configuration
+  - PR #133 created (code complete, awaiting E2E tests)
+
+### Tooling
+- **#105 LLD Created:** `docs/1105-test-site-infrastructure.md`
+  - GitHub Pages test site hosting
+  - Playwright E2E test framework
+  - 8 test HTML fixtures (age gate + XSS protection)
+  - `TEST_BASE_URL` env var for flexibility
+  - QA Sandbox disclaimers (Gemini review feedback incorporated)
+- **IMMEDIATE-PLAN.md Updated:** Added Steps 2-3 for #105/#104 before store assets
+
+### Files Created/Modified
+- `extension/content-safety.js` (new)
+- `extension/content-check.js` (new)
+- `extension/service-worker.js` (modified)
+- `extension/popup.js` (modified)
+- `extension/popup.html` (modified)
+- `extension/popup.css` (modified)
+- `tests/unit/test_content_safety.js` (new)
+- `package.json` (new)
+- `docs/1105-test-site-infrastructure.md` (new)
+- `docs/reports/104/implementation-report.md` (new)
+- `docs/reports/104/test-report.md` (new)
+- `docs/0003-file-inventory.md` (updated)
+- `IMMEDIATE-PLAN.md` (updated)
+
+### Issues
+- **Updated:** #104 (code complete, PR #133)
+- **Updated:** #105 (LLD written and reviewed)
+
+### Lessons Learned
+- **MV3 Content Script Module Limitation:** Chrome MV3 content scripts cannot import ES modules. Required inline copy of `isAgeRestricted()` logic in `content-check.js`. Added comment to keep in sync with `content-safety.js`.
+- **TDD Verification Method:** To verify tests fail without implementation, temporarily rename the module file (`mv file.js file.js.bak`) since `git stash` won't work on uncommitted new files.
+
+### State on Exit
+- **Worktrees:**
+  - `Aletheia/` on `main` @ d1e23aa
+  - `Aletheia-104/` on `104-age-block` @ 5b3e88e (PR #133)
+- **Open PRs:** #133 (age gate - awaiting E2E tests from #105)
+- **Lambda:** Unknown (not checked)
+- **Next:** Implement #105 (test infrastructure) to unblock #104 merge
