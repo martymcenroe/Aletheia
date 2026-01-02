@@ -154,7 +154,7 @@ def generate(prompt: str, context: str = "") -> Iterator[str]:
 
     payload = {
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 10,  # TEMP: Speed test per Gemini - revert to 1024 after testing
+        "max_tokens": 1024,
         "system": system_prompt,
         "messages": [
             {
