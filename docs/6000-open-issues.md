@@ -1,20 +1,33 @@
-Print mode: double-sided
+# Aletheia - Open Issues
 
-Fetching open issues from GitHub...
-Fetched 28 open issues
-Saving to docs\6000-open-issues.md...
-Saved docs\6000-open-issues.md
-Generating PDF with pandoc...
-Generated temp-pdfs\6000-open-issues.pdf
-Printing temp-pdfs\6000-open-issues.pdf...
-Double-sided printing requested.
-Sent to printer: Brother HL-L6300DW series Printer (double-sided)
+**Generated:** 2026-01-01 19:25 CT
+**Total Open Issues:** 29
 
-Complete!
-   Markdown: docs\6000-open-issues.md
-   PDF: temp-pdfs\6000-open-issues.pdf (deleted after print)
-   Printed to: Brother HL-L6300DW series Printer (double-sided)
-en usage.
+---
+
+## Issue #6: feat: Implement RAG Vector Store
+
+**Labels:** feature
+
+**Created:** 2025-11-24
+**Updated:** 2025-12-24
+
+### Description
+
+Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
+
+---
+
+## Issue #7: chore: Add Observability Tracing
+
+**Labels:** chore
+
+**Created:** 2025-11-24
+**Updated:** 2025-12-30
+
+### Description
+
+Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
 
 ## Updated Context
 LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
@@ -51,11 +64,32 @@ Prepare assets (Manifest, Privacy Policy, Store Listing) for submission.
 **Labels:** chore
 
 **Created:** 2025-12-10
-**Updated:** 2025-12-24
+**Updated:** 2026-01-01
 
 ### Description
 
-Script to zip extension and gen placeholder images.
+## Objective
+Create a script (`tools/generate_store_assets.py`) to deterministically generate production-ready assets for the Chrome Web Store submission.
+
+## Requirements
+
+### 1. Icon Generation
+- **Input:** `tools/master_lambda.png` (High-res source)
+- **Output:** `extension/icons/` {16, 32, 48, 128}.png
+- **Constraint:** Transparent backgrounds, optimized PNGs.
+
+### 2. Promotional Tiles (Placeholders)
+- **Small Tile:** 440x280px (Required by Store) - Simple brand color background + Logo.
+- **Marquee:** 1400x560px (Required by Store) - "Context, Verified" tagline.
+
+### 3. Zip Packaging
+- Script must create `aletheia-v{version}.zip`.
+- **CRITICAL EXCLUSIONS:** `src/` (Python backend), `.git/`, `docs/`, `tests/`, `.env`.
+- **INCLUSIONS:** `manifest.json`, `service-worker.js`, `overlay.js`, `popup.html`, `popup.js`, `popup.css`, `icons/`.
+
+## Acceptance Criteria
+- [ ] Zip file contains **only** client-side artifacts.
+- [ ] No Python code or secrets leaked in the extension zip.
 
 ---
 
@@ -147,86 +181,6 @@ Replace the cyberpunk/retro landing page with a modern, professional design that
 
 ---
 
-## Issue #84: tool: Create 'Signal Inspector' CLI for compliance verification
-
-**Labels:** chore
-
-**Created:** 2025-12-22
-**Updated:** 2025-12-24
-
-### Description
-
-## Objective
-Create a CLI tool (`tools/inspect_signals.py`) to harvest and audit copyright/compliance signals (`noai`, `noarchive`, `robots.txt`) from target URLs. This provides the ground truth data needed to implement the strategy in `docs/0007-legal-compliance-strategy.md`.
-
-## UX Flow
-
-### Scenario 1: Single Site Inspection
-1. User runs: `python tools/inspect_signals.py -u https://www.wsj.com`
-2. System fetches URL (spoofing standard Chrome User-Agent).
-3. System checks `robots.txt`, HTML Meta Tags, and HTTP Headers.
-4. System prints color-coded report to console:
-   - **ROBOTS.TXT:** Allowed
-   - **NOARCHIVE:** TRUE (Meta Tag)
-   - **NOAI:** FALSE
-5. System appends result to `data/signal_audit.json`.
-
-### Scenario 2: Batch Inspection
-1. User runs: `python tools/inspect_signals.py -f docs/test_urls.txt`
-2. System iterates through each URL in the file.
-3. System prints progress bar or line-by-line status.
-4. All results appended to `data/signal_audit.json`.
-
-## Requirements
-
-### Input Handling
-1. **`-u / --url <string>`**: Target a single URL.
-2. **`-f / --file <path>`**: Target a newline-separated list of URLs.
-3. **`-o / --output <path>`**: JSONL output path (Default: `data/signal_audit.json`).
-
-### Signal Detection Logic
-The tool must explicitly report the state (True/False/None) of the following signals for each site:
-1. **Robots.txt:**
-   - Status of `User-agent: *`
-   - Status of `User-agent: Aletheia` (if present)
-2. **Meta Tags & Headers:**
-   - `noindex` (HTML `<meta>` or Header `X-Robots-Tag`)
-   - `noarchive` (HTML `<meta>` or Header `X-Robots-Tag`)
-   - `nosnippet` (HTML `<meta>` or Header `X-Robots-Tag`)
-   - `noai` / `noimageai` (Emerging standards)
-
-### Reporting
-1. **Console:** Human-readable summary. Red text for 'Blocking' signals (noai), Yellow for 'Restricted' (noarchive), Green for 'Open'.
-2. **JSONL:** Machine-readable record containing:
-   - `timestamp`
-   - `url`
-   - `signals`: { `noarchive`: bool, `noai`: bool, ... }
-   - `raw_tags`: (Optional debug data)
-
-## Technical Approach
-- **Library:** `requests` for fetching (with custom User-Agent header).
-- **Library:** `beautifulsoup4` for parsing HTML meta tags.
-- **Library:** `urllib.robotparser` for parsing `robots.txt`.
-- **Std Lib:** `argparse` for CLI, `logging` for output.
-
-## Security Considerations
-- Tool performs read-only GET requests.
-- Must respect request timeouts to prevent hanging on bad URLs.
-- User-Agent should identify as "Aletheia Compliance Auditor" (or similar) to be transparent, though we may test with Chrome spoofing to see 'real user' view.
-
-## Files to Create/Modify
-- `tools/inspect_signals.py` — New script.
-- `data/signal_audit.json` — New output file (gitignored).
-
-## Acceptance Criteria
-- [ ] Tool accepts `-u` and `-f` arguments.
-- [ ] Output correctly identifies `noarchive` on a known test site (e.g., WSJ or mocked local page).
-- [ ] Output correctly parses `X-Robots-Tag` header (not just HTML).
-- [ ] Results are persisted to JSONL file.
-
-
----
-
 ## Issue #94: Create automated test harness for XSS prevention (Security Test 23)
 
 **Labels:** testing, security
@@ -294,58 +248,6 @@ Automate the XSS prevention smoke test from LLD 1077 §6.2 (steps 23-26) to ensu
 
 ## Testing Notes
 Force failure by temporarily changing `textContent` to `innerHTML` in overlay.js — tests should fail.
-
----
-
-## Issue #95: Security Hardening & Rate Limiting (Anti-DoS)
-
-**Labels:** security, high-priority
-
-**Created:** 2025-12-24
-**Updated:** 2025-12-24
-
-### Description
-
-## Objective
-Implement immediate "Denial of Wallet" protection via AWS WAF and restrict Lambda access to the Chrome Extension using an API Key/Header strategy.
-
-## UX Flow
-
-### Scenario 1: Standard User (Web Store)
-1. User installs extension from Chrome Web Store.
-2. Extension makes request including a strict `X-Aletheia-Client-Version` and `X-Api-Key` header.
-3. WAF validates headers + Geo-IP + Rate Limit.
-4. **Result:** Request processed successfully.
-
-### Scenario 2: Authenticated User (Future State)
-1. *Deferred until Feature #25 implementation.*
-
-### Scenario 3: Unauthorized Script / Attacker
-1. Script sends `POST` to Lambda URL without valid headers.
-2. **Result:** WAF blocks immediately (403 Forbidden).
-3. Attacker attempts to "hammer" the endpoint.
-4. **Result:** WAF Rate Limiter bans IP (429 Too Many Requests).
-
-## Requirements
-
-### Infrastructure (AWS)
-1. **WAF Deployment:** Front the Lambda Function URL (or API Gateway) with AWS WAF.
-2. **Rate Limiting:** Cap requests to ~100 per 5 minutes per IP.
-3. **Header Inspection:** Block requests missing the specific Extension headers.
-
-### Application (Extension)
-1. Inject `X-Api-Key` and `X-Client-Version` into `service-worker.js`.
-
-## Files to Create/Modify
-* `extension/service-worker.js`
-* `infra/waf-setup.sh` (or AWS Console)
-* `docs/security/vulnerability-test.md`
-
-## Acceptance Criteria
-- [ ] `curl` without headers returns 403.
-- [ ] `curl` with headers returns 200.
-- [ ] Sustained high-volume traffic triggers 429.
-
 
 ---
 
@@ -1179,10 +1081,10 @@ Implement LinkedIn OAuth authentication to gate extension features and enable us
 
 ## Issue #117: spike: Investigate mechanisms to support unauthenticated users while limiting abuse
 
-**Labels:** documentation, enhancement
+**Labels:** documentation, enhancement, post-mvp
 
 **Created:** 2025-12-30
-**Updated:** 2025-12-30
+**Updated:** 2026-01-01
 
 ### Description
 
@@ -1399,7 +1301,7 @@ Users should not be overwhelmed. They should see the artifact (Signal) and a bri
 **Labels:** feature, core-logic
 
 **Created:** 2025-12-31
-**Updated:** 2025-12-31
+**Updated:** 2026-01-01
 
 ### Description
 
@@ -1409,7 +1311,7 @@ Differentiate between 'Forbidden' terms (Denylist) and 'Educational' terms (Sema
 
 ## The Split
 1. **Hard Block (The Denylist):**
-   - **Source:** `src/guardrails/resources/denylist.json`
+   - **Source:** `src/guardrails/resources/denylist.json` (Wikipedia-sourced via Issue #121)
    - **Action:** Immediate 403 Forbidden.
    - **UX:** 'Blocked: Hate Speech detected.' (No further interaction allowed).
    - **Target:** Well-known slurs, severe hate speech (e.g., words that a writer replaces with just one letter and -word e.g. Z-word).
@@ -1427,7 +1329,6 @@ Differentiate between 'Forbidden' terms (Denylist) and 'Educational' terms (Sema
 ## Acceptance Criteria
 - [ ] Denylist terms trigger immediate blocking (Green tests).
 - [ ] Semantic 'gray area' terms allow the user to see the explanation.
-
 
 ---
 
@@ -1538,5 +1439,158 @@ Before coding begins, a separate Model (e.g., Gemini if Claude wrote the LLD) mu
 - [ ] `docs/0004-orchestration-protocol.md` updated with the Red Team step.
 - [ ] `docs/0109-gemini-lld-review-procedure.md` updated to include specific 'Red Team' attack vectors.
 
+
+---
+
+## Issue #132: Set up support email infrastructure (Cloudflare Email Routing)
+
+**Created:** 2026-01-01
+**Updated:** 2026-01-01
+
+### Description
+
+## Context
+We need email capability for:
+- Firefox Add-ons Store communication (gecko ID: `extension@aletheia.study`)
+- Chrome Web Store developer contact
+- User support inquiries
+
+## Research Summary
+
+| Option | Cost | Receive | Send | Notes |
+|--------|------|---------|------|-------|
+| **Cloudflare Email Routing** | **Free** | ✅ | ❌ | Forwards to personal Gmail/etc |
+| Cloudflare + Gmail SMTP | Free | ✅ | ✅ | Requires Gmail "send as" config |
+| Zoho Mail (free tier) | Free | ✅ | ✅ | 5 users, 5GB, webmail only |
+| Forward Email | Free | ✅ | ❌ | Privacy-focused forwarding |
+| Namecheap email | ~$1/mo | ✅ | ✅ | Full hosting |
+
+## Recommendation
+**Cloudflare Email Routing (free)** - simplest and cheapest.
+
+### Setup Steps
+1. Move DNS to Cloudflare (free, keeps Namecheap as registrar)
+2. Create `support@aletheia.study` → forwards to personal email
+3. Optionally configure Gmail "send as" for replies
+
+### Benefits
+- $0/year
+- Free CDN/DDoS protection as bonus
+- Simple forwarding rules
+
+## References
+- [Cloudflare Email Routing](https://www.cloudflare.com/developer-platform/products/email-routing/)
+- [Free Custom Domain Emails with Gmail and Cloudflare](https://altersquare.medium.com/free-custom-domain-emails-with-gmail-and-cloudflare-a-beginners-guide-84d759b373f7)
+- [Cloudflare Email Routing Docs](https://developers.cloudflare.com/email-routing/)
+
+## Definition of Done
+- [ ] DNS moved to Cloudflare
+- [ ] `support@aletheia.study` forwards to Orchestrator's email
+- [ ] Test email received successfully
+- [ ] (Optional) Gmail "send as" configured for replies
+
+---
+
+## Issue #134: Bug: Extension/Lambda field name mismatch causes 400 errors
+
+**Created:** 2026-01-01
+**Updated:** 2026-01-01
+
+### Description
+
+## Problem
+Extension requests return HTTP 400 with `{"error": "Missing required field: text"}`.
+
+## Diagnosis
+Field name mismatch between extension and Lambda:
+
+| Extension sends | Lambda expects |
+|-----------------|----------------|
+| `word` | `text` |
+| `context` | `domContext` |
+
+### Extension (`service-worker.js:74-79`)
+```javascript
+const payload = {
+    word: info.selectionText,
+    url: info.pageUrl,
+    title: tab.title,
+    context: fullPageText
+};
+```
+
+### Lambda (`src/lambda_function.py:69,252,275`)
+```python
+if "text" not in event:
+    return False, "Missing required field: text"
+...
+text = body["text"]
+context_text = body.get("domContext", "")
+```
+
+## Evidence
+```bash
+$ curl -s -X POST "https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/" \
+  -H "Content-Type: application/json" \
+  -d '{"word":"test","url":"https://example.com","title":"Test","context":"Test"}'
+
+{"error": "Missing required field: text"}
+```
+
+## Root Cause
+The Lambda was rewritten in Issue #113 (Naked Python) with new field names, but the extension was not updated to match.
+
+## Options
+1. **Fix extension** - Update `service-worker.js` to use `text` and `domContext`
+2. **Fix Lambda** - Update `lambda_function.py` to accept `word` and `context`
+
+Option 1 is cleaner (semantic field names), but requires extension reload for testing.
+
+## Related
+- #113 (Naked Python Architecture) - introduced new Lambda
+- Not WAF-related (WAF from #95 was never deployed)
+
+---
+
+## Issue #137: Investigate 5-second Lambda latency
+
+**Created:** 2026-01-02
+**Updated:** 2026-01-02
+
+### Description
+
+## Problem
+
+The extension shows "Saving..." for ~5 seconds before transitioning to "Context Saved". This delay persists even with `max_tokens=10`, disproving the hypothesis that Sonnet generation time is the cause.
+
+## Tested
+
+- `max_tokens=10` in `src/lambda_function.py` - still 5 second delay
+- Timer/gap bugs fixed in extension overlay (separate issue #100)
+
+## Likely Causes to Investigate
+
+1. **Lambda Cold Start** - First invocation after idle period spins up container
+2. **Semantic Guardrail** - `SemanticGuardrail.check_safety()` makes an LLM call before generation
+3. **DynamoDB Write** - `save_state()` is in the critical path
+4. **Network Latency** - Round trip to AWS us-east-1
+
+## Proposed Investigation
+
+1. Add timing logs to each stage of `lambda_handler`:
+   - Validation
+   - Guardrails (denylist + semantic)
+   - DynamoDB save
+   - Bedrock generation
+2. Identify the bottleneck
+3. Consider:
+   - Provisioned concurrency for cold starts
+   - Caching semantic guardrail results
+   - Moving DynamoDB write out of critical path (async)
+
+## References
+
+- Extension timing fixes: #100
+- Gemini handoff doc: `docs/GEMINI-HANDOFF-OVERLAY-TIMING.md`
 
 ---

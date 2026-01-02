@@ -38,7 +38,7 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 - **Cleanup completely:** Delete BOTH local and remote branches after merge:
   - `git branch -d {branch-name}` (local)
   - `git push origin --delete {branch-name}` (remote)
-- **No merging:** Push and create PR, but leave merge to Orchestrator
+- **Merge and cleanup:** After PR is created and tests pass, merge it (`gh pr merge`), then cleanup worktree and branches per 0002 §4
 - **Update inventory:** Add new files to `docs/0003-file-inventory.md`
 
 ### Python Dependencies:
@@ -49,6 +49,19 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 - When you are granted a new permission, **commit `.claude/settings.local.json` to main immediately**
 - Use the main worktree to commit: `cd /c/Users/mcwiz/Projects/Aletheia && git add .claude/settings.local.json && git commit -m "chore: update Claude Code permissions" && git push`
 - This prevents permission loss when branches are abandoned
+
+### Pre-Code Checklist (MANDATORY):
+Before writing ANY code file, verify:
+1. [ ] LLD is written and committed to main
+2. [ ] You are in a worktree (run `git worktree list` to check)
+3. [ ] Branch name matches issue ID pattern (e.g., `45-denylist`)
+
+If any check fails, STOP and fix before writing code.
+
+### GitHub CLI Safety:
+- ✅ ALWAYS use `--repo martymcenroe/Aletheia` explicitly
+- ❌ NEVER rely on default repo inference
+- Example: `gh issue create --repo martymcenroe/Aletheia --title "..." --body "..."`
 ## Logging Lessons
 When you solve a novel problem:
 - **Aletheia-specific** (Chrome extension, Bedrock, this codebase) → `docs/9000-lessons-learned.md`

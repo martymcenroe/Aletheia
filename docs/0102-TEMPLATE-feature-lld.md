@@ -129,27 +129,45 @@ def function_name(param: Type) -> ReturnType:
 
 *Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
 
+**Testing Philosophy:** Strive for 100% automated test coverage. Manual tests are a last resort for scenarios that genuinely cannot be automated (e.g., visual inspection, hardware interaction). Every scenario marked "Manual" requires justification.
+
 ### 11.1 Test Scenarios
 
 | ID | Scenario | Type | Input | Expected Output | Pass Criteria |
 |----|----------|------|-------|-----------------|---------------|
-| 010 | {Happy path} | Manual/Auto | {input} | {output} | {criteria} |
-| 020 | {Edge case} | Manual/Auto | {input} | {output} | {criteria} |
-| 030 | {Error case} | Manual/Auto | {input} | {output} | {criteria} |
+| 010 | {Happy path} | Auto | {input} | {output} | {criteria} |
+| 020 | {Edge case} | Auto | {input} | {output} | {criteria} |
+| 030 | {Error case} | Auto | {input} | {output} | {criteria} |
 
 *Note: Use 3-digit IDs with gaps of 10 (010, 020, 030...) to allow insertions.*
 
-### 11.2 Test Modules (from 0005)
+**Type values:**
+- `Auto` - Fully automated, runs in CI (pytest, playwright, etc.)
+- `Auto-Live` - Automated but hits real external services (may be slow/flaky)
+- `Manual` - Requires human execution (MUST include justification why automation is impossible)
 
-* **Unit Tests:** `poetry run pytest tests/test_{module}.py -v`
-* **Semantic (Module B):** {Applicable? Yes/No}
-* **End-to-End (Module C):** {Applicable? Yes/No}
+### 11.2 Test Commands
 
-### 11.3 Manual Smoke Test
+```bash
+# Run all automated tests
+poetry run pytest tests/test_{module}.py -v
 
-1. {Step 1}
-2. {Step 2}
-3. {Expected result}
+# Run only fast/mocked tests (exclude live)
+poetry run pytest tests/test_{module}.py -v -m "not live"
+
+# Run live integration tests
+poetry run pytest tests/test_{module}.py -v -m live
+```
+
+### 11.3 Manual Tests (Only If Unavoidable)
+
+**If no manual tests required:** Write "N/A - All scenarios automated."
+
+**If manual tests exist, justify each:**
+
+| ID | Scenario | Why Not Automated | Steps |
+|----|----------|-------------------|-------|
+| {ID} | {scenario} | {e.g., requires visual inspection of PDF} | {steps} |
 
 *Full test results recorded in Implementation Report (0103) or Test Report (0113).*
 

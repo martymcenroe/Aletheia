@@ -1,8 +1,13 @@
 // extension-chrome-V3/service-worker.js
 // Chrome Manifest V3 version
 
-// [CV-7] CONSTANTS - WIRED TO AWS LAMBDA
-const API_ENDPOINT = "https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/";
+// [CV-7] CONSTANTS - WIRED TO CLOUDFRONT (WAF-protected)
+// Direct Lambda URL: https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/
+const API_ENDPOINT = "https://d1fkpkls2wesse.cloudfront.net/";
+
+// [#95] Client version for WAF header validation
+// Must start with "1." to pass WAF rule (see docs/1095-security-hardening.md)
+const CLIENT_VERSION = "1.0";
 
 function extractDomain(url) {
   try {
@@ -93,7 +98,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Aletheia-Client-Version': CLIENT_VERSION  // [#95] WAF header validation
+            },
             body: JSON.stringify(payload)
         });
 
