@@ -1138,3 +1138,53 @@ Brief session: created `docs/6001-closed-issues.md` (concatenation of all 61 clo
 - **Open PRs:** 2 (existing feature work)
 - **Lambda:** OFF
 - **Next:** Per IMMEDIATE-PLAN.md (Security Hardening #95 blocking, then Store Compliance #51/#53)
+
+---
+
+## 2026-01-01 ~16:30-18:50 CT | Claude Opus 4.5
+
+### Summary
+Completed Issue #95 (Security Hardening via CloudFront + WAF). Deployed CloudFront distribution with WAF protection for rate limiting and header validation. Fixed multiple issues during testing: CORS preflight (OPTIONS passthrough), base64 encoding for WAF rules, Windows path compatibility, and Lambda API field names. Created Playwright E2E tests, full documentation, and merged PR #136.
+
+### Implementation (#95 Security Hardening)
+- **CloudFront URL:** `https://d1fkpkls2wesse.cloudfront.net/`
+- **WAF ARN:** `arn:aws:wafv2:us-east-1:383687041805:global/webacl/AletheiaWebACL/83a38b1a-ebb5-4e97-a859-faadf5bee705`
+- **Rate Limit:** 10 req/10min (dev), 100 req/5min (prod)
+- **Header Validation:** `X-Aletheia-Client-Version: 1.*` required
+
+### Key Fixes During Implementation
+1. **CORS preflight:** WAF blocked OPTIONS requests (browser preflight for custom headers). Updated rule to allow OPTIONS through.
+2. **Base64 encoding:** AWS WAF API requires base64 for SearchString values ("1." = "MS4=", "OPTIONS" = "T1BUSU9OUw==").
+3. **Windows paths:** AWS CLI `file://` fails with Git Bash paths. Used `cygpath -w` conversion.
+4. **Field name mismatch:** Extension sent `word`, Lambda expects `text`. Fixed in service-worker.js.
+5. **Playwright CORS:** `page.evaluate()` fetch from `about:blank` fails. Use `request` fixture instead.
+
+### Files Created
+- `tools/aws/waf-setup.sh` - Infrastructure deployment (CloudFront + WAF)
+- `tests/infra/verify_waf.sh` - Shell-based WAF verification (4 tests)
+- `tests/e2e/waf-integration.spec.js` - Playwright E2E tests (4 tests)
+- `package.json`, `playwright.config.js` - Node.js config for Playwright
+- `docs/reports/95/implementation-report.md`
+- `docs/reports/95/test-report.md`
+
+### Files Modified
+- `extension/service-worker.js` - CloudFront URL, WAF header, `text` field
+- `docs/1095-security-hardening.md` - Status → Complete, CORS documentation
+- `docs/0003-file-inventory.md` - Added #95 artifacts
+- `docs/9000-lessons-learned.md` - Added 5 lessons from #95
+
+### Issues
+- **Closed:** #95 (Security Hardening via CloudFront + WAF) via PR #136
+
+### Engineering Journal Items (Cross-Project)
+- AWS WAF + Browser CORS: Allow OPTIONS preflight
+- AWS WAF SearchString: Must be base64 encoded
+- Windows Git Bash + AWS CLI: Use `cygpath -w`
+- Playwright API testing: Use `request` fixture, not `page.evaluate()`
+
+### State on Exit
+- **Branch:** `main` @ b120ced
+- **Open PRs:** 1 (53-100-firefox-build)
+- **Lambda:** ON (for testing)
+- **Worktrees:** Cleaned up Aletheia-95
+- **Next:** Store Compliance #51/#53 per IMMEDIATE-PLAN.md
