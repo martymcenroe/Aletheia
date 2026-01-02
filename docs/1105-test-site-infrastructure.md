@@ -16,6 +16,8 @@
 | R4 | Custom domain support | Can use user's existing domains |
 | R5 | Playwright integration | Automated tests can load extension and verify behavior |
 | R6 | XSS test coverage | Verify extension doesn't execute injected scripts |
+| R7 | QA Sandbox disclaimer | All test pages display visible "QA Sandbox" header |
+| R8 | Environment flexibility | `TEST_BASE_URL` env var for localhost/custom domains |
 
 ## 3. Alternatives Considered
 
@@ -51,6 +53,7 @@ tests/fixtures/html/ ──git push──► gh-pages branch ──GitHub──�
 
 | Fixture | Purpose | Key Content |
 |---------|---------|-------------|
+| `index.html` | Landing page | QA Sandbox disclaimer, links to all tests |
 | `test-adult.html` | Age gate - adult rating | `<meta name="rating" content="adult">` |
 | `test-rta.html` | Age gate - RTA pattern | `<meta name="rating" content="RTA-5042-1996-1400-1577-RTA">` |
 | `test-mature.html` | Age gate - allowed rating | `<meta name="rating" content="mature">` |
@@ -58,6 +61,13 @@ tests/fixtures/html/ ──git push──► gh-pages branch ──GitHub──�
 | `test-xss-script.html` | XSS - script tag in selectable text | `<p>Select this: <script>alert(1)</script></p>` |
 | `test-xss-img.html` | XSS - img onerror in selectable text | `<p>Select this: <img src=x onerror=alert(1)></p>` |
 | `test-xss-event.html` | XSS - event handler in selectable text | `<p onmouseover="alert(1)">Select this text</p>` |
+
+**All test pages MUST include:**
+```html
+<h1 style="background:yellow;color:red;padding:10px;">
+  QA SANDBOX - Security Research Only - Do Not Use
+</h1>
+```
 
 ### 4.4 Deployment Pipeline
 
@@ -102,8 +112,13 @@ sequenceDiagram
 // tests/e2e/playwright.config.js
 const extensionPath = path.join(__dirname, '../../extension');
 
+// Support TEST_BASE_URL env var for flexibility (localhost, custom domain, etc.)
+const TEST_BASE_URL = process.env.TEST_BASE_URL ||
+    'https://martymcenroe.github.io/Aletheia/tests';
+
 module.exports = {
     use: {
+        baseURL: TEST_BASE_URL,
         // Chrome with extension loaded
         launchOptions: {
             args: [
@@ -115,12 +130,25 @@ module.exports = {
 };
 ```
 
-### 6.2 Test Site URLs
+### 6.2 Cache Busting
 
-| Environment | Base URL |
-|-------------|----------|
-| Production | `https://martymcenroe.github.io/Aletheia/tests/` |
-| Custom domain (optional) | `https://test.aletheia.example.com/` |
+GitHub Pages has aggressive caching (600s TTL). To ensure tests use fresh content:
+
+```javascript
+// Helper to bust cache on page.goto()
+async function gotoWithCacheBust(page, path) {
+    const url = `${path}?t=${Date.now()}`;
+    await page.goto(url);
+}
+```
+
+### 6.3 Test Site URLs
+
+| Environment | Base URL | Usage |
+|-------------|----------|-------|
+| Production | `https://martymcenroe.github.io/Aletheia/tests/` | Default |
+| Localhost | `http://localhost:8080/` | `TEST_BASE_URL=http://localhost:8080 npm run test:e2e` |
+| Custom domain | `https://test.example.com/` | `TEST_BASE_URL=https://test.example.com npm run test:e2e` |
 
 ## 7. Interface Specification
 
@@ -180,6 +208,12 @@ test.describe('XSS Protection', () => {
 | XSS in test fixtures | Test fixtures ARE malicious by design - that's the point | N/A |
 | Public test pages | No sensitive data in fixtures | Addressed |
 | Extension security | Tests VERIFY extension sanitizes input | TODO |
+| GitHub Pages ToS | QA Sandbox disclaimer on all pages; security research purpose | Addressed |
+
+**GitHub Pages Compliance:** The test fixtures contain intentionally malicious patterns (XSS vectors) for security research purposes. To comply with GitHub Pages terms:
+1. All pages display prominent "QA SANDBOX - Security Research Only" disclaimer
+2. `index.html` explains the purpose: extension security testing
+3. No actual exploitation - patterns are inert without victim interaction
 
 **Fail Mode:** N/A - This is test infrastructure, not production code.
 
@@ -246,12 +280,13 @@ N/A - All scenarios automated via Playwright.
 ## 12. Definition of Done
 
 ### Code
-- [ ] `tests/fixtures/html/` - All 7 test HTML files
+- [ ] `tests/fixtures/html/index.html` - QA Sandbox landing page with disclaimer
+- [ ] `tests/fixtures/html/` - All 7 test HTML files (each with QA disclaimer header)
 - [ ] `tools/deploy_test_sites.sh` - Deploy script
 - [ ] `tests/e2e/age-gate.spec.js` - Age gate tests
 - [ ] `tests/e2e/xss-protection.spec.js` - XSS tests
 - [ ] `package.json` - Playwright config added
-- [ ] `playwright.config.js` - Extension loading config
+- [ ] `playwright.config.js` - Extension loading config with `TEST_BASE_URL` support
 
 ### Tests
 - [ ] All 13 test scenarios pass
