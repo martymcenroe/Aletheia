@@ -69,9 +69,9 @@ with zipfile.ZipFile('function.zip', 'r') as z:
     assert any('src/guardrails' in f for f in files), 'Missing src/guardrails!'
     assert 'src/guardrails/resources/denylist.json' in files, 'Missing denylist.json!'
     print(f'  Package contains {len(files)} files')
-    print('  ✓ src/lambda_function.py')
-    print('  ✓ src/guardrails/')
-    print('  ✓ denylist.json')
+    print('  OK src/lambda_function.py')
+    print('  OK src/guardrails/')
+    print('  OK denylist.json')
 "
 
 # 3. Update Configuration (Handler)
