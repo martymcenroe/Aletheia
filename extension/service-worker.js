@@ -77,13 +77,13 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         const fullPageText = injectionResults[0].result;
 
         const payload = {
-            word: info.selectionText,
+            text: info.selectionText,
             url: info.pageUrl,
             title: tab.title,
             context: fullPageText
         };
-        
-        console.log("[CAV-3] Sending payload to AWS:", payload.word);
+
+        console.log("[CAV-3] Sending payload to AWS:", payload.text);
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
