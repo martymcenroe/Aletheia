@@ -23,12 +23,12 @@ if [ ! -f "$DENYLIST_PATH" ]; then
 else
     echo "-> Denylist exists: $DENYLIST_PATH"
     # Show age of denylist
-    DENYLIST_AGE=$(python -c "import json; d=json.load(open('$DENYLIST_PATH')); print(d.get('updated', 'unknown'))")
+    DENYLIST_AGE=$(python -c "import json; d=json.load(open('$DENYLIST_PATH', encoding='utf-8')); print(d.get('updated', 'unknown'))")
     echo "   Last updated: $DENYLIST_AGE"
 fi
 
 # Verify denylist has content
-TERM_COUNT=$(python -c "import json; d=json.load(open('$DENYLIST_PATH')); print(len(d.get('terms', [])))")
+TERM_COUNT=$(python -c "import json; d=json.load(open('$DENYLIST_PATH', encoding='utf-8')); print(len(d.get('terms', [])))")
 if [ "$TERM_COUNT" -lt 500 ]; then
     echo "WARNING: Denylist has only $TERM_COUNT terms (expected 500+)"
     echo "         Consider running: python tools/fetch_denylist.py"

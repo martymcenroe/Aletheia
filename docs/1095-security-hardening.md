@@ -3,7 +3,7 @@
 ## 1. Context & Goal
 * **Issue:** #95
 * **Objective:** Protect Lambda from abuse via AWS WAF (rate limiting + header validation)
-* **Status:** Draft
+* **Status:** Complete
 * **Related Issues:** #116 (OAuth - future auth gate)
 
 ## 2. Requirements
@@ -146,24 +146,46 @@ Note: WAF rate-based rules have minimum 5-minute evaluation windows. Dev mode us
 
 ### 7.1 WAF Rule Definitions (JSON)
 
+**CORS Note:** Browsers send OPTIONS preflight requests before POST with custom headers.
+The WAF rule must allow OPTIONS through for CORS to work. The rule logic is:
+`Block if: (method != OPTIONS) AND (header does not start with "1.")`
+
 ```json
 {
   "Name": "AletheiaWebACL",
   "Rules": [
     {
-      "Name": "RequireClientVersion",
+      "Name": "RequireClientVersionExceptOptions",
       "Priority": 1,
       "Action": { "Block": {} },
       "Statement": {
-        "NotStatement": {
-          "Statement": {
-            "ByteMatchStatement": {
-              "FieldToMatch": { "SingleHeader": { "Name": "x-aletheia-client-version" } },
-              "PositionalConstraint": "STARTS_WITH",
-              "SearchString": "1.",
-              "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+        "AndStatement": {
+          "Statements": [
+            {
+              "NotStatement": {
+                "Statement": {
+                  "ByteMatchStatement": {
+                    "FieldToMatch": { "Method": {} },
+                    "PositionalConstraint": "EXACTLY",
+                    "SearchString": "OPTIONS",
+                    "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+                  }
+                }
+              }
+            },
+            {
+              "NotStatement": {
+                "Statement": {
+                  "ByteMatchStatement": {
+                    "FieldToMatch": { "SingleHeader": { "Name": "x-aletheia-client-version" } },
+                    "PositionalConstraint": "STARTS_WITH",
+                    "SearchString": "1.",
+                    "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+                  }
+                }
+              }
             }
-          }
+          ]
         }
       }
     },
@@ -268,14 +290,14 @@ The `API_ENDPOINT` change from Lambda Function URL to CloudFront URL does NOT re
 | 010 | Request without header | **Auto** | `verify_waf.sh` | 403 Forbidden | Script asserts exit 0 |
 | 020 | Request with valid header | **Auto** | `verify_waf.sh` | 200 OK | Script asserts exit 0 |
 | 030 | Rate limit trigger | **Auto** | `verify_waf.sh --test-rate-limit` | 429 after limit | Script asserts exit 0 |
-| 040 | Extension end-to-end | Manual | Select text, "Explain with AI" | Success overlay | Human verification |
+| 040 | Extension E2E via Playwright | **Auto** | `npm run test:waf` | All tests pass | Playwright assertions pass |
 | 050 | Invalid version format | **Auto** | `verify_waf.sh` | 403 Forbidden | Script asserts exit 0 |
 
 ### 11.2 Test Modules
 
 * **Infrastructure Tests:** `tests/infra/verify_waf.sh` (automated assertions)
+* **E2E Tests:** `tests/e2e/waf-integration.spec.js` (Playwright, browser + extension)
 * **Unit Tests:** N/A (infrastructure change)
-* **End-to-End (Module C):** Manual browser testing (scenario 040 only)
 
 ### 11.3 Automated WAF Verification Script
 

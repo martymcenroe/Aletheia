@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAF Integration Test Page</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        #selectable-text {
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: text;
+        }
+        .test-info {
+            margin-top: 30px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>WAF Integration Test</h1>
+
+    <p>This page is used by Playwright E2E tests to verify the CloudFront + WAF integration.</p>
+
+    <h2>Selectable Text</h2>
+    <p id="selectable-text" data-testid="selectable-text">
+        Etymology is the study of the origin of words and how their meanings have changed throughout history.
+        Select this text and use "Explain with AI" to test the WAF-protected API endpoint.
+    </p>
+
+    <div class="test-info">
+        <strong>Test Scenario:</strong>
+        <ol>
+            <li>Extension loads with CloudFront endpoint</li>
+            <li>Domain is added to allowlist</li>
+            <li>User selects text above</li>
+            <li>Context menu "Explain with AI" triggers API call</li>
+            <li>Request includes <code>X-Aletheia-Client-Version: 1.0</code> header</li>
+            <li>WAF allows request (header valid)</li>
+            <li>Lambda processes and responds</li>
+            <li>Success overlay appears (green border)</li>
+        </ol>
+    </div>
+</body>
+</html>
