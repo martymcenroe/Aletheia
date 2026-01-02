@@ -1,6 +1,6 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-01 16:21 CT
+**Generated:** 2026-01-01 19:25 CT
 **Total Open Issues:** 29
 
 ---
@@ -248,58 +248,6 @@ Automate the XSS prevention smoke test from LLD 1077 §6.2 (steps 23-26) to ensu
 
 ## Testing Notes
 Force failure by temporarily changing `textContent` to `innerHTML` in overlay.js — tests should fail.
-
----
-
-## Issue #95: Security Hardening & Rate Limiting (Anti-DoS)
-
-**Labels:** security, high-priority
-
-**Created:** 2025-12-24
-**Updated:** 2025-12-24
-
-### Description
-
-## Objective
-Implement immediate "Denial of Wallet" protection via AWS WAF and restrict Lambda access to the Chrome Extension using an API Key/Header strategy.
-
-## UX Flow
-
-### Scenario 1: Standard User (Web Store)
-1. User installs extension from Chrome Web Store.
-2. Extension makes request including a strict `X-Aletheia-Client-Version` and `X-Api-Key` header.
-3. WAF validates headers + Geo-IP + Rate Limit.
-4. **Result:** Request processed successfully.
-
-### Scenario 2: Authenticated User (Future State)
-1. *Deferred until Feature #25 implementation.*
-
-### Scenario 3: Unauthorized Script / Attacker
-1. Script sends `POST` to Lambda URL without valid headers.
-2. **Result:** WAF blocks immediately (403 Forbidden).
-3. Attacker attempts to "hammer" the endpoint.
-4. **Result:** WAF Rate Limiter bans IP (429 Too Many Requests).
-
-## Requirements
-
-### Infrastructure (AWS)
-1. **WAF Deployment:** Front the Lambda Function URL (or API Gateway) with AWS WAF.
-2. **Rate Limiting:** Cap requests to ~100 per 5 minutes per IP.
-3. **Header Inspection:** Block requests missing the specific Extension headers.
-
-### Application (Extension)
-1. Inject `X-Api-Key` and `X-Client-Version` into `service-worker.js`.
-
-## Files to Create/Modify
-* `extension/service-worker.js`
-* `infra/waf-setup.sh` (or AWS Console)
-* `docs/security/vulnerability-test.md`
-
-## Acceptance Criteria
-- [ ] `curl` without headers returns 403.
-- [ ] `curl` with headers returns 200.
-- [ ] Sustained high-volume traffic triggers 429.
-
 
 ---
 
@@ -1601,5 +1549,48 @@ Option 1 is cleaner (semantic field names), but requires extension reload for te
 ## Related
 - #113 (Naked Python Architecture) - introduced new Lambda
 - Not WAF-related (WAF from #95 was never deployed)
+
+---
+
+## Issue #137: Investigate 5-second Lambda latency
+
+**Created:** 2026-01-02
+**Updated:** 2026-01-02
+
+### Description
+
+## Problem
+
+The extension shows "Saving..." for ~5 seconds before transitioning to "Context Saved". This delay persists even with `max_tokens=10`, disproving the hypothesis that Sonnet generation time is the cause.
+
+## Tested
+
+- `max_tokens=10` in `src/lambda_function.py` - still 5 second delay
+- Timer/gap bugs fixed in extension overlay (separate issue #100)
+
+## Likely Causes to Investigate
+
+1. **Lambda Cold Start** - First invocation after idle period spins up container
+2. **Semantic Guardrail** - `SemanticGuardrail.check_safety()` makes an LLM call before generation
+3. **DynamoDB Write** - `save_state()` is in the critical path
+4. **Network Latency** - Round trip to AWS us-east-1
+
+## Proposed Investigation
+
+1. Add timing logs to each stage of `lambda_handler`:
+   - Validation
+   - Guardrails (denylist + semantic)
+   - DynamoDB save
+   - Bedrock generation
+2. Identify the bottleneck
+3. Consider:
+   - Provisioned concurrency for cold starts
+   - Caching semantic guardrail results
+   - Moving DynamoDB write out of critical path (async)
+
+## References
+
+- Extension timing fixes: #100
+- Gemini handoff doc: `docs/GEMINI-HANDOFF-OVERLAY-TIMING.md`
 
 ---

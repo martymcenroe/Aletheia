@@ -147,6 +147,8 @@
 | `docs/reports/84/test-report.md` | **Report** | 🟢 **Stable** | #84 | Test report for Signal Inspector CLI. |
 | `docs/reports/95/implementation-report.md` | **Report** | 🟢 **Stable** | #95 | Implementation report for security hardening via CloudFront + WAF. |
 | `docs/reports/95/test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
+| `docs/reports/100/implementation-report.md` | **Report** | 🟢 **Stable** | #100 | Implementation report for Firefox compatibility. |
+| `docs/reports/100/test-report.md` | **Report** | 🟢 **Stable** | #100 | Test report for Firefox compatibility. |
 | `docs/reports/124/implementation-report.md` | **Report** | 🟢 **Stable** | #124 | Implementation report for Digital Etymologist. |
 | `docs/reports/124/test-report.md` | **Report** | 🟢 **Stable** | #124 | Test report for Digital Etymologist. |
 
@@ -179,19 +181,23 @@
 | `src/signal_inspector/parser.py` | **Logic** | 🟢 **Stable** | #84 | Signal extraction (meta, headers, robots.txt). |
 | `src/signal_inspector/reporter.py` | **Logic** | 🟢 **Stable** | #84 | Console and JSONL output reporting. |
 
-### Chrome Extension
+### Browser Extensions
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `extension/manifest.json` | **Config** | 🟢 **Stable** | #82 | V3 Manifest (Privacy-First). |
-| `extension/overlay.js` | **Logic** | 🟢 **Stable** | #114 | Injected overlay UI (Shadow DOM isolated). |
-| `extension/service-worker.js` | **Logic** | 🟢 **Stable** | #76, #95 | Background script with allowlist gate and WAF header. |
-| `extension/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
-| `extension/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
-| `extension/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
-| `extension/icons/icon16.png` | **Asset** | 🟢 **Stable** | #82 | Toolbar icon (Lambda). |
-| `extension/icons/icon32.png` | **Asset** | 🟢 **Stable** | #82 | Small icon (Lambda). |
-| `extension/icons/icon48.png` | **Asset** | 🟢 **Stable** | #82 | Medium icon (Lambda). |
-| `extension/icons/icon128.png` | **Asset** | 🟢 **Stable** | #82 | Large icon (Lambda). |
+| `extension-chrome-V3/manifest.json` | **Config** | 🟢 **Stable** | #100 | Chrome Manifest V3 (Privacy-First). |
+| `extension-chrome-V3/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Chrome overlay UI with stateful timer management. |
+| `extension-chrome-V3/service-worker.js` | **Logic** | 🟢 **Stable** | #100 | Chrome background script with allowlist gate and WAF header. |
+| `extension-chrome-V3/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
+| `extension-chrome-V3/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
+| `extension-chrome-V3/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
+| `extension-chrome-V3/icons/*` | **Asset** | 🟢 **Stable** | #82 | Chrome extension icons (16/32/48/128px). |
+| `extension-firefox-V2/manifest.json` | **Config** | 🟢 **Stable** | #100 | Firefox Manifest V2 (browser_specific_settings). |
+| `extension-firefox-V2/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Firefox overlay UI with stateful timer management. |
+| `extension-firefox-V2/service-worker.js` | **Logic** | 🟢 **Stable** | #100 | Firefox background script (browser.* API). |
+| `extension-firefox-V2/popup.html` | **UI** | 🟡 **Beta** | #100 | Popup UI structure (three views). |
+| `extension-firefox-V2/popup.css` | **Style** | 🟡 **Beta** | #100 | Popup styling with design tokens. |
+| `extension-firefox-V2/popup.js` | **Logic** | 🟡 **Beta** | #100 | Popup logic and storage interaction. |
+| `extension-firefox-V2/icons/*` | **Asset** | 🟢 **Stable** | #82 | Firefox extension icons (16/32/48/128px). |
 | `index.html` | **Asset** | ⚫ **Legacy** | #81 | Landing page (cyberpunk). To be redesigned. |
 
 ### Infrastructure & Deployment
@@ -219,6 +225,7 @@
 | `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Icon factory (Pillow). Supports `--transparent` and `--threshold N` CLI options. |
 | `tools/master_lambda.png` | **Asset** | 🟢 **Stable** | #82 | Master source for branding. |
 | `tools/smoke_test.py` | **Utility** | 🟢 **Stable** | #113 | Lambda smoke test (3 scenarios). |
+| `tools/build_release.py` | **Utility** | 🟢 **Stable** | #100 | Build release ZIPs for Chrome and Firefox extensions. |
 | `tools/inspect_signals.py` | **Utility** | 🟢 **Stable** | #84 | Signal Inspector CLI (robots.txt, meta, headers, rating). |
 | `tools/print/print_markdown.py` | **Utility** | 🟢 **Stable** | - | Batch markdown→PDF printer with spooler monitoring and print tracking. |
 | `tools/print/print_most_recent_open_issues.py` | **Utility** | 🟢 **Stable** | - | GitHub issues fetcher/printer (saves to docs/6000-*.md). |

@@ -1,4 +1,5 @@
-// extension/service-worker.js
+// extension-chrome-V3/service-worker.js
+// Chrome Manifest V3 version
 
 // [CV-7] CONSTANTS - WIRED TO CLOUDFRONT (WAF-protected)
 // Direct Lambda URL: https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/
@@ -16,7 +17,7 @@ function extractDomain(url) {
   }
 }
 
-// === NEW: HELPER FUNCTION ===
+// === HELPER FUNCTION ===
 async function showFeedback(tabId, message, type) {
     try {
         // 1. Inject Library (Idempotent)
@@ -24,21 +25,21 @@ async function showFeedback(tabId, message, type) {
             target: { tabId },
             files: ['overlay.js']
         });
-        
+
         // 2. Call Function
         await chrome.scripting.executeScript({
             target: { tabId },
             func: (m, t) => window.showAletheiaOverlay(m, t),
             args: [message, type]
         });
-        
+
         // 3. Set Toolbar Badge
         const badgeText = type === 'success' ? '✓' : (type === 'error' ? '✗' : '!');
         const badgeColor = type === 'success' ? '#22C55E' : (type === 'error' ? '#EF4444' : '#FBBF24');
-        
+
         chrome.action.setBadgeText({ tabId, text: badgeText });
         chrome.action.setBadgeBackgroundColor({ tabId, color: badgeColor });
-        
+
         setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 3000);
 
     } catch (e) {
@@ -56,19 +57,29 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "explain-with-ai") {
-    
+
     // ALLOWLIST GATE
     const domain = extractDomain(info.pageUrl);
     const { allowlist = [] } = await chrome.storage.local.get('allowlist');
 
     if (!allowlist.includes(domain)) {
       console.log(`[Aletheia] Blocked: ${domain}`);
-      // === RESTORED FUNCTIONALITY ===
       await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
       return;
     }
 
     try {
+        // IMMEDIATE FEEDBACK - show "Saving..." with long timeout (won't expire before response)
+        console.log("[Aletheia] Showing immediate 'Saving...' feedback");
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['overlay.js']
+        });
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => window.showAletheiaOverlay("Saving...", "warning", 30000)
+        });
+
         const injectionResults = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => document.body.innerText,
@@ -80,7 +91,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             text: info.selectionText,
             url: info.pageUrl,
             title: tab.title,
-            context: fullPageText
+            domContext: fullPageText
         };
 
         console.log("[CAV-3] Sending payload to AWS:", payload.text);
@@ -94,17 +105,35 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             body: JSON.stringify(payload)
         });
 
-        // === FEEDBACK FOR SUCCESS/ERROR ===
+        // === UPDATE OVERLAY IN PLACE (no flicker) ===
         if (response.ok) {
-            await showFeedback(tab.id, "Context Saved", "success");
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.updateAletheiaOverlay("Context Saved", "success")
+            });
         } else {
-            await showFeedback(tab.id, "Error Saving", "error");
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.updateAletheiaOverlay("Error Saving", "error")
+            });
         }
+
+        // Set badge
+        const badgeText = response.ok ? '✓' : '✗';
+        const badgeColor = response.ok ? '#22C55E' : '#EF4444';
+        chrome.action.setBadgeText({ tabId: tab.id, text: badgeText });
+        chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: badgeColor });
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
 
     } catch (error) {
         console.error("[CV-6] Error:", error);
-        // === FEEDBACK FOR NETWORK ERROR ===
-        await showFeedback(tab.id, "Connection Error", "error");
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => window.updateAletheiaOverlay("Connection Error", "error")
+        });
+        chrome.action.setBadgeText({ tabId: tab.id, text: '✗' });
+        chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
     }
   }
 });

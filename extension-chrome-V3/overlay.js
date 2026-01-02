@@ -1,9 +1,44 @@
-// extension/overlay.js
-// V3 Implementation - Restored for Issue #114
+// extension-chrome-V3/overlay.js
+// V3 Implementation
+
+if (!window.updateAletheiaOverlay) {
+    // Update existing overlay in place (no flicker)
+    // Also resets the dismiss timer so the new message gets full screen time
+    window.updateAletheiaOverlay = function(message, type, timeout = 4000) {
+        const host = document.getElementById('aletheia-overlay-host');
+        if (!host || !host.shadowRoot) {
+            window.showAletheiaOverlay(message, type, timeout);
+            return;
+        }
+
+        // Clear the existing timer (stop the 'Saving...' countdown)
+        if (host._dismissTimer) {
+            clearTimeout(host._dismissTimer);
+        }
+
+        const colors = {
+            'warning': '#FBBF24',
+            'success': '#22C55E',
+            'error':   '#EF4444'
+        };
+        const borderColor = colors[type] || colors['warning'];
+
+        const overlay = host.shadowRoot.querySelector('.overlay');
+        if (overlay) {
+            overlay.textContent = message;
+            overlay.style.borderLeftColor = borderColor;
+        }
+
+        // Start a NEW timer so the updated message gets its full screen time
+        host._dismissTimer = setTimeout(() => {
+            if (host.isConnected) host.remove();
+        }, timeout);
+    };
+}
 
 if (!window.showAletheiaOverlay) {
-    
-    window.showAletheiaOverlay = function(message, type) {
+
+    window.showAletheiaOverlay = function(message, type, timeout = 4000) {
         // 1. Cleanup existing overlay
         const existing = document.getElementById('aletheia-overlay-host');
         if (existing) existing.remove();
@@ -13,16 +48,16 @@ if (!window.showAletheiaOverlay) {
         if (selection.rangeCount === 0) return;
         const rect = selection.getRangeAt(0).getBoundingClientRect();
 
-        // 3. Create Shadow DOM (Isolation)
+        // 3. Create Shadow DOM (mode:'open' so updateAletheiaOverlay can find it)
         const host = document.createElement('div');
         host.id = 'aletheia-overlay-host';
-        const shadow = host.attachShadow({ mode: 'closed' });
+        const shadow = host.attachShadow({ mode: 'open' });
 
         // 4. Constants (Verified in manual_overlay_math.html)
         const OVERLAY_HEIGHT = 40;
         const MARGIN_ABOVE = 4; // Flush with top of text
-        const MARGIN_BELOW = 11; // Flush with bottom of textconst
-        
+        const MARGIN_BELOW = 11; // Flush with bottom of text
+
         // Colors
         const colors = {
             'warning': '#FBBF24', // Amber
@@ -91,9 +126,9 @@ if (!window.showAletheiaOverlay) {
 
         document.body.appendChild(host);
 
-        // 8. Auto-Dismiss
-        setTimeout(() => {
+        // 8. Auto-Dismiss (store timer ID so updateAletheiaOverlay can cancel it)
+        host._dismissTimer = setTimeout(() => {
             if (host.isConnected) host.remove();
-        }, 4000);
+        }, timeout);
     };
 }

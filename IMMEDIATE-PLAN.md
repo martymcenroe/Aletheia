@@ -1,24 +1,37 @@
-# Immediate Plan: MVP Path with Security Hardening
+# Immediate Plan: MVP Path to Store Submission
 
-**Updated:** 2026-01-01 (morning)
-**Status:** LLD for #95 ready for Gemini review
+**Updated:** 2026-01-01 19:21 CT
+**Status:** PR #138 ready for merge, then Store Compliance
 
 ---
 
-## Critical Path to Chrome Web Store
+## Current State
 
-### Step 1: Security Hardening (#95) ← BLOCKING
-**LLD:** `docs/1095-security-hardening.md`
-**Status:** LLD written, awaiting Gemini review
+| Component | Status |
+|-----------|--------|
+| Extension - Chrome MV3 | ✅ Working (`extension-chrome-V3/`) |
+| Extension - Firefox MV2 | ✅ Working (`extension-firefox-V2/`) |
+| Lambda (Bedrock + DynamoDB) | ✅ Deployed |
+| Denylist (803 Wikipedia terms) | ✅ Integrated |
+| Semantic guardrails | ✅ Active |
+| Rate limiting / WAF (#95) | ✅ Deployed |
+| Overlay timing | ✅ Fixed (stateful timer management) |
+| Store assets | ❌ Not created |
+
+---
+
+## Critical Path to Store Submission
+
+### Step 1: Merge PR #138 (Firefox Support) ← IMMEDIATE
+**PR:** #138 - feat: Firefox MV2 support and Chrome/Firefox extension separation (ref #100)
+**Status:** Ready for orchestrator merge
 
 **What it adds:**
-- CloudFront in front of Lambda Function URL
-- AWS WAF with rate limiting (100 req/5min/IP)
-- Header validation (`X-Aletheia-Client-Version`)
-- Denial of Wallet protection
-
-**Why blocking:**
-Without rate limiting, a malicious actor could run up AWS costs by hammering the endpoint. This is unacceptable before public release.
+- Separated Chrome and Firefox extensions into distinct directories
+- Firefox MV2 manifest with gecko ID
+- Fixed first-click timing bug
+- Stateful timer management for smooth overlay transitions
+- Build script for release ZIPs
 
 ### Step 2: Store Compliance (#51)
 **LLD:** `docs/1051-store-compliance.md`
@@ -30,11 +43,11 @@ Without rate limiting, a malicious actor could run up AWS costs by hammering the
 
 ### Step 3: Store Assets (#53)
 **LLD:** `docs/1053-store-assets.md`
-**Status:** Needs LLD
+**Status:** LLD updated, partially implemented
 
-- Extension zip (EXCLUDE: src/, tests/, docs/)
-- Screenshots (1280x800 or 640x400)
-- Promotional tiles (440x280)
+- Extension zips (created by `tools/build_release.py`)
+- Screenshots (1280x800 or 640x400) - NOT DONE
+- Promotional tiles (440x280) - NOT DONE
 
 ### Step 4: Submit to Chrome Web Store
 - Developer account ($5 one-time)
@@ -43,32 +56,28 @@ Without rate limiting, a malicious actor could run up AWS costs by hammering the
 
 ---
 
-## Current State
+## Open Investigation
 
-| Component | Status |
-|-----------|--------|
-| Extension (popup, context menu, overlay) | ✅ Working |
-| Lambda (Bedrock + DynamoDB) | ✅ Deployed |
-| Denylist (803 Wikipedia terms) | ✅ Integrated |
-| Semantic guardrails | ✅ Active |
-| Age gate (#104) | ⏳ Code complete, pending E2E tests |
-| Rate limiting / WAF | ❌ Not deployed |
-| Store assets | ❌ Not created |
+### Issue #137: Lambda Latency
+**Status:** Open - investigation needed
+
+Lambda takes ~5 seconds to respond. Tested with `max_tokens=10` (minimal generation) - still 5 seconds. This rules out LLM generation time as the cause.
+
+**Hypotheses to investigate:**
+1. Cold start latency
+2. DynamoDB write latency
+3. Bedrock API overhead
+4. Semantic guardrail check time
 
 ---
 
-## Parallel Track: Age Gate Testing (#104 + #105)
+## Open PRs (3)
 
-**Status:** #104 code complete (PR #133), blocked by #105
-
-| Issue | Description | Status |
-|-------|-------------|--------|
-| #104 | Age-restricted content blocking | Code complete, 33 unit tests passing |
-| #105 | Test site infrastructure | LLD written (`docs/1105-test-site-infrastructure.md`), needs review |
-
-**Why not blocking MVP:** Age gate is a safety enhancement, not a store requirement. Can ship MVP and add age gate verification in parallel.
-
-**Next:** Review `docs/1105-test-site-infrastructure.md`, then implement Playwright E2E tests to unblock #104 merge.
+| PR | Issue | Branch | Status |
+|----|-------|--------|--------|
+| #138 | #100 Firefox | `53-100-firefox-build` | Ready for merge |
+| #133 | #104 Age Block | `104-age-block` | Awaiting review |
+| #131 | #124 Etymologist | `124-digital-etymologist` | Awaiting review |
 
 ---
 
@@ -87,6 +96,4 @@ These are deferred until after Chrome Web Store submission:
 
 ## Next Action
 
-**Gemini:** Review `docs/1095-security-hardening.md` using `docs/0109-gemini-lld-review-procedure.md`
-
-After Gemini approval → Opus implements #95 → Then #51/#53 → Submit
+**Orchestrator:** Merge PR #138, then proceed with #51/#53 for store submission.

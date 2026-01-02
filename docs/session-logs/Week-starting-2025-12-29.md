@@ -1188,3 +1188,110 @@ Completed Issue #95 (Security Hardening via CloudFront + WAF). Deployed CloudFro
 - **Lambda:** ON (for testing)
 - **Worktrees:** Cleaned up Aletheia-95
 - **Next:** Store Compliance #51/#53 per IMMEDIATE-PLAN.md
+
+---
+
+## 2026-01-01 ~17:00-19:21 CT | Claude Opus 4.5
+
+### Summary
+Completed Firefox MV2 extension support and Chrome/Firefox extension separation. Fixed multiple timing issues with overlay feedback (first-click bug, timer gap). Implemented Gemini's stateful timer management solution. Created issue #137 for Lambda latency investigation. Created PR #138 and executed 0009 session closeout.
+
+### Extension Separation
+- Renamed `extension/` → `extension-chrome-V3/`
+- Created `extension-firefox-V2/` with Firefox MV2 compatibility
+- Both extensions share core logic with API differences:
+  - Chrome: `chrome.*` APIs, Manifest V3
+  - Firefox: `browser.*` APIs, Manifest V2, gecko ID
+
+### Timing Fixes (Gemini Collaboration)
+1. **First-click bug:** Context menu created at script load, not just in `onInstalled`
+2. **Timer gap issue:** Implemented stateful timer management:
+   - `showAletheiaOverlay(message, type, timeout=4000)` - configurable timeout
+   - `updateAletheiaOverlay()` - clears old timer, updates in-place, starts new timer
+   - Timer ID stored on `host._dismissTimer`
+   - "Saving..." uses 30s timeout (replaced when Lambda responds)
+3. **Shadow DOM:** Changed from `mode:'closed'` to `mode:'open'` for timer access
+
+### Lambda Latency Investigation
+- Tested `max_tokens=10` hypothesis → Still 5 seconds delay
+- Delay is NOT from LLM generation time
+- Created Issue #137 to investigate (cold start? network? Bedrock?)
+
+### Deploy Script Fixes
+- Fixed UTF-8 encoding: `open('$DENYLIST_PATH', encoding='utf-8')`
+- Replaced Unicode checkmarks with ASCII "OK" for Windows cp1252 console
+
+### Documentation Updates
+- **0002-coding-standards.md:** Added Section 9.3 Dual-Extension Requirement
+- **0003-file-inventory.md:** Updated for dual-extension structure
+- **GEMINI-HANDOFF-OVERLAY-TIMING.md:** Created for Gemini collaboration
+
+### Files Created
+- `extension-chrome-V3/` directory (moved from extension/)
+- `extension-firefox-V2/` directory (new)
+- `docs/GEMINI-HANDOFF-OVERLAY-TIMING.md`
+- `tools/build_release.py`
+
+### Files Modified
+- `extension-chrome-V3/overlay.js` (timer management)
+- `extension-chrome-V3/service-worker.js` (30s timeout)
+- `extension-firefox-V2/overlay.js` (timer management)
+- `extension-firefox-V2/service-worker.js` (browser.* API)
+- `deploy.sh` (UTF-8 encoding, ASCII output)
+- `docs/0002-coding-standards.md` (Section 9.3)
+- `docs/0003-file-inventory.md` (dual-extension inventory)
+
+### Issues
+- **Created:** #137 (Lambda latency investigation)
+- **Open:** #100 (Firefox compatibility - awaiting PR merge)
+
+### PRs
+- **Created:** #138 - feat: Firefox MV2 support and Chrome/Firefox extension separation (ref #100)
+- **Updated:** Fixed title to remove incorrect #53 reference
+
+### 0009 Closeout
+- Step 0: No issues closed ✓
+- Step 1: Git hygiene clean ✓
+- Step 2: 29 open issues audited ✓
+- Step 3: 3 open PRs, #138 title corrected ✓
+- Step 4: File inventory updated ✓
+- Step 5: Session log (this entry) ✓
+- Step 6: Handoff notes pending
+- Step 7: Final verification pending
+
+### State on Exit
+- **Branch (main):** `main`
+- **Branch (worktree):** `53-100-firefox-build`
+- **Open PRs:** 3 (#138, #133, #131)
+- **Lambda:** Not checked
+- **Next:** Merge PR #138, then Store Compliance #51/#53
+
+---
+
+## 2026-01-01 19:30-19:36 CT | Claude Opus 4.5
+
+### Summary
+Continuation session to verify Issue #95 closeout was complete. Re-executed full 0009-session-closeout-protocol from beginning. All steps verified complete. Committed pending permissions update and regenerated 6000-open-issues.md. Turned Lambda OFF for cost control.
+
+### 0009 Protocol Verification
+| Step | Status | Notes |
+|------|--------|-------|
+| 0. Reports | Verified | `docs/reports/95/` contains both reports |
+| 1. Git Hygiene | Verified | Clean tree, no #95 branches remain |
+| 2. Issue Audit | Verified | Issue #95 CLOSED |
+| 3. PR Audit | Verified | PR #136 MERGED |
+| 4. Doc Sync | Verified | LLD status = Complete, 6000 regenerated |
+| 5. Inventory | Verified | 11 entries reference #95 |
+| 6. Lessons | Verified | 5 lessons captured |
+| 7. Session Log | Verified | Previous entry exists |
+| 8. Final State | Verified | Main clean |
+
+### Commits Made
+- `chore: update Claude Code permissions` (git restore permission)
+- `docs: regenerate 6000-open-issues.md`
+
+### State on Exit
+- **Branch:** `main` @ 37ed5f6
+- **Open PRs:** 3 (#138, #133, #131)
+- **Lambda:** OFF
+- **Next:** Per IMMEDIATE-PLAN.md
