@@ -107,6 +107,7 @@
 | `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
 | `docs/1104-age-restricted-blocking.md` | **Spec** | 🟠 **In-Progress** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
+| `docs/1105-test-site-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #105 | Scriptable test site infrastructure (GitHub Pages + Playwright). |
 | `docs/1113-naked-python-architecture.md` | **Spec** | 🟢 **Stable** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
 | `docs/1116-linkedin-oauth.md` | **Spec** | 🟠 **In-Progress** | #116 | LinkedIn OAuth authentication for user gating. |
 | `docs/legacy/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
@@ -115,6 +116,7 @@
 | `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
 | `docs/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
+| `docs/1084-signal-inspector.md` | **Spec** | 🟢 **Stable** | #84 | Signal Inspector CLI for compliance auditing. |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |
@@ -141,6 +143,8 @@
 | `docs/reports/114/test-report.md` | **Report** | 🟢 **Stable** | #114 | Test report for overlay restore. |
 | `docs/reports/121/implementation-report.md` | **Report** | 🟢 **Stable** | #121 | Implementation report for Wikipedia denylist integration. |
 | `docs/reports/121/test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
+| `docs/reports/84/implementation-report.md` | **Report** | 🟢 **Stable** | #84 | Implementation report for Signal Inspector CLI. |
+| `docs/reports/84/test-report.md` | **Report** | 🟢 **Stable** | #84 | Test report for Signal Inspector CLI. |
 | `docs/reports/95/implementation-report.md` | **Report** | 🟢 **Stable** | #95 | Implementation report for security hardening via CloudFront + WAF. |
 | `docs/reports/95/test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
 
@@ -148,6 +152,7 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/6000-open-issues.md` | **Report** | 🟢 **Stable** | - | Current open GitHub issues (regenerate with `poetry run python tools/print/print_most_recent_open_issues.py`). |
+| `docs/6001-closed-issues.md` | **Report** | 🟢 **Stable** | - | All closed GitHub issues (historical reference). |
 | `docs/9000-lessons-learned.md` | **Log** | 🟢 **Stable** | - | Aletheia-specific lessons (project-scoped). |
 | `docs/9001-open-investigations.md` | **Log** | 🟡 **Beta** | - | Future work and spikes. |
 | `docs/ENGINEERING-JOURNAL.md` | **Log** | 🟢 **Stable** | - | Cross-project engineering lessons (synced). |
@@ -165,6 +170,11 @@
 | `src/guardrails/semantic.py` | **Logic** | 🟡 **Beta** | #10 | Semantic guardrail (LLM-based). |
 | `src/guardrails/resources/denylist.json` | **Data** | 🟢 **Stable** | #121 | Denylist terms (803 terms from Wikipedia). |
 | `src/guardrails/resources/taxonomy.json` | **Data** | 🟢 **Stable** | #10 | Taxonomy and few-shot examples. |
+| `src/signal_inspector/__init__.py` | **Module** | 🟢 **Stable** | #84 | Signal Inspector package init. |
+| `src/signal_inspector/fetcher.py` | **Logic** | 🟢 **Stable** | #84 | URL fetching with User-Agent handling. |
+| `src/signal_inspector/models.py` | **Logic** | 🟢 **Stable** | #84 | Data models (SignalResult, FetchStatus, etc.). |
+| `src/signal_inspector/parser.py` | **Logic** | 🟢 **Stable** | #84 | Signal extraction (meta, headers, robots.txt). |
+| `src/signal_inspector/reporter.py` | **Logic** | 🟢 **Stable** | #84 | Console and JSONL output reporting. |
 
 ### Chrome Extension
 | File | Role | Status | Linked Issue | Description |
@@ -206,6 +216,7 @@
 | `tools/generate_icons.py` | **Utility** | 🟢 **Stable** | #82 | Icon factory (Pillow). Supports `--transparent` and `--threshold N` CLI options. |
 | `tools/master_lambda.png` | **Asset** | 🟢 **Stable** | #82 | Master source for branding. |
 | `tools/smoke_test.py` | **Utility** | 🟢 **Stable** | #113 | Lambda smoke test (3 scenarios). |
+| `tools/inspect_signals.py` | **Utility** | 🟢 **Stable** | #84 | Signal Inspector CLI (robots.txt, meta, headers, rating). |
 | `tools/print/print_markdown.py` | **Utility** | 🟢 **Stable** | - | Batch markdown→PDF printer with spooler monitoring and print tracking. |
 | `tools/print/print_most_recent_open_issues.py` | **Utility** | 🟢 **Stable** | - | GitHub issues fetcher/printer (saves to docs/6000-*.md). |
 | `tools/print/audit_long_lines.py` | **Utility** | 🟢 **Stable** | #103 | Audits markdown files for print overflow (>100 char lines). |
@@ -226,6 +237,8 @@
 | `tests/test_fetch_denylist.py` | **Test** | 🟢 **Stable** | #121 | Unit tests for Wikipedia denylist fetcher (26 tests). |
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
 | `tests/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113 | Unit tests for Lambda handler. |
+| `tests/test_signal_inspector.py` | **Test** | 🟢 **Stable** | #84 | Unit + live tests for Signal Inspector (31 tests). |
+| `tests/fixtures/signal_inspector/` | **Data** | 🟢 **Stable** | #84 | HTML/txt test fixtures for signal parsing. |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
 | `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |

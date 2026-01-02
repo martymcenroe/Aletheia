@@ -41,8 +41,15 @@
       "Bash(./tools/aws/lambda-status.sh:*)",
       "WebFetch(domain:www.mediawiki.org)",
       "WebFetch(domain:en.wikipedia.org)",
-      "Bash(for issue in 114 96 77 76 82 69)",
-      "Bash(done)"
+      "Bash(./tools/aws/waf-setup.sh:*)",
+      "Bash(./tests/infra/verify_waf.sh:*)",
+      "Bash(~/Projects/Aletheia/tools/aws/lambda-on.sh)",
+      "Bash(curl:*)",
+      "Bash(~/Projects/Aletheia/tools/aws/lambda-off.sh)",
+      "Bash(node --version:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test)",
+      "Bash(echo:*)"
     ],
     "deny": [
       "Read(.env)",

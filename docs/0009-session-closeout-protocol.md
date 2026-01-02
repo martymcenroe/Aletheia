@@ -31,6 +31,20 @@ See `docs/0800-common-audits.md` for full audit index. During session closeout, 
 
 ## The Closeout Checklist
 
+### 0. Issue Completion Reports (If You Closed Issues)
+
+**Before proceeding with git hygiene, write reports for any issues you completed this session:**
+
+For each closed issue:
+1. Create directory `docs/reports/{IssueID}/`
+2. Write `implementation-report.md` using template `docs/0103-TEMPLATE-implementation-report.md`
+3. Write `test-report.md` using template `docs/0113-TEMPLATE-test-report.md`
+4. Update `docs/0003-file-inventory.md` with new report files
+
+**Why this matters:** Reports capture what was actually built vs. planned. Without them, future debugging is harder and lessons are lost.
+
+**Exceptions:** Documentation-only and chore issues (deps, formatting) don't need reports. See `docs/0802-reports-completeness-audit.md` for full exceptions list.
+
 ### 1. Git Hygiene
 ```bash
 # Ensure you're on main with latest

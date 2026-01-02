@@ -970,3 +970,171 @@ Recommended Path A: Submit current extension to Chrome Store, iterate.
 - **Lambda:** OFF
 - **Environment:** Clean (0011 verified)
 - **Next:** Decision point - Path A (#51/#53 Store) or Path B (#116+ Erudite)
+
+---
+
+## 2026-01-01 ~11:00-12:30 CT | Claude Opus 4.5
+
+### Summary
+Red Team review of Firefox compatibility (#100) and build script (#53) LLDs. Implemented both features but violated workflow by developing on main—corrected via worktree migration. Created GitHub issue on wrong repo (anthropics/claude-code #15992)—closed with apology. Established prevention rules and updated documentation.
+
+### LLD Review (Red Team)
+- Reviewed `docs/1100-firefox-compatibility.md` and `docs/1053-store-assets.md`
+- Identified missing template sections: Security, Performance, Risks, Data & Fixtures
+- Found pseudocode bugs in original 1053 (path comparison, exclusion logic)
+- Recommended manifest parity check to prevent drift
+- Produced polished versions of both LLDs with full template compliance
+
+### Implementation (#53, #100)
+- Created `extension/manifest.firefox.json` with gecko ID `extension@aletheia.study`
+- Created `tools/build_release.py`:
+  - Icon verification (pre-committed icons, no Pillow)
+  - Manifest parity check (7 keys must match)
+  - Clean zips (excludes __pycache__, .git, .DS_Store)
+  - Produces `dist/aletheia-chrome-v{ver}.zip` and `dist/aletheia-firefox-v{ver}.zip`
+- Verified artifacts: both zips correct, parity check catches drift
+
+### Workflow Violations & Fixes
+1. **Developed on main**: Moved code to worktree `../Aletheia-53-100`, committed docs to main first
+2. **Created issue on wrong repo**: anthropics/claude-code #15992 → closed with apology
+3. **Tried to move docs with code**: Corrected separation (docs→main, code→worktree)
+
+### Documentation Updates
+- **CLAUDE.md**: Added Pre-Code Checklist (3 items), GitHub CLI Safety rules
+- **9000-lessons-learned.md**: Added 3 new lessons (code on main, docs separation, wrong repo)
+- **.claude/settings.local.json**: Removed cruft lines (shell loop fragments)
+
+### Issues
+- **Created**: #132 (Cloudflare Email Setup)
+- **Branches**: `53-100-firefox-build` pushed, ready for PR
+
+### External
+- Created `C:\Users\mcwiz\Projects\anthropic-claude-code-issues.md` (100 open issues snapshot)
+- Closed anthropics/claude-code #15992 with apology
+
+### Commits
+- `b6dfb44` - docs: add LLDs for Firefox compatibility and build script (ref #53, #100)
+- `fec8dc4` - feat: add Firefox manifest and build script (close #53, close #100) [on branch]
+
+### Files Created
+- `extension/manifest.firefox.json`
+- `tools/build_release.py`
+- `C:\Users\mcwiz\Projects\anthropic-claude-code-issues.md`
+
+### Files Modified
+- `CLAUDE.md`
+- `docs/9000-lessons-learned.md`
+- `docs/1053-store-assets.md`
+- `docs/1100-firefox-compatibility.md`
+- `.claude/settings.local.json`
+
+### State on Exit
+- **Branch (main):** `main`
+- **Branch (worktree):** `53-100-firefox-build` @ `fec8dc4`
+- **Open PRs:** Ready to create for 53-100-firefox-build
+- **Lambda:** Not checked
+- **Next:** Manual smoke test in Chrome/Firefox, then PR and merge
+
+---
+
+## 2026-01-01 ~12:30-15:50 CT | Claude Opus 4.5
+
+### Summary
+Implemented Issue #84 (Signal Inspector CLI). Created full tool for auditing compliance signals from URLs. Incorporated architect review feedback (robots.txt gatekeeper, --force flag). User rejected manual smoke tests—automated everything. Created PR #135 and merged. Session continued with closeout protocol improvements.
+
+### Implementation (#84 Signal Inspector)
+- **src/signal_inspector/**: Complete module (models.py, fetcher.py, parser.py, reporter.py)
+- **tools/inspect_signals.py**: CLI with argparse (single URL, batch file, UA modes, --force)
+- **tests/test_signal_inspector.py**: 31 tests (27 mocked + 4 live website tests)
+- **tests/fixtures/signal_inspector/**: 7 HTML/txt fixtures
+
+### Key Design Decisions
+- **Gatekeeper Pattern**: robots.txt checked FIRST; if blocked, STOP (unless --force)
+- **OR Merge Logic**: Meta tags + X-Robots-Tag headers combined ("No" trumps "Yes")
+- **Action Derivation**: adult_blocked→BLOCK, noarchive→TRANSFORM, else→ALLOW (per 0007)
+
+### Live Website Tests (Automated)
+Found working sites after WSJ blocked bots:
+- en.wikipedia.org → ALLOW (no restrictive signals)
+- www.bbc.com → TRANSFORM (X-Robots-Tag: noarchive header)
+- noarchive.net → BLOCK (robots.txt) or TRANSFORM with --force
+
+### User Feedback & Corrections
+- **"Wrong smoke test instructions"**: Fixed LLD to use `poetry run python`
+- **"Not aggressive enough on automation"**: Converted all manual tests to automated
+- **"After you merge"**: Merged PR #135 directly (user does not merge)
+
+### Closeout Protocol Improvements
+- **0102-TEMPLATE-feature-lld.md**: Updated to emphasize automation over manual tests
+- **0009-session-closeout-protocol.md**: Added "Section 0: Issue Completion Reports"
+- **9000-lessons-learned.md**: Added 2 lessons (automation, poetry run)
+
+### Reports Created
+- `docs/reports/84/implementation-report.md`
+- `docs/reports/84/test-report.md`
+
+### Issues
+- **Closed**: #84 (Signal Inspector CLI) via PR #135
+
+### Commits
+- `6c12a9e` - docs: add 6001-closed-issues.md report and update inventory
+- (prior commits via PR #135 merge)
+
+### Files Created
+- `src/signal_inspector/__init__.py`
+- `src/signal_inspector/models.py`
+- `src/signal_inspector/fetcher.py`
+- `src/signal_inspector/parser.py`
+- `src/signal_inspector/reporter.py`
+- `tools/inspect_signals.py`
+- `tests/test_signal_inspector.py`
+- `tests/fixtures/signal_inspector/*.html/.txt` (7 files)
+- `docs/reports/84/implementation-report.md`
+- `docs/reports/84/test-report.md`
+
+### Files Modified
+- `docs/1084-signal-inspector.md` (status→Complete)
+- `docs/0102-TEMPLATE-feature-lld.md` (testing philosophy)
+- `docs/0009-session-closeout-protocol.md` (Section 0 reports)
+- `docs/0003-file-inventory.md` (added #84 files + reports)
+- `docs/9000-lessons-learned.md` (2 new lessons)
+- `pyproject.toml` (added requests, beautifulsoup4, colorama, responses)
+
+### State on Exit
+- **Branch:** `main`
+- **Open PRs:** 0
+- **Lambda:** (not checked)
+- **Tests:** 31 passed (signal inspector) + existing tests
+- **Next:** Per IMMEDIATE-PLAN.md
+
+---
+
+## 2026-01-01 ~16:21 CT | Claude Opus 4.5
+
+### Summary
+Brief session: created `docs/6001-closed-issues.md` (concatenation of all 61 closed GitHub issues, mirroring 6000 format). Updated file inventory. Configured statusline in `~/.claude/` based on user's PS1 configuration. Executed 0009 closeout protocol.
+
+### Documentation
+- **Created:** `docs/6001-closed-issues.md` - All closed issues for historical reference
+- **Updated:** `docs/0003-file-inventory.md` - Added 6001 to 90xx section
+- **Regenerated:** `docs/6000-open-issues.md` - Now shows 29 open issues
+
+### Configuration
+- Created `~/.claude/statusline-command.sh` - Matches user's PS1 format
+- Updated `~/.claude/settings.json` - StatusLine config
+
+### Git Hygiene (0009 Verified)
+- 4 active worktrees: 104-age-block, 124-digital-etymologist, 53-100-firefox-build, 95-security-hardening
+- 2 open PRs: #133 (104-age-block), #131 (124-digital-etymologist)
+- Pruned zombie remote: origin/84-signal-inspector
+- No stashes
+
+### Commits
+- `6c12a9e` - docs: add 6001-closed-issues.md report and update inventory
+
+### State on Exit
+- **Branch:** `main`
+- **Last commit:** `6c12a9e`
+- **Open PRs:** 2 (existing feature work)
+- **Lambda:** OFF
+- **Next:** Per IMMEDIATE-PLAN.md (Security Hardening #95 blocking, then Store Compliance #51/#53)
