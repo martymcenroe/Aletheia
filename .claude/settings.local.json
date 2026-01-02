@@ -55,7 +55,8 @@
       "Bash(npm run test:waf:*)",
       "Bash(\"https://d1fkpkls2wesse.cloudfront.net/\")",
       "Bash(git ls-tree:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [
       "Read(.env)",
