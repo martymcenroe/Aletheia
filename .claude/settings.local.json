@@ -49,7 +49,13 @@
       "Bash(node --version:*)",
       "Bash(npm install:*)",
       "Bash(npm test)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(git rm:*)",
+      "Bash(~/Projects/Aletheia/tools/aws/lambda-status.sh)",
+      "Bash(npm run test:waf:*)",
+      "Bash(\"https://d1fkpkls2wesse.cloudfront.net/\")",
+      "Bash(git ls-tree:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [
       "Read(.env)",
