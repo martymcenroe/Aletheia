@@ -38,7 +38,7 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 - **Cleanup completely:** Delete BOTH local and remote branches after merge:
   - `git branch -d {branch-name}` (local)
   - `git push origin --delete {branch-name}` (remote)
-- **No merging:** Push and create PR, but leave merge to Orchestrator
+- **Merge and cleanup:** After PR is created and tests pass, merge it (`gh pr merge`), then cleanup worktree and branches per 0002 §4
 - **Update inventory:** Add new files to `docs/0003-file-inventory.md`
 
 ### Python Dependencies:
