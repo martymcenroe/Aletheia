@@ -1,3 +1,6 @@
+// extension-firefox-V2/popup.js
+// Firefox MV2 - uses browser.* API
+
 // State management
 let currentDomain = null;
 let selectedDomains = new Set();
@@ -30,7 +33,7 @@ const confirmClearButton = document.getElementById('confirm-clear-button');
 
 async function getCurrentDomain() {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tab || !tab.url) return null;
 
     const url = new URL(tab.url);
@@ -44,7 +47,7 @@ async function getCurrentDomain() {
 
 async function getAllowlist() {
   try {
-    const result = await chrome.storage.local.get('allowlist');
+    const result = await browser.storage.local.get('allowlist');
     return result.allowlist || [];
   } catch (error) {
     console.error('[Aletheia] Error getting allowlist:', error);
@@ -62,7 +65,7 @@ async function addToAllowlist(domain) {
     const allowlist = await getAllowlist();
     if (!allowlist.includes(domain)) {
       allowlist.push(domain);
-      await chrome.storage.local.set({ allowlist });
+      await browser.storage.local.set({ allowlist });
     }
   } catch (error) {
     console.error('[Aletheia] Error adding to allowlist:', error);
@@ -73,7 +76,7 @@ async function removeFromAllowlist(domain) {
   try {
     const allowlist = await getAllowlist();
     const filtered = allowlist.filter(d => d !== domain);
-    await chrome.storage.local.set({ allowlist: filtered });
+    await browser.storage.local.set({ allowlist: filtered });
   } catch (error) {
     console.error('[Aletheia] Error removing from allowlist:', error);
   }
@@ -83,7 +86,7 @@ async function removeManyFromAllowlist(domains) {
   try {
     const allowlist = await getAllowlist();
     const filtered = allowlist.filter(d => !domains.includes(d));
-    await chrome.storage.local.set({ allowlist: filtered });
+    await browser.storage.local.set({ allowlist: filtered });
   } catch (error) {
     console.error('[Aletheia] Error removing many from allowlist:', error);
   }
@@ -91,7 +94,7 @@ async function removeManyFromAllowlist(domains) {
 
 async function clearAllData() {
   try {
-    await chrome.storage.local.set({ allowlist: [] });
+    await browser.storage.local.set({ allowlist: [] });
   } catch (error) {
     console.error('[Aletheia] Error clearing all data:', error);
   }
