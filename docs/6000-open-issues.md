@@ -1,33 +1,20 @@
-# Aletheia - Open Issues
+Print mode: double-sided
 
-**Generated:** 2026-01-01 19:25 CT
-**Total Open Issues:** 29
+Fetching open issues from GitHub...
+Fetched 26 open issues
+Saving to docs\6000-open-issues.md...
+Saved docs\6000-open-issues.md
+Generating PDF with pandoc...
+Generated temp-pdfs\6000-open-issues.pdf
+Printing temp-pdfs\6000-open-issues.pdf...
+Double-sided printing requested.
+Sent to printer: Brother HL-L6300DW series Printer (double-sided)
 
----
-
-## Issue #6: feat: Implement RAG Vector Store
-
-**Labels:** feature
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-24
-
-### Description
-
-Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
-
----
-
-## Issue #7: chore: Add Observability Tracing
-
-**Labels:** chore
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-30
-
-### Description
-
-Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
+Complete!
+   Markdown: docs\6000-open-issues.md
+   PDF: temp-pdfs\6000-open-issues.pdf (deleted after print)
+   Printed to: Brother HL-L6300DW series Printer (double-sided)
+en usage.
 
 ## Updated Context
 LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
@@ -64,7 +51,7 @@ Prepare assets (Manifest, Privacy Policy, Store Listing) for submission.
 **Labels:** chore
 
 **Created:** 2025-12-10
-**Updated:** 2026-01-01
+**Updated:** 2026-01-02
 
 ### Description
 
@@ -443,190 +430,6 @@ tests/
 - Manual test script: TEST-SCRIPT-77.md
 - XSS harness: test-xss.html
 - Playwright extension testing: https://playwright.dev/docs/chrome-extensions
-
----
-
-## Issue #100: Feature: Firefox compatibility while maintaining Chrome support
-
-**Labels:** enhancement
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Context
-During Issue #98 debugging, extension was tested in Firefox and required manifest.json changes to load (commit 1cd36c9). These changes were reverted when branch 77 was cleaned up. Extension currently works in Chrome/Chrome Canary but not Firefox.
-
-## Objective
-Make Aletheia extension work in both Chrome and Firefox without separate builds or manifests.
-
-## Firefox Error (Current)
-When loading extension in Firefox (`about:debugging` → Load Temporary Add-on):
-
-```
-Error: background.service_worker is currently disabled. Add background.scripts.
-```
-
-## Required Change
-
-### manifest.json - Background Section
-**Current (Chrome-only):**
-```json
-"background": {
-  "service_worker": "service-worker.js"
-}
-```
-
-**Fixed (Chrome + Firefox):**
-```json
-"background": {
-  "service_worker": "service-worker.js",
-  "scripts": ["service-worker.js"]
-}
-```
-
-## Browser Support Matrix
-
-| Browser | Manifest V3 | Service Workers | Background Scripts |
-|---------|-------------|-----------------|-------------------|
-| Chrome 88+ | ✅ Yes | ✅ Preferred | ⚠️ Deprecated |
-| Firefox 109+ | ✅ Yes | ⚠️ Partial | ✅ Required |
-
-**Key Issue:** Firefox Manifest V3 support is incomplete. Firefox still requires `background.scripts` array even though it supports `service_worker`. Chrome ignores `scripts` if `service_worker` is present.
-
-**Solution:** Include BOTH properties. Chrome uses `service_worker`, Firefox uses `scripts`. No conflict.
-
-## Implementation
-
-### 1. Update manifest.json
-```json
-{
-  "manifest_version": 3,
-  "name": "Aletheia",
-  "version": "1.0",
-  "description": "AI-Powered Context Analysis",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "contextMenus",
-    "storage"
-  ],
-  "host_permissions": [],
-  "background": {
-    "service_worker": "service-worker.js",
-    "scripts": ["service-worker.js"]
-  },
-  "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "action": {
-    "default_title": "Aletheia",
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
-  }
-}
-```
-
-### 2. Test in Both Browsers
-
-**Chrome:**
-1. `chrome://extensions/` → Load unpacked
-2. Run smoke tests (TEST-SCRIPT-77.md)
-3. Verify all features work
-
-**Firefox:**
-1. `about:debugging#/runtime/this-firefox` → Load Temporary Add-on
-2. Select `manifest.json` from extension directory
-3. Run smoke tests (TEST-SCRIPT-77.md)
-4. Verify all features work
-
-## API Compatibility Notes
-
-### Known Compatible APIs (Used by Aletheia)
-- ✅ `chrome.contextMenus` → Works in Firefox (via WebExtensions polyfill)
-- ✅ `chrome.storage` → Works in Firefox
-- ✅ `chrome.scripting.executeScript` → Works in Firefox 101.0+
-- ✅ `chrome.action.setBadgeText` → Works in Firefox 109+
-- ✅ `chrome.action.setBadgeBackgroundColor` → Works in Firefox 109+
-
-### Potential Issues
-- Firefox may require `browser.*` namespace instead of `chrome.*`
-- Most modern Firefox versions support `chrome.*` for compatibility
-- If issues arise, consider using WebExtensions polyfill: https://github.com/mozilla/webextension-polyfill
-
-## Testing Checklist
-
-Test all features from Issue #77 in BOTH browsers:
-
-- [ ] **Extension loads** without errors
-- [ ] **Context menu** appears ("Explain with AI")
-- [ ] **Allowlist toggle** in popup works
-- [ ] **Test 010:** Blocked state (not allowlisted)
-  - [ ] Chrome
-  - [ ] Firefox
-- [ ] **Test 020:** Badge clearing
-  - [ ] Chrome
-  - [ ] Firefox
-- [ ] **Test 030:** Success state (with Lambda ON)
-  - [ ] Chrome
-  - [ ] Firefox
-- [ ] **Test 040:** Error state (with Lambda OFF)
-  - [ ] Chrome
-  - [ ] Firefox
-- [ ] **Test 070:** Shadow DOM isolation
-  - [ ] Chrome
-  - [ ] Firefox
-- [ ] **Test 080:** XSS prevention
-  - [ ] Chrome
-  - [ ] Firefox
-- [ ] **Test 090:** Rapid clicks
-  - [ ] Chrome
-  - [ ] Firefox
-
-## Acceptance Criteria
-
-- [ ] Extension loads in Firefox without errors
-- [ ] Extension still loads in Chrome without warnings
-- [ ] All smoke tests pass in Chrome
-- [ ] All smoke tests pass in Firefox
-- [ ] No separate builds required (single manifest.json works for both)
-- [ ] Documentation updated with Firefox installation instructions
-
-## Future Considerations
-
-**Edge/Brave/Vivaldi:**
-- These are Chromium-based, should work like Chrome
-- No special handling needed
-
-**Safari:**
-- Requires separate build process (Xcode project)
-- Out of scope for this issue
-
-## References
-
-- Firefox MV3 docs: https://extensionworkshop.com/documentation/develop/manifest-v3-migration-guide/
-- Chrome MV3 docs: https://developer.chrome.com/docs/extensions/mv3/
-- WebExtensions polyfill: https://github.com/mozilla/webextension-polyfill
-- Test script: TEST-SCRIPT-77.md (branch 77-action-feedback)
-- Previous Firefox fix (reverted): commit 1cd36c9
-
-## Related Issues
-
-- #77 - User feedback feature (smoke tests to run in both browsers)
-- #98 - Overlay positioning (tested in Firefox during debug)
-
-## Dependencies
-
-None - can be implemented immediately on branch 77-action-feedback.
 
 ---
 
@@ -1228,40 +1031,6 @@ This led to the realization that what we'd built wasn't just documentation—it 
 
 ---
 
-## Issue #124: feat: Implement 'Digital Etymologist' Persona & Structured JSON Response
-
-**Labels:** feature, backend
-
-**Created:** 2025-12-31
-**Updated:** 2025-12-31
-
-### Description
-
-
-## Objective
-Transform the Bedrock generation layer to act as an objective 'Digital Etymologist' rather than a generic assistant.
-
-## Requirements
-1. **System Prompt:** Update the prompt to enforce a neutral, academic tone (no scolding).
-2. **Structured Output:** The Lambda must return a JSON object (not raw string) with three tiers:
-   - **Signal:** 2-4 word classification (e.g., 'Archaic Pejorative').
-   - **Gem:** Single sentence summary (max 25 words).
-   - **Context:** 3-sentence historical detail (max 100 words).
-3. **Fail-Safe:** If the LLM produces invalid JSON, fallback to a standard error message.
-
-## Architecture
-- **Input:** User text + Context.
-- **Processing:** Bedrock (Claude 3 Haiku/Sonnet).
-- **Output:** JSON Payload to frontend.
-
-## Acceptance Criteria
-- [ ] Returns valid JSON structure.
-- [ ] Tone is encyclopedic, not conversational.
-- [ ] Latency remains under 3s.
-
-
----
-
 ## Issue #125: feat: Implement 'Museum Label' Progressive Disclosure UI
 
 **Labels:** feature, frontend
@@ -1488,67 +1257,6 @@ We need email capability for:
 - [ ] `support@aletheia.study` forwards to Orchestrator's email
 - [ ] Test email received successfully
 - [ ] (Optional) Gmail "send as" configured for replies
-
----
-
-## Issue #134: Bug: Extension/Lambda field name mismatch causes 400 errors
-
-**Created:** 2026-01-01
-**Updated:** 2026-01-01
-
-### Description
-
-## Problem
-Extension requests return HTTP 400 with `{"error": "Missing required field: text"}`.
-
-## Diagnosis
-Field name mismatch between extension and Lambda:
-
-| Extension sends | Lambda expects |
-|-----------------|----------------|
-| `word` | `text` |
-| `context` | `domContext` |
-
-### Extension (`service-worker.js:74-79`)
-```javascript
-const payload = {
-    word: info.selectionText,
-    url: info.pageUrl,
-    title: tab.title,
-    context: fullPageText
-};
-```
-
-### Lambda (`src/lambda_function.py:69,252,275`)
-```python
-if "text" not in event:
-    return False, "Missing required field: text"
-...
-text = body["text"]
-context_text = body.get("domContext", "")
-```
-
-## Evidence
-```bash
-$ curl -s -X POST "https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/" \
-  -H "Content-Type: application/json" \
-  -d '{"word":"test","url":"https://example.com","title":"Test","context":"Test"}'
-
-{"error": "Missing required field: text"}
-```
-
-## Root Cause
-The Lambda was rewritten in Issue #113 (Naked Python) with new field names, but the extension was not updated to match.
-
-## Options
-1. **Fix extension** - Update `service-worker.js` to use `text` and `domContext`
-2. **Fix Lambda** - Update `lambda_function.py` to accept `word` and `context`
-
-Option 1 is cleaner (semantic field names), but requires extension reload for testing.
-
-## Related
-- #113 (Naked Python Architecture) - introduced new Lambda
-- Not WAF-related (WAF from #95 was never deployed)
 
 ---
 

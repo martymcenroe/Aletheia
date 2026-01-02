@@ -3,7 +3,7 @@
 ## 1. Context & Goal
 * **Issue:** #124
 * **Objective:** Transform the Bedrock generation layer to produce structured, encyclopedic responses with a neutral academic tone.
-* **Status:** Draft
+* **Status:** Complete
 * **Related Issues:** #125 (Museum Label UI - consumes this output), #126 (Hard vs. Soft Blocking)
 
 ### Background
