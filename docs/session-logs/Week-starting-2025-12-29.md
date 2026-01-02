@@ -1295,3 +1295,37 @@ Continuation session to verify Issue #95 closeout was complete. Re-executed full
 - **Open PRs:** 3 (#138, #133, #131)
 - **Lambda:** OFF
 - **Next:** Per IMMEDIATE-PLAN.md
+
+---
+
+## 2026-01-01 ~19:30-19:50 CT | Claude Opus 4.5
+
+### Summary
+Session continued from context summary. Initially executed 0009 closeout INCORRECTLY - left PR open, told orchestrator to merge, didn't cleanup worktree. User caught the error. Fixed CLAUDE.md which had conflicting instruction ("No merging"). Properly executed closeout: merged PR #138, cleaned up worktree, created reports for #100, and reopened #53 which was incorrectly auto-closed.
+
+### Critical Fix: CLAUDE.md Conflict
+**Found:** CLAUDE.md said "No merging: Push and create PR, but leave merge to Orchestrator"
+**Conflict:** 0002 §4 Step 8 says "Merge: Finalize" and 0009 §3 says "No open PRs should remain"
+**Fixed:** Changed to "Merge and cleanup: After PR is created and tests pass, merge it"
+
+### Proper Closeout Executed
+1. Merged PR #138 (had to resolve merge conflict in inventory first)
+2. Removed worktree `Aletheia-53-100`
+3. Deleted branch `53-100-firefox-build` (local + remote)
+4. Created `docs/reports/100/` (implementation + test reports)
+5. Reopened #53 - was incorrectly auto-closed by PR (promotional tiles still needed)
+
+### Lesson Learned
+Documentation conflicts cause workflow errors. CLAUDE.md must align with 0002 and 0009. When in doubt, the numbered standards (00xx) are authoritative.
+
+### Issues
+- **Closed:** #100 (Firefox compatibility) - properly via PR merge
+- **Reopened:** #53 (Store Assets) - was incorrectly auto-closed, promotional tiles still needed
+- **Created:** #137 (Lambda latency) - earlier in session
+
+### State on Exit
+- **Branch:** `main` @ a884aef
+- **Open PRs:** 2 (#133, #131) - other agents' work
+- **Worktrees:** 2 (Aletheia-104, Aletheia-124) - other agents' work
+- **Lambda:** Not checked
+- **Next:** #51/#53 Store Compliance per IMMEDIATE-PLAN.md
