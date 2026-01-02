@@ -128,6 +128,8 @@ if [ -n "$EXISTING_WAF" ] && [ "$EXISTING_WAF" != "None" ]; then
     WAF_ARN="$EXISTING_WAF"
 else
     # Create WAF Web ACL with rules
+    # Note: OPTIONS requests are allowed through for CORS preflight (browsers send preflight
+    # before POST with custom headers). The rule blocks if: NOT OPTIONS AND NOT header "1.*"
     cat > "$SCRIPT_TMPDIR/waf-rules.json" << 'WAFRULES'
 {
   "Name": "AletheiaWebACL",
@@ -136,25 +138,43 @@ else
   "Description": "Aletheia API protection: header validation + rate limiting",
   "Rules": [
     {
-      "Name": "RequireClientVersion",
+      "Name": "RequireClientVersionExceptOptions",
       "Priority": 1,
       "Action": { "Block": {} },
       "Statement": {
-        "NotStatement": {
-          "Statement": {
-            "ByteMatchStatement": {
-              "FieldToMatch": { "SingleHeader": { "Name": "x-aletheia-client-version" } },
-              "PositionalConstraint": "STARTS_WITH",
-              "SearchString": "MS4=",
-              "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+        "AndStatement": {
+          "Statements": [
+            {
+              "NotStatement": {
+                "Statement": {
+                  "ByteMatchStatement": {
+                    "FieldToMatch": { "Method": {} },
+                    "PositionalConstraint": "EXACTLY",
+                    "SearchString": "T1BUSU9OUw==",
+                    "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+                  }
+                }
+              }
+            },
+            {
+              "NotStatement": {
+                "Statement": {
+                  "ByteMatchStatement": {
+                    "FieldToMatch": { "SingleHeader": { "Name": "x-aletheia-client-version" } },
+                    "PositionalConstraint": "STARTS_WITH",
+                    "SearchString": "MS4=",
+                    "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+                  }
+                }
+              }
             }
-          }
+          ]
         }
       },
       "VisibilityConfig": {
         "SampledRequestsEnabled": true,
         "CloudWatchMetricsEnabled": true,
-        "MetricName": "RequireClientVersion"
+        "MetricName": "RequireClientVersionExceptOptions"
       }
     },
     {

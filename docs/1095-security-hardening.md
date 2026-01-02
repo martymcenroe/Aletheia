@@ -146,24 +146,46 @@ Note: WAF rate-based rules have minimum 5-minute evaluation windows. Dev mode us
 
 ### 7.1 WAF Rule Definitions (JSON)
 
+**CORS Note:** Browsers send OPTIONS preflight requests before POST with custom headers.
+The WAF rule must allow OPTIONS through for CORS to work. The rule logic is:
+`Block if: (method != OPTIONS) AND (header does not start with "1.")`
+
 ```json
 {
   "Name": "AletheiaWebACL",
   "Rules": [
     {
-      "Name": "RequireClientVersion",
+      "Name": "RequireClientVersionExceptOptions",
       "Priority": 1,
       "Action": { "Block": {} },
       "Statement": {
-        "NotStatement": {
-          "Statement": {
-            "ByteMatchStatement": {
-              "FieldToMatch": { "SingleHeader": { "Name": "x-aletheia-client-version" } },
-              "PositionalConstraint": "STARTS_WITH",
-              "SearchString": "1.",
-              "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+        "AndStatement": {
+          "Statements": [
+            {
+              "NotStatement": {
+                "Statement": {
+                  "ByteMatchStatement": {
+                    "FieldToMatch": { "Method": {} },
+                    "PositionalConstraint": "EXACTLY",
+                    "SearchString": "OPTIONS",
+                    "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+                  }
+                }
+              }
+            },
+            {
+              "NotStatement": {
+                "Statement": {
+                  "ByteMatchStatement": {
+                    "FieldToMatch": { "SingleHeader": { "Name": "x-aletheia-client-version" } },
+                    "PositionalConstraint": "STARTS_WITH",
+                    "SearchString": "1.",
+                    "TextTransformations": [{ "Priority": 0, "Type": "NONE" }]
+                  }
+                }
+              }
             }
-          }
+          ]
         }
       }
     },
