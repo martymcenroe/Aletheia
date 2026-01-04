@@ -39,6 +39,7 @@ class SemanticGuardrail:
 
         return (
             "You are a content safety filter. Classify the input text into exactly one category.\n"
+            "The user text will be provided in <user_text> XML tags.\n"
             "Provide a confidence score (0.0-1.0) for every category in the taxonomy.\n"
             "Taxonomy:\n"
             f"{tax_str}\n\n"
@@ -51,13 +52,20 @@ class SemanticGuardrail:
         """
         Analyzes text for safety violations using AWS Bedrock.
         Returns: {'is_safe': bool, 'reason': str, 'scores': dict}
+
+        Security: User text is wrapped in XML tags to prevent prompt injection.
+        See: docs/0809-audit-security.md Finding F1
         """
+        # Wrap user text in XML tags to clearly delineate from prompt
+        # This mitigates prompt injection by making the boundary explicit
+        wrapped_text = f"<user_text>{text}</user_text>"
+
         payload = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 200,
             "system": self._build_system_prompt(),
             "messages": [
-                {"role": "user", "content": [{"type": "text", "text": text}]}
+                {"role": "user", "content": [{"type": "text", "text": wrapped_text}]}
             ]
         }
 

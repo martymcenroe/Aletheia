@@ -247,15 +247,15 @@ Comprehensive security audit covering web application, LLM, agentic AI, and brow
 
 **Findings:**
 
-| ID | Severity | Category | Finding | Recommendation |
-|----|----------|----------|---------|----------------|
-| F1 | ⚠️ Low | LLM01 | `semantic.py:60` sends user text without XML wrapping | Consider adding escape_xml() for consistency with etymologist.py |
-| F2 | ℹ️ Info | Supply Chain | boto3 1.41.2 → 1.42.21 available | Update when convenient |
-| F3 | ℹ️ Info | Supply Chain | certifi 2025.11.12 → 2026.1.4 available | Update when convenient |
+| ID | Severity | Category | Finding | Status |
+|----|----------|----------|---------|--------|
+| F1 | ⚠️ Low | LLM01 | `semantic.py:60` sends user text without XML wrapping | ✅ FIXED |
+| F2 | ℹ️ Info | Supply Chain | boto3 1.41.2 → 1.42.21 available | Open |
+| F3 | ℹ️ Info | Supply Chain | certifi 2025.11.12 → 2026.1.4 available | Open |
 
 **Notes:**
-- F1 is mitigated by fail-closed behavior and deterministic policy enforcement
-- No action required for F2/F3 (no CVEs, patch releases only)
+- F1 FIXED (2026-01-04): Added `<user_text>` XML wrapping in `semantic.py:60`
+- F2/F3: No action required (no CVEs, patch releases only)
 
 ---
 
