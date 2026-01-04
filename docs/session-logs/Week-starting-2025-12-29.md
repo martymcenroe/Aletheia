@@ -1693,4 +1693,4 @@ Comprehensive audit framework session. Created 6 new audit types (0811-0815, 089
 - **Worktrees:** Only main
 - **Open PRs:** 4 (all Dependabot)
 - **Lambda:** ON (user may want to turn off)
-- **Next:** Review Dependabot PRs, address #145 (DynamoDB TTL), continue with #105 or user's choice
+- **Next:** Review Dependabot PRs, address #145 (DynamoDB TTL), or user's choice from backlog
