@@ -1,6 +1,6 @@
 # Immediate Plan: MVP Path to Store Submission
 
-**Updated:** 2026-01-01 20:11 CT
+**Updated:** 2026-01-04 (by Claude Opus 4.5)
 **Status:** Implement #105 → merge #104 → then Store Compliance
 
 ---
@@ -14,29 +14,29 @@
 | Lambda (Bedrock + DynamoDB) | ✅ Deployed |
 | Denylist (803 Wikipedia terms) | ✅ Integrated |
 | Semantic guardrails | ✅ Active |
-| Rate limiting / WAF (#95) | ✅ Deployed |
+| Rate limiting / WAF (#95) | ✅ Deployed (PR #136 merged) |
+| Digital Etymologist (#124) | ✅ Deployed (PR #131 merged) |
 | Overlay timing | ✅ Fixed (stateful timer management) |
+| Age-restricted blocking (#104) | 🟡 Code complete, awaiting E2E verification |
 | Store assets | ❌ Not created |
 
 ---
 
 ## Critical Path to Store Submission
 
-### Step 1: Merge PR #138 (Firefox Support)
-**PR:** #138 - feat: Firefox MV2 support and Chrome/Firefox extension separation (ref #100)
-**Status:** Ready for orchestrator merge
-
-**What it adds:**
+### Step 1: Firefox Support (#100) ✅ COMPLETE
+**PR:** #138 - merged 2026-01-02
 - Separated Chrome and Firefox extensions into distinct directories
 - Firefox MV2 manifest with gecko ID
 - Fixed first-click timing bug
 - Stateful timer management for smooth overlay transitions
 - Build script for release ZIPs
 
-### Step 2: Test Infrastructure (#105) ← NEXT
+### Step 2: Test Infrastructure (#105) ← CURRENT
 **LLD:** `docs/1105-test-site-infrastructure.md`
 **Status:** LLD approved (Gemini reviewed), ready for implementation
 **Worktree:** Create `Aletheia-105`
+**Assigned:** Unassigned
 
 **What it adds:**
 - GitHub Pages test site hosting
@@ -49,7 +49,7 @@
 **LLD:** `docs/1104-age-restricted-blocking.md`
 **PR:** #133 (code complete, 33 unit tests passing)
 **Status:** Blocked by #105 for E2E test verification
-**Worktree:** `Aletheia-104` (active)
+**Worktree:** `Aletheia-104` (exists)
 
 **What it adds:**
 - Blocks `rating="adult"` and RTA pattern
@@ -57,7 +57,7 @@
 - Three-state tab management (UNKNOWN/RESTRICTED/ALLOWED)
 - "Not Permitted" popup and badge
 
-### Step 5: Store Compliance (#51)
+### Step 4: Store Compliance (#51)
 **LLD:** `docs/1051-store-compliance.md`
 **Status:** Needs LLD update
 
@@ -65,7 +65,7 @@
 - Privacy policy (may need GitHub Pages)
 - Store listing description
 
-### Step 6: Store Assets (#53)
+### Step 5: Store Assets (#53)
 **LLD:** `docs/1053-store-assets.md`
 **Status:** LLD updated, partially implemented
 
@@ -73,7 +73,7 @@
 - Screenshots (1280x800 or 640x400) - NOT DONE
 - Promotional tiles (440x280) - NOT DONE
 
-### Step 7: Submit to Chrome Web Store
+### Step 6: Submit to Chrome Web Store
 - Developer account ($5 one-time)
 - Upload zip and assets
 - Submit for review (takes 1-3 days)
@@ -95,13 +95,11 @@ Lambda takes ~5 seconds to respond. Tested with `max_tokens=10` (minimal generat
 
 ---
 
-## Open PRs (3)
+## Open PRs (1)
 
 | PR | Issue | Branch | Status |
 |----|-------|--------|--------|
-| #138 | #100 Firefox | `53-100-firefox-build` | Ready for merge |
-| #133 | #104 Age Block | `104-age-block` | Awaiting review |
-| #131 | #124 Etymologist | `124-digital-etymologist` | Awaiting review |
+| #133 | #104 Age Block | `104-age-block` | Awaiting E2E verification via #105 |
 
 ---
 
@@ -112,7 +110,6 @@ These are deferred until after Chrome Web Store submission:
 | Issue | Feature |
 |-------|---------|
 | #116 | LinkedIn OAuth (auth gate) |
-| #124 | Digital Etymologist persona |
 | #125 | Museum Label UI |
 | #126 | Hard vs. Soft blocking |
 
@@ -120,4 +117,4 @@ These are deferred until after Chrome Web Store submission:
 
 ## Next Action
 
-**Orchestrator:** Merge PR #138, then proceed with #51/#53 for store submission.
+**Implement #105 (Test Infrastructure)** to unblock #104 E2E verification, then merge #104 and proceed to store submission.

@@ -15,15 +15,15 @@ This is more than a Content Management System. It's:
 | Layer | What It Does | Examples |
 |-------|--------------|----------|
 | **Process Automation** | Checklists that execute, not just document | 0009 (Closeout), 0011 (Cleanup) |
-| **Context Persistence** | State preserved across sessions and agents | Session logs, IMMEDIATE-PLAN |
+| **Context Persistence** | State preserved across sessions and agents | Session logs, 0000a-IMMEDIATE-PLAN |
 | **Agent Orchestration** | Who does what, when, how | CLAUDE.md, GEMINI.md, 0004 |
-| **Reality Verification** | Don't trust metadata—verify actual state | 0011 Section 6 (IMMEDIATE-PLAN check) |
+| **Reality Verification** | Don't trust metadata—verify actual state | 0011 Section 6 (0000a check) |
 | **Executable Standards** | Rules that agents can follow literally | 0002 (Coding), Forbidden Commands |
 
 **The Operating System Metaphor:**
 - **Docs = Programs** — Agents read and execute them
 - **Session Logs = Process State** — Preserved across restarts
-- **IMMEDIATE-PLAN = Current Task** — The foreground process
+- **0000a-IMMEDIATE-PLAN = Current Task** — The foreground process
 - **Checklists = Subroutines** — Called when conditions are met
 - **Orchestrator = Scheduler** — Decides which agent runs which task
 
@@ -35,7 +35,7 @@ This is more than a Content Management System. It's:
 
 **How to Start Any Session:**
 1. Read this file (`docs/0000-GUIDE.md`) - understand the system
-2. Read `IMMEDIATE-PLAN.md` (repository root) - current focus and context
+2. Read `docs/0000a-IMMEDIATE-PLAN.md` - current focus and context
 3. Read `docs/6000-open-issues.md` - what's open
 4. Read relevant session logs in `docs/session-logs/` - recent history
 
@@ -70,6 +70,7 @@ Read and execute `CHATGPT.md` (in repository root).
 We use a **4-Digit Namespace** to organize our collective memory:
 
 * **`00xx` (Standards):** The rules of the road.
+    * `0000a-IMMEDIATE-PLAN.md` — **Current sprint focus.** Read this second, after 0000.
     * `0001-system-architecture.md` — System design.
     * `0002-coding-standards.md` — Read before writing code.
     * `0003-file-inventory.md` — The project manifest. Update when adding/deleting files.
