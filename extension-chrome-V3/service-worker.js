@@ -9,6 +9,159 @@ const API_ENDPOINT = "https://d1fkpkls2wesse.cloudfront.net/";
 // Must start with "1." to pass WAF rule (see docs/1095-security-hardening.md)
 const CLIENT_VERSION = "1.0";
 
+// =============================================================================
+// AGE GATE - Tab State Management (Issue #104)
+// =============================================================================
+
+// Three-state model for race condition handling
+const TabState = {
+    UNKNOWN: 'unknown',      // Not yet checked (initial state)
+    RESTRICTED: 'restricted', // Adult content detected
+    ALLOWED: 'allowed'        // No adult content
+};
+
+// In-memory tab states (no persistence - privacy by design)
+const tabStates = new Map();
+
+/**
+ * Check if a URL should be checked for age-restricted content.
+ * Only check navigable web pages (http/https).
+ */
+function shouldCheckTab(url) {
+    if (!url) return false;
+    return url.startsWith('http://') || url.startsWith('https://');
+}
+
+/**
+ * Check a tab for age-restricted content by injecting content-check.js
+ */
+async function checkTabForAgeRestriction(tabId, url) {
+    if (!shouldCheckTab(url)) {
+        // Non-web pages are allowed (chrome://, file://, etc.)
+        tabStates.set(tabId, TabState.ALLOWED);
+        return;
+    }
+
+    try {
+        // Inject and execute content-check.js
+        const results = await chrome.scripting.executeScript({
+            target: { tabId },
+            files: ['content-check.js']
+        });
+
+        // The script returns the result from checkPageRating()
+        const result = results?.[0]?.result;
+
+        if (result?.isRestricted) {
+            tabStates.set(tabId, TabState.RESTRICTED);
+            await setRestrictedBadge(tabId);
+            console.log(`[Aletheia] Age-restricted content detected on tab ${tabId}:`, result.ratingValue);
+        } else {
+            tabStates.set(tabId, TabState.ALLOWED);
+            console.log(`[Aletheia] Tab ${tabId} allowed:`, result?.ratingValue || 'no rating');
+        }
+    } catch (error) {
+        // FAIL OPEN: If we can't inject (CSP, etc.), allow the tab
+        tabStates.set(tabId, TabState.ALLOWED);
+        console.log(`[Aletheia] Tab ${tabId} check failed (fail open):`, error.message);
+    }
+}
+
+/**
+ * Set the prohibition badge icon for a restricted tab
+ */
+async function setRestrictedBadge(tabId) {
+    try {
+        // Red prohibition badge
+        await chrome.action.setBadgeText({ tabId, text: '⊘' });
+        await chrome.action.setBadgeBackgroundColor({ tabId, color: '#DC2626' });
+    } catch (error) {
+        console.error('[Aletheia] Failed to set restricted badge:', error);
+    }
+}
+
+/**
+ * Clear the restriction badge when state changes
+ */
+async function clearRestrictedBadge(tabId) {
+    try {
+        await chrome.action.setBadgeText({ tabId, text: '' });
+    } catch (error) {
+        // Tab may have closed - ignore
+    }
+}
+
+/**
+ * Get the current state for a tab
+ */
+function getTabState(tabId) {
+    return tabStates.get(tabId) || TabState.UNKNOWN;
+}
+
+/**
+ * Check if a tab is restricted
+ */
+function isTabRestricted(tabId) {
+    return getTabState(tabId) === TabState.RESTRICTED;
+}
+
+// =============================================================================
+// TAB EVENT LISTENERS (Age Gate)
+// =============================================================================
+
+// Check tabs when they navigate to new pages
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    // Only check when page load completes (DOM is ready)
+    if (changeInfo.status === 'complete' && tab.url) {
+        // Clear any existing restriction state
+        tabStates.delete(tabId);
+        await clearRestrictedBadge(tabId);
+
+        // Check the new page
+        await checkTabForAgeRestriction(tabId, tab.url);
+    }
+});
+
+// Clean up state when tabs close (memory hygiene)
+chrome.tabs.onRemoved.addListener((tabId) => {
+    tabStates.delete(tabId);
+});
+
+// =============================================================================
+// MESSAGE HANDLERS (Issue #104 - Popup Communication)
+// =============================================================================
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'GET_TAB_STATE') {
+        const state = getTabState(message.tabId);
+        sendResponse({ state });
+        return false; // Synchronous response
+    }
+
+    if (message.type === 'RECHECK_TAB') {
+        // Async operation - need to return true and call sendResponse later
+        (async () => {
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tab && tab.url) {
+                    await checkTabForAgeRestriction(tab.id, tab.url);
+                }
+                sendResponse({ success: true });
+            } catch (error) {
+                console.error('[Aletheia] Recheck failed:', error);
+                sendResponse({ success: false, error: error.message });
+            }
+        })();
+        return true; // Will respond asynchronously
+    }
+
+    return false;
+});
+
+// =============================================================================
+// CORE EXTENSION LOGIC
+// =============================================================================
+
 function extractDomain(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
@@ -57,6 +210,13 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "explain-with-ai") {
+
+    // AGE GATE CHECK (Issue #104) - Must come before allowlist check
+    if (isTabRestricted(tab.id)) {
+      console.log(`[Aletheia] Blocked: Age-restricted content on tab ${tab.id}`);
+      await showFeedback(tab.id, "Not permitted on this site", "error");
+      return;
+    }
 
     // ALLOWLIST GATE
     const domain = extractDomain(info.pageUrl);
