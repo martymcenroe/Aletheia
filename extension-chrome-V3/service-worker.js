@@ -109,18 +109,9 @@ function isTabRestricted(tabId) {
 // TAB EVENT LISTENERS (Age Gate)
 // =============================================================================
 
-// Check tabs when they navigate to new pages
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    // Only check when page load completes (DOM is ready)
-    if (changeInfo.status === 'complete' && tab.url) {
-        // Clear any existing restriction state
-        tabStates.delete(tabId);
-        await clearRestrictedBadge(tabId);
-
-        // Check the new page
-        await checkTabForAgeRestriction(tabId, tab.url);
-    }
-});
+// NOTE: We do NOT proactively check tabs on load - that would require <all_urls>.
+// Instead, we check ON-DEMAND when user interacts (activeTab grants permission).
+// See ADR 0201: Privacy-First Extension Permissions.
 
 // Clean up state when tabs close (memory hygiene)
 chrome.tabs.onRemoved.addListener((tabId) => {
@@ -211,7 +202,9 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "explain-with-ai") {
 
-    // AGE GATE CHECK (Issue #104) - Must come before allowlist check
+    // AGE GATE CHECK (Issue #104) - On-demand check using activeTab permission
+    // We check NOW when user interacts, not proactively (respects ADR 0201)
+    await checkTabForAgeRestriction(tab.id, tab.url);
     if (isTabRestricted(tab.id)) {
       console.log(`[Aletheia] Blocked: Age-restricted content on tab ${tab.id}`);
       await showFeedback(tab.id, "Not permitted on this site", "error");

@@ -5,9 +5,9 @@
   "description": "AI-Powered Context Analysis",
   "permissions": [
     "activeTab",
+    "tabs",
     "contextMenus",
-    "storage",
-    "<all_urls>"
+    "storage"
   ],
   "background": {
     "scripts": ["service-worker.js"]
