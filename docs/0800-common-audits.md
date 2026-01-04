@@ -35,6 +35,12 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 | **0808** | Permission Permissiveness | On friction | When agents ask for too many approvals |
 | **0809** | Security Audit | Quarterly | Before releases, after security incidents |
 | **0810** | Privacy Audit | Quarterly | Before releases, regulatory changes |
+| **0811** | Accessibility Audit | Per release | Before releases, after UI changes |
+| **0812** | Performance Audit | Monthly | After significant code changes |
+| **0813** | Code Quality Audit | Monthly | Before releases |
+| **0814** | License Compliance Audit | Per dependency | When adding dependencies |
+| **0815** | Claude Capabilities Audit | Weekly | Mondays (track Anthropic evolution) |
+| **0899** | Meta-Audit | Quarterly | Audit health check |
 
 ## Audit Procedures
 
@@ -102,6 +108,48 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 **Output:** Privacy findings with remediation recommendations.
 **Frameworks:** IAPP Privacy Framework, IEEE 7000 Series, NIST Privacy Framework 1.1.
 
+### 0811 - Accessibility Audit
+**File:** `docs/0811-audit-accessibility.md`
+**Purpose:** Ensure browser extension is usable by people with disabilities.
+**Trigger:** Before releases, after UI changes.
+**Output:** WCAG 2.1 compliance findings.
+**Frameworks:** WCAG 2.1 Level A/AA.
+
+### 0812 - Performance Audit
+**File:** `docs/0812-audit-performance.md`
+**Purpose:** Ensure acceptable performance and cost efficiency.
+**Trigger:** Monthly, after significant code changes.
+**Output:** Latency, memory, and cost metrics.
+**Scope:** Extension load times, Lambda cold start, Bedrock latency.
+
+### 0813 - Code Quality Audit
+**File:** `docs/0813-audit-code-quality.md`
+**Purpose:** Manual quality checks beyond automated linting.
+**Trigger:** Monthly, before releases.
+**Output:** Technical debt, complexity, and documentation findings.
+**Scope:** SOLID principles, complexity metrics, docstring coverage.
+
+### 0814 - License Compliance Audit
+**File:** `docs/0814-audit-license-compliance.md`
+**Purpose:** Ensure all dependencies use MIT-compatible licenses.
+**Trigger:** When adding dependencies, before releases.
+**Output:** License compatibility matrix, attribution requirements.
+**Frameworks:** SPDX License List, OSI Approved Licenses.
+
+### 0815 - Claude Code Capabilities Audit
+**File:** `docs/0815-audit-claude-capabilities.md`
+**Purpose:** Track new Claude Code capabilities and evaluate AgentOS alignment.
+**Trigger:** Weekly (Mondays).
+**Output:** New features to adopt, experiments to run.
+**Philosophy:** Keep pace with Anthropic's rapid evolution.
+
+### 0899 - Meta-Audit (Audit of Audits)
+**File:** `docs/0899-meta-audit.md`
+**Purpose:** Ensure audit suite itself remains healthy and complete.
+**Trigger:** Quarterly, after adding new audits.
+**Output:** Audit coverage gaps, stale procedures, effectiveness assessment.
+**Scope:** All 08xx audit procedures.
+
 ## Integration Points
 
 | Protocol | Audits Referenced |
@@ -136,6 +184,7 @@ grep -r "docs/0[0-9]" docs/*.md | grep -v "0800-common-audits"
 
 | Date | Change |
 |------|--------|
+| 2026-01-04 | Added 0811-0815 (Accessibility, Performance, Code Quality, License, Claude Capabilities) and 0899 Meta-Audit. |
 | 2026-01-04 | Added 0808 Permission Permissiveness, 0809 Security Audit, 0810 Privacy Audit. |
 | 2026-01-04 | Renumbered by execution order. Added 0807 AgentOS Health Check. |
 | 2026-01-01 | Created. Moved 0110 → 0801. Added 0802-0806. |

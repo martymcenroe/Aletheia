@@ -92,6 +92,12 @@
 | `docs/0808-audit-permission-permissiveness.md` | **Protocol** | 🟢 **Stable** | - | Agent permission maximization audit. |
 | `docs/0809-audit-security.md` | **Protocol** | 🟢 **Stable** | - | Security audit (OWASP, LLM, Agentic, Extension). |
 | `docs/0810-audit-privacy.md` | **Protocol** | 🟢 **Stable** | - | Privacy audit (IAPP, IEEE, NIST). |
+| `docs/0811-audit-accessibility.md` | **Protocol** | 🟢 **Stable** | - | Accessibility audit (WCAG 2.1). |
+| `docs/0812-audit-performance.md` | **Protocol** | 🟢 **Stable** | - | Performance audit (latency, memory, cost). |
+| `docs/0813-audit-code-quality.md` | **Protocol** | 🟢 **Stable** | - | Code quality audit (SOLID, complexity). |
+| `docs/0814-audit-license-compliance.md` | **Protocol** | 🟢 **Stable** | - | License compliance audit (SPDX). |
+| `docs/0815-audit-claude-capabilities.md` | **Protocol** | 🟢 **Stable** | - | Claude Code capabilities audit (weekly). |
+| `docs/0899-meta-audit.md` | **Protocol** | 🟢 **Stable** | - | Meta-audit (audit of audits). |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
