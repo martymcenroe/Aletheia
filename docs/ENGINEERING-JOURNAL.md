@@ -55,6 +55,9 @@ This is my running log of hard-won lessons, gotchas, and rules I've established 
 | 2025-12-22 | PIL transparency threshold is R+G+B sum (0-765). Low values (30) leave anti-aliasing artifacts; 250 worked for clean edges. | Use `--threshold 250` for icon generation with black-to-transparent conversion. |
 | 2025-12-28 | Windows Print Spooler removes jobs that complete quickly, causing error 87 when polling. | Treat error 87 as "job completed successfully" in spooler monitoring code. |
 | 2025-12-28 | SumatraPDF command-line printing doesn't use printer defaults. | Always specify `-print-settings duplex` or `-print-settings simplex` explicitly. |
+| 2026-01-04 | ESLint v9 requires `eslint.config.js` (flat config). Legacy `.eslintrc.json` still works with `ESLINT_USE_FLAT_CONFIG=false` env var. | For existing projects, set env var in CI/scripts. Plan migration to flat config eventually. |
+| 2026-01-04 | ESLint `no-unused-vars` needs three patterns to ignore underscore-prefixed items: `argsIgnorePattern`, `varsIgnorePattern`, AND `caughtErrorsIgnorePattern`. | Configure all three: `{"argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_"}` |
+| 2026-01-04 | mypy `import-untyped` errors for boto3/botocore are expected—AWS doesn't ship type stubs. | Either install `boto3-stubs` or add to mypy `ignore_missing_imports`. For colorama, install `types-colorama`. |
 
 ---
 

@@ -1,20 +1,33 @@
-Print mode: double-sided
+# Aletheia - Open Issues
 
-Fetching open issues from GitHub...
-Fetched 20 open issues
-Saving to docs\6000-open-issues.md...
-Saved docs\6000-open-issues.md
-Generating PDF with pandoc...
-Generated temp-pdfs\6000-open-issues.pdf
-Printing temp-pdfs\6000-open-issues.pdf...
-Double-sided printing requested.
-Sent to printer: Brother HL-L6300DW series Printer (double-sided)
+**Generated:** 2026-01-04 17:39 CT
+**Total Open Issues:** 25
 
-Complete!
-   Markdown: docs\6000-open-issues.md
-   PDF: temp-pdfs\6000-open-issues.pdf (deleted after print)
-   Printed to: Brother HL-L6300DW series Printer (double-sided)
-en usage.
+---
+
+## Issue #6: feat: Implement RAG Vector Store
+
+**Labels:** feature
+
+**Created:** 2025-11-24
+**Updated:** 2025-12-24
+
+### Description
+
+Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
+
+---
+
+## Issue #7: chore: Add Observability Tracing
+
+**Labels:** chore
+
+**Created:** 2025-11-24
+**Updated:** 2025-12-30
+
+### Description
+
+Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
 
 ## Updated Context
 LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
@@ -38,7 +51,7 @@ LangSmith removed from scope (LangChain-specific, we're using Naked Python per A
 **Labels:** high-priority, chore
 
 **Created:** 2025-12-10
-**Updated:** 2025-12-24
+**Updated:** 2026-01-04
 
 ### Description
 
@@ -51,9 +64,14 @@ Prepare assets (Manifest, Privacy Policy, Store Listing) for submission.
 **Labels:** chore
 
 **Created:** 2025-12-10
-**Updated:** 2026-01-02
+**Updated:** 2026-01-04
 
 ### Description
+
+## Status Update (2026-01-04)
+**Partially Complete:** `tools/generate_store_assets.py` and `tools/build_release.py` exist but reference old `extension/` path. Need to update for `extension-chrome-V3/` directory structure.
+
+---
 
 ## Objective
 Create a script (`tools/generate_store_assets.py`) to deterministically generate production-ready assets for the Chrome Web Store submission.
@@ -62,7 +80,7 @@ Create a script (`tools/generate_store_assets.py`) to deterministically generate
 
 ### 1. Icon Generation
 - **Input:** `tools/master_lambda.png` (High-res source)
-- **Output:** `extension/icons/` {16, 32, 48, 128}.png
+- **Output:** `extension-chrome-V3/icons/` {16, 32, 48, 128}.png
 - **Constraint:** Transparent backgrounds, optimized PNGs.
 
 ### 2. Promotional Tiles (Placeholders)
@@ -70,22 +88,23 @@ Create a script (`tools/generate_store_assets.py`) to deterministically generate
 - **Marquee:** 1400x560px (Required by Store) - "Context, Verified" tagline.
 
 ### 3. Zip Packaging
-- Script must create `aletheia-v{version}.zip`.
+- Script must create `aletheia-chrome-v{version}.zip` and `aletheia-firefox-v{version}.zip`.
 - **CRITICAL EXCLUSIONS:** `src/` (Python backend), `.git/`, `docs/`, `tests/`, `.env`.
-- **INCLUSIONS:** `manifest.json`, `service-worker.js`, `overlay.js`, `popup.html`, `popup.js`, `popup.css`, `icons/`.
+- **INCLUSIONS:** `manifest.json`, `service-worker.js`, `overlay.js`, `popup.html`, `popup.js`, `popup.css`, `icons/`, content scripts.
 
 ## Acceptance Criteria
 - [ ] Zip file contains **only** client-side artifacts.
 - [ ] No Python code or secrets leaked in the extension zip.
+- [ ] Scripts updated for `extension-chrome-V3/` directory structure.
 
 ---
 
 ## Issue #81: Redesign landing page: modern professional aesthetic
 
-**Labels:** feature
+**Labels:** feature, post-mvp
 
 **Created:** 2025-12-21
-**Updated:** 2025-12-24
+**Updated:** 2026-01-04
 
 ### Description
 
@@ -509,7 +528,7 @@ Recommendation document with chosen approach and rationale.
 **Labels:** blog
 
 **Created:** 2025-12-31
-**Updated:** 2025-12-31
+**Updated:** 2026-01-04
 
 ### Description
 
@@ -525,10 +544,10 @@ The Aletheia documentation system has evolved beyond a Content Management System
 
 | Layer | What It Does | Examples |
 |-------|--------------|----------|
-| **Process Automation** | Checklists that execute, not just document | 0009 (Closeout), 0011 (Cleanup) |
+| **Process Automation** | Checklists that execute, not just document | 0009 (Session/Full Closeout) |
 | **Context Persistence** | State preserved across sessions and agents | Session logs, IMMEDIATE-PLAN |
 | **Agent Orchestration** | Who does what, when, how | CLAUDE.md, GEMINI.md, 0004 |
-| **Reality Verification** | Don't trust metadata—verify actual state | 0011 Section 6 |
+| **Reality Verification** | Don't trust metadata—verify actual state | 0009 Full Mode |
 | **Executable Standards** | Rules that agents can follow literally | 0002, Forbidden Commands |
 
 ## The Operating System Metaphor
@@ -566,8 +585,7 @@ This led to the realization that what we'd built wasn't just documentation—it 
 ## References
 
 - `docs/0000-GUIDE.md` - AOS philosophy section
-- `docs/0011-environment-cleanup-checklist.md` - Section 6 (IMMEDIATE-PLAN verification)
-- `docs/0009-session-closeout-protocol.md` - Escalation to 0011
+- `docs/0009-session-closeout-protocol.md` - Full Mode for IMMEDIATE-PLAN verification
 
 ## Publication Notes
 
@@ -846,5 +864,319 @@ The extension shows "Saving..." for ~5 seconds before transitioning to "Context 
 
 - Extension timing fixes: #100
 - Gemini handoff doc: `docs/GEMINI-HANDOFF-OVERLAY-TIMING.md`
+
+---
+
+## Issue #145: Configure DynamoDB TTL for automatic data expiry
+
+**Labels:** security, backend, audit
+
+**Created:** 2026-01-04
+**Updated:** 2026-01-04
+
+### Description
+
+## Problem
+
+Privacy audit (0810) finding P1: DynamoDB stores user input text without TTL expiry.
+
+**Current Behavior:**
+- User-selected text is stored in DynamoDB `input` field (`src/lambda_function.py:122`)
+- `provision.sh` does not configure `TimeToLiveSpecification`
+- Data persists indefinitely
+
+**Expected Behavior:**
+- User data should auto-expire after 24-48 hours
+- Aligns with ADR 0203 which states "TTL provides automatic data hygiene"
+
+## Impact
+
+- **Privacy:** User text persists longer than necessary
+- **Compliance:** May conflict with data minimization principles (GDPR, CCPA)
+- **Cost:** Accumulating stale data increases DynamoDB storage costs
+
+## Proposed Solution
+
+1. Add `ttl` attribute to DynamoDB items in `src/lambda_function.py`:
+```python
+item = {
+    ...
+    "ttl": {"N": str(int(time.time()) + 86400)},  # 24 hours
+}
+```
+
+2. Enable TTL in `provision.sh`:
+```bash
+aws dynamodb update-time-to-live \
+    --table-name "$TABLE_NAME" \
+    --time-to-live-specification "Enabled=true,AttributeName=ttl"
+```
+
+## Acceptance Criteria
+
+- [ ] Lambda adds TTL attribute to all DynamoDB items
+- [ ] provision.sh enables TTL on table
+- [ ] Existing data cleaned up (or allowed to expire naturally)
+- [ ] Privacy audit 0810 updated to mark P1 as resolved
+
+## References
+
+- Privacy Audit: `docs/0810-audit-privacy.md` (P1)
+- ADR 0203: Stateful Serverless (mentions TTL)
+- Lambda handler: `src/lambda_function.py:119-124`
+- Provision script: `provision.sh:16-22`
+
+---
+
+## Issue #147: GDPR: Implement data erasure process (right to be forgotten)
+
+**Labels:** security, backend, audit
+
+**Created:** 2026-01-04
+**Updated:** 2026-01-04
+
+### Description
+
+## Context
+
+GDPR Article 17 requires data controllers to have a process to erase personal data on request. As an EU trader/developer, Aletheia must comply.
+
+**Related:** #145 (DynamoDB TTL) - TTL provides automatic erasure after 24-48 hours, but GDPR may require on-demand erasure.
+
+## Current State
+
+- User text stored in DynamoDB `input` field
+- No mechanism for users to request data deletion
+- No documented data retention policy
+
+## Requirements
+
+### 1. Data Inventory
+Document all user data storage:
+- DynamoDB: thread_id, input (user text), url, safety_score
+- CloudWatch: Lambda logs (30 day retention)
+- Extension: localStorage (preferences only, no PII)
+
+### 2. Erasure Mechanism
+Options to evaluate:
+- A) **TTL-only approach**: Short TTL (24h) means data self-erases quickly
+- B) **On-demand deletion**: API endpoint to delete by thread_id
+- C) **User identification**: Requires auth (#116) to identify "my data"
+
+### 3. Documentation
+- Privacy policy must state retention period
+- Must explain how users can request erasure
+
+## Acceptance Criteria
+
+- [ ] Data retention policy documented
+- [ ] Erasure mechanism implemented (TTL or on-demand)
+- [ ] Privacy policy updated with erasure process
+- [ ] Privacy audit 0810 updated
+
+## References
+
+- [GDPR Article 17](https://gdpr-info.eu/art-17-gdpr/)
+- Privacy Audit: `docs/0810-audit-privacy.md`
+- Related: #145 (DynamoDB TTL)
+- Related: #116 (LinkedIn Auth - enables user identification)
+
+---
+
+## Issue #148: Document AWS Bedrock no-training commitment
+
+**Labels:** documentation, security, audit
+
+**Created:** 2026-01-04
+**Updated:** 2026-01-04
+
+### Description
+
+## Context
+
+Our privacy policy promises we won't train on user data. We need to:
+1. Verify AWS Bedrock's commitment to not training on customer prompts
+2. Document this in our architecture/privacy docs
+3. Ensure our Bedrock configuration enforces this
+
+## AWS Bedrock Data Handling
+
+Per [AWS Bedrock FAQ](https://aws.amazon.com/bedrock/faqs/):
+> "Your content is not used to train the base models underlying Amazon Bedrock."
+
+> "Amazon Bedrock does not store or log your prompts and completions."
+
+## Verification Needed
+
+- [ ] Confirm Bedrock model invocation doesn't enable training
+- [ ] Verify CloudWatch logging settings for Bedrock calls
+- [ ] Check if any Bedrock features opt into training (and avoid them)
+
+## Documentation Updates
+
+- [ ] Update `docs/0810-audit-privacy.md` with Bedrock verification
+- [ ] Add to privacy policy: "We use AWS Bedrock which does not train on your data"
+- [ ] Reference AWS commitment in `docs/0001-system-architecture.md`
+
+## Acceptance Criteria
+
+- [ ] AWS Bedrock TOS reviewed and documented
+- [ ] Privacy audit confirms no-training guarantee
+- [ ] Architecture docs updated with data flow privacy guarantees
+
+## References
+
+- [AWS Bedrock Privacy](https://aws.amazon.com/bedrock/faqs/#Security_and_Privacy)
+- Privacy Audit: `docs/0810-audit-privacy.md` §6 (AI/LLM Privacy)
+- [AWS Shared Responsibility Model](https://aws.amazon.com/compliance/shared-responsibility-model/)
+
+---
+
+## Issue #149: Investigate and possibly remove lambda_harvester_function.py
+
+**Labels:** chore, audit
+
+**Created:** 2026-01-04
+**Updated:** 2026-01-04
+
+### Description
+
+## Context
+
+`src/lambda_harvester_function.py` may have been created for testing/data harvesting purposes and might no longer be needed.
+
+## Investigation Needed
+
+- [ ] Determine original purpose of this file
+- [ ] Check if it's deployed to AWS (separate Lambda?)
+- [ ] Check if anything references it
+- [ ] Verify it's not part of production flow
+
+## Current State
+
+- File: `src/lambda_harvester_function.py` (47 lines)
+- Coverage: 0% (not unit tested)
+- Listed in file inventory as "Data harvester Lambda handler"
+
+## Decision
+
+If no longer needed:
+- [ ] Remove file
+- [ ] Update `docs/0003-file-inventory.md`
+- [ ] Remove any AWS resources if deployed
+
+## References
+
+- Code Quality Audit 0813: Listed as 0% coverage file
+- File inventory: `docs/0003-file-inventory.md`
+
+---
+
+## Issue #150: AI-powered DynamoDB data hygiene tool
+
+**Labels:** chore, feature, backend
+
+**Created:** 2026-01-04
+**Updated:** 2026-01-04
+
+### Description
+
+## Problem
+
+DynamoDB contains test data from development that should be cleaned up. Manual review is tedious and error-prone. Need an AI-assisted tool to identify and remove low-value entries.
+
+## Proposed Solution
+
+Create a CLI tool (`tools/data_hygiene.py`) that uses AI to screen DynamoDB entries for retention.
+
+### Screening Criteria
+
+1. **Duplicate Detection**
+   - Group entries by (word, url, user_id)
+   - Flag duplicates of same word on same site by same user
+   - Keep only the most recent entry per group
+
+2. **AI-Powered Test Data Detection**
+   - Use LLM to evaluate if an entry looks like test data
+   - Heuristics for "obvious" lookups a sophisticated user wouldn't need:
+     - Common words with no ambiguity ("hello", "the", "test")
+     - Developer test patterns ("asdf", "foo", "bar")
+     - Single characters or numbers
+   - Consider context: same word might be legitimate in one context, test in another
+
+3. **Retention Review Workflow**
+   - Interactive mode: Show flagged entries, confirm delete/keep
+   - Batch mode: Auto-delete high-confidence test data
+   - Mark reviewed entries with `retention_reviewed: true` attribute
+   - Skip already-reviewed entries in future runs
+
+### DynamoDB Schema Addition
+
+```python
+item = {
+    ...existing fields...
+    "retention_reviewed": {"BOOL": True},      # Has been reviewed
+    "retention_decision": {"S": "keep|delete"} # Decision made
+}
+```
+
+## CLI Interface
+
+```bash
+# Scan and report (dry run)
+python tools/data_hygiene.py --scan
+
+# Interactive review
+python tools/data_hygiene.py --review
+
+# Auto-delete high-confidence test data
+python tools/data_hygiene.py --auto-clean --confidence 0.9
+
+# Show duplicates only
+python tools/data_hygiene.py --duplicates
+```
+
+## AI Prompt Strategy
+
+```
+You are reviewing DynamoDB entries to identify test data.
+Given: word, url, timestamp, user context
+Determine: Is this likely test data (0.0-1.0 confidence)
+Reasoning: Brief explanation
+
+Test data indicators:
+- Common words with no ambiguity
+- Developer patterns (test, foo, bar, asdf)
+- Repeated lookups of same obvious term
+- Context suggests debugging, not genuine research
+
+Legitimate data indicators:
+- Archaic or unusual terms
+- Historical/cultural context
+- Terms with controversial etymology
+- Words that would benefit from etymology analysis
+```
+
+## Acceptance Criteria
+
+- [ ] CLI tool scans DynamoDB for entries
+- [ ] Identifies duplicates by (word, url, user)
+- [ ] AI screens entries for test data confidence
+- [ ] Interactive review mode with keep/delete options
+- [ ] Marks reviewed entries to prevent re-review
+- [ ] Dry-run mode (no deletes without confirmation)
+- [ ] Batch auto-clean mode for high-confidence test data
+
+## Related Issues
+
+- #145 - DynamoDB TTL (automatic expiry)
+- #147 - GDPR erasure (right to be forgotten)
+- #149 - lambda_harvester investigation
+
+## Security Considerations
+
+- Tool requires AWS credentials with DynamoDB access
+- Should log all deletions for audit trail
+- Never delete entries with `retention_decision: keep`
 
 ---
