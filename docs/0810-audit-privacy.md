@@ -258,7 +258,82 @@ User selects text → Extension reads (activeTab)
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-01-04 | Claude Opus 4.5 | 1 Medium finding (DynamoDB TTL), see below | Recommend filing |
+
+### Audit Execution: 2026-01-04
+
+**Auditor:** Claude Opus 4.5
+
+#### Procedure Followed
+1. ✅ Reviewed Data Inventory (§2)
+2. ✅ Checked Permission Minimalism (§5)
+3. ⚠️ Verified AWS DynamoDB settings - TTL NOT configured
+4. ✅ Reviewed CloudWatch logs - No PII logged
+5. N/A Check store listings (pre-release)
+6. ✅ Document findings
+
+#### Findings
+
+| ID | Severity | Finding | Status |
+|----|----------|---------|--------|
+| P1 | Medium | DynamoDB stores user input text without TTL expiry | Open |
+| P2 | Info | provision.sh doesn't configure TimeToLiveSpecification | Open |
+| P3 | Pass | Extension permissions minimal (no `<all_urls>`) | ✅ |
+| P4 | Pass | host_permissions is empty | ✅ |
+| P5 | Pass | No user content logged (only thread_id, error codes) | ✅ |
+| P6 | Pass | ADR 0201 compliance verified | ✅ |
+
+#### P1 Detail: DynamoDB TTL Not Configured
+
+**Location:** `provision.sh:16-22`, `src/lambda_function.py:119-124`
+
+**Issue:** User-selected text is stored in DynamoDB `input` field:
+```python
+item = {
+    "input": {"S": data.get("text", "")},  # User text stored
+    ...
+}
+```
+
+**ADR 0203 states:** "TTL provides automatic data hygiene" but `provision.sh` does not configure `TimeToLiveSpecification`.
+
+**Privacy Impact:** User text persists indefinitely instead of auto-expiring.
+
+**Recommendation:**
+1. Add TTL attribute to DynamoDB items
+2. Configure TTL in provision.sh:
+   ```bash
+   aws dynamodb update-time-to-live \
+       --table-name "$TABLE_NAME" \
+       --time-to-live-specification "Enabled=true,AttributeName=ttl"
+   ```
+3. Set TTL to 24-48 hours (sufficient for rate limiting, minimal retention)
+
+#### Permission Audit Results
+
+| Permission | Manifest | Privacy Impact | Status |
+|------------|----------|----------------|--------|
+| `activeTab` | Chrome ✅ Firefox ✅ | Low - user action required | ✅ Pass |
+| `tabs` | Chrome ✅ Firefox ✅ | Low - tab info only | ✅ Pass |
+| `scripting` | Chrome ✅ | Low - activeTab gated | ✅ Pass |
+| `contextMenus` | Chrome ✅ Firefox ✅ | None - UI only | ✅ Pass |
+| `storage` | Chrome ✅ Firefox ✅ | Low - local only | ✅ Pass |
+| `host_permissions` | Empty ✅ | None | ✅ Pass |
+| `<all_urls>` | NOT PRESENT ✅ | N/A | ✅ Pass |
+
+#### Logging Audit Results
+
+| Log Location | Content Logged | PII Present | Status |
+|--------------|----------------|-------------|--------|
+| lambda_function.py:133 | `thread_id` | No | ✅ Pass |
+| lambda_function.py:136 | Error codes | No | ✅ Pass |
+| lambda_function.py:278 | Error codes | No | ✅ Pass |
+| lambda_function.py:283 | Exception type | No | ✅ Pass |
+| etymologist.py | Warnings only | No | ✅ Pass |
+
+#### Overall Result
+
+**CONDITIONAL PASS** - P1 (DynamoDB TTL) should be addressed before production release
 
 ---
 
