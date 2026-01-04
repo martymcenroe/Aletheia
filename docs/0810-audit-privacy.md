@@ -258,7 +258,7 @@ User selects text → Extension reads (activeTab)
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| 2026-01-04 | Claude Opus 4.5 | 1 Medium finding (DynamoDB TTL), see below | Recommend filing |
+| 2026-01-04 | Claude Opus 4.5 | 1 Medium finding (DynamoDB TTL), see below | #145 |
 
 ### Audit Execution: 2026-01-04
 
@@ -276,8 +276,8 @@ User selects text → Extension reads (activeTab)
 
 | ID | Severity | Finding | Status |
 |----|----------|---------|--------|
-| P1 | Medium | DynamoDB stores user input text without TTL expiry | Open |
-| P2 | Info | provision.sh doesn't configure TimeToLiveSpecification | Open |
+| P1 | Medium | DynamoDB stores user input text without TTL expiry | #145 |
+| P2 | Info | provision.sh doesn't configure TimeToLiveSpecification | #145 |
 | P3 | Pass | Extension permissions minimal (no `<all_urls>`) | ✅ |
 | P4 | Pass | host_permissions is empty | ✅ |
 | P5 | Pass | No user content logged (only thread_id, error codes) | ✅ |
