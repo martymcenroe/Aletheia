@@ -52,6 +52,8 @@ function isAgeRestricted(ratingContent) {
 }
 
 // Export for both Node.js (testing) and browser (extension) contexts
+/* eslint-disable no-undef */
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { isAgeRestricted, RTA_LABEL_PATTERN, ADULT_RATING };
 }
+/* eslint-enable no-undef */

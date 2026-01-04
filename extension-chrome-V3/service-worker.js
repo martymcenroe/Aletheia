@@ -82,11 +82,12 @@ async function setRestrictedBadge(tabId) {
 
 /**
  * Clear the restriction badge when state changes
+ * @unused Reserved for future navigation handling
  */
-async function clearRestrictedBadge(tabId) {
+async function _clearRestrictedBadge(tabId) {
     try {
         await chrome.action.setBadgeText({ tabId, text: '' });
-    } catch (error) {
+    } catch (_err) {
         // Tab may have closed - ignore
     }
 }

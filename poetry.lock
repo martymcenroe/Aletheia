@@ -1062,6 +1062,18 @@ files = [
 ]
 
 [[package]]
+name = "types-colorama"
+version = "0.4.15.20250801"
+description = "Typing stubs for colorama"
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+files = [
+    {file = "types_colorama-0.4.15.20250801-py3-none-any.whl", hash = "sha256:b6e89bd3b250fdad13a8b6a465c933f4a5afe485ea2e2f104d739be50b13eea9"},
+    {file = "types_colorama-0.4.15.20250801.tar.gz", hash = "sha256:02565d13d68963d12237d3f330f5ecd622a3179f7b5b14ee7f16146270c357f5"},
+]
+
+[[package]]
 name = "types-requests"
 version = "2.32.4.20250913"
 description = "Typing stubs for requests"
@@ -1142,4 +1154,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "6e8a24e20f4b835b97a93584bf80855556a4f13c8044119dcaec4c5fe9246972"
+content-hash = "9a104857739204f36c5253682cdea5480576c4f2d3d4ce41bdb75956f6052033"
