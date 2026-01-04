@@ -4,7 +4,6 @@
       "Read(//c/Users/mcwiz/Projects/Aletheia*/**)",
       "Write(//c/Users/mcwiz/Projects/Aletheia*/**)",
       "Edit(//c/Users/mcwiz/Projects/Aletheia*/**)",
-
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
@@ -15,12 +14,10 @@
       "Bash(chown:*)",
       "Bash(touch:*)",
       "Bash(ln:*)",
-
       "Bash(echo:*)",
       "Bash(printf:*)",
       "Bash(tee:*)",
       "Bash(xargs:*)",
-
       "Bash(grep:*)",
       "Bash(rg:*)",
       "Bash(find:*)",
@@ -34,7 +31,6 @@
       "Bash(du:*)",
       "Bash(df:*)",
       "Bash(stat:*)",
-
       "Bash(head:*)",
       "Bash(tail:*)",
       "Bash(wc:*)",
@@ -50,21 +46,17 @@
       "Bash(comm:*)",
       "Bash(less:*)",
       "Bash(more:*)",
-
       "Bash(tar:*)",
       "Bash(zip:*)",
       "Bash(unzip:*)",
       "Bash(gzip:*)",
       "Bash(gunzip:*)",
-
       "Bash(curl:*)",
       "Bash(wget:*)",
-
       "Bash(date:*)",
       "Bash(time:*)",
       "Bash(sleep:*)",
       "Bash(timeout:*)",
-
       "Bash(env:*)",
       "Bash(export:*)",
       "Bash(set:*)",
@@ -76,24 +68,18 @@
       "Bash(exec:*)",
       "Bash(bash:*)",
       "Bash(sh:*)",
-
       "Bash(true:*)",
       "Bash(false:*)",
       "Bash(test:*)",
       "Bash([:*)",
-
       "Bash(cd:*)",
       "Bash(pwd:*)",
       "Bash(pushd:*)",
       "Bash(popd:*)",
-
       "Bash(git:*)",
-
       "Bash(gh:*)",
-
       "Bash(aws:*)",
       "Bash(sam:*)",
-
       "Bash(python:*)",
       "Bash(python3:*)",
       "Bash(pip3:*)",
@@ -104,32 +90,27 @@
       "Bash(black:*)",
       "Bash(isort:*)",
       "Bash(pre-commit:*)",
-
       "Bash(node:*)",
       "Bash(npm:*)",
       "Bash(npx:*)",
       "Bash(yarn:*)",
       "Bash(pnpm:*)",
-
       "Bash(docker:*)",
       "Bash(docker-compose:*)",
-
       "Bash(make:*)",
       "Bash(cmake:*)",
-
       "Bash(code:*)",
-
       "Bash(powershell.exe:*)",
       "Bash(pwsh:*)",
       "Bash(cmd:*)",
-
       "Bash(./tools/:*)",
       "Bash(./tests/:*)",
       "Bash(~/Projects/Aletheia/tools/:*)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia:*)",
-
       "WebSearch",
-      "WebFetch"
+      "WebFetch",
+      "Bash(./tools/policy_check.sh:*)",
+      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)"
     ],
     "deny": [
       "Read(.env)",
