@@ -2,11 +2,21 @@
 // State management
 let currentDomain = null;
 const selectedDomains = new Set();
+let currentTabId = null;
+
+// Tab State constants (must match service-worker.js)
+const TabState = {
+    UNKNOWN: 'unknown',
+    RESTRICTED: 'restricted',
+    ALLOWED: 'allowed'
+};
 
 // DOM Elements
 const mainView = document.getElementById('main-view');
 const manageView = document.getElementById('manage-view');
 const confirmView = document.getElementById('confirm-view');
+const restrictedView = document.getElementById('restricted-view');
+const checkingView = document.getElementById('checking-view');
 
 const currentDomainEl = document.getElementById('current-domain');
 const statusLabel = document.getElementById('status-label');
@@ -106,6 +116,8 @@ function showView(viewName) {
   mainView.style.display = 'none';
   manageView.style.display = 'none';
   confirmView.style.display = 'none';
+  restrictedView.style.display = 'none';
+  checkingView.style.display = 'none';
 
   if (viewName === 'main') {
     mainView.style.display = 'block';
@@ -113,6 +125,10 @@ function showView(viewName) {
     manageView.style.display = 'block';
   } else if (viewName === 'confirm') {
     confirmView.style.display = 'block';
+  } else if (viewName === 'restricted') {
+    restrictedView.style.display = 'block';
+  } else if (viewName === 'checking') {
+    checkingView.style.display = 'block';
   }
 }
 
@@ -287,10 +303,88 @@ function handleConfirmClearClick() {
 }
 
 // ============================================================================
+// AGE GATE FUNCTIONS (Issue #104)
+// ============================================================================
+
+async function getTabState(tabId) {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'GET_TAB_STATE',
+      tabId: tabId
+    });
+    return response?.state || TabState.UNKNOWN;
+  } catch (error) {
+    console.error('[Aletheia] Error getting tab state:', error);
+    return TabState.UNKNOWN;
+  }
+}
+
+async function recheckTab(tabId) {
+  try {
+    await chrome.runtime.sendMessage({
+      type: 'RECHECK_TAB',
+      tabId: tabId
+    });
+  } catch (error) {
+    console.error('[Aletheia] Error requesting recheck:', error);
+  }
+}
+
+async function checkAgeGate() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) {
+      showView('main');
+      return;
+    }
+
+    currentTabId = tab.id;
+    const state = await getTabState(currentTabId);
+
+    if (state === TabState.UNKNOWN) {
+      // Show checking view while we wait
+      showView('checking');
+      // Request a recheck and poll for result
+      await recheckTab(currentTabId);
+      // Poll for state change (max 3 seconds)
+      let attempts = 0;
+      const maxAttempts = 15;
+      const pollInterval = 200;
+
+      const pollState = async () => {
+        const newState = await getTabState(currentTabId);
+        if (newState !== TabState.UNKNOWN || attempts >= maxAttempts) {
+          if (newState === TabState.RESTRICTED) {
+            showView('restricted');
+          } else {
+            showView('main');
+            await renderMainView();
+          }
+        } else {
+          attempts++;
+          setTimeout(pollState, pollInterval);
+        }
+      };
+      await pollState();
+    } else if (state === TabState.RESTRICTED) {
+      showView('restricted');
+    } else {
+      showView('main');
+      await renderMainView();
+    }
+  } catch (error) {
+    console.error('[Aletheia] Age gate check failed:', error);
+    // Fail open - show main view
+    showView('main');
+    await renderMainView();
+  }
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
-function init() {
+async function init() {
   // Main view event listeners
   powerButton.addEventListener('click', handlePowerToggle);
   manageButton.addEventListener('click', handleManageClick);
@@ -304,8 +398,8 @@ function init() {
   cancelButton.addEventListener('click', handleCancelClick);
   confirmClearButton.addEventListener('click', handleConfirmClearClick);
 
-  // Initial render
-  renderMainView();
+  // Age gate check first, then render appropriate view
+  await checkAgeGate();
 }
 
 // Start the popup

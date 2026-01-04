@@ -399,3 +399,69 @@ body {
 .list-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-secondary);
 }
+
+/* RESTRICTED VIEW (Issue #104 - Age Gate) */
+#restricted-view {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.restricted-icon-container {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba(220, 38, 38, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.restricted-icon {
+  font-size: 36px;
+  color: #DC2626;
+}
+
+.restricted-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.restricted-message {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* CHECKING VIEW (Issue #104 - Race condition handling) */
+#checking-view {
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.checking-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.checking-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.checking-text {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}

@@ -5,11 +5,12 @@
   "description": "AI-Powered Context Analysis",
   "permissions": [
     "activeTab",
+    "tabs",
     "scripting",
     "contextMenus",
     "storage"
   ],
-  "host_permissions": [],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "service-worker.js"
   },
