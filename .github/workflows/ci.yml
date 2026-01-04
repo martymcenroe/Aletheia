@@ -7,7 +7,17 @@ on:
     branches: [main]
 
 jobs:
+  # Policy compliance runs FIRST - blocks all other jobs if failed
+  policy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run policy compliance check
+        run: ./tools/policy_check.sh
+
   test:
+    needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +51,7 @@ jobs:
           fail_ci_if_error: false
 
   extension-lint:
+    needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

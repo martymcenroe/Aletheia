@@ -240,6 +240,7 @@
 | `tools/aws/lambda-on.sh` | **Utility** | 🟢 **Stable** | - | Enable Lambda (remove concurrency limit). |
 | `tools/aws/lambda-off.sh` | **Utility** | 🟢 **Stable** | - | Disable Lambda (set concurrency=0). |
 | `tools/aws/waf-setup.sh` | **Utility** | 🟢 **Stable** | #95 | CloudFront + WAF setup with rate limiting (--env dev/prod). |
+| `tools/policy_check.sh` | **Utility** | 🟢 **Stable** | - | Pre-commit/CI policy compliance check (ADR 0201, CLAUDE.md directives). |
 
 ### Testing & Verification
 | File | Role | Status | Linked Issue | Description |

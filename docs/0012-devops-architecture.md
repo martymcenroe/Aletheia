@@ -55,12 +55,15 @@ This document defines Aletheia's DevOps infrastructure: CI/CD pipelines, deploym
 
 | Gate | Tool | Threshold | Blocking? |
 |------|------|-----------|-----------|
+| **Policy Compliance** | `tools/policy_check.sh` | Zero violations | **Yes (FIRST)** |
 | Linting (Python) | Ruff | Zero errors | Yes |
 | Type Checking | Mypy | Zero errors | Yes |
 | Unit Tests | Pytest | 100% pass | Yes |
 | Coverage | pytest-cov | 70% minimum | Yes |
 | Linting (JS) | ESLint | Zero errors | Yes |
 | E2E Tests | Playwright | 100% pass | Yes (future) |
+
+**Policy Compliance runs FIRST** - blocks all other jobs if failed. See §2.4 for details.
 
 ### 2.3 Pre-commit Hooks
 
@@ -79,12 +82,42 @@ Local quality gates run before every commit:
 | ruff | Python linting with auto-fix |
 | mypy | Python type checking |
 | gitleaks | Secret scanning |
+| **policy-check** | **Project Policy Compliance (ADRs, CLAUDE.md)** |
 
 **Installation:**
 ```bash
 poetry add --group dev pre-commit
 poetry run pre-commit install
 ```
+
+### 2.4 Policy Compliance Check
+
+**File:** `tools/policy_check.sh`
+
+**Purpose:** Enforce PRIMARY DIRECTIVES that are too important for manual review. If a policy is important enough to be an ADR, it's important enough to be a CI gate.
+
+**Lesson Learned:** 2026-01-04 - Issue #104 violated ADR 0201 (`<all_urls>` prohibition) despite:
+1. ADR 0201 explicitly forbidding it
+2. First entry in lessons-learned.md warning against it
+3. CLAUDE.md referencing the prohibition
+
+Manual review failed. Automated check would have caught it.
+
+**Policies Enforced:**
+
+| Policy | Source | Pattern |
+|--------|--------|---------|
+| No `<all_urls>` | ADR 0201 | `"<all_urls>"` in manifest.json |
+| No `pip install` | CLAUDE.md | `pip install` in shell scripts |
+| No `git reset` | CLAUDE.md | `git reset` in shell scripts |
+| No `git push --force` | CLAUDE.md | `git push --force` in shell scripts |
+| No `git clean -fd` | CLAUDE.md | `git clean -fd` in shell scripts |
+| No hardcoded AWS keys | Security | `AKIA[0-9A-Z]{16}` pattern |
+
+**Adding New Policies:**
+1. Document the policy in an ADR or CLAUDE.md
+2. Add grep pattern to `tools/policy_check.sh`
+3. Update this table
 
 ---
 
