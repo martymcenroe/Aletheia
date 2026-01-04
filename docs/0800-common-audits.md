@@ -32,6 +32,9 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 | **0805** | Terminology Consistency | After renaming | When layer/component names change |
 | **0806** | Architecture Audit | Monthly / Major changes | After significant refactoring |
 | **0807** | AgentOS Health Check | Monthly | System maintenance, onboarding new agents |
+| **0808** | Permission Permissiveness | On friction | When agents ask for too many approvals |
+| **0809** | Security Audit | Quarterly | Before releases, after security incidents |
+| **0810** | Privacy Audit | Quarterly | Before releases, regulatory changes |
 
 ## Audit Procedures
 
@@ -78,6 +81,27 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 **Trigger:** Monthly, or when onboarding new agents, or after major doc reorganization.
 **Output:** Broken references, template drift, protocol inconsistencies.
 
+### 0808 - Permission Permissiveness Audit
+**File:** `docs/0808-audit-permission-permissiveness.md`
+**Purpose:** Ensure agent permissions are maximally permissive within safety bounds.
+**Trigger:** When agents frequently ask for permission, or after permission friction reports.
+**Output:** Updated `.claude/settings.local.json` with expanded allow list.
+**Philosophy:** If it's not destructive, the agent shouldn't need to ask.
+
+### 0809 - Security Audit
+**File:** `docs/0809-audit-security.md`
+**Purpose:** Comprehensive security audit covering OWASP, LLM, Agentic, and extension security.
+**Trigger:** Quarterly, before major releases, or after security incidents.
+**Output:** Security findings with severity ratings and remediation actions.
+**Frameworks:** OWASP Top 10 (2021, LLM 2025, Agentic 2026), NIST AI RMF, Manifest V3.
+
+### 0810 - Privacy Audit
+**File:** `docs/0810-audit-privacy.md`
+**Purpose:** Comprehensive privacy audit covering data protection and AI privacy concerns.
+**Trigger:** Quarterly, before major releases, or when regulatory landscape changes.
+**Output:** Privacy findings with remediation recommendations.
+**Frameworks:** IAPP Privacy Framework, IEEE 7000 Series, NIST Privacy Framework 1.1.
+
 ## Integration Points
 
 | Protocol | Audits Referenced |
@@ -112,5 +136,6 @@ grep -r "docs/0[0-9]" docs/*.md | grep -v "0800-common-audits"
 
 | Date | Change |
 |------|--------|
+| 2026-01-04 | Added 0808 Permission Permissiveness, 0809 Security Audit, 0810 Privacy Audit. |
 | 2026-01-04 | Renumbered by execution order. Added 0807 AgentOS Health Check. |
 | 2026-01-01 | Created. Moved 0110 → 0801. Added 0802-0806. |

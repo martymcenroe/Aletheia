@@ -78,12 +78,12 @@ Check recent sessions for patterns of:
 
 | Date | Auditor | Finding | Remediation |
 |------|---------|---------|-------------|
-| 2026-01-04 | Claude Opus 4.5 | Initial audit - expanded allow list significantly, added comprehensive bash commands | Created 0013-agent-prohibited-actions.md |
+| 2026-01-04 | Claude Opus 4.5 | Initial audit - expanded allow list significantly, added comprehensive bash commands | Created 0015-agent-prohibited-actions.md |
 
 ---
 
 ## 5. References
 
-- docs/0013-agent-prohibited-actions.md - Policy document
+- docs/0015-agent-prohibited-actions.md - Policy document
 - .claude/settings.local.json - Implementation
 - CLAUDE.md - Workflow rules

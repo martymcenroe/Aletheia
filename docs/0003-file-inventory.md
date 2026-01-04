@@ -46,6 +46,7 @@
 | `docs/0012-devops-architecture.md` | **Standard** | 🟢 **Stable** | - | CI/CD pipeline, GitHub Actions, deployment, quality gates. |
 | `docs/0013-testing-architecture.md` | **Standard** | 🟢 **Stable** | #105 | Test pyramid, Playwright, coverage strategy. |
 | `docs/0014-cost-architecture.md` | **Standard** | 🟢 **Stable** | #137 | AWS cost model, budgets, optimization, abuse prevention. |
+| `docs/0015-agent-prohibited-actions.md` | **Policy** | 🟢 **Stable** | - | Agent prohibited actions and permission philosophy. |
 
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
@@ -88,6 +89,9 @@
 | `docs/0805-terminology-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect stale terminology after renaming. |
 | `docs/0806-architecture-audit.md` | **Protocol** | 🟢 **Stable** | - | Architecture drift detection (strategic). |
 | `docs/0807-agentos-audit.md` | **Protocol** | 🟢 **Stable** | - | AgentOS health check (system self-audit). |
+| `docs/0808-audit-permission-permissiveness.md` | **Protocol** | 🟢 **Stable** | - | Agent permission maximization audit. |
+| `docs/0809-audit-security.md` | **Protocol** | 🟢 **Stable** | - | Security audit (OWASP, LLM, Agentic, Extension). |
+| `docs/0810-audit-privacy.md` | **Protocol** | 🟢 **Stable** | - | Privacy audit (IAPP, IEEE, NIST). |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
