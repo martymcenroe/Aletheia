@@ -135,7 +135,20 @@ Comprehensive security audit covering web application, LLM, agentic AI, and brow
 | Dependencies audited | npm audit: 0 vulnerabilities | ✅ Pass |
 | Lock files committed | package-lock.json, poetry.lock | ✅ Pass |
 | No CDN dependencies | All local | ✅ Pass |
+| Dependabot alerts | 0 open (3 fixed historically) | ✅ Pass |
+| Dependabot configured | `.github/dependabot.yml` | ✅ Pass |
 | Quarterly dependency review | Some outdated (boto3, certifi) - not critical | ⚠️ Note |
+
+### Dependabot Alert Check
+
+**Command:** `gh api repos/martymcenroe/Aletheia/dependabot/alerts --jq '.[] | select(.state == "open")'`
+
+| Alert State | Count | Action Required |
+|-------------|-------|-----------------|
+| Open | 0 | None |
+| Fixed | 3 | None (resolved) |
+
+**Note:** All open Dependabot alerts MUST be resolved before audit passes.
 
 ---
 
