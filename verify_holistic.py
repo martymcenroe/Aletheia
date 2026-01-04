@@ -5,11 +5,11 @@ from src.guardrails.semantic import SemanticGuardrail
 
 def run_holistic_test():
     print("=== Holistic Semantic Guardrail Test (Probabilistic) ===")
-    
+
     if not os.path.exists("test_ground_truth.json"):
         print("[FATAL] 'test_ground_truth.json' not found.")
         sys.exit(1)
-        
+
     with open("test_ground_truth.json", "r") as f:
         test_data = json.load(f)
 
@@ -21,7 +21,7 @@ def run_holistic_test():
 
     # Counters
     pass_count = 0
-    
+
     # Header: Input | Arch | Prov | Hate | Neo | None | Category | Status
     header = f"{'INPUT':<18} | {'ARCH':<4} | {'PROV':<4} | {'HATE':<4} | {'NEO':<4} | {'NONE':<4} | {'ACT.CAT':<11} | {'STS'}"
     print(header)
@@ -35,11 +35,11 @@ def run_holistic_test():
         # Invoke
         try:
             res = guard.check_safety(text)
-            act_safe = res["is_safe"]
+            _act_safe = res["is_safe"]  # noqa: F841 - extracted for debugging
             act_cat = res["reason"]
             scores = res.get("scores", {})
-        except Exception as e:
-            act_safe = False
+        except Exception:
+            _act_safe = False  # noqa: F841
             act_cat = "Error"
             scores = {}
 
@@ -58,10 +58,11 @@ def run_holistic_test():
         elif exp_safe and act_cat == "Neologism":
             # Neologisms are technically "Safe" in our policy, so this is a pass
             is_pass = True
-        
+
         status = "PASS" if is_pass else "FAIL"
-        if is_pass: pass_count += 1
-        
+        if is_pass:
+            pass_count += 1
+
         # Format scores as .XX (e.g. .99)
         def fmt(v): return f"{v:.2f}"[-3:] # .99
 

@@ -9,13 +9,11 @@ Real denylist validation occurs in manual smoke tests only.
 import json
 import tempfile
 import time
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from src.guardrails.denylist import (
-    DenylistResult,
     check_denylist,
     load_denylist,
     normalize_text,

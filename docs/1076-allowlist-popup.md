@@ -34,7 +34,7 @@ flowchart TD
 
     %% MAIN VIEW
     MainView[Main View]:::view --> MainAction{User Action?}:::decision
-    
+
     MainAction -->|Toggle Power| MainView
     MainAction -->|Click Extension Icon| MainView
     MainAction -->|Manage Allowlist| MgmtView
@@ -44,11 +44,11 @@ flowchart TD
     subgraph Management [Management Domain]
         direction TB
         MgmtView[Management View]:::view --> MgmtAction{User Action?}:::decision
-        
+
         MgmtAction -->|Select/Deselect| MgmtView
         MgmtAction -->|Remove Selected| MgmtView
         MgmtAction -->|Clear All Data| Confirm[Confirm Clear]:::view
-        
+
         Confirm --> ConfirmAction{Confirm?}:::decision
         ConfirmAction -->|Yes| End
         ConfirmAction -->|No / Cancel| MgmtView

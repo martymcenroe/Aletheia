@@ -36,7 +36,7 @@ flowchart TD
     Blocked --> OverlayWarn["Overlay: Enable Aletheia first"]
 
     CheckAllowlist -->|Yes| CallAPI[Call Lambda API]
-    
+
     CallAPI -->|Success| Success[Show Success State]:::success
     Success --> BadgeGreen["Badge: ✓ green 2s"]
     Success --> OverlaySuccess["Overlay: Saved word"]
@@ -108,9 +108,9 @@ if (spaceBelow < 60) {
 function createOverlay(message, type) {
   const host = document.createElement('div');
   host.id = 'aletheia-overlay-host';
-  
+
   const shadow = host.attachShadow({ mode: 'closed' });
-  
+
   const styles = `
     .overlay {
       position: fixed;
@@ -124,12 +124,12 @@ function createOverlay(message, type) {
       border-left: 3px solid ${getBorderColor(type)};
     }
   `;
-  
+
   shadow.innerHTML = `<style>${styles}</style><div class="overlay"></div>`;
-  
+
   // SECURITY: Use textContent, never innerHTML for user content
   shadow.querySelector('.overlay').textContent = message;
-  
+
   document.body.appendChild(host);
   return host;
 }
@@ -294,4 +294,3 @@ await chrome.scripting.executeScript({
 - [x] Error state: overlay + red badge (2s)
 - [x] Badge clears when popup opened
 - [x] All smoke test scenarios pass (8/8 - Test 060 moved to #98)
-

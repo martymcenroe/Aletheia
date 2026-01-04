@@ -9,7 +9,6 @@ No real slurs in test files (Willison Protocol).
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from src.lambda_function import (
     generate_thread_id,

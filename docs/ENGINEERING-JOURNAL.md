@@ -88,5 +88,3 @@ When something bites you, add it here immediately. Format:
 Resist the urge to categorize perfectly on first write — just capture it. Reorganize quarterly.
 
 ---
-
-

@@ -260,16 +260,16 @@ Create automated test framework to replace manual testing where possible.
   - Verify overlay appears with warning message
   - Verify badge shows amber `!`
   - Verify no API call made
-  
+
 - **Test 020:** Badge clearing
   - Verify badge clears when popup opened
-  
+
 - **Test 030:** Success state
   - Verify overlay shows "Saved: [word]"
   - Verify badge shows green ✓
   - Verify API call succeeds (200 status)
   - Verify DynamoDB entry created
-  
+
 - **Test 040:** Error state
   - Verify overlay shows error message
   - Verify badge shows red ✗
@@ -320,22 +320,22 @@ test('blocked state shows warning overlay', async ({ page }) => {
       `--load-extension=${extensionPath}`
     ]
   });
-  
+
   // Navigate to non-allowlisted site
   await page.goto('https://wsj.com');
-  
+
   // Select text
   await page.locator('p').first().dblclick();
-  
+
   // Trigger context menu
   await page.locator('p').first().click({ button: 'right' });
   await page.locator('text=Explain with AI').click();
-  
+
   // Verify overlay appears
   const overlay = await page.locator('#aletheia-overlay-host');
   await expect(overlay).toBeVisible();
   await expect(overlay).toContainText('Enable Aletheia');
-  
+
   // Verify badge (requires querying service worker)
   // TODO: Access chrome.action.getBadgeText()
 });
@@ -643,7 +643,7 @@ When user selects text on age-restricted site:
 
 ## Acceptance Criteria
 - [ ] Extension detects `rating="adult"` meta tag
-- [ ] Extension detects RTA label pattern  
+- [ ] Extension detects RTA label pattern
 - [ ] Text selection shows "not permitted" message (not "enable")
 - [ ] Extension icon shows prohibition symbol
 - [ ] Icon persists until tab closed (no timer)

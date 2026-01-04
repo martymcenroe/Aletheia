@@ -75,7 +75,7 @@ graph TD
     Start --> Router
     Router -->|"Condition 1 (True)"| ProcessA
     Router -->|"Condition 2 (False)"| ProcessB
-    
+
     ProcessA --> End
     ProcessB --> End
 
@@ -84,4 +84,3 @@ graph TD
     style End fill:#f9f,stroke:#333
 
 ```
-

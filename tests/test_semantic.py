@@ -1,5 +1,4 @@
 import json
-import pytest
 from unittest.mock import Mock, patch
 from src.guardrails.semantic import SemanticGuardrail
 
@@ -55,7 +54,7 @@ def test_semantic_failure(mock_boto_client):
     """Test that infrastructure failures result in a closed (unsafe) state."""
     mock_client_instance = Mock()
     mock_boto_client.return_value = mock_client_instance
-    
+
     # Simulate AWS Exception
     mock_client_instance.invoke_model.side_effect = Exception("AWS Throttling")
 

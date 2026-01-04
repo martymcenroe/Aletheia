@@ -11,9 +11,27 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
+    "eslint": "^9.39.2",
     "serve": "^14.2.0"
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "main": "playwright.config.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martymcenroe/Aletheia.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/martymcenroe/Aletheia/issues"
+  },
+  "homepage": "https://github.com/martymcenroe/Aletheia#readme"
 }

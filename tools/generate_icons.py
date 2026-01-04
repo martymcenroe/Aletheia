@@ -136,7 +136,7 @@ def generate_icons():
                 print(f"  [✓] Made background transparent (threshold: {args['threshold']}, {converted} pixels)")
             else:
                 img = img.convert("RGBA")
-                print(f"  [✓] Keeping original background")
+                print("  [✓] Keeping original background")
 
             # Resize and save
             for size in SIZES:

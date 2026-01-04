@@ -108,7 +108,7 @@ sequenceDiagram
 ## 5. Architecture Decision Records (ADRs)
 
 ### ADR-001: Privacy-First Extension Permissions
-**Date:** 2025-12-21  
+**Date:** 2025-12-21
 **Status:** Final — Do not revisit.
 
 **Decision:** Aletheia will NEVER request `host_permissions: ["<all_urls>"]`.
@@ -129,9 +129,9 @@ Chrome extensions requesting broad host permissions trigger a scary warning: "Re
 **Consequences:**
 - Issue #77 uses badge text/color instead of icon swapping for feedback
 - Allowlist status shown only inside popup UI, never on toolbar icon
-- 
+-
 ### ADR-002: Shadow DOM for Injected UI
-**Date:** 2025-12-22  
+**Date:** 2025-12-22
 **Status:** Final
 
 **Decision:** All UI elements injected into host pages MUST use Shadow DOM (`element.attachShadow({mode: 'closed'})`).

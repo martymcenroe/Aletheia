@@ -687,7 +687,7 @@ def main():
             logger.info("")
             logger.info("=" * 60)
             logger.info(f"SUCCESS: {denylist['term_count']} terms saved")
-            logger.info(f"Safety checks: PASSED")
+            logger.info("Safety checks: PASSED")
             logger.info("=" * 60)
             if not args.deploy:
                 logger.info(f"Run with --deploy to copy to {DEPLOY_TARGET}")

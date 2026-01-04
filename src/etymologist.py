@@ -209,7 +209,7 @@ def get_fallback_response() -> EtymologistResponse:
     return FALLBACK_RESPONSE.copy()
 
 
-def process_bedrock_response(raw_response: str) -> tuple[EtymologistResponse, str, list[str]]:
+def process_bedrock_response(raw_response: str) -> tuple[EtymologistResponse, Literal["success", "fallback", "error"], list[str]]:
     """
     Process raw Bedrock response through extraction and validation.
 

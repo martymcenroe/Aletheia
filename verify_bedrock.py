@@ -1,4 +1,3 @@
-import sys
 import boto3
 from src.guardrails.semantic import SemanticGuardrail
 
@@ -7,7 +6,7 @@ def live_fire_test():
     Directly invokes SemanticGuardrail to test AWS credentials and Model Access.
     """
     print("=== AWS Bedrock Connectivity Test ===")
-    
+
     # 1. Check Identity
     try:
         sts = boto3.client("sts")
@@ -18,7 +17,7 @@ def live_fire_test():
         return
 
     # 2. Initialize Guardrail
-    print(f"[INFO] Initializing Claude 3 Haiku...")
+    print("[INFO] Initializing Claude 3 Haiku...")
     try:
         guard = SemanticGuardrail()
     except Exception as e:

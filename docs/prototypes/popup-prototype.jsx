@@ -93,9 +93,9 @@ export default function AletheiaPopupPrototype() {
   const MainView = () => (
     <div style={{ padding: 24 }}>
       {/* Logo placeholder */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
         position: 'relative',
@@ -127,18 +127,18 @@ export default function AletheiaPopupPrototype() {
         marginBottom: 20,
         border: `1px solid ${colors.border}`,
       }}>
-        <div style={{ 
-          fontSize: 11, 
-          color: colors.textSecondary, 
+        <div style={{
+          fontSize: 11,
+          color: colors.textSecondary,
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           marginBottom: 4,
         }}>
           Current Domain
         </div>
-        <div style={{ 
-          fontSize: 16, 
-          fontWeight: 600, 
+        <div style={{
+          fontSize: 16,
+          fontWeight: 600,
           color: colors.text,
         }}>
           {currentDomain}
@@ -146,9 +146,9 @@ export default function AletheiaPopupPrototype() {
       </div>
 
       {/* Power button */}
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         marginBottom: 20,
       }}>
@@ -252,9 +252,9 @@ export default function AletheiaPopupPrototype() {
         >
           ←
         </button>
-        <span style={{ 
-          fontSize: 16, 
-          fontWeight: 600, 
+        <span style={{
+          fontSize: 16,
+          fontWeight: 600,
           color: colors.text,
         }}>
           Allowlist
@@ -272,8 +272,8 @@ export default function AletheiaPopupPrototype() {
       </div>
 
       {/* List */}
-      <div style={{ 
-        maxHeight: 180, 
+      <div style={{
+        maxHeight: 180,
         overflowY: 'auto',
         borderBottom: `1px solid ${colors.border}`,
       }}>
@@ -310,8 +310,8 @@ export default function AletheiaPopupPrototype() {
                   accentColor: colors.primary,
                 }}
               />
-              <span style={{ 
-                fontSize: 14, 
+              <span style={{
+                fontSize: 14,
                 color: colors.text,
               }}>
                 {domain}
@@ -477,7 +477,7 @@ export default function AletheiaPopupPrototype() {
       }}>
         Aletheia Popup Prototype
       </div>
-      
+
       <PopupContainer>
         {view === 'main' && <MainView />}
         {view === 'manage' && <ManageView />}

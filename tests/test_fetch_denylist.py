@@ -10,8 +10,8 @@ from pathlib import Path
 # Add tools directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
 
-import pytest
-from fetch_denylist import (
+import pytest  # noqa: E402
+from fetch_denylist import (  # noqa: E402
     parse_wikitables,
     parse_definition_lists,
     parse_bulleted_bold,
@@ -23,8 +23,6 @@ from fetch_denylist import (
     check_minimum_threshold,
     check_canary_terms,
     run_safety_checks,
-    SAFETY_STOP_LIST,
-    MINIMUM_TERM_COUNT,
     CANARY_TERMS,
     SEED_TERMS,
 )

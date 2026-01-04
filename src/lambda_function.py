@@ -19,7 +19,7 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 
-from .etymologist import HAIKU_MODEL_ID, analyze_term
+from .etymologist import HAIKU_MODEL_ID, AnalysisResult, analyze_term
 from .guardrails.denylist import check_denylist, load_denylist
 from .guardrails.semantic import SemanticGuardrail
 
@@ -137,7 +137,7 @@ def save_state(thread_id: str, data: dict) -> None:
         raise
 
 
-def generate_etymology(word: str, context: str = "") -> dict:
+def generate_etymology(word: str, context: str = "") -> AnalysisResult:
     """
     Generate etymology analysis using Digital Etymologist persona.
 

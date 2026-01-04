@@ -156,7 +156,7 @@ def generate_pdf(markdown_path):
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        subprocess.run(cmd, capture_output=True, text=True, check=True)
         print(f"Generated {pdf_path}")
         return pdf_path
     except subprocess.CalledProcessError as e:
@@ -341,7 +341,7 @@ def countdown_wait(minutes):
         print(f"  Time remaining: {mins:02d}:{secs:02d}", end='\r')
         time.sleep(1)
 
-    print(f"  Time remaining: 00:00")
+    print("  Time remaining: 00:00")
     print("Resuming...\n")
 
 
@@ -402,7 +402,7 @@ def main():
         if args.wait > 0:
             print(f"Wait time: {args.wait} minute(s) after each job completes")
         else:
-            print(f"Wait time: Immediate (send next job as soon as current completes)")
+            print("Wait time: Immediate (send next job as soon as current completes)")
         print("")
 
         # Filter files
@@ -453,7 +453,7 @@ def main():
 
             except Exception as e:
                 print(f"Error processing {md_file.name}: {e}")
-                response = input("Press Enter to continue to next file, or Ctrl-C to abort: ")
+                input("Press Enter to continue to next file, or Ctrl-C to abort: ")
                 skipped += 1
 
             print("")

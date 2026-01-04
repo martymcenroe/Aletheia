@@ -139,10 +139,10 @@ Objective: Implement a compliance-first context extraction pipeline that respect
 Architecture (The 'Traffic Light' Pattern):
 1. Frontend (Extension):
    * Check for 'isAccessibleForFree: False' or 'noai' meta tags.
-   * IF DETECTED (Red Light): 
+   * IF DETECTED (Red Light):
        - MVP: Abort transmission. Alert user.
        - Future (v2): Fallback to Client-Side (Edge) Vectorization to keep data local.
-   * IF NOT DETECTED (Yellow Light): 
+   * IF NOT DETECTED (Yellow Light):
        - Transmit payload to AWS (User assumes TOS liability via Terms).
 
 2. Backend (Lambda - The 'Safe Harbor'):
@@ -288,7 +288,7 @@ Moving guardrails.py to legacy and updating lessons learned.
 ### Description
 
 Objective: Minimize permissions to avoid Manual Review for Jan 15 launch.
-  
+
   Tasks:
   1. Audit 'manifest.json'.
   2. Remove '<all_urls>' and 'activeTab' if possible.
@@ -305,7 +305,7 @@ Objective: Minimize permissions to avoid Manual Review for Jan 15 launch.
 ### Description
 
 Objective: Change default behavior from 'Always On' to 'Default Off'.
-  
+
   Tasks:
   1. Extension remains inactive on page load.
   2. User must click 'Enable for this site'.
@@ -321,7 +321,7 @@ Objective: Change default behavior from 'Always On' to 'Default Off'.
 ### Description
 
 Objective: Satisfy Google Store requirement for data handling disclosure.
-  
+
   Tasks:
   1. Create static page at ThriveTech.ai/aletheia/privacy.
   2. Draft policy stating: 'Local-first architecture, no PII collection, no browsing history sales'.
@@ -1243,7 +1243,7 @@ Architecture Decision Records (ADR) content was created in previous AI conversat
 - Look for discussions about design choices, trade-offs, alternatives considered
 - Check conversations from project inception through December 2025
 
-### 2. Claude Web Conversations  
+### 2. Claude Web Conversations
 - Same search terms as above
 - May have different ADR content than Gemini sessions
 - Look for any "why did we choose X over Y" discussions
@@ -1321,7 +1321,7 @@ Master index of all decision records with:
 | Hate speech denylist | AI-only, no filter | Liability shield |
 | Semantic context analysis | Keyword only, no AI | Nuance detection |
 
-### 0203-DR-privacy.md  
+### 0203-DR-privacy.md
 **Audience:** Privacy engineers, GDPR reviewers, data protection officers
 
 | Decision | Alternatives Considered | Rationale |
@@ -1371,7 +1371,7 @@ Rename and restructure `docs/0007-legal-compliance-strategy.md` - extract decisi
 ## Current State
 0007 contains:
 1. Philosophy (Assistant vs Crawler) → **Keep in 0007**
-2. Signal Matrix (noai, noarchive, etc.) → **Keep in 0007**  
+2. Signal Matrix (noai, noarchive, etc.) → **Keep in 0007**
 3. "Summarization" Switch logic → **Move to 0203-DR-privacy.md**
 4. Implementation notes → **Move to relevant LLDs**
 

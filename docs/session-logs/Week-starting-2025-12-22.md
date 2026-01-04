@@ -436,7 +436,7 @@ The `func: showOverlay` parameter injects the function from **service-worker.js 
 
 ### Browser Testing Matrix
 
-| Browser | Extension Loads | Data Saves | Positioning Bug | 
+| Browser | Extension Loads | Data Saves | Positioning Bug |
 |---------|----------------|------------|-----------------|
 | Chrome Canary | ✅ Yes | ✅ Yes | ❌ Always below |
 | Chrome (regular) | ✅ Yes | ✅ Yes | ❌ Always below |

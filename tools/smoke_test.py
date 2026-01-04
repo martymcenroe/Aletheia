@@ -126,10 +126,14 @@ def test_valid_input(url: str) -> bool:
             return False
     else:
         missing = []
-        if not has_signal: missing.append("signal")
-        if not has_gem: missing.append("gem")
-        if not has_context: missing.append("context")
-        if not has_status: missing.append("status")
+        if not has_signal:
+            missing.append("signal")
+        if not has_gem:
+            missing.append("gem")
+        if not has_context:
+            missing.append("context")
+        if not has_status:
+            missing.append("status")
         print(f"  Result:  FAIL (missing keys: {missing})")
         return False
 
@@ -139,7 +143,7 @@ def test_blocked_input(url: str) -> bool:
     print("\n[TEST 2] Blocked Input (expect 403 Forbidden)")
     blocked_payload = get_blocked_payload()
     # Redact the actual term in output for security
-    print(f"  Payload: {{\"text\": \"[REDACTED - denylist term]\"}}")
+    print("  Payload: {\"text\": \"[REDACTED - denylist term]\"}")
 
     status, body, latency = send_request(url, blocked_payload)
 
@@ -151,7 +155,7 @@ def test_blocked_input(url: str) -> bool:
         print("  Result:  PASS")
         return True
     else:
-        print(f"  Result:  FAIL (expected 403 with 'blocked' key)")
+        print("  Result:  FAIL (expected 403 with 'blocked' key)")
         return False
 
 
@@ -171,7 +175,7 @@ def test_empty_input(url: str) -> bool:
         print("  Result:  PASS")
         return True
     else:
-        print(f"  Result:  FAIL (expected 400 with 'error' key)")
+        print("  Result:  FAIL (expected 400 with 'error' key)")
         return False
 
 
@@ -230,7 +234,7 @@ def test_tone_neutrality(url: str) -> bool:
     print(f"  Latency: {latency:.2f}s")
 
     if status != 200:
-        print(f"  Result:  SKIP (non-200 status)")
+        print("  Result:  SKIP (non-200 status)")
         return True  # Don't fail on non-200, that's a different test
 
     # Check for moralizing phrases that indicate non-neutral tone

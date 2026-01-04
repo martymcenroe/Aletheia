@@ -19,7 +19,7 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from signal_inspector import (
+from signal_inspector import (  # noqa: E402
     AletheiaAction,
     FetchStatus,
     SignalResult,
@@ -34,7 +34,7 @@ from signal_inspector import (
     parse_x_robots_tag,
     print_console_report,
 )
-from signal_inspector.fetcher import get_user_agent
+from signal_inspector.fetcher import get_user_agent  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +262,7 @@ def main(args: list[str] | None = None) -> int:
             if result.fetch_status != FetchStatus.SUCCESS:
                 errors += 1
 
-        except Exception as e:
+        except Exception:
             logger.exception(f"Unexpected error inspecting {url}")
             errors += 1
 

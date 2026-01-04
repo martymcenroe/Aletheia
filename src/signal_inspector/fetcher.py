@@ -5,7 +5,7 @@ See docs/1084-signal-inspector.md Section 4.4 for User-Agent strategy.
 
 import logging
 from typing import Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import requests
 

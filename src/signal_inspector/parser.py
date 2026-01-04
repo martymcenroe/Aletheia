@@ -102,7 +102,8 @@ def parse_meta_tags(html: str) -> MetaTagResult:
 
     # Find all robots meta tags
     for meta in soup.find_all("meta", attrs={"name": re.compile(r"robots|googlebot", re.I)}):
-        content = meta.get("content", "").lower()
+        raw_content = meta.get("content", "")
+        content = str(raw_content).lower() if raw_content else ""
         directives = [d.strip() for d in content.split(",")]
 
         for directive in directives:
@@ -189,14 +190,15 @@ def parse_rating_tag(html: str) -> RatingResult:
     if not rating_meta:
         return result
 
-    content = rating_meta.get("content", "")
+    raw_content = rating_meta.get("content", "")
+    content = str(raw_content) if raw_content else ""
     result.raw_value = content
 
     # Check for adult rating
     content_lower = content.lower()
     if content_lower == "adult":
         result.adult_rated = True
-    elif RTA_PATTERN.search(content):
+    elif content and RTA_PATTERN.search(content):
         result.adult_rated = True
 
     logger.debug(f"Rating tag: adult_rated={result.adult_rated}, raw={result.raw_value}")

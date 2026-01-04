@@ -12,7 +12,6 @@ import pytest
 
 from src.etymologist import (
     FALLBACK_RESPONSE,
-    AnalysisResult,
     analyze_term,
     build_etymologist_prompt,
     build_user_message,

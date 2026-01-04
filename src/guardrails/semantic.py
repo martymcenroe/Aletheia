@@ -68,23 +68,23 @@ class SemanticGuardrail:
             )
             result = json.loads(response['body'].read())
             content_text = result['content'][0]['text']
-            
+
             # Parse the JSON response from the LLM
             data = json.loads(content_text)
             category = data.get("category", "Unknown")
             scores = data.get("scores", {})
-            
+
             # Deterministic Policy Enforcement (Code > LLM)
             # "None" and "Neologism" are Safe. Others are Unsafe.
             unsafe_categories = ["Archaic", "Provocative", "Hate"]
             is_safe = category not in unsafe_categories
-            
+
             return {
                 "is_safe": is_safe,
                 "reason": category,
                 "scores": scores
             }
-            
+
         except Exception as e:
             # Fail closed on infrastructure error
             return {"is_safe": False, "reason": f"Guardrail Error: {str(e)}", "scores": {}}

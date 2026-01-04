@@ -24,7 +24,7 @@ def format_timestamp(iso_str):
         # Format: Dec 20 10:01
         return dt_central.strftime("%b %d %H:%M")
     except ValueError:
-        return iso_str 
+        return iso_str
 
 def extract_domain(url_str):
     """Extracts domain (e.g., wsj.com) from a URL."""
@@ -40,7 +40,7 @@ def get_display_data(item):
     word = item.get('user_input') or item.get('word') or "N/A"
     site = item.get('url') or item.get('title') or "Unknown"
     raw_ts = item.get('timestamp') or ""
-    
+
     return {
         "raw_timestamp": raw_ts,
         "display_time": format_timestamp(raw_ts),
@@ -83,8 +83,8 @@ def main():
 
     # 5. Dynamic Width Calculation
     idx_digits = len(str(total_count))
-    w_idx = 1 + idx_digits + 1 + idx_digits + 1 
-    
+    w_idx = 1 + idx_digits + 1 + idx_digits + 1
+
     w_time = max(len(d['display_time']) for d in data)
     w_word = max(len(d['word']) for d in data)
     w_site = max(len(d['display_site']) for d in data)
@@ -93,7 +93,7 @@ def main():
     for i, entry in enumerate(data):
         offset = total_count - len(data) if args.tail > 0 else 0
         current_idx = offset + i + 1
-        
+
         idx_str = f"[{current_idx:0{idx_digits}d}/{total_count}]"
 
         print(

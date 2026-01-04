@@ -30,9 +30,9 @@
             cursor: pointer;
             border: 1px dashed #ca8a04;
         }
-        
+
         .overlay-mock {
-            position: absolute; 
+            position: absolute;
             background: #1f2937;
             color: white;
             padding: 8px 12px;
@@ -50,7 +50,7 @@
             position: absolute;
             border-style: solid;
         }
-        
+
         /* Arrow pointing UP (placed below text) */
         .overlay-mock.below::after {
             bottom: 100%;
@@ -58,7 +58,7 @@
             border-width: 0 6px 6px 6px;
             border-color: transparent transparent #1f2937 transparent;
         }
-        
+
         /* Arrow pointing DOWN (placed above text) */
         .overlay-mock.above::after {
             top: 100%;
@@ -66,7 +66,7 @@
             border-width: 6px 6px 0 6px;
             border-color: #1f2937 transparent transparent transparent;
         }
-        
+
         #zone-top { margin-top: 100px; }
         #zone-bottom { margin-top: 150vh; margin-bottom: 50px;}
     </style>
@@ -95,15 +95,15 @@
     <script>
         function showOverlay(element) {
             const overlay = document.getElementById('overlay');
-            
+
             // 1. Get Geometry
             const rect = element.getBoundingClientRect();
-            
+
             // 2. Constants (TUNED)
-            const OVERLAY_HEIGHT = 40; 
+            const OVERLAY_HEIGHT = 40;
             const MARGIN_ABOVE = 8; // User said this was "Good"
             const MARGIN_BELOW = 4; // Reduced from 8px to fix visual gap
-            
+
             // 3. Logic
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceNeeded = OVERLAY_HEIGHT + MARGIN_BELOW;
@@ -112,14 +112,14 @@
                 // FLIP ABOVE
                 // Math: ScrollY + Top - Height - Margin
                 const absoluteTop = window.scrollY + rect.top - OVERLAY_HEIGHT - MARGIN_ABOVE;
-                
+
                 overlay.style.top = `${absoluteTop}px`;
                 overlay.className = 'overlay-mock above';
             } else {
                 // NORMAL BELOW
                 // Math: ScrollY + Bottom + Margin
                 const absoluteTop = window.scrollY + rect.bottom + MARGIN_BELOW;
-                
+
                 overlay.style.top = `${absoluteTop}px`;
                 overlay.className = 'overlay-mock below';
             }

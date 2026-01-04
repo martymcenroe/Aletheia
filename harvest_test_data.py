@@ -16,19 +16,19 @@ def parse_args():
         description="Aletheia Data Harvester: Pulls captured test cases from DynamoDB to local JSON."
     )
     parser.add_argument(
-        "-v", "--verbose", 
-        action="store_true", 
+        "-v", "--verbose",
+        action="store_true",
         help="Enable verbose output (prints raw JSON for every record found)"
     )
     parser.add_argument(
-        "-o", "--output", 
+        "-o", "--output",
         default="test_holistic_data.json",
         help="Specify output filename (default: test_holistic_data.json)"
     )
     return parser.parse_args()
 
 def harvest(verbose=False, filename="test_holistic_data.json"):
-    print(f"Connecting to DynamoDB table: AletheiaAgentState...")
+    print("Connecting to DynamoDB table: AletheiaAgentState...")
     try:
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table('AletheiaAgentState')
@@ -42,7 +42,7 @@ def harvest(verbose=False, filename="test_holistic_data.json"):
     print(f"Found {count} items in database.\n")
 
     export_records = []
-    
+
     for i, item in enumerate(items):
         # normalize keys
         word = item.get('user_input') or item.get('word')
@@ -52,7 +52,7 @@ def harvest(verbose=False, filename="test_holistic_data.json"):
             print(f"--- RECORD #{i+1} RAW DATA ---")
             print(json.dumps(item, cls=DecimalEncoder, indent=2))
             print("-----------------------------")
-        
+
         if word:
             if not verbose:
                 # One-line summary

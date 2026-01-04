@@ -1,6 +1,6 @@
 import os
 import zipfile
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 # Config
 DIST_DIR = "dist"

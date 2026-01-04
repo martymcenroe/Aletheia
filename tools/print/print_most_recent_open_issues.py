@@ -127,7 +127,7 @@ def generate_pdf(markdown_path, duplex=False):
     pdf_filename = markdown_path.stem + '.pdf'
     pdf_path = output_dir / pdf_filename
 
-    print(f"Generating PDF with pandoc...")
+    print("Generating PDF with pandoc...")
 
     # Create custom header with actual filepath and timestamp
     header_template = Path(PANDOC_HEADER).read_text(encoding='utf-8')
@@ -158,7 +158,7 @@ def generate_pdf(markdown_path, duplex=False):
     ]
 
     try:
-        result = subprocess.run(
+        subprocess.run(
             cmd,
             capture_output=True,
             text=True,

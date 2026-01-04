@@ -5,7 +5,7 @@
 
 ## 1. Context and current behavior
 
-Extension: **Context-Aware Vocabulary**  
+Extension: **Context-Aware Vocabulary**
 Files involved so far:
 
 - `manifest.json`
