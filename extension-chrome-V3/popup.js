@@ -1,7 +1,7 @@
 // extension-chrome-V3/popup.js
 // State management
 let currentDomain = null;
-let selectedDomains = new Set();
+const selectedDomains = new Set();
 
 // DOM Elements
 const mainView = document.getElementById('main-view');
