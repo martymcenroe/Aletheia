@@ -77,16 +77,17 @@
 | `docs/0210-ADR-git-worktree-isolation.md` | **ADR** | 🟢 **Stable** | - | Decision: Worktrees for feature isolation. |
 | `docs/0211-ADR-naked-python-architecture.md` | **ADR** | 🟢 **Stable** | #113 | Decision: Remove LangGraph, use boto3 directly. |
 
-### 08xx Audit Procedures
+### 08xx Audit Procedures (Numbered by Execution Order)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/0800-common-audits.md` | **Index** | 🟢 **Stable** | - | Master index of all audit procedures. |
-| `docs/0801-architecture-audit.md` | **Protocol** | 🟢 **Stable** | - | Architecture drift detection (formerly 0110). |
+| `docs/0801-open-issues-audit.md` | **Protocol** | 🟢 **Stable** | - | Check for complete/deprecated/stale issues. |
 | `docs/0802-reports-completeness-audit.md` | **Protocol** | 🟢 **Stable** | - | Verify closed issues have reports. |
-| `docs/0803-open-issues-audit.md` | **Protocol** | 🟢 **Stable** | - | Check for complete/deprecated/stale issues. |
-| `docs/0804-terminology-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect stale terminology after renaming. |
-| `docs/0805-inventory-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect file inventory drift. |
-| `docs/0806-lld-code-audit.md` | **Protocol** | 🟢 **Stable** | - | Verify implementation matches LLD. |
+| `docs/0803-lld-code-audit.md` | **Protocol** | 🟢 **Stable** | - | Verify implementation matches LLD. |
+| `docs/0804-inventory-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect file inventory drift. |
+| `docs/0805-terminology-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect stale terminology after renaming. |
+| `docs/0806-architecture-audit.md` | **Protocol** | 🟢 **Stable** | - | Architecture drift detection (strategic). |
+| `docs/0807-agentos-audit.md` | **Protocol** | 🟢 **Stable** | - | AgentOS health check (system self-audit). |
 
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |

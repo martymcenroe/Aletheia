@@ -1,4 +1,4 @@
-# 0801 - Architecture Audit ("Drift Detector")
+# 0806 - Architecture Audit ("Drift Detector")
 
 *Formerly 0110. Moved to 08xx audit series 2026-01-01.*
 
