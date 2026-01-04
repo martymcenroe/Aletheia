@@ -277,6 +277,10 @@ Comprehensive security audit covering web application, LLM, agentic AI, and brow
 ### ISC2
 - [CISSP-Inspired AI Security](https://www.isc2.org/Insights/2025/12/A-CISSP-Inspired-AI-Security-Approach)
 
+### IEEE
+- [IEEE 7001-2021 Transparency of Autonomous Systems](https://standards.ieee.org/ieee/7001/6929/)
+- [IEEE 7007-2021 Ontological Standard for Ethically Driven Robotics and Automation Systems](https://standards.ieee.org/ieee/7007/6926/)
+
 ### Internal
 - ADR 0201 - Privacy-First Extension Permissions
 - ADR 0204 - Defense Funnel
