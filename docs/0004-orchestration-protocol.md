@@ -13,8 +13,8 @@ To eliminate the friction of managing multiple GitHub accounts and the cost of O
 * **Git (`git`):** Used for version control.
 * **No GUIs:** Do not rely on the GitHub web interface or IDE buttons for core workflow tasks.
 
-## 3. The "Flip Turn" Workflow (11 Steps)
-Every feature or fix must strictly follow this 11-step execution loop to ensure hygiene and recoverability.
+## 3. The "Flip Turn" Workflow (12 Steps)
+Every feature or fix must strictly follow this 12-step execution loop to ensure hygiene and recoverability.
 
 | Step | Action | Command Pattern |
 | :--- | :--- | :--- |
@@ -28,7 +28,8 @@ Every feature or fix must strictly follow this 11-step execution loop to ensure 
 | **8. Commit** | Save | `git commit -m "type: desc (ref #ID)"` |
 | **9. Push** | Team Visibility (REQUIRED) | `git push -u origin HEAD` |
 | **10. PR** | Review | `gh pr create --fill` |
-| **11. Cleanup** | Remove worktree + branches | After merge: `git worktree remove` + branch cleanup |
+| **11. Reports** | Document (MANDATORY) | Create `docs/reports/{ID}/` with both reports |
+| **12. Cleanup** | Remove worktree + branches | After merge: `git worktree remove` + branch cleanup |
 
 **Step 2 Rationale:** LLDs are written on main before any worktree exists. This ensures the plan is reviewed before implementation begins.
 
@@ -38,7 +39,9 @@ Every feature or fix must strictly follow this 11-step execution loop to ensure 
 
 **Step 9 Rationale:** Remote branches provide backup, enable collaboration between agents, and give the orchestrator visibility into active work. Local-only branches violate team collaboration principles.
 
-**Step 11 Rationale:** Zombie worktrees and remote branches clutter the system. ALWAYS clean up completely after merge.
+**Step 11 Rationale (CRITICAL):** Reports capture institutional knowledge. Without them, the "why" behind implementation decisions is lost forever. See §8.6 for requirements.
+
+**Step 12 Rationale:** Zombie worktrees and remote branches clutter the system. ALWAYS clean up completely after merge.
 
 ## 4. Emergency Recovery
 If the session context is lost or the environment destabilizes, strict **Emergency Recovery Mode** is active.

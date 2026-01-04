@@ -39,6 +39,10 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
   - `git branch -d {branch-name}` (local)
   - `git push origin --delete {branch-name}` (remote)
 - **Merge and cleanup:** After PR is created and tests pass, merge it (`gh pr merge`), then cleanup worktree and branches per 0002 §4
+- **Reports before cleanup (MANDATORY):** Before closing ANY issue, create:
+  - `docs/reports/{IssueID}/implementation-report.md` - What was built and why
+  - `docs/reports/{IssueID}/test-report.md` - Evidence it works
+  - See `docs/0004-orchestration-protocol.md` §8.6 for requirements
 - **Update inventory:** Add new files to `docs/0003-file-inventory.md`
 
 ### Python Dependencies:
