@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aletheia QA Sandbox</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+        .qa-banner { background: yellow; color: red; padding: 10px; font-weight: bold; text-align: center; margin-bottom: 2rem; }
+        h1 { color: #333; }
+        .test-list { list-style: none; padding: 0; }
+        .test-list li { margin: 0.5rem 0; }
+        .test-list a { color: #0066cc; text-decoration: none; }
+        .test-list a:hover { text-decoration: underline; }
+        .category { margin-top: 1.5rem; padding: 1rem; background: #f5f5f5; border-radius: 4px; }
+        .category h2 { margin-top: 0; color: #555; font-size: 1.1rem; }
+        .note { background: #fff3cd; padding: 1rem; border-radius: 4px; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <h1 style="background:yellow;color:red;padding:10px;">
+        QA SANDBOX - Security Research Only - Do Not Use
+    </h1>
+
+    <h1>Aletheia Extension Test Fixtures</h1>
+
+    <p>This site hosts test pages for automated verification of the Aletheia browser extension. These pages contain intentionally crafted content to test security features.</p>
+
+    <div class="category">
+        <h2>Age Gate Tests (Issue #104)</h2>
+        <ul class="test-list">
+            <li><a href="test-adult.html">test-adult.html</a> - Contains <code>&lt;meta name="rating" content="adult"&gt;</code></li>
+            <li><a href="test-rta.html">test-rta.html</a> - Contains RTA pattern in rating meta tag</li>
+            <li><a href="test-mature.html">test-mature.html</a> - Contains <code>&lt;meta name="rating" content="mature"&gt;</code> (allowed)</li>
+            <li><a href="test-clean.html">test-clean.html</a> - No rating meta tag (allowed)</li>
+        </ul>
+    </div>
+
+    <div class="category">
+        <h2>XSS Protection Tests</h2>
+        <ul class="test-list">
+            <li><a href="test-xss-script.html">test-xss-script.html</a> - Script tag injection test</li>
+            <li><a href="test-xss-img.html">test-xss-img.html</a> - Image onerror injection test</li>
+            <li><a href="test-xss-event.html">test-xss-event.html</a> - Event handler injection test</li>
+        </ul>
+    </div>
+
+    <div class="note">
+        <strong>Purpose:</strong> These fixtures are used by Playwright E2E tests to verify that the Aletheia extension correctly:
+        <ul>
+            <li>Blocks operation on age-restricted pages</li>
+            <li>Allows operation on non-restricted pages</li>
+            <li>Sanitizes selected text to prevent XSS attacks</li>
+        </ul>
+    </div>
+
+    <footer style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
+        <p>Aletheia - Context-aware browser extension | <a href="https://github.com/martymcenroe/Aletheia">GitHub</a></p>
+    </footer>
+</body>
+</html>

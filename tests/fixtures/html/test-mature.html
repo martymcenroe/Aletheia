@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="rating" content="mature">
+    <title>Test: Mature Rating (Allowed)</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+    </style>
+</head>
+<body>
+    <h1 style="background:yellow;color:red;padding:10px;">
+        QA SANDBOX - Security Research Only - Do Not Use
+    </h1>
+
+    <h1>Mature-Rated Page Test</h1>
+
+    <p>This page contains <code>&lt;meta name="rating" content="mature"&gt;</code> which should NOT trigger the age gate.</p>
+
+    <p data-testid="selectable-text">Select this text to test that Aletheia allows operation on mature-rated pages.</p>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: #d4edda; border-radius: 4px;">
+        <strong>Expected Behavior:</strong>
+        <ul>
+            <li>Extension badge shows normal state (no prohibition)</li>
+            <li>Popup shows normal view</li>
+            <li>Context menu action works normally</li>
+        </ul>
+    </div>
+
+    <p><a href="index.html">Back to test index</a></p>
+</body>
+</html>
