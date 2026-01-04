@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: XSS Image Onerror</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+        .malicious { background: #ffe6e6; padding: 1rem; border: 2px solid #ff0000; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1 style="background:yellow;color:red;padding:10px;">
+        QA SANDBOX - Security Research Only - Do Not Use
+    </h1>
+
+    <h1>XSS Test: Image Onerror Injection</h1>
+
+    <p>This page contains selectable text with an embedded img tag using onerror. If the extension is vulnerable to XSS, the onerror handler would execute.</p>
+
+    <div class="malicious">
+        <p data-testid="selectable-text">Select this text: &lt;img src="x" onerror="alert('XSS-IMG')"&gt; and then this text.</p>
+    </div>
+
+    <p><strong>Note:</strong> The img tag above is HTML-escaped and does not execute. This tests whether the extension properly handles text that looks like XSS.</p>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: #d4edda; border-radius: 4px;">
+        <strong>Expected Behavior:</strong>
+        <ul>
+            <li>No alert dialog should appear</li>
+            <li>The img tag should be sanitized</li>
+            <li>The overlay should show the text safely</li>
+        </ul>
+    </div>
+
+    <p><a href="index.html">Back to test index</a></p>
+</body>
+</html>

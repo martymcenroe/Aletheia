@@ -15,7 +15,11 @@ const path = require('path');
  *   SKIP_LAMBDA_TESTS - Set to 'true' to skip tests requiring Lambda ON
  */
 
-const extensionPath = path.join(__dirname, 'extension');
+// Extension path - use Chrome MV3 extension
+const extensionPath = path.join(__dirname, 'extension-chrome-V3');
+
+// Support TEST_BASE_URL env var for flexibility
+const TEST_BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
 module.exports = defineConfig({
     testDir: './tests/e2e',
@@ -41,6 +45,9 @@ module.exports = defineConfig({
 
     // Use Chromium with extension
     use: {
+        // Base URL for test fixtures (supports TEST_BASE_URL env var)
+        baseURL: TEST_BASE_URL,
+
         // Browser context options
         viewport: { width: 1280, height: 720 },
         actionTimeout: 10000,
