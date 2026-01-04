@@ -36,14 +36,16 @@ Key implementation:
 | `extension-chrome-V3/popup.js` | +80/-5 lines | Async init(), checkAgeGate(), showView() for restricted/checking states |
 | `extension-chrome-V3/popup.html` | +30/-0 lines | Added checking-view and restricted-view sections |
 | `extension-chrome-V3/popup.css` | +40/-0 lines | Spinner animation, disabled state styling |
-| `extension-chrome-V3/manifest.json` | +10/-2 lines | Added `tabs` permission, `<all_urls>` host permission |
+| `extension-chrome-V3/manifest.json` | +10/-2 lines | Added `tabs` and `scripting` permissions |
 
 ## 5. Deviations from LLD
 
 | Deviation | Reason | Impact |
 |-----------|--------|--------|
-| `<all_urls>` permission added | Required for proactive tab monitoring via `scripting.executeScript` | Users see broader permission request; documented in ADR 0201 exception |
+| On-demand checking instead of proactive | Proactive would require `<all_urls>` which violates ADR 0201 | Check happens when user interacts (popup/context menu) |
 | No prohibition badge icon | Time constraint; badge text sufficient for MVP | Visual indicator less prominent; can be added later |
+
+**CORRECTION (2026-01-04):** Original implementation incorrectly added `<all_urls>` permission. This was a PRIMARY DIRECTIVE violation caught during 0806 audit and immediately fixed. Age-gate now uses on-demand checking with `activeTab` permission only.
 
 ## 6. Test Harness
 

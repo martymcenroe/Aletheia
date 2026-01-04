@@ -101,7 +101,7 @@ sequenceDiagram
 
 * **Module:** `extension-chrome-V3/service-worker.js`, `extension-chrome-V3/content-check.js` (new), `extension-chrome-V3/content-safety.js` (new - pure logic)
 * **Dependencies:** Chrome Extension APIs (`scripting`, `tabs`, `action`)
-* **Required Permissions:** `scripting`, `tabs`, `<all_urls>` host permission (added to manifest.json)
+* **Required Permissions:** `scripting`, `tabs`, `activeTab` (NO `<all_urls>` - see ADR 0201)
 * **Pattern:** Event-driven state machine per tab
 
 ### 6.1 Constants
