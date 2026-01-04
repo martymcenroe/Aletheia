@@ -261,7 +261,14 @@
 | `tests/data/etymology_golden_set.json` | **Data** | 🟢 **Stable** | #124 | Golden set for Digital Etymologist (20 terms, 8 extraction tests, 6 validation tests). |
 | `tests/infra/verify_waf.sh` | **Test** | 🟢 **Stable** | #95 | Automated WAF verification (no vibes testing). |
 | `tests/e2e/waf-integration.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for WAF integration. |
+| `tests/e2e/age-gate.spec.js` | **Test** | 🟢 **Stable** | #104 | Playwright E2E tests for age-restricted site blocking. |
+| `tests/e2e/xss-protection.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for XSS protection. |
 | `tests/fixtures/html/test-waf.html` | **Fixture** | 🟢 **Stable** | #95 | Test page for WAF E2E tests. |
+| `tests/fixtures/html/test-adult.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with adult rating meta tag. |
+| `tests/fixtures/html/test-rta.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with RTA label pattern. |
+| `tests/fixtures/html/test-mature.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with mature rating (allowed). |
+| `tests/fixtures/html/test-clean.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with no rating meta. |
+| `tests/fixtures/html/test-xss-*.html` | **Fixture** | 🟢 **Stable** | #95 | XSS attack vector test pages (script, img, event). |
 | `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
 | `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
 | `docs/security/vulnerability-test.md` | **Test** | 🟢 **Stable** | #95 | Manual vulnerability reproduction scripts. |
