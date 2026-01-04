@@ -56,7 +56,8 @@
       "Bash(\"https://d1fkpkls2wesse.cloudfront.net/\")",
       "Bash(git ls-tree:*)",
       "Bash(git merge:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(npx playwright test:*)"
     ],
     "deny": [
       "Read(.env)",
