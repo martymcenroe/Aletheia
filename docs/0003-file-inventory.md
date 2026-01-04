@@ -193,6 +193,8 @@
 | `extension-chrome-V3/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
 | `extension-chrome-V3/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
 | `extension-chrome-V3/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
+| `extension-chrome-V3/content-safety.js` | **Logic** | 🟢 **Stable** | #104 | Content script for age-gate detection (RTA meta tags). |
+| `extension-chrome-V3/content-check.js` | **Logic** | 🟢 **Stable** | #104 | Content script for adult site detection (multiple signals). |
 | `extension-chrome-V3/icons/*` | **Asset** | 🟢 **Stable** | #82 | Chrome extension icons (16/32/48/128px). |
 | `extension-firefox-V2/manifest.json` | **Config** | 🟢 **Stable** | #100 | Firefox Manifest V2 (browser_specific_settings). |
 | `extension-firefox-V2/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Firefox overlay UI with stateful timer management. |

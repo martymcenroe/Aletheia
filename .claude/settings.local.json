@@ -57,7 +57,21 @@
       "Bash(git ls-tree:*)",
       "Bash(git merge:*)",
       "Bash(git restore:*)",
-      "Bash(npx playwright test:*)"
+      "Bash(npx playwright test:*)",
+      "Bash(grep:*)",
+      "Bash(while read ref)",
+      "Bash(do if [ ! -f \"$ref\" ])",
+      "Bash(then echo \"BROKEN: $ref\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(do if [ -n \"$ref\" ])",
+      "Bash([ ! -f \"$ref\" ])",
+      "Bash(for p in docs/0004*.md docs/0009*.md docs/080*.md)",
+      "Bash(do if grep -q -E \"\\(## Procedure|### Step|### [SF][0-9]|^###.*[0-9]\\\\.|Step [0-9]\\)\" \"$p\")",
+      "Bash(for doc in 0000-GUIDE.md 0003-file-inventory.md CLAUDE.md 0009-session-closeout-protocol.md)",
+      "Bash(do grep -q \"$doc\" docs/0003-file-inventory.md)",
+      "Bash(for f in content-safety.js content-check.js)",
+      "Bash(do grep -q \"$f\" docs/0003-file-inventory.md)"
     ],
     "deny": [
       "Read(.env)",

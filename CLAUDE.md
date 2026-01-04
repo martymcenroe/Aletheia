@@ -58,6 +58,18 @@ Before writing ANY code file, verify:
 
 If any check fails, STOP and fix before writing code.
 
+### Document Mutability (WORM Policy):
+Some documents are **immutable** — NEVER modify after creation:
+- ❌ Session logs (`docs/session-logs/*.md`) - historical record
+- ❌ Closed issue reports (`docs/6001-closed-issues.md`)
+- ❌ Implementation reports (`docs/reports/*/`)
+- ❌ Previous ADRs - supersede with new ADR, don't edit old ones
+
+**Living documents** (update to reflect current reality):
+- ✅ LLDs, Standards, Protocols, Inventories, CLAUDE.md, 0000-GUIDE.md
+
+See `docs/0000-GUIDE.md` § "Document Mutability Rules" for full policy.
+
 ### GitHub CLI Safety:
 - ✅ ALWAYS use `--repo martymcenroe/Aletheia` explicitly
 - ❌ NEVER rely on default repo inference
