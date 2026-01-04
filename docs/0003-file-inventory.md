@@ -35,15 +35,17 @@
 | `docs/0000-GUIDE.md` | **Guide** | 🟢 **Stable** | - | The "Start Here" manual and project philosophy. |
 | `docs/0001-system-architecture.md` | **Spec** | 🟢 **Stable** | #1 | High-level system design and AWS topology. |
 | `docs/0002-coding-standards.md` | **Standard** | 🟢 **Stable** | #36 | Python, Git, and Documentation standards. |
-| `docs/0003-file-inventory.md` | **Register** | 🟡 **Beta** | #70 | This file. Requires regular audit (0011 §5.2). |
+| `docs/0003-file-inventory.md` | **Register** | 🟡 **Beta** | #70 | This file. Requires regular audit (0009 Full Mode §F9). |
 | `docs/0004-orchestration-protocol.md` | **Protocol** | 🟢 **Stable** | #50 | Rules for AI-User collaboration and mini-sprints. |
 | `docs/0005-testing-strategy-and-protocols.md` | **Protocol** | 🟢 **Stable** | #69 | Testing strategy and modular verification. |
 | `docs/0006-mermaid-diagrams.md` | **Standard** | 🟢 **Stable** | - | Mermaid JS diagramming standards and patterns. |
 | `docs/0007-signal-handling.md` | **Standard** | 🟢 **Stable** | #112 | Signal handling strategy (noai, noarchive, robots.txt). |
 | `docs/0008-orchestrator-instructions.md` | **Guide** | 🟢 **Stable** | - | Rules for human orchestrator managing AI sessions. |
-| `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions cleanly. |
+| `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions (Session Mode + Full Mode). |
 | `docs/0010-standard-labels.md` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
-| `docs/0011-environment-cleanup-checklist.md` | **Protocol** | 🟢 **Stable** | - | Comprehensive cleanup checklist for dev environment. |
+| `docs/0012-devops-architecture.md` | **Standard** | 🟢 **Stable** | - | CI/CD pipeline, GitHub Actions, deployment, quality gates. |
+| `docs/0013-testing-architecture.md` | **Standard** | 🟢 **Stable** | #105 | Test pyramid, Playwright, coverage strategy. |
+| `docs/0014-cost-architecture.md` | **Standard** | 🟢 **Stable** | #137 | AWS cost model, budgets, optimization, abuse prevention. |
 
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |

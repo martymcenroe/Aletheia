@@ -14,10 +14,10 @@ This is more than a Content Management System. It's:
 
 | Layer | What It Does | Examples |
 |-------|--------------|----------|
-| **Process Automation** | Checklists that execute, not just document | 0009 (Closeout), 0011 (Cleanup) |
+| **Process Automation** | Checklists that execute, not just document | 0009 (Session/Full Closeout) |
 | **Context Persistence** | State preserved across sessions and agents | Session logs, 0000a-IMMEDIATE-PLAN |
 | **Agent Orchestration** | Who does what, when, how | CLAUDE.md, GEMINI.md, 0004 |
-| **Reality Verification** | Don't trust metadata—verify actual state | 0011 Section 6 (0000a check) |
+| **Reality Verification** | Don't trust metadata—verify actual state | 0009 Full Mode (0000a check) |
 | **Executable Standards** | Rules that agents can follow literally | 0002 (Coding), Forbidden Commands |
 
 **The Operating System Metaphor:**

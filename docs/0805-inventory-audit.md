@@ -9,7 +9,7 @@ Detect discrepancies between `docs/0003-file-inventory.md` and the actual filesy
 
 ## Trigger
 
-- Weekly (part of 0011 §5.2)
+- Weekly (part of 0009 Full Mode §F9)
 - After any file creation, deletion, or move
 - After major refactoring
 
@@ -122,5 +122,5 @@ echo "Inventory entries: $(grep -c '| `' docs/0003-file-inventory.md)"
 
 ## Integration
 
-- Referenced by `docs/0011-environment-cleanup-checklist.md` §5.2
-- Run as part of 0009 session closeout for major sessions
+- Referenced by `docs/0009-session-closeout-protocol.md` §F9 (Full Mode)
+- Run as part of 0009 Full Mode closeout

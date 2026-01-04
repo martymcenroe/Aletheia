@@ -22,7 +22,7 @@ Audits exist because:
 | **0802** | Reports Completeness | Weekly / On close | After any issue closure |
 | **0803** | Open Issues Currency | Bi-weekly | Before sprint planning |
 | **0804** | Terminology Consistency | After renaming | When layer/component names change |
-| **0805** | File Inventory Drift | Weekly | Part of 0011 cleanup |
+| **0805** | File Inventory Drift | Weekly | Part of 0009 Full Mode cleanup |
 | **0806** | LLD-to-Code Alignment | Per feature | Before closing implementation issues |
 
 ## Audit Procedures
@@ -54,7 +54,7 @@ Audits exist because:
 ### 0805 - File Inventory Drift Audit
 **File:** `docs/0805-inventory-audit.md`
 **Purpose:** Detect files not in inventory, or inventory entries for deleted files.
-**Trigger:** Weekly (part of 0011 §5.2).
+**Trigger:** Weekly (part of 0009 Full Mode §F9).
 **Output:** Inventory corrections.
 
 ### 0806 - LLD-to-Code Alignment Audit
@@ -68,8 +68,8 @@ Audits exist because:
 | Protocol | Audits Referenced |
 |----------|-------------------|
 | **0004 §8.6** | 0802 (Reports Completeness) |
-| **0009** | 0802, 0805 (Session Closeout) |
-| **0011 §5.2** | 0805 (Inventory) |
+| **0009 Session** | 0802 (Quick Closeout) |
+| **0009 Full** | 0802, 0805 (Comprehensive Cleanup) |
 | **0110** | Superseded by 0801 |
 
 ## Audit Execution

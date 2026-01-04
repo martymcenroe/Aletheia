@@ -1,114 +1,259 @@
 # 0009 - Session Closeout Protocol
 
-A checklist for ending sessions cleanly, ensuring continuity for tomorrow.
+A checklist for ending sessions cleanly. Two modes available based on scope.
+
+## How to Prompt
+
+| Mode | When to Use | Prompt |
+|------|-------------|--------|
+| **Session** | Daily closeout, quick wrap-up | "Run session closeout" or "Run 0009 session mode" |
+| **Full** | Feature complete, before breaks, environment feels messy | "Run full cleanup" or "Run 0009 full mode" |
 
 ## Philosophy
 > "Leave the campsite cleaner than you found it."
 
-A proper closeout takes 5-10 minutes but saves 30+ minutes of confusion in the next session.
+A proper closeout takes 5-10 minutes (session) or 20-30 minutes (full) but saves 30+ minutes of confusion in the next session.
 
-## When to Escalate to Full Cleanup (0011)
+---
 
-**🤖 Run `docs/0011-environment-cleanup-checklist.md` instead of this quick closeout when:**
+## Mode Selection Guide
+
+**Use Session Mode when:**
+- Ending a normal work session
+- No features were completed
+- Environment is known-clean
+
+**Use Full Mode when:**
 - You completed a feature (Issue #N closed)
 - You're about to start new feature work
 - Before a break (weekend, vacation, project pause)
 - Environment feels messy or you're unsure of state
 - You changed multiple files across multiple issues
 
-**0011 includes everything here PLUS:** IMMEDIATE-PLAN verification, AWS cost control, worktree hygiene, and failure detection.
+---
 
-## Audits During Closeout
+## Agent vs Human Actions
 
-See `docs/0800-common-audits.md` for full audit index. During session closeout, consider:
+| Symbol | Meaning |
+|--------|---------|
+| 🤖 | Agent can/should do this automatically |
+| 👤 | Human must do this (agent cannot) |
+| ⚠️ | Unexpected condition - report to human |
 
-| Audit | When to Run | Reference |
-|-------|-------------|-----------|
-| **Reports Completeness** | If you closed any issues | 0802 |
-| **Inventory Drift** | If you created/deleted/moved files | 0805 |
-| **Open Issues Currency** | Weekly or before sprint planning | 0803 |
-| **Terminology** | After renaming (layers, components) | 0804 |
+---
 
-## The Closeout Checklist
+# SESSION MODE
 
-### 0. Issue Completion Reports (If You Closed Issues)
+Quick 5-10 minute closeout for routine session endings.
 
-**Before proceeding with git hygiene, write reports for any issues you completed this session:**
+### S1. Git Hygiene (Quick)
 
-For each closed issue:
+```bash
+🤖 cd /c/Users/mcwiz/Projects/Aletheia
+🤖 git checkout main && git pull
+🤖 git status                    # Should be clean
+🤖 git stash list                # Document or drop
+🤖 git branch --list             # Only main should remain
+🤖 git fetch --prune
+```
+
+### S2. Issue & PR Audit
+
+```bash
+🤖 gh issue list --state open    # Review - any completed?
+🤖 gh pr list --state open       # Should be empty
+```
+
+### S3. Documentation Sync
+
+```bash
+🤖 python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
+🤖 git add docs/6000-open-issues.md
+🤖 git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
+🤖 git push
+```
+
+### S4. Session Log Entry
+
+```bash
+🤖 powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
+```
+
+Append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md`:
+
+```markdown
+## YYYY-MM-DD HH:MM CT | Model Name
+
+### Summary
+One paragraph describing the session's main accomplishment.
+
+### Issues
+- Created: #XX, #YY
+- Closed: #ZZ
+
+### State on Exit
+- Branch: main
+- Last commit: <sha>
+- Next: What the next session should pick up
+```
+
+### S5. Final Verification
+
+```bash
+🤖 git status           # Clean
+🤖 gh pr list           # Empty
+```
+
+**Session mode complete.** If any issues found, escalate to Full Mode.
+
+---
+
+# FULL MODE
+
+Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus deeper checks.
+
+### F1. Return to Main Control Tower
+
+```bash
+🤖 cd /c/Users/mcwiz/Projects/Aletheia
+```
+
+### F2. Branch Without Worktree Detection
+
+**Run this check FIRST:**
+```bash
+🤖 git branch --list | grep -v "^\* main$" | grep -v "^  main$"
+```
+
+**Expected:** Empty (no output).
+
+**⚠️ FAILURE FLAG:** If branches exist without worktrees:
+```
+⚠️ UNEXPECTED: Detected branch without worktree: {branch-name}
+   This violates CLAUDE.md workflow rules.
+```
+
+### F3. Worktree Hygiene
+
+```bash
+🤖 git worktree list
+```
+
+**Expected:** Only the main worktree.
+
+**Action:** Remove stale worktrees
+```bash
+🤖 git -C ../Aletheia-{IssueNumber} status    # Check for uncommitted work
+🤖 git worktree remove ../Aletheia-{IssueNumber}
+```
+
+### F4. Branch Cleanup
+
+```bash
+🤖 git branch -vv                # Check local branches
+🤖 git fetch --prune origin      # Remove ghost refs
+🤖 git branch -r                 # Should only show origin/main
+```
+
+**Action:** Delete stale branches
+```bash
+🤖 git branch -d {branch-name}              # Local (if merged)
+🤖 git push origin --delete {branch-name}   # Remote
+```
+
+### F5. GitHub Issue & PR Hygiene
+
+```bash
+🤖 gh pr list --state open
+🤖 gh issue list --state open
+```
+
+**For each open issue, verify:**
+- [ ] Is the work done? → Close it: `gh issue close {N} --comment "Fixed via PR #{N}"`
+- [ ] Is it blocked? → Add "blocked" label
+- [ ] Is it obsolete? → Close as "not planned"
+
+**⚠️ FAILURE FLAG:**
+```
+⚠️ UNEXPECTED: Issue #{N} should be closed but is still open.
+```
+
+### F6. Issue Completion Reports
+
+**For each issue closed this session:**
 1. Create directory `docs/reports/{IssueID}/`
 2. Write `implementation-report.md` using template `docs/0103-TEMPLATE-implementation-report.md`
 3. Write `test-report.md` using template `docs/0113-TEMPLATE-test-report.md`
 4. Update `docs/0003-file-inventory.md` with new report files
 
-**Why this matters:** Reports capture what was actually built vs. planned. Without them, future debugging is harder and lessons are lost.
+**Exceptions:** Documentation-only and chore issues don't need reports.
 
-**Exceptions:** Documentation-only and chore issues (deps, formatting) don't need reports. See `docs/0802-reports-completeness-audit.md` for full exceptions list.
-
-### 1. Git Hygiene
-```bash
-# Ensure you're on main with latest
-git checkout main
-git pull
-
-# Check for uncommitted work
-git status                    # Should be clean
-
-# Check for forgotten stashes
-git stash list                # Document or drop
-
-# Verify branches (local and remote)
-git branch --list             # Only main should remain locally
-git branch -r                 # Check remote branches
-
-# Delete zombie remote branches if found
-git push origin --delete {branch-name}
-
-# Prune zombie remote refs
-git fetch --prune
-```
-
-**Note:** For comprehensive environment cleanup beyond session closeout, see `docs/0011-environment-cleanup-checklist.md`.
-
-### 2. Issue Audit
-```bash
-# List open issues assigned to you or recently touched
-gh issue list --state open
-
-# For each completed issue, verify it's closed
-gh issue view <ID> --json state
-```
-
-### 3. PR Audit
-```bash
-# No open PRs should remain at session end
-gh pr list --state open       # Should be empty
-
-# If PRs exist, either merge or document why deferred
-```
-
-### 4. Documentation Sync
-
-| Check | Command/Action |
-|:------|:---------------|
-| Regenerate 6000 | `python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md` (do not print) |
-| Inventory current? | If you created/deleted files → Run full audit per 0011 §5.2 |
-| LLD status updated? | Change "Approved" → "Complete" for finished features |
-| Lessons captured? | Append to `docs/9000-lessons-learned.md` |
-| Journal updated? | Append cross-project lessons to `ENGINEERING-JOURNAL.md` |
-
-**Note on Inventory:** The file inventory (`docs/0003-file-inventory.md`) drifts constantly. If you created, deleted, or renamed any files during this session, escalate to 0011 for a full inventory audit. Quick closeout does NOT include inventory verification.
+### F7. Cost Control Verification
 
 ```bash
-# Regenerate and commit 6000
-python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
-git add docs/6000-open-issues.md
-git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
-git push
+🤖 ./tools/aws/lambda-status.sh
 ```
 
-### 5. Session Log Entry
-Append to `.session-log.md` using the template from `docs/0100-TEMPLATE-GUIDE.md`:
+**Expected:** `✗ Lambda OFF (concurrency=0)`
+
+**Action if ON:**
+```bash
+🤖 ./tools/aws/lambda-off.sh
+🤖 ./tools/aws/lambda-status.sh  # Verify
+```
+
+### F8. File System Cleanup
+
+```bash
+🤖 git status                    # Should be clean
+🤖 ls -la | grep -E "(temp|tmp|\.bak|\.old|debug|test-)"
+```
+
+**Action:** Delete temp files not needed.
+
+### F9. File Inventory Audit (0003)
+
+**Step 1: Find files NOT in inventory**
+```bash
+🤖 find . -type f \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.json" -o -name "*.sh" -o -name "*.html" -o -name "*.css" \) ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.venv/*" | sort > /tmp/actual_files.txt
+```
+
+**Step 2:** Compare against `docs/0003-file-inventory.md`
+
+**Step 3:** Verify closed issue statuses
+- 🟠 In-Progress → Check if closed → Update to 🟢 Stable
+
+**⚠️ FAILURE FLAGS:**
+- `⚠️ DRIFT: File {path} not in 0003-file-inventory.md`
+- `⚠️ DRIFT: 0003 lists {path} but file doesn't exist`
+
+**Action:**
+```bash
+🤖 git add docs/0003-file-inventory.md
+🤖 git commit -m "docs: inventory audit and update"
+🤖 git push
+```
+
+### F10. Documentation Sync
+
+```bash
+🤖 python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
+🤖 git add docs/6000-open-issues.md
+🤖 git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
+🤖 git push
+```
+
+**Also check:**
+- [ ] LLD status updated? ("Approved" → "Complete" for finished features)
+- [ ] Lessons captured in `docs/9000-lessons-learned.md`?
+
+### F11. Session Log Entry
+
+```bash
+🤖 powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
+```
+
+Append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md`:
 
 ```markdown
 ## YYYY-MM-DD HH:MM CT | Model Name
@@ -133,37 +278,71 @@ One paragraph describing the session's main accomplishment.
 - Next: What the next session should pick up
 ```
 
-### 6. Handoff Notes
-If work continues in the next session, ensure:
-- [ ] Next task is clearly identified
-- [ ] Any blockers are documented
-- [ ] Relevant file paths are listed for quick context loading
+### F12. Browser Extension Cleanup (👤 Human Only)
 
-### 7. Final Verification
+**Chrome:** `chrome://extensions/`
+1. 👤 Reload Extension to run latest code from `main`
+2. 👤 Verify version matches `manifest.json`
+
+### F13. Final Verification Checklist
+
 ```bash
-# One last check
-git status           # Clean
-git stash list       # Empty or documented
-gh issue list        # No surprises
-gh pr list           # Empty
+🤖 git worktree list              # Only main
+🤖 git branch -vv                 # Only main
+🤖 git branch -r                  # Only origin/main
+🤖 gh pr list --state open        # Empty
+🤖 gh issue list --state open     # Review - none "done but unclosed"
+🤖 ./tools/aws/lambda-status.sh   # OFF
+🤖 git status                     # Clean
 ```
 
-## Quick Reference (Copy-Paste Block)
+**⚠️ Report any unexpected conditions to human before proceeding.**
 
+---
+
+## Quick Command Summary
+
+### Session Mode (Copy-Paste)
 ```bash
-# Session Closeout Sequence
+cd /c/Users/mcwiz/Projects/Aletheia
 git checkout main && git pull
-git status
-git stash list
-git branch --list              # Should only show main
-git branch -r                  # Check for zombie remote branches
+git status && git stash list && git branch --list
 git fetch --prune
-gh issue list --state open
-gh pr list --state open
-echo "Ready for session-log entry"
+gh issue list --state open && gh pr list --state open
+python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
+git add docs/6000-open-issues.md && git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty && git push
 ```
 
-**For deeper environment cleanup**, see `docs/0011-environment-cleanup-checklist.md` which covers AWS cost control, worktree hygiene, test artifacts, and more.
+### Full Mode (Copy-Paste)
+```bash
+cd /c/Users/mcwiz/Projects/Aletheia
+git branch --list | grep -v "^\* main$" | grep -v "^  main$"
+git worktree list
+git branch -vv && git fetch --prune origin && git branch -r
+gh pr list --state open && gh issue list --state open
+./tools/aws/lambda-status.sh
+git status
+python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
+./tools/aws/lambda-off.sh
+```
+
+---
+
+## Unexpected Condition Summary
+
+Report to human if any of these occur:
+
+| Condition | Message |
+|-----------|---------|
+| Branch exists without worktree | `⚠️ UNEXPECTED: Detected branch without worktree: {name}` |
+| Issue should be closed but isn't | `⚠️ UNEXPECTED: Issue #{N} should be closed but is still open` |
+| PR merge failed silently | `⚠️ UNEXPECTED: PR #{N} merge may have failed` |
+| Lambda still ON after off command | `⚠️ UNEXPECTED: Lambda still showing ON` |
+| Uncommitted work in worktree | `⚠️ UNEXPECTED: Uncommitted changes in ../Aletheia-{N}` |
+| File exists but not in inventory | `⚠️ DRIFT: File {path} not in 0003` |
+| Inventory lists deleted file | `⚠️ DRIFT: 0003 lists {path} but doesn't exist` |
+
+---
 
 ## Anti-Patterns
 
