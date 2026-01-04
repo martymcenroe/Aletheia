@@ -92,7 +92,7 @@
 ### 10xx Feature Specifications
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/1005-graph-tests.md` | **Spec** | ⚪ **Placeholder** | #5 | Unit tests for LangGraph nodes. |
+| `docs/1005-graph-tests.md` | **Spec** | ⚫ **Legacy** | #5 | Obsolete (LangGraph removed per ADR 0211). |
 | `docs/1006-rag-vector.md` | **Spec** | ⚪ **Placeholder** | #6 | RAG Vector Store implementation. |
 | `docs/1007-observability.md` | **Spec** | ⚪ **Placeholder** | #7 | Observability and tracing. |
 | `docs/1010-semantic-guardrails.md` | **Spec** | 🟡 **Beta** | #10 | Semantic Guardrail (LLM-based). |

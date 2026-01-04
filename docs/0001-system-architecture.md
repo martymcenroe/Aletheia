@@ -4,7 +4,7 @@
 * **Challenge:** AWS Lambda is stateless. Complex GenAI agents require persistent memory.
 * **Architecture:** **"Hydration/Dehydration" Cycle**.
     * **Load:** Retrieve state from DynamoDB (`thread_id`).
-    * **Execute:** LangGraph processes state.
+    * **Execute:** Sequential pipeline processes state (Naked Python).
     * **Persist:** Write updated state back to DynamoDB.
 * **Benefit:** Infinite-scale agent memory with zero idle cost.
 
@@ -100,10 +100,11 @@ sequenceDiagram
 * **Implementation:** `@awslambda.streamify_response`.
 * **Outcome:** Time-To-First-Byte < 500ms.
 
-## 4. Why LangGraph?
+## 4. Why Naked Python? (ADR 0211)
 
-* **Resilience:** cyclic graphs (`Agent -> Tool -> Agent`) handle failures better than linear chains.
-* **Future Proofing:** Enables dynamic RAG loops.
+* **Simplicity:** Sequential pipeline with direct boto3 calls — no framework overhead.
+* **Transparency:** Each layer is a plain function, easily debugged and tested.
+* **Cost:** Removed LangGraph/LangChain dependencies (see `docs/0205-ADR-langgraph-orchestration.md` for historical context).
 
 ## 5. Architecture Decision Records (ADRs)
 
