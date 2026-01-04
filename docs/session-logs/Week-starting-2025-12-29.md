@@ -1471,3 +1471,43 @@ Implemented Issue #104 (Age-Restricted Blocking) - the "Age Gate" to prevent Ale
 - **Open PRs:** #133 (age gate - awaiting E2E tests from #105)
 - **Lambda:** Unknown (not checked)
 - **Next:** Implement #105 (test infrastructure) to unblock #104 merge
+
+---
+
+## 2026-01-04 ~11:20-11:50 CT | Claude Opus 4.5
+
+### Summary
+Onboarding session after 2-day orchestrator absence. Diagnosed stale IMMEDIATE-PLAN.md and documentation friction. Reorganized planning infrastructure: renamed and moved IMMEDIATE-PLAN.md to `docs/0000a-IMMEDIATE-PLAN.md`, updated all references in 0000-GUIDE.md, and corrected stale content (merged PRs #138/#131, step numbering, open PR count). Provided meta-feedback on AOS onboarding experience.
+
+### Process Improvements
+- **Renamed:** `IMMEDIATE-PLAN.md` → `docs/0000a-IMMEDIATE-PLAN.md`
+  - Now in 00xx namespace for easy tab-completion
+  - Added to filing system documentation in 0000-GUIDE.md
+  - Worktree friction identified (file only exists in main)
+- **Content Audit:** Found 6 issues in IMMEDIATE-PLAN:
+  - Step 1 (PR #138) marked "Ready for merge" but was MERGED
+  - Step numbering jumped 3→5 (missing Step 4)
+  - Open PRs claimed 3, actually 1 (#133 only)
+  - V2 Features listed #124 but it was already MERGED
+  - Next Action contradicted Status line
+  - Missing #124 Digital Etymologist from Current State
+
+### Meta-Feedback Provided
+- IMMEDIATE-PLAN doesn't propagate to worktrees (friction)
+- Session logs overwhelming (~1000 lines to find status)
+- Suggested: "Assigned: Agent" field per step, worktree plan vs master plan separation
+- LLD already serves as worktree plan (no new file needed)
+
+### Files Modified
+- `docs/0000-GUIDE.md` - 5 reference updates + added 0000a to filing system
+- `docs/0000a-IMMEDIATE-PLAN.md` - Moved + corrected all stale content
+
+### Commits
+- `fb55ffc` - docs: rename and update IMMEDIATE-PLAN to 0000a
+
+### State on Exit
+- **Branch:** `main` @ fb55ffc
+- **Worktrees:** Aletheia (main), Aletheia-104 (104-age-block)
+- **Open PRs:** 1 (#133 for #104)
+- **Lambda:** Not checked
+- **Next:** Implement #105 (Test Infrastructure) per updated 0000a-IMMEDIATE-PLAN.md
