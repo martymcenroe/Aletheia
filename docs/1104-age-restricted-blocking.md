@@ -3,7 +3,7 @@
 ## 1. Context & Goal
 * **Issue:** #104
 * **Objective:** Prevent Aletheia from activating on age-restricted websites by detecting adult content meta tags.
-* **Status:** Draft
+* **Status:** Implementation Complete
 * **Related Issues:** #105 (test site infrastructure for verification)
 
 ## 2. Requirements
@@ -99,9 +99,9 @@ sequenceDiagram
 
 ## 6. Technical Approach
 
-* **Module:** `extension/service-worker.js`, `extension/content-check.js` (new), `extension/content-safety.js` (new - pure logic)
+* **Module:** `extension-chrome-V3/service-worker.js`, `extension-chrome-V3/content-check.js` (new), `extension-chrome-V3/content-safety.js` (new - pure logic)
 * **Dependencies:** Chrome Extension APIs (`scripting`, `tabs`, `action`)
-* **Required Permissions:** `scripting` (already in manifest.json - verified)
+* **Required Permissions:** `scripting`, `tabs`, `<all_urls>` host permission (added to manifest.json)
 * **Pattern:** Event-driven state machine per tab
 
 ### 6.1 Constants
@@ -331,7 +331,7 @@ function clearTabState(tabId: number): void;
 
 ```javascript
 // tests/test_content_safety.js
-const { isAgeRestricted, RTA_LABEL_PATTERN } = require('../extension/content-safety.js');
+const { isAgeRestricted, RTA_LABEL_PATTERN } = require('../extension-chrome-V3/content-safety.js');
 
 describe('isAgeRestricted', () => {
     // Blocked cases
