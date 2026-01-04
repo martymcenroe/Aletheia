@@ -20,7 +20,7 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.7.1
+          version: 1.8.5
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Lint Chrome extension
-        run: npx eslint extension-chrome-V3/ --ext .js
+        run: npx eslint@8 extension-chrome-V3/ --ext .js
 
       - name: Lint Firefox extension
-        run: npx eslint extension-firefox-V2/ --ext .js
+        run: npx eslint@8 extension-firefox-V2/ --ext .js
