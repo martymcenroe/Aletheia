@@ -112,3 +112,43 @@ We use a **4-Digit Namespace** to organize our collective memory:
 8.  **Plan Before Execute:** Discuss multi-step plans before running commands. Never batch destructive operations without explicit approval.
 9.  **Use Emojis for Status:** We use emoji status indicators (e.g., green circle, yellow circle) in documentation. Ensure your terminal supports UTF-8.
 10.  **Log Your Sessions:** At session end, append a summary to `docs/session-logs/YYYY-MM-DD.md` (Monday date). Week boundary is Monday 3:00 AM CT. See `docs/0100-TEMPLATE-GUIDE.md` for format.
+
+## Document Mutability Rules (WORM Policy)
+
+Some documents are **immutable** (Write Once Read Many) — they capture historical state and must never be modified after creation. Others are **living documents** that should be updated to reflect current reality.
+
+### Immutable Documents (NEVER modify)
+
+| Category | Location | Rationale |
+|----------|----------|-----------|
+| **Session Logs** | `docs/session-logs/*.md` | Historical record of what happened when |
+| **Closed Issue Reports** | `docs/6001-closed-issues.md` | Archive of completed work |
+| **Implementation Reports** | `docs/reports/*/` | Point-in-time snapshots of deliverables |
+| **Previous ADRs** | `docs/02xx-ADR-*.md` | Architectural history (supersede, don't edit) |
+
+**If historical docs contain stale references (e.g., old file paths):** Leave them. They document what was true at that time. Future readers understand context evolves.
+
+### Living Documents (Update freely)
+
+| Category | Location | Update When |
+|----------|----------|-------------|
+| **Operating Procedures** | `docs/0000-GUIDE.md`, `CLAUDE.md`, `GEMINI.md` | Rules change |
+| **Current Plan** | `docs/0000a-IMMEDIATE-PLAN.md` | Priorities shift |
+| **Open Issues** | `docs/6000-open-issues.md` | Regenerate from GitHub |
+| **File Inventory** | `docs/0003-file-inventory.md` | Files added/removed |
+| **Feature LLDs** | `docs/1xxx-*.md` (open issues) | Design evolves before implementation |
+| **Lessons Learned** | `docs/9000-lessons-learned.md` | New knowledge gained |
+
+### ADR Special Rules
+
+- **Never edit existing ADRs** without orchestrator approval
+- **To change a decision:** Create a new ADR that supersedes the old one
+- **Minor fixes** (typos, broken links): Ask orchestrator first
+- ADRs document *why* decisions were made at a point in time
+
+### Directory Structure Changes
+
+When the repo structure changes (e.g., `extension/` → `extension-chrome-V3/`):
+- **Update living docs** to reflect new paths
+- **Leave historical docs alone** — they document what existed then
+- **Create new LLD versions** if needed rather than editing closed issues
