@@ -110,7 +110,7 @@ time aws lambda invoke --function-name aletheia-handler --payload '{"text":"test
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| 2026-01-05 | Gemini 2.5 Pro | CRITICAL: E2E latency 5s (target 3s), HIGH: Click-to-glass 500-1000ms (target 100ms), PASS: Cost efficiency | #156 (frontend latency), updated #137 |
+| 2026-01-05 | Gemini 3.0 Pro | CRITICAL: E2E latency 5s (target 3s), HIGH: Click-to-glass 500-1000ms (target 100ms), PASS: Cost efficiency | #156 (frontend latency), updated #137 |
 
 ---
 

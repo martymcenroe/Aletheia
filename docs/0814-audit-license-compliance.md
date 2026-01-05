@@ -123,7 +123,7 @@ npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC"
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| 2026-01-05 | Gemini 2.5 Pro | CRITICAL: package.json had ISC (fixed to MIT), MEDIUM: missing deps in inventory (added), LOW: NOTICE file missing (created) | None (all fixed inline) |
+| 2026-01-05 | Gemini 3.0 Pro | CRITICAL: package.json had ISC (fixed to MIT), MEDIUM: missing deps in inventory (added), LOW: NOTICE file missing (created) | None (all fixed inline) |
 
 ---
 

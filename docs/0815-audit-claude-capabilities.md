@@ -153,7 +153,7 @@ Review `.claude/settings.local.json`:
 
 | Date | Auditor | New Capabilities Found | Experiments Started |
 |------|---------|------------------------|---------------------|
-| 2026-01-05 | Gemini 2.5 Pro | Custom Slash Commands (active), Browser Integration, MCP CloudWatch | Browser/MCP added to backlog |
+| 2026-01-05 | Gemini 3.0 Pro | Custom Slash Commands (active), Browser Integration, MCP CloudWatch | Browser/MCP added to backlog |
 
 ---
 
