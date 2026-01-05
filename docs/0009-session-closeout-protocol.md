@@ -49,28 +49,27 @@ Quick 5-10 minute closeout for routine session endings.
 ### S1. Git Hygiene (Quick)
 
 ```bash
-🤖 cd /c/Users/mcwiz/Projects/Aletheia
-🤖 git checkout main && git pull
-🤖 git status                    # Should be clean
-🤖 git stash list                # Document or drop
-🤖 git branch --list             # Only main should remain
-🤖 git fetch --prune
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia checkout main && git -C /c/Users/mcwiz/Projects/Aletheia pull
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia status                    # Should be clean
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia stash list                # Document or drop
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch --list             # Only main should remain
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune
 ```
 
 ### S2. Issue & PR Audit
 
 ```bash
-🤖 gh issue list --state open    # Review - any completed?
-🤖 gh pr list --state open       # Should be empty
+🤖 gh issue list --state open --repo martymcenroe/Aletheia    # Review - any completed?
+🤖 gh pr list --state open --repo martymcenroe/Aletheia       # Should be empty
 ```
 
 ### S3. Documentation Sync
 
 ```bash
-🤖 python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
-🤖 git add docs/6000-open-issues.md
-🤖 git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
-🤖 git push
+🤖 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
 ### S4. Session Log Entry
@@ -114,15 +113,13 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 
 ### F1. Return to Main Control Tower
 
-```bash
-🤖 cd /c/Users/mcwiz/Projects/Aletheia
-```
+No `cd` needed - use `git -C` and absolute paths throughout.
 
 ### F2. Branch Without Worktree Detection
 
 **Run this check FIRST:**
 ```bash
-🤖 git branch --list | grep -v "^\* main$" | grep -v "^  main$"
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch --list | grep -v "^\* main$" | grep -v "^  main$"
 ```
 
 **Expected:** Empty (no output).
@@ -136,36 +133,36 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 ### F3. Worktree Hygiene
 
 ```bash
-🤖 git worktree list
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 ```
 
 **Expected:** Only the main worktree.
 
 **Action:** Remove stale worktrees
 ```bash
-🤖 git -C ../Aletheia-{IssueNumber} status    # Check for uncommitted work
-🤖 git worktree remove ../Aletheia-{IssueNumber}
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia-{IssueNumber} status    # Check for uncommitted work
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia worktree remove /c/Users/mcwiz/Projects/Aletheia-{IssueNumber}
 ```
 
 ### F4. Branch Cleanup
 
 ```bash
-🤖 git branch -vv                # Check local branches
-🤖 git fetch --prune origin      # Remove ghost refs
-🤖 git branch -r                 # Should only show origin/main
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch -vv                # Check local branches
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune origin      # Remove ghost refs
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch -r                 # Should only show origin/main
 ```
 
 **Action:** Delete stale branches
 ```bash
-🤖 git branch -d {branch-name}              # Local (if merged)
-🤖 git push origin --delete {branch-name}   # Remote
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch -d {branch-name}              # Local (if merged)
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia push origin --delete {branch-name}   # Remote
 ```
 
 ### F5. GitHub Issue & PR Hygiene
 
 ```bash
-🤖 gh pr list --state open
-🤖 gh issue list --state open
+🤖 gh pr list --state open --repo martymcenroe/Aletheia
+🤖 gh issue list --state open --repo martymcenroe/Aletheia
 ```
 
 **For each open issue, verify:**
@@ -191,22 +188,22 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 ### F7. Cost Control Verification
 
 ```bash
-🤖 ./tools/aws/lambda-status.sh
+🤖 /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
 ```
 
 **Expected:** `✗ Lambda OFF (concurrency=0)`
 
 **Action if ON:**
 ```bash
-🤖 ./tools/aws/lambda-off.sh
-🤖 ./tools/aws/lambda-status.sh  # Verify
+🤖 /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-off.sh
+🤖 /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh  # Verify
 ```
 
 ### F8. File System Cleanup
 
 ```bash
-🤖 git status                    # Should be clean
-🤖 ls -la | grep -E "(temp|tmp|\.bak|\.old|debug|test-)"
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia status                    # Should be clean
+🤖 ls -la /c/Users/mcwiz/Projects/Aletheia | grep -E "(temp|tmp|\.bak|\.old|debug|test-)"
 ```
 
 **Action:** Delete temp files not needed.
@@ -215,7 +212,7 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 
 **Step 1: Find files NOT in inventory**
 ```bash
-🤖 find . -type f \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.json" -o -name "*.sh" -o -name "*.html" -o -name "*.css" \) ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.venv/*" | sort > /tmp/actual_files.txt
+🤖 find /c/Users/mcwiz/Projects/Aletheia -type f \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.json" -o -name "*.sh" -o -name "*.html" -o -name "*.css" \) ! -path "*/.git/*" ! -path "*/node_modules/*" ! -path "*/.venv/*" | sort > /tmp/actual_files.txt
 ```
 
 **Step 2:** Compare against `docs/0003-file-inventory.md`
@@ -229,18 +226,18 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 
 **Action:**
 ```bash
-🤖 git add docs/0003-file-inventory.md
-🤖 git commit -m "docs: inventory audit and update"
-🤖 git push
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/0003-file-inventory.md
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: inventory audit and update"
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
 ### F10. Documentation Sync
 
 ```bash
-🤖 python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
-🤖 git add docs/6000-open-issues.md
-🤖 git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
-🤖 git push
+🤖 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
 **Also check:**
@@ -252,8 +249,7 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 **If any user-facing changes were made this session:**
 
 ```bash
-🤖 cd /c/Users/mcwiz/Projects/Aletheia-wiki
-🤖 git pull origin master
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia-wiki pull origin master
 ```
 
 **Review for staleness:**
@@ -264,7 +260,7 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 **If updates needed:**
 ```bash
 🤖 # Edit relevant .md files
-🤖 git add -A && git commit -m "docs: wiki alignment update" && git push origin master
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia-wiki add -A && git -C /c/Users/mcwiz/Projects/Aletheia-wiki commit -m "docs: wiki alignment update" && git -C /c/Users/mcwiz/Projects/Aletheia-wiki push origin master
 ```
 
 See `docs/0817-audit-wiki-alignment.md` for full audit procedure.
@@ -309,13 +305,13 @@ One paragraph describing the session's main accomplishment.
 ### F13. Final Verification Checklist
 
 ```bash
-🤖 git worktree list              # Only main
-🤖 git branch -vv                 # Only main
-🤖 git branch -r                  # Only origin/main
-🤖 gh pr list --state open        # Empty
-🤖 gh issue list --state open     # Review - none "done but unclosed"
-🤖 ./tools/aws/lambda-status.sh   # OFF
-🤖 git status                     # Clean
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia worktree list              # Only main
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch -vv                 # Only main
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch -r                  # Only origin/main
+🤖 gh pr list --state open --repo martymcenroe/Aletheia               # Empty
+🤖 gh issue list --state open --repo martymcenroe/Aletheia            # Review - none "done but unclosed"
+🤖 /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh        # OFF
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia status                     # Clean
 ```
 
 **⚠️ Report any unexpected conditions to human before proceeding.**
@@ -326,26 +322,24 @@ One paragraph describing the session's main accomplishment.
 
 ### Session Mode (Copy-Paste)
 ```bash
-cd /c/Users/mcwiz/Projects/Aletheia
-git checkout main && git pull
-git status && git stash list && git branch --list
-git fetch --prune
-gh issue list --state open && gh pr list --state open
-python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
-git add docs/6000-open-issues.md && git commit -m "docs: regenerate 6000-open-issues.md" --allow-empty && git push
+git -C /c/Users/mcwiz/Projects/Aletheia checkout main && git -C /c/Users/mcwiz/Projects/Aletheia pull
+git -C /c/Users/mcwiz/Projects/Aletheia status && git -C /c/Users/mcwiz/Projects/Aletheia stash list && git -C /c/Users/mcwiz/Projects/Aletheia branch --list
+git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune
+gh issue list --state open --repo martymcenroe/Aletheia && gh pr list --state open --repo martymcenroe/Aletheia
+poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
+git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md && git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: regenerate 6000-open-issues.md" --allow-empty && git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
 ### Full Mode (Copy-Paste)
 ```bash
-cd /c/Users/mcwiz/Projects/Aletheia
-git branch --list | grep -v "^\* main$" | grep -v "^  main$"
-git worktree list
-git branch -vv && git fetch --prune origin && git branch -r
-gh pr list --state open && gh issue list --state open
-./tools/aws/lambda-status.sh
-git status
-python tools/print/print_most_recent_open_issues.py > docs/6000-open-issues.md
-./tools/aws/lambda-off.sh
+git -C /c/Users/mcwiz/Projects/Aletheia branch --list | grep -v "^\* main$" | grep -v "^  main$"
+git -C /c/Users/mcwiz/Projects/Aletheia worktree list
+git -C /c/Users/mcwiz/Projects/Aletheia branch -vv && git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune origin && git -C /c/Users/mcwiz/Projects/Aletheia branch -r
+gh pr list --state open --repo martymcenroe/Aletheia && gh issue list --state open --repo martymcenroe/Aletheia
+/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
+git -C /c/Users/mcwiz/Projects/Aletheia status
+poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
+/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-off.sh
 ```
 
 ---
