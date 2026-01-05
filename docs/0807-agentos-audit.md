@@ -115,6 +115,29 @@ for doc in 0000-GUIDE.md 0003-file-inventory.md CLAUDE.md; do
 done
 ```
 
+### Step 7: 0000-GUIDE Filing System Accuracy
+
+**Verify all files listed in 0000-GUIDE.md §3 (Filing System) actually exist:**
+```bash
+# Extract filenames from 0000-GUIDE.md and check they exist
+grep -oE '\`[0-9]{4}[a-z]?-[^`]+\.md\`' docs/0000-GUIDE.md | tr -d '\`' | while read f; do
+  if [ ! -f "docs/$f" ] && [ ! -f "$f" ]; then
+    echo "LISTED BUT MISSING: $f"
+  fi
+done
+```
+
+**Verify all 00xx/01xx docs are listed in 0000-GUIDE.md:**
+```bash
+# Check for undocumented standards
+for f in docs/00[0-1][0-9]*.md; do
+  basename="$(basename $f)"
+  grep -q "$basename" docs/0000-GUIDE.md || echo "EXISTS BUT NOT LISTED: $basename"
+done
+```
+
+**Action:** Update 0000-GUIDE.md §3 to include all current files.
+
 ## Output Format
 
 ```markdown

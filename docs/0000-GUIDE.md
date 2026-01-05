@@ -76,12 +76,24 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * `0003-file-inventory.md` — The project manifest. Update when adding/deleting files.
     * `0004-orchestration-protocol.md` — Workflow rules and mini-sprint protocol.
     * `0005-testing-strategy-and-protocols.md` — Mandatory verification modules.
-* **`01xx` (Templates):** Patterns to copy for consistent artifacts.
+    * `0006-mermaid-diagrams.md` — Diagram standards and rendering.
+    * `0007-signal-handling.md` — How the extension handles signals.
+    * `0008-orchestrator-instructions.md` — Human orchestrator quick reference.
+    * `0009-session-closeout-protocol.md` — **End every session with this.** Session Mode (quick) or Full Mode (comprehensive).
+    * `0010-standard-labels.md` — GitHub issue label taxonomy.
+    * `0012-devops-architecture.md` — CI/CD and deployment.
+    * `0013-testing-architecture.md` — Test infrastructure design.
+    * `0014-cost-architecture.md` — AWS cost control strategies.
+    * `0015-agent-prohibited-actions.md` — What agents must never do.
+* **`01xx` (Templates & Procedures):** Patterns to copy for consistent artifacts.
     * `0100-TEMPLATE-GUIDE.md` — Index of all templates.
     * `0101-TEMPLATE-issue.md` — GitHub Issue template for features.
     * `0102-TEMPLATE-feature-lld.md` — Low-Level Design doc template.
+    * `0103-TEMPLATE-implementation-report.md` — Post-implementation report template.
     * `0104-TEMPLATE-adr.md` — Architecture Decision Record template.
-    * See `0100` for full template index (testing, tutorials, style guides).
+    * `0108-lld-pre-implementation-review.md` — LLD review procedure.
+    * `0109-gemini-lld-review-procedure.md` — Gemini-specific LLD review.
+    * See `0100` for full template index.
 * **`02xx` (ADRs):** Architecture Decision Records.
     * `0200-ADR-index.md` — Master index of all ADRs with category cross-reference.
     * Records significant architecture decisions following Michael Nygard's format.
