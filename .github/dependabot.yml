@@ -40,6 +40,10 @@ updates:
       - "javascript"
     commit-message:
       prefix: "chore(deps)"
+    # Ignore major ESLint upgrades until flat config migration (Issue #157)
+    ignore:
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
     groups:
       # Group minor/patch updates to reduce PR noise
       npm-minor:

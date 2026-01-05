@@ -56,8 +56,17 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Lint Chrome extension
-        run: npx eslint@8 extension-chrome-V3/ --ext .js
+        run: npx eslint extension-chrome-V3/ --ext .js
 
       - name: Lint Firefox extension
-        run: npx eslint@8 extension-firefox-V2/ --ext .js
+        run: npx eslint extension-firefox-V2/ --ext .js
