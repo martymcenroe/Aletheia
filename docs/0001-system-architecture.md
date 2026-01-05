@@ -95,18 +95,50 @@ sequenceDiagram
 | **Semantic** | Semantic | LLM (Haiku) | Block provocative/archaic nuance. | Log Rejection Category + Score. |
 | **Transform** | Legal | LLM (Summary) | Summarize if noarchive flag set. | Summary only (raw text discarded). |
 
-## 3. Streaming UX (Server-Sent Events)
+## 3. Data Lifecycle & Privacy
+
+### 3.1 Retention Policy
+
+| Data Type | Storage | Retention | Rationale |
+|-----------|---------|-----------|-----------|
+| User text (input) | DynamoDB `input` field | 24-48h (TTL) | Privacy by default |
+| Thread context | DynamoDB | 24-48h (TTL) | Stateful conversation |
+| Blocked terms | Never stored | N/A | Only hash matched |
+| Metadata (URL, timestamp) | DynamoDB | 24-48h (TTL) | Audit trail |
+
+### 3.2 DynamoDB TTL (Issue #145)
+
+All DynamoDB items include a `ttl` attribute (Unix epoch timestamp). AWS automatically deletes expired items within 48 hours of expiry.
+
+```python
+item = {
+    "thread_id": {"S": hash},
+    "input": {"S": text},
+    "ttl": {"N": str(int(time.time()) + 86400)},  # 24 hours
+}
+```
+
+### 3.3 GDPR Compliance (Issue #147)
+
+**Data Subject Rights:**
+- **Right to Erasure:** TTL provides automatic erasure within 24-48h
+- **Right to Access:** Blocked by lack of user identification (hash-based thread_id)
+- **Future:** OAuth (#116) enables user identification for DSAR requests
+
+**Current Limitation:** Without authentication, users cannot prove ownership of their data. TTL-based automatic deletion is the primary privacy mechanism.
+
+## 4. Streaming UX (Server-Sent Events)
 
 * **Implementation:** `@awslambda.streamify_response`.
 * **Outcome:** Time-To-First-Byte < 500ms.
 
-## 4. Why Naked Python? (ADR 0211)
+## 5. Why Naked Python? (ADR 0211)
 
 * **Simplicity:** Sequential pipeline with direct boto3 calls — no framework overhead.
 * **Transparency:** Each layer is a plain function, easily debugged and tested.
 * **Cost:** Removed LangGraph/LangChain dependencies (see `docs/0205-ADR-langgraph-orchestration.md` for historical context).
 
-## 5. Architecture Decision Records (ADRs)
+## 6. Architecture Decision Records (ADRs)
 
 ### ADR-001: Privacy-First Extension Permissions
 **Date:** 2025-12-21

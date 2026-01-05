@@ -48,6 +48,20 @@ This document defines Aletheia's DevOps infrastructure: CI/CD pipelines, deploym
 │  │  └── Run E2E tests against GitHub Pages             │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Job: accessibility (#160)                          │   │
+│  │  ├── Setup Playwright + axe-core                    │   │
+│  │  ├── Scan popup.html for WCAG violations            │   │
+│  │  └── Fail on Level A, warn on Level AA              │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Job: benchmarks (#161) - Scheduled                 │   │
+│  │  ├── pytest-benchmark for Lambda                    │   │
+│  │  ├── Playwright metrics for extension               │   │
+│  │  └── Fail if >20% regression from baseline          │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -62,6 +76,8 @@ This document defines Aletheia's DevOps infrastructure: CI/CD pipelines, deploym
 | Coverage | pytest-cov | 70% minimum | Yes |
 | Linting (JS) | ESLint | Zero errors | Yes |
 | E2E Tests | Playwright | 100% pass | Yes (future) |
+| Accessibility | axe-core | Zero WCAG A violations | Yes (#160) |
+| Benchmarks | pytest-benchmark | <20% regression | Yes, scheduled (#161) |
 
 **Policy Compliance runs FIRST** - blocks all other jobs if failed. See §2.4 for details.
 
@@ -247,8 +263,10 @@ Creates AWS resources:
 | Type Checker | Mypy | 1.8+ |
 | Test Runner | Pytest | 8.0+ |
 | Coverage | pytest-cov | 4.0+ |
-| Linter (JS) | ESLint | 8.0+ |
+| Benchmarks | pytest-benchmark | 4.0+ |
+| Linter (JS) | ESLint | 9.0+ (flat config, #157) |
 | E2E Testing | Playwright | 1.40+ |
+| Accessibility | @axe-core/playwright | 4.0+ |
 | Pre-commit | pre-commit | 3.6+ |
 | Secret Scanning | Gitleaks | 8.18+ |
 
@@ -259,6 +277,9 @@ Creates AWS resources:
 | Enhancement | Priority | Issue |
 |-------------|----------|-------|
 | Dependabot auto-updates | High | TBD |
+| Accessibility CI checks | High | #160 |
+| Performance benchmarks CI | High | #161 |
+| ESLint flat config migration | Medium | #157 |
 | Allure test reporting | Medium | TBD |
 | Visual regression testing | Medium | TBD |
 | Lambda cold start benchmarks | Medium | #137 |

@@ -67,6 +67,35 @@ This document defines Aletheia's testing strategy: test pyramid, tooling choices
 | WAF Integration | `tests/e2e/waf-integration.spec.js` | Rate limiting, headers |
 | XSS Payloads | `tests/fixtures/html/test-xss-*.html` | OWASP vectors |
 
+### 3.4 Accessibility (#160)
+
+| Category | Location | What It Tests |
+|----------|----------|---------------|
+| WCAG A Compliance | `tests/e2e/accessibility.spec.js` | axe-core scan of popup.html |
+| WCAG AA Compliance | `tests/e2e/accessibility.spec.js` | Warning-level checks |
+| ARIA Attributes | `tests/e2e/accessibility.spec.js` | role, aria-live, aria-label |
+
+**Tools:** @axe-core/playwright
+
+**Thresholds:**
+- WCAG Level A violations: CI fails
+- WCAG Level AA violations: CI warns (logged)
+
+### 3.5 Performance (#161)
+
+| Category | Location | What It Tests |
+|----------|----------|---------------|
+| Lambda Latency | `tests/test_lambda_benchmark.py` | Handler response time (mocked) |
+| Extension Load | `tests/e2e/benchmark.spec.js` | Time to interactive |
+| Click-to-Glass | `tests/e2e/benchmark.spec.js` | User action to overlay visible |
+
+**Tools:** pytest-benchmark, Playwright metrics
+
+**Thresholds:**
+- Lambda warm: < 100ms
+- Extension click-to-glass: < 200ms
+- Regression tolerance: 20%
+
 ---
 
 ## 4. Test Infrastructure
@@ -146,6 +175,7 @@ module.exports = {
 - XSS prevention (textContent usage)
 - Age gate detection
 - Rate limiting enforcement
+- WCAG Level A accessibility (popup, overlay)
 
 ### 5.3 Configuration
 
@@ -221,6 +251,8 @@ docs/reports/{IssueID}/
 @pytest.mark.integration # May use mocked AWS
 @pytest.mark.live       # Hits real services (slow)
 @pytest.mark.e2e        # Browser automation
+@pytest.mark.benchmark  # Performance tests (pytest-benchmark)
+@pytest.mark.a11y       # Accessibility tests (axe-core)
 ```
 
 **Running subsets:**
@@ -228,6 +260,8 @@ docs/reports/{IssueID}/
 pytest -m "unit"                    # Fast feedback
 pytest -m "not live"                # CI-safe
 pytest -m "live" --run-live         # Manual verification
+pytest -m "benchmark" --benchmark-only  # Performance tests
+npx playwright test --grep a11y    # Accessibility tests
 ```
 
 ---

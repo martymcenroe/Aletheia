@@ -181,6 +181,7 @@ This is the nuclear option but effective. Bedrock has no direct kill switch, but
 | Naked Python (no deps) | ADR 0211 | Faster cold start, lower duration |
 | WAF rate limiting | #95 | Prevents abuse spikes |
 | Haiku for semantic check | `semantic.py` | 90% vs Sonnet for guard |
+| DynamoDB TTL | #145 | Storage costs capped (auto-delete after 24-48h) |
 
 ### 5.2 Planned
 
@@ -190,6 +191,7 @@ This is the nuclear option but effective. Bedrock has no direct kill switch, but
 | Token limit tuning | #137 | 20-30% on generation |
 | Batch inference | TBD | Bedrock batch pricing |
 | Reserved capacity | TBD | ~30% with commitment |
+| Data hygiene cleanup | #150 | One-time storage reduction |
 
 ### 5.3 Optimization Decision Matrix
 
@@ -357,6 +359,7 @@ Then filter Cost Explorer by `Project=Aletheia`.
 - [ ] AWS Budget created with email alerts
 - [ ] Lambda OFF when not testing (`./tools/aws/lambda-off.sh`)
 - [ ] WAF rate limiting active (#95)
+- [ ] DynamoDB TTL enabled (#145)
 - [ ] CloudWatch alarms for anomalies
 - [ ] Resources tagged for Cost Explorer
 - [ ] Monthly cost review scheduled
