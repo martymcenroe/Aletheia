@@ -22,6 +22,7 @@
 | `CLAUDE.md` | **Config** | 🟢 **Stable** | - | Claude Code agent onboarding. |
 | `GEMINI.md` | **Config** | 🟢 **Stable** | - | Gemini agent onboarding. |
 | `LICENSE` | **Legal** | 🟢 **Stable** | - | MIT License. |
+| `NOTICE` | **Legal** | 🟢 **Stable** | - | Apache-2.0 third-party attributions (boto3, requests, etc.). |
 | `README.md` | **Doc** | 🟢 **Stable** | - | Project overview. |
 | `IMMEDIATE-PLAN.md` | **Log** | 🟢 **Stable** | - | Current session focus and context handoff. |
 | `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
