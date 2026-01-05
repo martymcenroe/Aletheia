@@ -20,17 +20,19 @@ Track new Claude Code capabilities and evaluate alignment with AgentOS philosoph
 | Feature | Using? | AgentOS Alignment | Notes |
 |---------|--------|-------------------|-------|
 | **File Operations** | ✅ | ✅ Aligned | Read/Write/Edit |
-| **Bash Commands** | ✅ | ✅ Aligned | With deny list |
+| **Bash Commands** | ✅ | ✅ Aligned | With deny list (eval, env, python denied) |
 | **Web Search** | ✅ | ✅ Aligned | Research |
 | **Web Fetch** | ✅ | ✅ Aligned | Documentation |
 | **TodoWrite** | ✅ | ✅ Aligned | Task tracking |
 | **Git Operations** | ✅ | ✅ Aligned | With guardrails |
 | **GitHub CLI** | ✅ | ✅ Aligned | Issue/PR management |
 | **Multi-tool Calls** | ✅ | ✅ Aligned | Parallel execution |
+| **Custom Slash Commands** | ✅ | ✅ Aligned | `/closeout`, `/full-cleanup` enforce 0009 protocols |
+| **Skills** | ✅ | ✅ Aligned | Managed skills for closeout/cleanup |
 | **Background Tasks** | ⚪ | ? | Evaluate |
-| **MCP Servers** | ⚪ | ? | Evaluate |
+| **MCP Servers** | ⚪ | ✅ Aligned | Evaluate for CloudWatch Log Inspector |
 | **Hooks** | ⚪ | ? | Evaluate |
-| **Skills** | ⚪ | ? | Evaluate |
+| **Browser Integration** | ⚪ | ✅ Aligned | Evaluate for extension UI testing |
 
 ### Underutilized Features
 
@@ -56,11 +58,11 @@ Track new Claude Code capabilities and evaluate alignment with AgentOS philosoph
 
 | Question | Answer | Date Checked |
 |----------|--------|--------------|
-| New tools available? | | |
-| Existing tools enhanced? | | |
-| New permission patterns? | | |
-| New best practices? | | |
-| Deprecations announced? | | |
+| New tools available? | Browser Integration (`--chrome`), MCP Servers | 2026-01-05 |
+| Existing tools enhanced? | Custom Slash Commands now in use | 2026-01-05 |
+| New permission patterns? | Hardened: eval, env, python moved to deny | 2026-01-05 |
+| New best practices? | Skills for protocol enforcement | 2026-01-05 |
+| Deprecations announced? | None | 2026-01-05 |
 
 ---
 
@@ -96,10 +98,11 @@ For each new capability, assess:
 
 | Feature | Hypothesis | Experiment | Status |
 |---------|------------|------------|--------|
-| MCP Servers | Could automate external integrations | Set up test MCP server | |
-| Hooks | Could enforce workflow rules | Pre-commit integration | |
-| Task (Explore) | Could speed up codebase research | Try on next research task | |
-| Background Tasks | Could parallelize slow operations | Test with long-running tests | |
+| Browser Integration (`--chrome`) | Could debug extension UI faster than Playwright | Attempt to load extension in `claude --chrome` session | Backlog |
+| MCP (CloudWatch) | Safer/faster than `aws logs tail` text parsing | Connect AWS MCP server for Log Inspector (#69) | Backlog |
+| Hooks | Could enforce workflow rules | Pre-commit integration | Backlog |
+| Task (Explore) | Could speed up codebase research | Try on next research task | Backlog |
+| Background Tasks | Could parallelize slow operations | Test with long-running tests | Backlog |
 
 ### Completed Experiments
 
@@ -119,14 +122,16 @@ Review `.claude/settings.local.json`:
 |----------|-------------|--------------|
 | File ops | Read/Write/Edit Aletheia/** | ✅ |
 | Bash | Comprehensive allow list | ✅ |
-| Deny | git reset, force push, pip | ✅ |
+| Deny | git reset, force push, pip, **eval, env, python** | ✅ (hardened 0809) |
 | Web | Search, Fetch | ✅ |
+| Tools | `./tools/*` binned scripts | ✅ AgentOS aligned |
 
 ### Permission Gaps
 
 | Scenario | Missing Permission | Should Add? |
 |----------|-------------------|-------------|
-| | | |
+| Browser testing | `--chrome` flag | Evaluate in experiment |
+| CloudWatch logs | MCP server | Evaluate in experiment |
 
 ---
 
@@ -148,7 +153,7 @@ Review `.claude/settings.local.json`:
 
 | Date | Auditor | New Capabilities Found | Experiments Started |
 |------|---------|------------------------|---------------------|
-| | | | |
+| 2026-01-05 | Gemini 2.5 Pro | Custom Slash Commands (active), Browser Integration, MCP CloudWatch | Browser/MCP added to backlog |
 
 ---
 
