@@ -106,7 +106,14 @@
       "Bash(for:*)",
       "WebSearch",
       "WebFetch",
-      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)"
+      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)",
+      "Bash(do if [ -d \"docs/reports/$issue\" ])",
+      "Bash(then echo \"$issue: ✅ has reports\")",
+      "Bash(else echo \"$issue: ❌ MISSING reports\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(while read f)",
+      "Bash(do grep -q \"$f\" docs/0003-file-inventory.md)"
     ],
     "deny": [
       "Read(.env)",

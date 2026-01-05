@@ -15,6 +15,18 @@ Audits exist because:
 4. **Terminology evolves** - Old names persist in forgotten corners
 5. **The system itself decays** - Cross-references break, templates diverge
 
+### Evidence over Inference (CRITICAL)
+
+**Do not assume compliance based on file names or documentation claims. Grep the code/config for the specific setting.**
+
+| Bad Practice | Good Practice |
+|--------------|---------------|
+| "0810 says in-memory only" | `grep put_item src/lambda_function.py` |
+| "CLAUDE.md says eval is forbidden" | `grep eval .claude/settings.local.json` |
+| "Package says MIT license" | Compare LICENSE, package.json, pyproject.toml |
+
+**The code is the truth. The docs are a claim about the truth.**
+
 ## How to Run All Audits
 
 Prompt: **"Run all audits"** or **"Execute 08xx audit suite"**

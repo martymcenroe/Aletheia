@@ -43,6 +43,25 @@ echo "Baseline: $BASELINE_PASSED passed, $BASELINE_FAILED failed, $BASELINE_ERRO
 
 **Stop Condition:** If baseline tests fail, abort audit and fix existing issues first.
 
+### Phase 1a: CI Consistency Check (CRITICAL)
+
+**Verify that CI commands use project-local versions**, not hardcoded versions that might mask upgrade breaks:
+
+```bash
+# Check for hardcoded version numbers in CI commands
+🤖 grep -rn "@[0-9]" .github/workflows/*.yml
+
+# Bad: npx eslint@8 (hardcoded version)
+# Good: npx eslint (uses project-local version from package.json)
+```
+
+| Pattern | Risk | Fix |
+|---------|------|-----|
+| `npx <tool>@<version>` | False green on upgrades | Use `npx <tool>` after `npm ci` |
+| `pip install <pkg>==<version>` | Bypasses poetry.lock | Use `poetry run` |
+
+**If hardcoded versions found:** Create issue to fix CI before merging dependency upgrades.
+
 ### Phase 2: Identify Dependabot PRs
 
 ```bash

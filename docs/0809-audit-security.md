@@ -220,6 +220,38 @@ Comprehensive security audit covering web application, LLM, agentic AI, and brow
 
 ---
 
+## 7a. Claude Code Agent Permissions (CRITICAL)
+
+**The agent's permission model is a security boundary.** Overly permissive settings can bypass all other controls.
+
+### Forbidden Substrings Check
+
+Grep `.claude/settings.local.json` for these forbidden patterns. If found in the `allow` list, **FAIL the audit immediately**:
+
+```bash
+🤖 grep -E "eval:|env:|printenv:|exec:" .claude/settings.local.json
+```
+
+| Pattern | Risk | Must Be In |
+|---------|------|------------|
+| `eval:` | Arbitrary command execution bypass | `deny` list |
+| `exec:` | Process replacement | `deny` list |
+| `env:` | Secret exposure via env dump | `deny` list |
+| `printenv:` | Secret exposure via env dump | `deny` list |
+| `python:` | Write+execute arbitrary code | `deny` list (use `poetry run`) |
+
+### Verification
+
+```bash
+# These should return matches (in deny list)
+🤖 grep -A50 '"deny"' .claude/settings.local.json | grep -E "eval|env|exec|python"
+
+# This should return NO matches (not in allow list)
+🤖 grep -B100 '"deny"' .claude/settings.local.json | grep -E '"Bash\(eval|"Bash\(env:|"Bash\(exec:|"Bash\(python:'
+```
+
+---
+
 ## 8. Audit Procedure
 
 ### Step 0: Prerequisites (MANDATORY)

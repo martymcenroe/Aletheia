@@ -10,6 +10,18 @@ Ensure Aletheia meets performance requirements for user experience and cost effi
 - Bedrock response latency
 - Overlay rendering speed
 
+### Architectural Justification Rule
+
+For any **missed target**, identify if the bottleneck is an intentional architectural decision:
+
+| Classification | Meaning | Action |
+|----------------|---------|--------|
+| **Justified Miss** | Performance loss is intentional (e.g., ADR 0201 privacy-first) | Document trade-off, accept |
+| **Regression** | Performance degraded without architectural reason | Create issue, fix |
+| **Technical Debt** | Known limitation, optimization deferred | Track in issue |
+
+**Example:** Click-to-glass latency (500-1000ms vs 100ms target) is a **Justified Miss** because ADR 0201 prohibits `<all_urls>` permission, requiring runtime script injection.
+
 ---
 
 ## 2. Extension Performance

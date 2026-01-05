@@ -45,6 +45,24 @@ for f in docs/0*.md; do
 done
 ```
 
+### Step 1a: Reality Verification (CRITICAL)
+
+**Check that `docs/0000a-IMMEDIATE-PLAN.md` matches actual state:**
+
+```bash
+# Compare plan against open issues
+🤖 cat docs/0000a-IMMEDIATE-PLAN.md | grep -E "← CURRENT|In Progress|Next"
+🤖 gh issue list --state open --repo martymcenroe/Aletheia --json number,title --jq '.[].number'
+```
+
+**Rule:** If the plan lists an issue as "Next" or "In Progress" that is NOT in the open issues list, flag as **Critical Staleness**.
+
+| Check | Pass Condition |
+|-------|----------------|
+| Current Step issue is open | Issue number exists in `gh issue list --state open` |
+| "In Progress" items are open | All listed issues exist in open state |
+| Closed issues not shown as pending | No closed issues appear as "← CURRENT" |
+
 ### Step 2: CLAUDE.md / 0000-GUIDE.md Alignment
 
 These two files must be consistent. Check:

@@ -6,6 +6,24 @@ Ensure all dependencies use licenses compatible with Aletheia's MIT license and 
 
 **Aletheia License:** MIT (permissive, commercial-friendly)
 
+### License Consistency Check (CRITICAL)
+
+**These three files must declare the same license.** If they don't match, FAIL the audit:
+
+```bash
+🤖 grep -i "license" LICENSE | head -1
+🤖 grep -i "license" package.json
+🤖 grep -i "license" pyproject.toml
+```
+
+| File | Expected | Actual | Match? |
+|------|----------|--------|--------|
+| `LICENSE` (root) | MIT | | |
+| `package.json` (`"license":`) | MIT | | |
+| `pyproject.toml` (`tool.poetry.license`) | MIT | | |
+
+**Note:** pyproject.toml may not have an explicit license field (Poetry doesn't require it). If absent, verify LICENSE file is authoritative.
+
 ---
 
 ## 2. License Compatibility Matrix

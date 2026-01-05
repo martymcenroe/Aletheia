@@ -18,11 +18,31 @@ Comprehensive privacy audit covering data protection, user consent, data minimiz
 
 | Data Type | Collection Point | Storage | Retention | Status |
 |-----------|------------------|---------|-----------|--------|
-| Selected text | User selection | In-memory only | Request duration | |
+| Selected text | User selection | DynamoDB | TTL 24-48h (#145) | |
 | Analysis results | Bedrock response | In-memory only | Display duration | |
 | Preferences | Extension settings | localStorage | Until cleared | |
 | Rate limit state | Lambda | DynamoDB | TTL auto-expire | |
 | CloudWatch logs | Lambda execution | AWS CloudWatch | 30 days | |
+
+### Data Path Verification (CRITICAL)
+
+**Do not trust the Data Inventory table above.** Verify by tracing code:
+
+```bash
+# Check if user text is persisted to DynamoDB
+🤖 grep -n "put_item\|dynamodb" src/lambda_function.py
+🤖 grep -n "save_state\|input" src/lambda_function.py
+```
+
+**Rule:** If `text` variable is passed to `boto3.client('dynamodb').put_item` or similar:
+1. Update Data Inventory to show "DynamoDB" storage (not "In-memory only")
+2. Verify Privacy Policy explicitly discloses database persistence
+3. Verify TTL is configured (Issue #145)
+
+| Check | Code Evidence | Doc Claim | Match? |
+|-------|---------------|-----------|--------|
+| Selected text storage | grep for `put_item` | Data Inventory row | Must match |
+| Retention period | TTL config | Privacy Policy | Must match |
 
 ### Privacy Principles Checklist
 
@@ -32,7 +52,7 @@ Comprehensive privacy audit covering data protection, user consent, data minimiz
 | **Purpose Limitation** | Only bias/slur detection | |
 | **Data Minimization** | Only selected text, no context | |
 | **Accuracy** | N/A (analysis, not storage) | |
-| **Storage Limitation** | In-memory only, no persistence | |
+| **Storage Limitation** | DynamoDB with TTL (24-48h) | |
 | **Integrity & Confidentiality** | HTTPS, no logging of user content | |
 | **Accountability** | This audit, ADRs | |
 

@@ -14,6 +14,18 @@ A checklist for ending sessions cleanly. Two modes available based on scope.
 
 A proper closeout takes 5-10 minutes (session) or 20-30 minutes (full) but saves 30+ minutes of confusion in the next session.
 
+### Commit Batching Principle
+
+**Minimize commit count during closeout.** Each commit affects the GitHub contribution graph. Batch related changes:
+
+| Instead of... | Do this... |
+|---------------|------------|
+| Separate commits for inventory, issues, session log | One commit: `docs: session closeout [date]` |
+| Commit after each audit fix | One commit per audit: `docs: 08xx audit remediation` |
+| Immediate commit for typo fixes | Hold and batch with next substantive commit |
+
+**Rule:** Make all file edits first, then commit once at the end of each logical unit of work.
+
 ---
 
 ## Mode Selection Guide
