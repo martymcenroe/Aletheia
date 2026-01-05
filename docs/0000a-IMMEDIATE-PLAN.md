@@ -1,7 +1,7 @@
 # Immediate Plan: MVP Path to Store Submission
 
-**Updated:** 2026-01-04 (by Claude Opus 4.5)
-**Status:** Implement #105 → merge #104 → then Store Compliance
+**Updated:** 2026-01-05 (by Claude Opus 4.5)
+**Status:** Store Compliance (#51) → Store Assets (#53) → Submit
 
 ---
 
@@ -17,7 +17,8 @@
 | Rate limiting / WAF (#95) | ✅ Deployed (PR #136 merged) |
 | Digital Etymologist (#124) | ✅ Deployed (PR #131 merged) |
 | Overlay timing | ✅ Fixed (stateful timer management) |
-| Age-restricted blocking (#104) | 🟡 Code complete, awaiting E2E verification |
+| Test Infrastructure (#105) | ✅ Complete (PR #139 merged) |
+| Age-restricted blocking (#104) | ✅ Complete (PR #140 merged) |
 | Store assets | ❌ Not created |
 
 ---
@@ -32,32 +33,23 @@
 - Stateful timer management for smooth overlay transitions
 - Build script for release ZIPs
 
-### Step 2: Test Infrastructure (#105) ← CURRENT
-**LLD:** `docs/1105-test-site-infrastructure.md`
-**Status:** LLD approved (Gemini reviewed), ready for implementation
-**Worktree:** Create `Aletheia-105`
-**Assigned:** Unassigned
-
-**What it adds:**
+### Step 2: Test Infrastructure (#105) ✅ COMPLETE
+**PR:** #139 - merged 2026-01-04
 - GitHub Pages test site hosting
 - Playwright E2E test framework
 - 8 test HTML fixtures (age gate + XSS)
 - `TEST_BASE_URL` env var for flexibility
-- QA Sandbox disclaimers for GitHub ToS compliance
+- CI pipeline with pytest, coverage, linting
 
-### Step 3: Age-Restricted Blocking (#104)
-**LLD:** `docs/1104-age-restricted-blocking.md`
-**PR:** #133 (code complete, 33 unit tests passing)
-**Status:** Blocked by #105 for E2E test verification
-**Worktree:** `Aletheia-104` (exists)
-
-**What it adds:**
+### Step 3: Age-Restricted Blocking (#104) ✅ COMPLETE
+**PR:** #140 - merged 2026-01-04
 - Blocks `rating="adult"` and RTA pattern
 - Allows `rating="mature"`
 - Three-state tab management (UNKNOWN/RESTRICTED/ALLOWED)
 - "Not Permitted" popup and badge
+- 6 E2E tests passing
 
-### Step 4: Store Compliance (#51)
+### Step 4: Store Compliance (#51) ← CURRENT
 **LLD:** `docs/1051-store-compliance.md`
 **Status:** Needs LLD update
 
@@ -95,11 +87,9 @@ Lambda takes ~5 seconds to respond. Tested with `max_tokens=10` (minimal generat
 
 ---
 
-## Open PRs (1)
+## Open PRs (0)
 
-| PR | Issue | Branch | Status |
-|----|-------|--------|--------|
-| #133 | #104 Age Block | `104-age-block` | Awaiting E2E verification via #105 |
+No open PRs. All feature work merged.
 
 ---
 
@@ -117,4 +107,4 @@ These are deferred until after Chrome Web Store submission:
 
 ## Next Action
 
-**Implement #105 (Test Infrastructure)** to unblock #104 E2E verification, then merge #104 and proceed to store submission.
+**Store Compliance (#51):** Review manifest.json, finalize privacy policy, and prepare store listing description. Then proceed to Store Assets (#53) for screenshots and promotional tiles.

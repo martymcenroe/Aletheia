@@ -104,9 +104,23 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * Every ADR requires a Security Risk Analysis section.
 * **`08xx` (Audits):** Verification and compliance procedures.
     * `0800-common-audits.md` — Index of all audit procedures.
-    * `0801-0806` — Core audits (issues, reports, LLD-code, inventory, terminology, architecture).
+    * `0801-open-issues-audit.md` — GitHub issues currency check.
+    * `0802-reports-completeness-audit.md` — Implementation/test reports for closed issues.
+    * `0803-lld-code-audit.md` — LLD-to-code alignment verification.
+    * `0804-inventory-audit.md` — File inventory drift detection.
+    * `0805-terminology-audit.md` — Consistent naming across docs.
+    * `0806-architecture-audit.md` — ADR compliance check.
     * `0807-agentos-audit.md` — AgentOS health check (system self-audit).
-    * `0808-0817` — Extended audits (permissions, security, privacy, accessibility, performance, code quality, license, capabilities, Dependabot, wiki).
+    * `0808-audit-permission-permissiveness.md` — Claude Code permission audit.
+    * `0809-audit-security.md` — OWASP/security vulnerability scan.
+    * `0810-audit-privacy.md` — GDPR/privacy compliance check.
+    * `0811-audit-accessibility.md` — WCAG 2.1 accessibility audit.
+    * `0812-audit-performance.md` — Lambda/extension benchmarks.
+    * `0813-audit-code-quality.md` — SOLID, complexity, coverage metrics.
+    * `0814-audit-license-compliance.md` — SPDX license compatibility.
+    * `0815-audit-claude-capabilities.md` — Weekly Claude Code feature tracking.
+    * `0816-audit-dependabot-prs.md` — Dependabot PR merge procedure.
+    * `0817-audit-wiki-alignment.md` — Wiki-to-docs consistency.
     * `0899-meta-audit.md` — Audit of audits (meta-verification).
 * **`1xxx` (Features):** The work.
     * Files map to GitHub Issues: `1000 + IssueID`.
