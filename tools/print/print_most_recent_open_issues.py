@@ -92,11 +92,12 @@ def format_issues_markdown(issues):
         lines.append(f"**Updated:** {updated.strftime('%Y-%m-%d')}")
         lines.append("")
 
-        # Body
+        # Body (strip trailing whitespace from each line to pass pre-commit hooks)
         if issue['body']:
             lines.append("### Description")
             lines.append("")
-            lines.append(issue['body'])
+            body_lines = [line.rstrip() for line in issue['body'].splitlines()]
+            lines.append("\n".join(body_lines))
             lines.append("")
 
         lines.append("---")
