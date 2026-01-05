@@ -60,15 +60,11 @@
       "Bash(time:*)",
       "Bash(sleep:*)",
       "Bash(timeout:*)",
-      "Bash(env:*)",
       "Bash(export:*)",
       "Bash(set:*)",
       "Bash(unset:*)",
-      "Bash(printenv:*)",
       "Bash(source:*)",
       "Bash(.:*)",
-      "Bash(eval:*)",
-      "Bash(exec:*)",
       "Bash(bash:*)",
       "Bash(sh:*)",
       "Bash(true:*)",
@@ -83,8 +79,6 @@
       "Bash(gh:*)",
       "Bash(aws:*)",
       "Bash(sam:*)",
-      "Bash(python:*)",
-      "Bash(python3:*)",
       "Bash(pip3:*)",
       "Bash(poetry:*)",
       "Bash(pytest:*)",
@@ -129,7 +123,13 @@
       "Bash(> /dev/sda:*)",
       "Bash(dd if=:*)",
       "Bash(mkfs:*)",
-      "Bash(format:*)"
+      "Bash(format:*)",
+      "Bash(eval:*)",
+      "Bash(exec:*)",
+      "Bash(env:*)",
+      "Bash(printenv:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)"
     ]
   }
 }
