@@ -1,0 +1,43 @@
+Aletheia
+Copyright 2025-2026 Marty McEnroe
+
+This product includes software developed by third parties under the
+Apache License, Version 2.0:
+
+--------------------------------------------------------------------------------
+AWS SDK for Python (Boto3)
+Copyright 2013-2024 Amazon.com, Inc. or its affiliates.
+Licensed under the Apache License, Version 2.0
+https://github.com/boto/boto3
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Botocore
+Copyright 2012-2024 Amazon.com, Inc. or its affiliates.
+Licensed under the Apache License, Version 2.0
+https://github.com/boto/botocore
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Requests
+Copyright 2019 Kenneth Reitz
+Licensed under the Apache License, Version 2.0
+https://github.com/psf/requests
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+tzdata
+Copyright (c) IANA
+Licensed under the Apache License, Version 2.0
+https://github.com/python/tzdata
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Playwright
+Copyright (c) Microsoft Corporation
+Licensed under the Apache License, Version 2.0
+https://github.com/microsoft/playwright
+--------------------------------------------------------------------------------
+
+The full text of the Apache License, Version 2.0 can be found at:
+https://www.apache.org/licenses/LICENSE-2.0

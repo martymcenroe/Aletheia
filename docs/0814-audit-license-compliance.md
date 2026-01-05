@@ -55,13 +55,18 @@ pip-licenses --format=markdown  # if installed
 
 | Package | License | Status |
 |---------|---------|--------|
-| boto3 | Apache-2.0 | |
-| botocore | Apache-2.0 | |
-| requests | Apache-2.0 | |
-| pytest | MIT | |
-| ruff | MIT | |
-| mypy | MIT | |
-| pillow | HPND | |
+| boto3 | Apache-2.0 | ✅ Compatible |
+| botocore | Apache-2.0 | ✅ Compatible |
+| requests | Apache-2.0 | ✅ Compatible |
+| beautifulsoup4 | MIT | ✅ Compatible |
+| colorama | BSD-3-Clause | ✅ Compatible |
+| tzdata | Apache-2.0 | ✅ Compatible |
+| pillow | HPND | ✅ Compatible |
+| pytest | MIT | ✅ Compatible |
+| ruff | MIT | ✅ Compatible |
+| mypy | MIT | ✅ Compatible |
+| types-requests | Apache-2.0 | ✅ Compatible |
+| types-colorama | Apache-2.0 | ✅ Compatible |
 
 ---
 
@@ -78,8 +83,11 @@ npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC"
 
 | Package | License | Status |
 |---------|---------|--------|
-| playwright | Apache-2.0 | |
-| eslint | MIT | |
+| @playwright/test | Apache-2.0 | ✅ Compatible (devDep) |
+| eslint | MIT | ✅ Compatible (devDep) |
+| serve | MIT | ✅ Compatible (devDep) |
+
+**Note:** All JS dependencies are `devDependencies` only. No runtime dependencies are bundled in the extension artifact, simplifying license compliance.
 
 ---
 
@@ -94,9 +102,9 @@ npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC"
 
 ### Current Attribution
 
-- [ ] LICENSE file includes all required attributions
-- [ ] Third-party licenses documented
-- [ ] NOTICE file exists (if required)
+- [x] LICENSE file includes MIT license text
+- [x] Third-party licenses documented (this file)
+- [x] NOTICE file exists for Apache-2.0 dependencies
 
 ---
 
@@ -115,7 +123,7 @@ npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC"
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-01-05 | Gemini 2.5 Pro | CRITICAL: package.json had ISC (fixed to MIT), MEDIUM: missing deps in inventory (added), LOW: NOTICE file missing (created) | None (all fixed inline) |
 
 ---
 
