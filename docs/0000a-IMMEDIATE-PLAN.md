@@ -99,12 +99,19 @@ These are deferred until after Chrome Web Store submission:
 
 ### High Priority (GDPR Compliance)
 
-Per 0809 security audit: #116 is a **prerequisite** for #147 because users cannot prove ownership of hash-based `thread_id` without authentication.
+Per 0809 security audit and Gemini review (2026-01-05): #116 is a **prerequisite** for #147 because users cannot prove ownership of hash-based `thread_id` without authentication.
 
-| Issue | Feature | Priority |
-|-------|---------|----------|
+**Key Decision (2026-01-05):**
+- DynamoDB TTL set to **30 days** (not 24h) - balances privacy with user value
+- 30-day retention legally requires on-demand deletion capability
+- On-demand deletion requires user identification (OAuth)
+- Therefore: **#147 is BLOCKED BY #116**
+
+| Issue | Feature | Status |
+|-------|---------|--------|
+| #145 | DynamoDB TTL (30 days) | ✅ Ready to implement |
 | #116 | LinkedIn OAuth (auth gate) | **HIGH** - enables user identification |
-| #147 | GDPR data erasure (right to be forgotten) | **HIGH** - requires #116 first |
+| #147 | GDPR data erasure | ⛔ **BLOCKED BY #116** |
 
 ### Standard Priority
 
