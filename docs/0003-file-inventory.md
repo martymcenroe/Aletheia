@@ -134,6 +134,21 @@
 | `docs/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
 | `docs/1084-signal-inspector.md` | **Spec** | 🟢 **Stable** | #84 | Signal Inspector CLI for compliance auditing. |
+| `docs/1100-firefox-compatibility.md` | **Spec** | 🟢 **Stable** | #100 | Firefox MV2 compatibility. |
+| `docs/1102-repo-reorganization.md` | **Spec** | 🟠 **In-Progress** | #102 | Repository structure reorganization. |
+| `docs/1132-support-email-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #132 | Cloudflare email routing setup. |
+| `docs/1137-lambda-latency-investigation.md` | **Spec** | 🟠 **In-Progress** | #137 | Lambda 5-second latency investigation. |
+| `docs/1145-dynamodb-ttl.md` | **Spec** | 🟠 **In-Progress** | #145 | DynamoDB TTL for automatic data expiry. |
+| `docs/1147-gdpr-data-erasure.md` | **Spec** | 🟠 **In-Progress** | #147 | GDPR Article 17 data erasure process. |
+| `docs/1150-dynamodb-data-hygiene.md` | **Spec** | 🟠 **In-Progress** | #150 | AI-powered DynamoDB data cleanup tool. |
+| `docs/1153-smoke-test-fixture-fix.md` | **Spec** | 🟠 **In-Progress** | #153 | Fix pytest fixture errors in smoke_test.py. |
+| `docs/1154-aria-accessibility.md` | **Spec** | 🟠 **In-Progress** | #154 | ARIA attributes for screen reader accessibility. |
+| `docs/1155-noarchive-skip-persistence.md` | **Spec** | 🟠 **In-Progress** | #155 | Skip DynamoDB persistence for noarchive signal. |
+| `docs/1156-extension-latency-optimization.md` | **Spec** | 🟠 **In-Progress** | #156 | Extension click-to-glass latency optimization. |
+| `docs/1157-eslint-flat-config.md` | **Spec** | 🟠 **In-Progress** | #157 | ESLint flat config migration. |
+| `docs/1160-ci-accessibility-checks.md` | **Spec** | 🟠 **In-Progress** | #160 | Automated accessibility checks in CI. |
+| `docs/1161-ci-performance-benchmarks.md` | **Spec** | 🟠 **In-Progress** | #161 | Automated performance benchmarks in CI. |
+| `docs/1162-noarchive-transform-layer.md` | **Spec** | 🟠 **In-Progress** | #162 | Transform layer (summarization) for noarchive. |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |

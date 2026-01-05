@@ -6,6 +6,12 @@
 * **Status:** Draft | In Progress | Complete
 * **Related Issues:** {#XX, #YY if applicable}
 
+### Open Questions
+*Questions that need clarification before or during implementation. Remove when resolved.*
+
+- [ ] {Question 1}
+- [ ] {Question 2}
+
 ## 2. Requirements
 {What must be true when this is done}
 
