@@ -1,20 +1,33 @@
-Print mode: double-sided
+# Aletheia - Open Issues
 
-Fetching open issues from GitHub...
-Fetched 28 open issues
-Saving to docs\6000-open-issues.md...
-Saved docs\6000-open-issues.md
-Generating PDF with pandoc...
-Generated temp-pdfs\6000-open-issues.pdf
-Printing temp-pdfs\6000-open-issues.pdf...
-Double-sided printing requested.
-Sent to printer: Brother HL-L6300DW series Printer (double-sided)
+**Generated:** 2026-01-04 19:56 CT
+**Total Open Issues:** 28
 
-Complete!
-   Markdown: docs\6000-open-issues.md
-   PDF: temp-pdfs\6000-open-issues.pdf (deleted after print)
-   Printed to: Brother HL-L6300DW series Printer (double-sided)
-en usage.
+---
+
+## Issue #6: feat: Implement RAG Vector Store
+
+**Labels:** feature
+
+**Created:** 2025-11-24
+**Updated:** 2025-12-24
+
+### Description
+
+Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
+
+---
+
+## Issue #7: chore: Add Observability Tracing
+
+**Labels:** chore
+
+**Created:** 2025-11-24
+**Updated:** 2025-12-30
+
+### Description
+
+Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
 
 ## Updated Context
 LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
