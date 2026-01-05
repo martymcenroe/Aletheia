@@ -145,15 +145,29 @@ For each audit, verify:
 
 ---
 
-## 7. Audit Record
+## 7. Meta-Correction Loop
 
-| Date | Auditor | Findings Summary | Issues Created |
-|------|---------|------------------|----------------|
-| | | | |
+When an audit finds a discrepancy, track the correction:
+
+| Audit | Finding | Correction | Tracked In |
+|-------|---------|------------|------------|
+| 0807 | IMMEDIATE-PLAN stale (#104/#105 shown as pending) | Updated 0000a to reflect reality | Commit bd04a78 |
+| 0809 | eval/env/python in allow list | Moved to deny list | Commit 7a7f267 |
+| 0810 | Privacy drift (DynamoDB persistence) | Wiki update required | Issue #159 |
+| 0814 | package.json license mismatch | Fixed ISC → MIT | Commit caf8de0 |
+| 0817 | Wiki "in-memory only" contradicts code | Wiki update required | Issue #159 |
 
 ---
 
-## 8. References
+## 8. Audit Record
+
+| Date | Auditor | Findings Summary | Issues Created |
+|------|---------|------------------|----------------|
+| 2026-01-05 | Gemini 3.0 Pro | System self-correcting (validated), Automation gap in 0811/0812, License audit false-green risk | #159 (wiki), #160 (a11y CI), #161 (perf CI) |
+
+---
+
+## 9. References
 
 - [Software Audit Complete Guide 2025](https://imaginovation.net/blog/software-audit-guide/)
 - [SDLC Audit Checklist](https://redwerk.com/blog/sdlc-audit-checklist-auditing-the-software-development-process/)
