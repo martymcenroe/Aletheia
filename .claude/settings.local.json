@@ -112,7 +112,10 @@
       "Bash(for:*)",
       "WebSearch",
       "WebFetch",
-      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)"
+      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)",
+      "Bash(./tools/aws/lambda-status.sh:*)",
+      "Bash(./tools/aws/lambda-off.sh:*)",
+      "Bash(./tools/aws/lambda-on.sh:*)"
     ],
     "deny": [
       "Read(.env)",
