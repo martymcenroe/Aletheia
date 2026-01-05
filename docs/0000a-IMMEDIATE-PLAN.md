@@ -97,9 +97,19 @@ No open PRs. All feature work merged.
 
 These are deferred until after Chrome Web Store submission:
 
+### High Priority (GDPR Compliance)
+
+Per 0809 security audit: #116 is a **prerequisite** for #147 because users cannot prove ownership of hash-based `thread_id` without authentication.
+
+| Issue | Feature | Priority |
+|-------|---------|----------|
+| #116 | LinkedIn OAuth (auth gate) | **HIGH** - enables user identification |
+| #147 | GDPR data erasure (right to be forgotten) | **HIGH** - requires #116 first |
+
+### Standard Priority
+
 | Issue | Feature |
 |-------|---------|
-| #116 | LinkedIn OAuth (auth gate) |
 | #125 | Museum Label UI |
 | #126 | Hard vs. Soft blocking |
 
