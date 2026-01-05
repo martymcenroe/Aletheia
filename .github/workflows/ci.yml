@@ -11,7 +11,7 @@ jobs:
   policy-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run policy compliance check
         run: ./tools/policy_check.sh
@@ -20,7 +20,7 @@ jobs:
     needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -54,7 +54,7 @@ jobs:
     needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Lint Chrome extension
         run: npx eslint@8 extension-chrome-V3/ --ext .js
