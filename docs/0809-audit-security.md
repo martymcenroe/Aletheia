@@ -222,6 +222,22 @@ Comprehensive security audit covering web application, LLM, agentic AI, and brow
 
 ## 8. Audit Procedure
 
+### Step 0: Prerequisites (MANDATORY)
+
+**Run Dependabot PR Audit (0816) BEFORE proceeding.**
+
+This ensures:
+- All safe dependency updates are merged
+- Known-problematic updates are documented with issues
+- Dependency baseline is clean for vulnerability analysis
+
+```bash
+# Execute 0816-audit-dependabot-prs.md procedure
+# STOP if 0816 fails - resolve dependency issues first
+```
+
+### Steps 1-6: Security Audit Execution
+
 1. Run `tools/policy_check.sh` - automated checks
 2. Review each section above systematically
 3. Mark status: ✅ Pass, ⚠️ Warning, ❌ Fail

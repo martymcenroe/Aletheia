@@ -40,6 +40,7 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 | **0813** | Code Quality Audit | Monthly | Before releases |
 | **0814** | License Compliance Audit | Per dependency | When adding dependencies |
 | **0815** | Claude Capabilities Audit | Weekly | Mondays (track Anthropic evolution) |
+| **0816** | Dependabot PR Audit | Weekly / Pre-0809 | Before security audit, when PRs accumulate |
 | **0899** | Meta-Audit | Quarterly | Audit health check |
 
 ## Audit Procedures
@@ -143,6 +144,14 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 **Output:** New features to adopt, experiments to run.
 **Philosophy:** Keep pace with Anthropic's rapid evolution.
 
+### 0816 - Dependabot PR Audit
+**File:** `docs/0816-audit-dependabot-prs.md`
+**Purpose:** Safely merge pending Dependabot PRs with automated regression detection.
+**Trigger:** Weekly, or before Security Audit (0809), or when PRs accumulate.
+**Output:** Merged PRs, or issues for problematic updates.
+**Prerequisite For:** 0809 Security Audit (MUST run before security audit begins).
+**Philosophy:** Dependencies stay current; regressions are caught and isolated automatically.
+
 ### 0899 - Meta-Audit (Audit of Audits)
 **File:** `docs/0899-meta-audit.md`
 **Purpose:** Ensure audit suite itself remains healthy and complete.
@@ -157,6 +166,7 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 | **0004 §8.6** | 0802 (Reports Completeness) |
 | **0009 Session** | 0802 (Quick Closeout) |
 | **0009 Full** | 0802, 0804 (Comprehensive Cleanup) |
+| **0809 Security** | 0816 (Dependabot PRs - PREREQUISITE) |
 
 ## Quick Reference Commands
 
@@ -184,6 +194,7 @@ grep -r "docs/0[0-9]" docs/*.md | grep -v "0800-common-audits"
 
 | Date | Change |
 |------|--------|
+| 2026-01-04 | Added 0816 Dependabot PR Audit. Prerequisite for 0809 Security Audit. |
 | 2026-01-04 | Added 0811-0815 (Accessibility, Performance, Code Quality, License, Claude Capabilities) and 0899 Meta-Audit. |
 | 2026-01-04 | Added 0808 Permission Permissiveness, 0809 Security Audit, 0810 Privacy Audit. |
 | 2026-01-04 | Renumbered by execution order. Added 0807 AgentOS Health Check. |
