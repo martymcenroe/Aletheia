@@ -1,33 +1,20 @@
-# Aletheia - Open Issues
+Print mode: double-sided
 
-**Generated:** 2026-01-04 17:39 CT
-**Total Open Issues:** 25
+Fetching open issues from GitHub...
+Fetched 28 open issues
+Saving to docs\6000-open-issues.md...
+Saved docs\6000-open-issues.md
+Generating PDF with pandoc...
+Generated temp-pdfs\6000-open-issues.pdf
+Printing temp-pdfs\6000-open-issues.pdf...
+Double-sided printing requested.
+Sent to printer: Brother HL-L6300DW series Printer (double-sided)
 
----
-
-## Issue #6: feat: Implement RAG Vector Store
-
-**Labels:** feature
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-24
-
-### Description
-
-Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
-
----
-
-## Issue #7: chore: Add Observability Tracing
-
-**Labels:** chore
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-30
-
-### Description
-
-Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
+Complete!
+   Markdown: docs\6000-open-issues.md
+   PDF: temp-pdfs\6000-open-issues.pdf (deleted after print)
+   Printed to: Brother HL-L6300DW series Printer (double-sided)
+en usage.
 
 ## Updated Context
 LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
@@ -933,7 +920,7 @@ aws dynamodb update-time-to-live \
 **Labels:** security, backend, audit
 
 **Created:** 2026-01-04
-**Updated:** 2026-01-04
+**Updated:** 2026-01-05
 
 ### Description
 
@@ -1178,5 +1165,177 @@ Legitimate data indicators:
 - Tool requires AWS credentials with DynamoDB access
 - Should log all deletions for audit trail
 - Never delete entries with `retention_decision: keep`
+
+---
+
+## Issue #151: GitHub Security Settings: Policy and Private Reporting enabled
+
+**Labels:** documentation, security
+
+**Created:** 2026-01-04
+**Updated:** 2026-01-04
+
+### Description
+
+## Completed
+
+The following GitHub security settings have been configured:
+
+### 1. Security Policy ✅
+- Created `SECURITY.md` with:
+  - Responsible disclosure process
+  - Private reporting instructions
+  - Response timeline (48h ack, 1 week assessment, 30 day resolution)
+  - Scope definition
+  - Security measures documentation
+
+### 2. Private Vulnerability Reporting ✅
+- Enabled via `gh api repos/martymcenroe/Aletheia/private-vulnerability-reporting --method PUT`
+- Researchers can now report vulnerabilities privately through GitHub
+
+### Already Enabled
+- Security advisories
+- Dependabot alerts
+- Secret scanning alerts
+
+## Verification
+
+- [ ] Check Security tab shows "Security policy" as enabled
+- [ ] Check "Private vulnerability reporting" shows as enabled
+- [ ] Test private reporting flow (optional)
+
+## References
+
+- [GitHub Security Policy docs](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository)
+- [Private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability)
+
+---
+
+## Issue #152: Evaluate GitHub Code Scanning (CodeQL) setup
+
+**Labels:** security, chore, post-mvp
+
+**Created:** 2026-01-04
+**Updated:** 2026-01-04
+
+### Description
+
+## Context
+
+GitHub offers Code Scanning via CodeQL for static security analysis. Currently shows "Needs setup" in Security tab.
+
+## Evaluation Needed
+
+### Potential Benefits
+- Finds security vulnerabilities in Python and JavaScript
+- Integrated with GitHub (alerts in Security tab)
+- Free for public repositories
+
+### Potential Conflicts
+- **Existing linting:** We already have ruff, mypy, ESLint
+- **SonarQube:** If we add SonarQube later, may have overlapping coverage
+- **CI time:** Adds ~2-5 minutes to workflow runs
+- **False positives:** May flag patterns that are intentional
+
+### Languages to Scan
+- Python (Lambda, tools)
+- JavaScript (browser extensions)
+
+## Decision Points
+
+1. **Do we need CodeQL given existing tooling?**
+   - ruff: Python linting + some security rules
+   - mypy: Type checking (catches some bugs)
+   - ESLint: JavaScript linting
+   - gitleaks: Secret scanning (pre-commit)
+
+2. **CodeQL vs SonarQube?**
+   - CodeQL: GitHub-native, simpler setup
+   - SonarQube: More comprehensive, separate service
+
+3. **When to add?**
+   - Now: Get baseline before more code
+   - Post-MVP: When we have more complex code
+
+## Setup (If Approved)
+
+```yaml
+# .github/workflows/codeql.yml
+name: "CodeQL"
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly Monday
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python, javascript
+      - uses: github/codeql-action/analyze@v3
+```
+
+## Acceptance Criteria
+
+- [ ] Decision made: Enable CodeQL or defer
+- [ ] If enabled: Workflow added and passing
+- [ ] If enabled: Initial scan reviewed, false positives triaged
+- [ ] Document decision in ADR if significant
+
+## References
+
+- [GitHub CodeQL docs](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql)
+- [CodeQL for Python](https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/)
+
+---
+
+## Issue #153: Fix smoke_test.py pytest fixture errors
+
+**Labels:** bug, testing
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Summary
+
+`tools/smoke_test.py` has 5 test functions that fail when run via `pytest` due to missing `url` fixture.
+
+## Error
+
+```
+fixture 'url' not found
+```
+
+## Affected Tests
+
+- `test_valid_input`
+- `test_blocked_input`
+- `test_empty_input`
+- `test_prompt_injection`
+- `test_tone_neutrality`
+
+## Cause
+
+These functions have a `url: str` parameter expecting a pytest fixture, but no such fixture is defined. The functions appear designed for manual invocation with a URL argument, not as pytest tests.
+
+## Options
+
+1. **Exclude from pytest** - Add `# noqa: PT` or rename functions to not start with `test_`
+2. **Create fixture** - Add a `url` fixture in `conftest.py`
+3. **Refactor** - Convert to proper pytest tests with fixture or parametrization
+
+## Impact
+
+Currently causes 5 errors in every test run (159 passed, 5 errors).
 
 ---

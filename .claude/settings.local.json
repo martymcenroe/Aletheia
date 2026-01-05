@@ -115,7 +115,8 @@
       "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)",
       "Bash(./tools/aws/lambda-status.sh:*)",
       "Bash(./tools/aws/lambda-off.sh:*)",
-      "Bash(./tools/aws/lambda-on.sh:*)"
+      "Bash(./tools/aws/lambda-on.sh:*)",
+      "Bash(python tools/print/print_most_recent_open_issues.py:*)"
     ],
     "deny": [
       "Read(.env)",
