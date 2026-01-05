@@ -121,6 +121,23 @@ One paragraph describing the session's main accomplishment.
 - Next: What the next session should pick up
 ```
 
+### File Size Limits
+
+**Maximum file size: 75KB** (~20,000 tokens)
+
+When a session log file approaches 75KB, split it:
+1. Create a new file with `-part2` suffix: `Week-starting-YYYY-MM-DD-part2.md`
+2. Continue new entries in the part2 file
+3. Add a note at the end of part1: `*Continued in Week-starting-YYYY-MM-DD-part2.md*`
+
+**Why:** The Read tool has a 25,000 token limit (~80-90KB). Keeping files under 75KB ensures agents can always read the full file without needing offset/limit parameters.
+
+**Check before appending:**
+```bash
+wc -c docs/session-logs/Week-starting-YYYY-MM-DD.md
+# If over 75000 bytes, create part2 file
+```
+
 ### Weekly File Header
 Each weekly file should start with:
 ```markdown
