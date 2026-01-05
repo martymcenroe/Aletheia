@@ -23,6 +23,7 @@
 | `GEMINI.md` | **Config** | 🟢 **Stable** | - | Gemini agent onboarding. |
 | `LICENSE` | **Legal** | 🟢 **Stable** | - | MIT License. |
 | `NOTICE` | **Legal** | 🟢 **Stable** | - | Apache-2.0 third-party attributions (boto3, requests, etc.). |
+| `SECURITY.md` | **Policy** | 🟢 **Stable** | #151 | Security policy (vulnerability reporting, supported versions). |
 | `README.md` | **Doc** | 🟢 **Stable** | - | Project overview. |
 | `IMMEDIATE-PLAN.md` | **Log** | 🟢 **Stable** | - | Current session focus and context handoff. |
 | `poetry.lock` | **Lock** | 🟢 **Stable** | - | Exact dependency tree. |
@@ -259,6 +260,7 @@
 | `tools/aws/lambda-off.sh` | **Utility** | 🟢 **Stable** | - | Disable Lambda (set concurrency=0). |
 | `tools/aws/waf-setup.sh` | **Utility** | 🟢 **Stable** | #95 | CloudFront + WAF setup with rate limiting (--env dev/prod). |
 | `tools/policy_check.sh` | **Utility** | 🟢 **Stable** | - | Pre-commit/CI policy compliance check (ADR 0201, CLAUDE.md directives). |
+| `tools/deploy_test_sites.sh` | **Utility** | 🟢 **Stable** | #105 | Deploy test site fixtures to GitHub Pages. |
 
 ### Testing & Verification
 | File | Role | Status | Linked Issue | Description |
@@ -297,7 +299,9 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/session-logs/Week-starting-2025-12-15.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 15-21. |
 | `docs/session-logs/Week-starting-2025-12-22.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 22-28. |
-| `docs/session-logs/Week-starting-2025-12-29.md` | **Log** | 🟠 **In-Progress** | - | Session log week of Dec 29+. |
+| `docs/session-logs/Week-starting-2025-12-29.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 29 - Jan 4 (part 1). |
+| `docs/session-logs/Week-starting-2025-12-29-part2.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 29 - Jan 4 (part 2, split due to file size). |
+| `docs/session-logs/Week-starting-2026-01-05.md` | **Log** | 🟠 **In-Progress** | - | Session log week of Jan 5+. |
 
 ### Legacy & Abandoned
 | File | Role | Status | Linked Issue | Description |
