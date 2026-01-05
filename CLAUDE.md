@@ -7,6 +7,35 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 
 ## Critical Workflow Rules (NON-NEGOTIABLE)
 
+### STOP - READ THIS FIRST (Bash Command Rules)
+
+**At session start, you MUST state:** *"I have read the Bash command rules. I will not use pipes or && in Bash commands. I will use single commands with absolute paths."*
+
+**BANNED IN BASH COMMANDS:**
+- ❌ `&&` - Chain operator triggers approval dialogs
+- ❌ `|` (pipe) - Triggers approval dialogs
+- ❌ `;` - Command separator triggers approval dialogs
+
+**REQUIRED PATTERN:**
+- ✅ One command per Bash tool call
+- ✅ Use absolute paths (e.g., `/c/Users/mcwiz/Projects/Aletheia-102`)
+- ✅ Use `git -C /path/to/repo` instead of `cd /path && git`
+- ✅ Run multiple independent commands as parallel Bash tool calls
+
+**Why:** Pipes and `&&` trigger permission approval dialogs that interrupt the user's workflow. This is unacceptable. Single commands with absolute paths are pre-approved and run silently.
+
+**Example - WRONG:**
+```bash
+cd /c/Users/mcwiz/Projects/Aletheia-102 && git status
+```
+
+**Example - CORRECT:**
+```bash
+git -C /c/Users/mcwiz/Projects/Aletheia-102 status
+```
+
+---
+
 ### Forbidden Commands - NEVER USE:
 - ❌ `git reset` (any form) - Use `git revert` instead
 - ❌ `git push --force` - Destroys collaboration
