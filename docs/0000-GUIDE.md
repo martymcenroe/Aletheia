@@ -93,12 +93,21 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * `0104-TEMPLATE-adr.md` — Architecture Decision Record template.
     * `0108-lld-pre-implementation-review.md` — LLD review procedure.
     * `0109-gemini-lld-review-procedure.md` — Gemini-specific LLD review.
+    * `0111-TEMPLATE-test-script.md` — Generic manual test procedure.
+    * `0112-TEMPLATE-browser-extension-test-script.md` — Browser extension test script.
+    * `0113-TEMPLATE-test-report.md` — Test results documentation.
     * See `0100` for full template index.
 * **`02xx` (ADRs):** Architecture Decision Records.
     * `0200-ADR-index.md` — Master index of all ADRs with category cross-reference.
     * Records significant architecture decisions following Michael Nygard's format.
     * Status: Proposed → Implemented → Deprecated → Superseded.
     * Every ADR requires a Security Risk Analysis section.
+* **`08xx` (Audits):** Verification and compliance procedures.
+    * `0800-common-audits.md` — Index of all audit procedures.
+    * `0801-0806` — Core audits (issues, reports, LLD-code, inventory, terminology, architecture).
+    * `0807-agentos-audit.md` — AgentOS health check (system self-audit).
+    * `0808-0817` — Extended audits (permissions, security, privacy, accessibility, performance, code quality, license, capabilities, Dependabot, wiki).
+    * `0899-meta-audit.md` — Audit of audits (meta-verification).
 * **`1xxx` (Features):** The work.
     * Files map to GitHub Issues: `1000 + IssueID`.
     * Example: Issue #25 is documented in `1025-linkedin-auth-gate.md`.

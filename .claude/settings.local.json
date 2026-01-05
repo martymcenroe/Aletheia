@@ -1,9 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/mcwiz/Projects/Aletheia*/**)",
-      "Write(//c/Users/mcwiz/Projects/Aletheia*/**)",
-      "Edit(//c/Users/mcwiz/Projects/Aletheia*/**)",
+      "Read(//c/Users/mcwiz/Projects/Aletheia/**)",
+      "Read(//c/Users/mcwiz/Projects/Aletheia-*/**)",
+      "Write(//c/Users/mcwiz/Projects/Aletheia/**)",
+      "Write(//c/Users/mcwiz/Projects/Aletheia-*/**)",
+      "Edit(//c/Users/mcwiz/Projects/Aletheia/**)",
+      "Edit(//c/Users/mcwiz/Projects/Aletheia-*/**)",
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",

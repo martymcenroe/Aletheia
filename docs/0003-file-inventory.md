@@ -164,6 +164,10 @@
 | `docs/reports/95/test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
 | `docs/reports/100/implementation-report.md` | **Report** | 🟢 **Stable** | #100 | Implementation report for Firefox compatibility. |
 | `docs/reports/100/test-report.md` | **Report** | 🟢 **Stable** | #100 | Test report for Firefox compatibility. |
+| `docs/reports/104/implementation-report.md` | **Report** | 🟢 **Stable** | #104 | Implementation report for age-restricted site blocking. |
+| `docs/reports/104/test-report.md` | **Report** | 🟢 **Stable** | #104 | Test report for age-restricted site blocking. |
+| `docs/reports/105/implementation-report.md` | **Report** | 🟢 **Stable** | #105 | Implementation report for test site infrastructure. |
+| `docs/reports/105/test-report.md` | **Report** | 🟢 **Stable** | #105 | Test report for test site infrastructure. |
 | `docs/reports/124/implementation-report.md` | **Report** | 🟢 **Stable** | #124 | Implementation report for Digital Etymologist. |
 | `docs/reports/124/test-report.md` | **Report** | 🟢 **Stable** | #124 | Test report for Digital Etymologist. |
 
