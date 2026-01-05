@@ -94,8 +94,8 @@ sequenceDiagram
 ## 6. Technical Approach
 
 * **Module:**
-  - `extension-chrome-V3/service-worker.js` (detect and send signal)
-  - `extension-chrome-V3/content-script.js` (detect noarchive in page)
+  - `extensions/chrome/service-worker.js` (detect and send signal)
+  - `extensions/chrome/content-script.js` (detect noarchive in page)
   - `src/lambda_function.py` (check signal, skip save)
 * **Dependencies:** None new
 * **Pattern:** Flag-based conditional persistence

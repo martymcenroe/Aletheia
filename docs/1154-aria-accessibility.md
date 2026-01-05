@@ -66,9 +66,9 @@ N/A
 ## 6. Technical Approach
 
 * **Module:**
-  - `extension-chrome-V3/overlay.js`
-  - `extension-chrome-V3/popup.html`
-  - `extension-chrome-V3/popup.js`
+  - `extensions/chrome/overlay.js`
+  - `extensions/chrome/popup.html`
+  - `extensions/chrome/popup.js`
   - (Mirror changes to Firefox extension)
 * **Dependencies:** None
 * **Pattern:** Standard ARIA attributes

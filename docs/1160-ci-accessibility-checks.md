@@ -129,7 +129,7 @@ test.describe('Accessibility', () => {
 # .github/workflows/ci.yml addition
 - name: Accessibility scan
   run: |
-    npx serve extension-chrome-V3 -p 8080 &
+    npx serve extensions/chrome -p 8080 &
     sleep 2
     npx pa11y http://localhost:8080/popup.html --standard WCAG2A
 ```
@@ -178,7 +178,7 @@ N/A - Test infrastructure, no code interfaces.
 npx playwright test accessibility
 
 # With pa11y
-npx pa11y extension-chrome-V3/popup.html --standard WCAG2A
+npx pa11y extensions/chrome/popup.html --standard WCAG2A
 ```
 
 ## 12. Definition of Done

@@ -215,7 +215,7 @@ Some documents are **immutable** (Write Once Read Many) — they capture histori
 
 ### Directory Structure Changes
 
-When the repo structure changes (e.g., `extension/` → `extension-chrome-V3/`):
+When the repo structure changes (e.g., `extension-chrome-V3/` → `extensions/chrome/`):
 - **Update living docs** to reflect new paths
 - **Leave historical docs alone** — they document what existed then
 - **Create new LLD versions** if needed rather than editing closed issues

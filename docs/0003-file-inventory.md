@@ -220,22 +220,22 @@
 ### Browser Extensions
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `extension-chrome-V3/manifest.json` | **Config** | 🟢 **Stable** | #100 | Chrome Manifest V3 (Privacy-First). |
-| `extension-chrome-V3/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Chrome overlay UI with stateful timer management. |
-| `extension-chrome-V3/service-worker.js` | **Logic** | 🟢 **Stable** | #100 | Chrome background script with allowlist gate and WAF header. |
-| `extension-chrome-V3/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
-| `extension-chrome-V3/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
-| `extension-chrome-V3/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
-| `extension-chrome-V3/content-safety.js` | **Logic** | 🟢 **Stable** | #104 | Content script for age-gate detection (RTA meta tags). |
-| `extension-chrome-V3/content-check.js` | **Logic** | 🟢 **Stable** | #104 | Content script for adult site detection (multiple signals). |
-| `extension-chrome-V3/icons/*` | **Asset** | 🟢 **Stable** | #82 | Chrome extension icons (16/32/48/128px). |
-| `extension-firefox-V2/manifest.json` | **Config** | 🟢 **Stable** | #100 | Firefox Manifest V2 (browser_specific_settings). |
-| `extension-firefox-V2/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Firefox overlay UI with stateful timer management. |
-| `extension-firefox-V2/service-worker.js` | **Logic** | 🟢 **Stable** | #100 | Firefox background script (browser.* API). |
-| `extension-firefox-V2/popup.html` | **UI** | 🟡 **Beta** | #100 | Popup UI structure (three views). |
-| `extension-firefox-V2/popup.css` | **Style** | 🟡 **Beta** | #100 | Popup styling with design tokens. |
-| `extension-firefox-V2/popup.js` | **Logic** | 🟡 **Beta** | #100 | Popup logic and storage interaction. |
-| `extension-firefox-V2/icons/*` | **Asset** | 🟢 **Stable** | #82 | Firefox extension icons (16/32/48/128px). |
+| `extensions/chrome/manifest.json` | **Config** | 🟢 **Stable** | #100 | Chrome Manifest V3 (Privacy-First). |
+| `extensions/chrome/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Chrome overlay UI with stateful timer management. |
+| `extensions/chrome/service-worker.js` | **Logic** | 🟢 **Stable** | #100 | Chrome background script with allowlist gate and WAF header. |
+| `extensions/chrome/popup.html` | **UI** | 🟡 **Beta** | #76 | Popup UI structure (three views). |
+| `extensions/chrome/popup.css` | **Style** | 🟡 **Beta** | #76 | Popup styling with design tokens. |
+| `extensions/chrome/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
+| `extensions/chrome/content-safety.js` | **Logic** | 🟢 **Stable** | #104 | Content script for age-gate detection (RTA meta tags). |
+| `extensions/chrome/content-check.js` | **Logic** | 🟢 **Stable** | #104 | Content script for adult site detection (multiple signals). |
+| `extensions/chrome/icons/*` | **Asset** | 🟢 **Stable** | #82 | Chrome extension icons (16/32/48/128px). |
+| `extensions/firefox/manifest.json` | **Config** | 🟢 **Stable** | #100 | Firefox Manifest V2 (browser_specific_settings). |
+| `extensions/firefox/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Firefox overlay UI with stateful timer management. |
+| `extensions/firefox/service-worker.js` | **Logic** | 🟢 **Stable** | #100 | Firefox background script (browser.* API). |
+| `extensions/firefox/popup.html` | **UI** | 🟡 **Beta** | #100 | Popup UI structure (three views). |
+| `extensions/firefox/popup.css` | **Style** | 🟡 **Beta** | #100 | Popup styling with design tokens. |
+| `extensions/firefox/popup.js` | **Logic** | 🟡 **Beta** | #100 | Popup logic and storage interaction. |
+| `extensions/firefox/icons/*` | **Asset** | 🟢 **Stable** | #82 | Firefox extension icons (16/32/48/128px). |
 | `index.html` | **Asset** | ⚫ **Legacy** | #81 | Landing page (cyberpunk). To be redesigned. |
 
 ### Infrastructure & Deployment

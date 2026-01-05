@@ -18,9 +18,9 @@ echo "=== Aletheia Policy Compliance Check ==="
 # -----------------------------------------------------------------------------
 echo -n "Checking ADR 0201 (<all_urls> forbidden)... "
 
-if grep -q '"<all_urls>"' extension-chrome-V3/manifest.json 2>/dev/null; then
+if grep -q '"<all_urls>"' extensions/chrome/manifest.json 2>/dev/null; then
     echo "FAIL"
-    echo "  ERROR: extension-chrome-V3/manifest.json contains '<all_urls>'"
+    echo "  ERROR: extensions/chrome/manifest.json contains '<all_urls>'"
     echo "  Violation: ADR 0201 - Privacy-First Extension Permissions"
     echo "  Fix: Use activeTab permission instead"
     ERRORS=$((ERRORS + 1))
@@ -28,8 +28,8 @@ else
     echo "OK"
 fi
 
-if grep -q '"<all_urls>"' extension-firefox-V2/manifest.json 2>/dev/null; then
-    echo "  ERROR: extension-firefox-V2/manifest.json contains '<all_urls>'"
+if grep -q '"<all_urls>"' extensions/firefox/manifest.json 2>/dev/null; then
+    echo "  ERROR: extensions/firefox/manifest.json contains '<all_urls>'"
     echo "  Violation: ADR 0201 - Privacy-First Extension Permissions"
     ERRORS=$((ERRORS + 1))
 fi
@@ -99,7 +99,7 @@ fi
 # -----------------------------------------------------------------------------
 echo -n "Checking for hardcoded AWS credentials... "
 
-AWS_VIOLATIONS=$(grep -rn "AKIA[0-9A-Z]\{16\}" src/ tests/ tools/ extension-*/ 2>/dev/null || true)
+AWS_VIOLATIONS=$(grep -rn "AKIA[0-9A-Z]\{16\}" src/ tests/ tools/ extensions/ 2>/dev/null || true)
 if [ -n "$AWS_VIOLATIONS" ]; then
     echo "FAIL"
     echo "  ERROR: Found potential AWS Access Key ID:"

@@ -16,7 +16,7 @@ const path = require('path');
  */
 
 // Extension path - use Chrome MV3 extension
-const extensionPath = path.join(__dirname, 'extension-chrome-V3');
+const extensionPath = path.join(__dirname, 'extensions/chrome');
 
 // Support TEST_BASE_URL env var for flexibility
 const TEST_BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';

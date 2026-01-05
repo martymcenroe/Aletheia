@@ -85,8 +85,8 @@ sequenceDiagram
 ## 6. Technical Approach
 
 * **Module:**
-  - `extension-chrome-V3/service-worker.js`
-  - `extension-firefox-V2/background.js`
+  - `extensions/chrome/service-worker.js`
+  - `extensions/firefox/background.js`
 * **Dependencies:** None
 * **Pattern:** Promise.all for parallel async operations
 
