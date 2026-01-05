@@ -15,6 +15,12 @@
 - [ ] What's the Lambda memory allocation? Would increasing it help?
 - [ ] Is Bedrock API itself slow, or is it our invocation pattern?
 - [ ] Are semantic guardrails (denylist check) contributing significant time?
+- [x] ~~Is Lambda in a VPC?~~ **No** - Direct access to AWS services (per Gemini review)
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: Is Lambda in a VPC?**
+   **A: No.** Lambda has direct internet access to Bedrock/DynamoDB endpoints. VPC cold starts are not a factor.
 
 ## 2. Requirements
 
@@ -44,16 +50,19 @@ N/A - Investigation phase; alternatives will emerge from findings.
 ```mermaid
 flowchart LR
     A[Request] --> B[Cold Start?]
-    B --> C[Load Dependencies]
+    B --> C[Import boto3]
     C --> D[Guardrails Check]
     D --> E[Bedrock API Call]
     E --> F[DynamoDB Write]
     F --> G[Response]
 
     style B fill:#ff9999
+    style C fill:#ffcc00
     style E fill:#ff9999
-    Note1[Suspected bottlenecks in red]
+    Note1[Red=Primary suspects, Yellow=Often overlooked]
 ```
+
+**Note:** Import time (boto3) is often overlooked. X-Ray captures initialization segments separately from handler execution.
 
 ## 6. Technical Approach
 
@@ -79,30 +88,44 @@ aws logs filter-log-events \
 
 Break down timing:
 1. **Cold Start:** Compare first invocation vs subsequent
-2. **Bedrock API:** Time the `invoke_model` call specifically
-3. **DynamoDB:** Time `put_item` call
-4. **Guardrails:** Time denylist check
+2. **Import Time:** Check X-Ray initialization segment (boto3 import cost)
+3. **Bedrock API:** Time the `invoke_model` call specifically
+4. **DynamoDB:** Time `put_item` call
+5. **Guardrails:** Time denylist check
 
 ```python
-# Add timing instrumentation
+# Add timing instrumentation with STRUCTURED JSON logging
 import time
+import json
 
 def lambda_handler(event, context):
     timings = {}
 
     start = time.time()
     # ... guardrails check ...
-    timings['guardrails'] = time.time() - start
+    timings['guardrails_ms'] = round((time.time() - start) * 1000, 2)
 
     start = time.time()
     # ... bedrock call ...
-    timings['bedrock'] = time.time() - start
+    timings['bedrock_ms'] = round((time.time() - start) * 1000, 2)
 
     start = time.time()
     # ... dynamodb write ...
-    timings['dynamodb'] = time.time() - start
+    timings['dynamodb_ms'] = round((time.time() - start) * 1000, 2)
 
-    print(f"Timings: {timings}")
+    timings['total_ms'] = sum(v for v in timings.values())
+
+    # STRUCTURED JSON for CloudWatch Insights parsing
+    print(f"TIMING_METRICS: {json.dumps(timings)}")
+```
+
+**CloudWatch Insights Query:**
+```sql
+fields @timestamp, @message
+| filter @message like /TIMING_METRICS/
+| parse @message "TIMING_METRICS: *" as metrics
+| sort @timestamp desc
+| limit 50
 ```
 
 ### Phase 3: Remediation (Based on Findings)
@@ -154,8 +177,31 @@ This IS the performance investigation.
 | 010 | Measure cold start | Manual | Fresh Lambda | Timing data | Baseline established |
 | 020 | Measure warm Lambda | Manual | Repeat request | Timing data | Compare to cold |
 | 030 | X-Ray trace analysis | Manual | Enable tracing | Trace segments | Bottleneck identified |
+| 040 | Verify no VPC | Manual | Check config | No VPC | Direct access confirmed |
 
-### 11.2 Test Commands
+### 11.2 Forcing Cold Starts for Testing
+
+To reliably reproduce cold starts:
+
+```bash
+# Method 1: Update environment variable (forces new execution environment)
+aws lambda update-function-configuration \
+    --function-name AletheiaLambda \
+    --environment "Variables={COLD_START_TEST=$(date +%s)}"
+
+# Wait for update to complete
+aws lambda wait function-updated --function-name AletheiaLambda
+
+# Now invoke - this will be a cold start
+aws lambda invoke --function-name AletheiaLambda ...
+
+# Method 2: Publish new version (also forces cold start)
+aws lambda publish-version --function-name AletheiaLambda
+```
+
+**Note:** Simply waiting for Lambda to "cool down" (15+ minutes of inactivity) is unreliable. Use configuration updates for deterministic cold start testing.
+
+### 11.3 Test Commands
 
 ```bash
 # Invoke and measure
@@ -185,3 +231,24 @@ aws xray get-trace-summaries \
 - [ ] Fix implemented based on findings
 - [ ] Latency reduced to target
 - [ ] 0812 Performance Audit updated
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Structured Logging | Changed to `json.dumps()` with `TIMING_METRICS:` prefix for CloudWatch Insights |
+| Baseline Cold Start | Added §11.2 with deterministic cold start reproduction methods |
+
+### Tier 3 Issues (SUGGESTIONS) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Import Time hypothesis | Added to diagram and Phase 2 analysis |
+| VPC Check | Confirmed Lambda is NOT in VPC; added to resolved questions |
