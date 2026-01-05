@@ -105,18 +105,11 @@
       "Bash(cmd:*)",
       "Bash(./tools/*:*)",
       "Bash(./tests/*:*)",
-      "Bash(./tools/aws/*:*)",
-      "Bash(./tools/print/*:*)",
-      "Bash(~/Projects/Aletheia/tools/*:*)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/*:*)",
       "Bash(for:*)",
       "WebSearch",
       "WebFetch",
-      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)",
-      "Bash(./tools/aws/lambda-status.sh:*)",
-      "Bash(./tools/aws/lambda-off.sh:*)",
-      "Bash(./tools/aws/lambda-on.sh:*)",
-      "Bash(python tools/print/print_most_recent_open_issues.py:*)"
+      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)"
     ],
     "deny": [
       "Read(.env)",
