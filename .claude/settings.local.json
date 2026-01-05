@@ -114,7 +114,7 @@
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
-      "Read(/c/Users/mcwiz/.aws/credentials)",
+      "Read(//c/Users/mcwiz/.aws/credentials)",
       "Bash(git reset:*)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
