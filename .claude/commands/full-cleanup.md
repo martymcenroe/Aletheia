@@ -19,9 +19,9 @@ This is **explicit approval** to execute all steps autonomously.
 
 ### F2. Branch Without Worktree Detection
 ```bash
-git -C /c/Users/mcwiz/Projects/Aletheia branch --list | grep -v "^\* main$" | grep -v "^  main$"
+git -C /c/Users/mcwiz/Projects/Aletheia branch --list
 ```
-Expected: Empty. Flag any branches without worktrees.
+Expected: Only `* main`. **Agent:** Analyze output - flag any branch other than main.
 
 ### F3. Worktree Hygiene
 ```bash
@@ -56,13 +56,14 @@ Expected: `Lambda OFF (concurrency=0)`. Turn off if ON.
 ### F8. File System Cleanup
 ```bash
 git -C /c/Users/mcwiz/Projects/Aletheia status
-ls -la /c/Users/mcwiz/Projects/Aletheia | grep -E "(temp|tmp|\.bak|\.old|debug|test-)"
+ls -la /c/Users/mcwiz/Projects/Aletheia
 ```
+**Agent:** Scan output for temp/tmp/.bak/.old/debug/test- files.
 
 ### F9. File Inventory Audit (0003)
-```bash
-find /c/Users/mcwiz/Projects/Aletheia -type f \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.json" -o -name "*.sh" \) ! -path "*/.git/*" ! -path "*/node_modules/*" ! -path "*/.venv/*" | wc -l
-```
+
+Use the **Glob tool** (not bash) with patterns: `**/*.md`, `**/*.py`, `**/*.js`, `**/*.json`, `**/*.sh`. Exclude `.git/`, `node_modules/`, `.venv/`.
+
 Compare against `docs/0003-file-inventory.md`. Flag drift.
 
 ### F10. Documentation Sync

@@ -141,10 +141,10 @@ No `cd` needed - use `git -C` and absolute paths throughout.
 
 **Run this check FIRST:**
 ```bash
-🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch --list | grep -v "^\* main$" | grep -v "^  main$"
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia branch --list
 ```
 
-**Expected:** Empty (no output).
+**Expected:** Only `* main` (the current branch). **Agent:** Analyze output - flag any branch other than main.
 
 **⚠️ FAILURE FLAG:** If branches exist without worktrees:
 ```
@@ -225,17 +225,16 @@ No `cd` needed - use `git -C` and absolute paths throughout.
 
 ```bash
 🤖 git -C /c/Users/mcwiz/Projects/Aletheia status                    # Should be clean
-🤖 ls -la /c/Users/mcwiz/Projects/Aletheia | grep -E "(temp|tmp|\.bak|\.old|debug|test-)"
+🤖 ls -la /c/Users/mcwiz/Projects/Aletheia
 ```
 
-**Action:** Delete temp files not needed.
+**Agent:** Scan output for temp/tmp/.bak/.old/debug/test- files. Delete if not needed.
 
 ### F9. File Inventory Audit (0003)
 
 **Step 1: Find files NOT in inventory**
-```bash
-🤖 find /c/Users/mcwiz/Projects/Aletheia -type f \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.json" -o -name "*.sh" -o -name "*.html" -o -name "*.css" \) ! -path "*/.git/*" ! -path "*/node_modules/*" ! -path "*/.venv/*" | sort > /tmp/actual_files.txt
-```
+
+Use the **Glob tool** (not bash) with patterns like `**/*.md`, `**/*.py`, `**/*.js`, `**/*.json`, `**/*.sh`. Exclude `.git/`, `node_modules/`, `.venv/`.
 
 **Step 2:** Compare against `docs/0003-file-inventory.md`
 
@@ -266,11 +265,8 @@ No `cd` needed - use `git -C` and absolute paths throughout.
 - [ ] `docs/0000a-IMMEDIATE-PLAN.md` reflects reality? (Current State table, Critical Path steps, Open PRs count)
 
 **⚠️ CRITICAL:** If any issues/PRs were closed this session, update 0000a:
-```bash
-🤖 # Review current state
-🤖 cat /c/Users/mcwiz/Projects/Aletheia/docs/0000a-IMMEDIATE-PLAN.md | head -50
-🤖 # Edit to mark completed items as ✅ COMPLETE, update "Next Action", etc.
-```
+
+Use the **Read tool** with `limit: 50` to review the current state of `docs/0000a-IMMEDIATE-PLAN.md`, then edit to mark completed items as ✅ COMPLETE, update "Next Action", etc.
 
 ### F10a. Wiki Alignment Check (0817)
 
@@ -371,10 +367,13 @@ git -C /c/Users/mcwiz/Projects/Aletheia push
 ### Full Mode (Copy-Paste)
 ```bash
 # F1-F5: Git/worktree/branch/issue hygiene
-git -C /c/Users/mcwiz/Projects/Aletheia branch --list | grep -v "^\* main$" | grep -v "^  main$"
+git -C /c/Users/mcwiz/Projects/Aletheia branch --list
 git -C /c/Users/mcwiz/Projects/Aletheia worktree list
-git -C /c/Users/mcwiz/Projects/Aletheia branch -vv && git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune origin && git -C /c/Users/mcwiz/Projects/Aletheia branch -r
-gh pr list --state open --repo martymcenroe/Aletheia && gh issue list --state open --repo martymcenroe/Aletheia
+git -C /c/Users/mcwiz/Projects/Aletheia branch -vv
+git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune origin
+git -C /c/Users/mcwiz/Projects/Aletheia branch -r
+gh pr list --state open --repo martymcenroe/Aletheia
+gh issue list --state open --repo martymcenroe/Aletheia
 
 # F7: Cost control
 /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh

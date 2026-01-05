@@ -1,6 +1,6 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-05 01:53 CT
+**Generated:** 2026-01-05 02:07 CT
 **Total Open Issues:** 36
 
 ---
@@ -1411,7 +1411,7 @@ accessibility, enhancement, frontend
 
 ---
 
-## Issue #155: feat: Implement 'noarchive' signal logic in Lambda
+## Issue #155: feat: Skip DynamoDB persistence when 'noarchive' signal present
 
 **Labels:** security, feature, backend
 
@@ -1740,7 +1740,7 @@ Run on schedule (weekly) rather than every PR to avoid CI slowdown.
 
 ---
 
-## Issue #162: feat: Implement 'noarchive' signal logic in Lambda
+## Issue #162: feat: Apply Transform layer (summarization) when 'noarchive' signal present
 
 **Labels:** feature, backend
 
