@@ -18,10 +18,22 @@ Ensure Aletheia meets performance requirements for user experience and cost effi
 
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
-| Service worker activation | < 100ms | | |
-| Popup load time | < 200ms | | |
-| Content script injection | < 50ms | | |
-| Overlay render | < 100ms | | |
+| Service worker activation | < 100ms | ~50ms | ✅ PASS |
+| Popup load time | < 200ms | ~100ms | ✅ PASS |
+| Content script injection | < 50ms | ~30ms | ✅ PASS |
+| Overlay render | < 100ms | ~50ms | ✅ PASS |
+
+### Time to Feedback (Click-to-Glass)
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Context menu click → "Saving..." | < 100ms | **500-1000ms** | ❌ FAIL |
+
+**Root Cause:** Sequential async operations (storage.local.get → scripting.executeScript chain).
+
+**Trade-off:** This is a consequence of ADR 0201 "Privacy First" architecture. Using `activeTab` instead of `<all_urls>` requires runtime script injection, which is inherently slower than pre-loaded content scripts. **Privacy wins, Performance loses.**
+
+See Issue #156 for optimization tracking.
 
 ### Memory
 
@@ -38,16 +50,24 @@ Ensure Aletheia meets performance requirements for user experience and cost effi
 
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
-| Lambda cold start | < 500ms | | |
-| Warm invocation | < 100ms | | |
+| Lambda cold start | < 500ms | ~2s | ❌ FAIL |
+| Warm invocation | < 100ms | ~100ms | ✅ PASS |
 
 ### Bedrock Latency
 
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
-| Haiku response (P50) | < 2s | | |
-| Haiku response (P95) | < 5s | | |
-| Total E2E latency | < 3s | | |
+| Haiku response (semantic guard) | < 1s | ~1s | ✅ PASS |
+| Sonnet response (generation) | < 2s | ~2.5s | ⚠️ MARGINAL |
+| Total E2E latency | < 3s | **~5s** | ❌ FAIL |
+
+**Root Cause:** Not yet instrumented. Hypothesized breakdown:
+- Cold start: ~2s
+- Semantic guard (Haiku): ~1s
+- DynamoDB write: ~0.1s
+- Bedrock generation (Sonnet): ~2s
+
+See Issue #137 for instrumentation and optimization tracking.
 
 ---
 
@@ -90,7 +110,7 @@ time aws lambda invoke --function-name aletheia-handler --payload '{"text":"test
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-01-05 | Gemini 2.5 Pro | CRITICAL: E2E latency 5s (target 3s), HIGH: Click-to-glass 500-1000ms (target 100ms), PASS: Cost efficiency | #156 (frontend latency), updated #137 |
 
 ---
 
