@@ -67,6 +67,10 @@ jobs:
 
       - name: Lint Chrome extension
         run: npx eslint extensions/chrome/ --ext .js
+        env:
+          ESLINT_USE_FLAT_CONFIG: false
 
       - name: Lint Firefox extension
         run: npx eslint extensions/firefox/ --ext .js
+        env:
+          ESLINT_USE_FLAT_CONFIG: false
