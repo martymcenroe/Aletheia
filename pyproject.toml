@@ -34,3 +34,16 @@ types-colorama = "^0.4.15.20250801"
 markers = [
     "live: tests that hit real websites (may be slow/flaky)",
 ]
+
+[tool.mypy]
+python_version = "3.12"
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "boto3",
+    "boto3.*",
+    "botocore",
+    "botocore.*",
+]
+ignore_missing_imports = true
