@@ -9,18 +9,31 @@
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
 
-- [ ] Should we target WCAG 2.1 Level A only, or also Level AA?
-- [ ] Do we need to test with actual screen readers (NVDA, VoiceOver), or is automated testing sufficient?
+- [x] ~~Should we target WCAG 2.1 Level A only, or also Level AA?~~ **Level AA (includes contrast)**
+- [x] ~~Do we need to test with actual screen readers?~~ **Yes - automated catches ~30%, manual required**
+- [x] ~~Is there a preferred screen reader for testing?~~ **NVDA (Windows) - dev machine is Windows**
 - [ ] Should the overlay auto-dismiss be announced, or is it jarring for screen reader users?
-- [ ] Is there a preferred screen reader for testing? User has Windows (NVDA) or Mac (VoiceOver)?
 - [ ] Should blocked state have a longer announcement, or just "Site blocked"?
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: What role should the overlay have?**
+   **A: `role="dialog"` (or `role="region"`), NOT `role="alert"`.** The overlay contains interactive elements (Close button, "Show More" toggle). Using `role="alert"` on a container with buttons is an accessibility anti-pattern - it implies "read this and don't interact."
+
+2. **Q: Where should `aria-live` go?**
+   **A: On the content area inside the dialog, not the container.** This allows users to navigate to interactive buttons while still announcing content updates.
+
+3. **Q: Which screen reader for testing?**
+   **A: NVDA on Windows.** Automated tools (axe-core) catch ~30% of issues; manual verification with NVDA is required for the rest.
 
 ## 2. Requirements
 
 ### Overlay (overlay.js)
-1. Add `role="alert"` to overlay container
-2. Add `aria-live="polite"` for status updates
-3. Ensure overlay content is announced when it appears
+1. Add `role="dialog"` to overlay container (supports interactive children)
+2. Add `aria-live="polite"` to **content area inside** the dialog
+3. Add `aria-label` to describe the dialog purpose
+4. Ensure Close button and other controls are keyboard accessible
+5. **Focus management:** Do NOT steal focus aggressively (non-modal), but ensure Close button is reachable
 
 ### Popup (popup.html, popup.js)
 1. Add `aria-label` to icon buttons
@@ -60,19 +73,29 @@ N/A
 * **Dependencies:** None
 * **Pattern:** Standard ARIA attributes
 
-### Implementation Example
+### 6.1 Overlay Implementation (CORRECT PATTERN)
 
 ```javascript
 // overlay.js - Add ARIA to shadow DOM
+// NOTE: role="dialog" NOT role="alert" (overlay has interactive buttons)
 shadow.innerHTML = `
   <div class="overlay"
-       role="alert"
-       aria-live="polite"
-       aria-label="Aletheia analysis status">
-    ${message}
+       role="dialog"
+       aria-label="Aletheia analysis result"
+       aria-modal="false">
+    <div class="content" aria-live="polite">
+      ${message}
+    </div>
+    <button class="close-btn" aria-label="Close overlay">×</button>
+    <button class="show-more-btn" aria-expanded="false">Show more</button>
   </div>
 `;
 ```
+
+**Why `role="dialog"` not `role="alert"`:**
+- `role="alert"` implies "read this text notification, don't interact"
+- Our overlay has Close button and "Show More" toggle - interactive elements
+- `role="dialog"` (with `aria-modal="false"`) allows navigation to buttons
 
 ```html
 <!-- popup.html - Add ARIA to buttons -->
@@ -89,11 +112,22 @@ shadow.innerHTML = `
 
 | Element | Attribute | Value | Purpose |
 |---------|-----------|-------|---------|
-| Overlay container | `role` | `"alert"` | Announces to screen reader |
-| Overlay container | `aria-live` | `"polite"` | Updates announced |
-| Status text | `role` | `"status"` | Live region |
-| Toggle button | `aria-pressed` | `"true"/"false"` | State |
+| Overlay container | `role` | `"dialog"` | Supports interactive children |
+| Overlay container | `aria-modal` | `"false"` | Non-modal (doesn't trap focus) |
+| Overlay container | `aria-label` | `"Aletheia analysis result"` | Describes dialog |
+| **Content area (inside)** | `aria-live` | `"polite"` | Updates announced |
+| Close button | `aria-label` | `"Close overlay"` | Button purpose |
+| Show More button | `aria-expanded` | `"true"/"false"` | Expansion state |
+| Toggle button | `aria-pressed` | `"true"/"false"` | Toggle state |
 | Icon buttons | `aria-label` | Descriptive text | Label for icons |
+
+### 7.2 Contrast Requirements (WCAG AA)
+
+| Element | Foreground | Background | Ratio Required | Status |
+|---------|------------|------------|----------------|--------|
+| Badge (Amber) | Text | Amber bg | 4.5:1 minimum | TODO: Verify |
+| Badge (Red) | Text | Red bg | 4.5:1 minimum | TODO: Verify |
+| Overlay text | Black/White | Overlay bg | 4.5:1 minimum | TODO: Verify |
 
 ## 8. Security Considerations
 
@@ -136,20 +170,50 @@ shadow.innerHTML = `
 # Run axe-core via Playwright (after #160)
 npx playwright test --grep accessibility
 
-# Manual: Open with NVDA/VoiceOver and verify announcements
+# Manual testing with NVDA (Windows):
+# 1. Install NVDA: https://www.nvaccess.org/download/
+# 2. Enable NVDA (Ctrl+Alt+N to start)
+# 3. Navigate to extension, trigger overlay
+# 4. Verify: Dialog is announced, buttons are reachable via Tab
+# 5. Verify: Close button has "Close overlay" announcement
 ```
 
 ## 12. Definition of Done
 
 ### Code
-- [ ] overlay.js has ARIA attributes
-- [ ] popup.html has ARIA attributes
-- [ ] popup.js updates aria-pressed dynamically
+- [ ] overlay.js has `role="dialog"` with `aria-modal="false"`
+- [ ] Content area inside overlay has `aria-live="polite"`
+- [ ] Close button has `aria-label="Close overlay"`
+- [ ] popup.html has ARIA attributes on all interactive elements
+- [ ] popup.js updates `aria-pressed` and `aria-expanded` dynamically
 - [ ] Changes mirrored to Firefox extension
 
 ### Tests
-- [ ] axe-core automated test passes
-- [ ] Manual screen reader test performed
+- [ ] axe-core automated test passes (zero WCAG A/AA violations)
+- [ ] Manual NVDA test: dialog announced, buttons reachable via Tab
+- [ ] Contrast ratios verified for badge colors
 
 ### Documentation
 - [ ] Accessibility audit 0811 updated
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Role Conflict (`role="alert"` with interactive children) | Changed to `role="dialog"` with `aria-modal="false"` |
+| `aria-live` placement | Moved to content area inside dialog, not container |
+| Screen reader choice | Standardized on NVDA (Windows) with manual testing required |
+
+### Tier 3 Issues (SUGGESTIONS) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Focus Management | Added §2 requirement: non-modal, don't steal focus, Close button reachable |
+| Contrast Ratios | Added §7.2 table for WCAG AA contrast requirements |
