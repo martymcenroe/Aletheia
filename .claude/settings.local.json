@@ -100,13 +100,16 @@
       "Bash(powershell.exe:*)",
       "Bash(pwsh:*)",
       "Bash(cmd:*)",
-      "Bash(./tools/*:*)",
-      "Bash(./tests/*:*)",
-      "Bash(/c/Users/mcwiz/Projects/Aletheia/*:*)",
+      "Bash(./tools/**:*)",
+      "Bash(./tests/**:*)",
+      "Bash(/c/Users/mcwiz/Projects/Aletheia/**:*)",
       "Bash(for:*)",
       "WebSearch",
       "WebFetch",
-      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)"
+      "Bash(ESLINT_USE_FLAT_CONFIG=false npx eslint:*)",
+      "Skill(full-cleanup)",
+      "Skill(closeout)",
+      "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh:*)"
     ],
     "deny": [
       "Read(.env)",

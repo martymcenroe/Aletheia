@@ -16,15 +16,22 @@ A proper closeout takes 5-10 minutes (session) or 20-30 minutes (full) but saves
 
 ### Commit Batching Principle
 
-**Minimize commit count during closeout.** Each commit affects the GitHub contribution graph. Batch related changes:
+**⚠️ CRITICAL: NO commits until the final step.** Each commit affects the GitHub contribution graph. Closeout should produce exactly ONE commit.
 
-| Instead of... | Do this... |
-|---------------|------------|
-| Separate commits for inventory, issues, session log | One commit: `docs: session closeout [date]` |
-| Commit after each audit fix | One commit per audit: `docs: 08xx audit remediation` |
-| Immediate commit for typo fixes | Hold and batch with next substantive commit |
+| ❌ Don't | ✅ Do |
+|----------|-------|
+| Commit after regenerating 6000 | `git add` only, commit at end |
+| Commit after inventory update | `git add` only, commit at end |
+| Commit after session log | `git add` only, commit at end |
+| Separate commits for each fix | Batch ALL changes into one commit |
 
-**Rule:** Make all file edits first, then commit once at the end of each logical unit of work.
+**The Rule:**
+1. Make all file edits throughout closeout
+2. `git add` files as you go (staging is free)
+3. ONE `git commit` at the very end
+4. ONE `git push` after that
+
+**Commit message format:** `docs: session closeout YYYY-MM-DD` or `docs: full cleanup YYYY-MM-DD`
 
 ---
 
@@ -80,8 +87,7 @@ Quick 5-10 minute closeout for routine session endings.
 ```bash
 🤖 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
 🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
-🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
-🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
+# ⚠️ NO COMMIT YET - batch with session log in S5
 ```
 
 ### S4. Session Log Entry
@@ -102,11 +108,21 @@ Quick 5-10 minute closeout for routine session endings.
 ```
 Then append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md` (read with offset if file is large).
 
-### S5. Final Verification
+### S5. Final Commit & Push
+
+**Stage session log and commit everything:**
+```bash
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia status   # Review what's staged
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: session closeout $(powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd'")"
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
+```
+
+### S6. Final Verification
 
 ```bash
-🤖 git status           # Clean
-🤖 gh pr list           # Empty
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia status   # Clean
+🤖 gh pr list --repo martymcenroe/Aletheia          # Empty
 ```
 
 **Session mode complete.** If any issues found, escalate to Full Mode.
@@ -233,8 +249,7 @@ No `cd` needed - use `git -C` and absolute paths throughout.
 **Action:**
 ```bash
 🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/0003-file-inventory.md
-🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: inventory audit and update"
-🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
+# ⚠️ NO COMMIT YET - batch in F14
 ```
 
 ### F10. Documentation Sync
@@ -242,8 +257,7 @@ No `cd` needed - use `git -C` and absolute paths throughout.
 ```bash
 🤖 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
 🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
-🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: regenerate 6000-open-issues.md" --allow-empty
-🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
+# ⚠️ NO COMMIT YET - batch in F14
 ```
 
 **Also check:**
@@ -305,7 +319,19 @@ For Full Mode, consider adding Feature Work and Tooling sections manually after 
 1. 👤 Reload Extension to run latest code from `main`
 2. 👤 Verify version matches `manifest.json`
 
-### F13. Final Verification Checklist
+### F13. Final Commit & Push
+
+**Stage all remaining changes and commit everything:**
+```bash
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/ docs/9000-lessons-learned.md docs/0000a-IMMEDIATE-PLAN.md
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia status   # Review ALL staged changes
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: full cleanup $(powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd'")"
+🤖 git -C /c/Users/mcwiz/Projects/Aletheia push
+```
+
+**This should be the ONLY commit from the entire closeout process.**
+
+### F14. Final Verification Checklist
 
 ```bash
 🤖 git -C /c/Users/mcwiz/Projects/Aletheia worktree list              # Only main
@@ -325,24 +351,46 @@ For Full Mode, consider adding Feature Work and Tooling sections manually after 
 
 ### Session Mode (Copy-Paste)
 ```bash
+# S1-S2: Git hygiene and audit
 git -C /c/Users/mcwiz/Projects/Aletheia checkout main && git -C /c/Users/mcwiz/Projects/Aletheia pull
 git -C /c/Users/mcwiz/Projects/Aletheia status && git -C /c/Users/mcwiz/Projects/Aletheia stash list && git -C /c/Users/mcwiz/Projects/Aletheia branch --list
 git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune
 gh issue list --state open --repo martymcenroe/Aletheia && gh pr list --state open --repo martymcenroe/Aletheia
+
+# S3: Doc sync (stage only)
 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
-git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md && git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: regenerate 6000-open-issues.md" --allow-empty && git -C /c/Users/mcwiz/Projects/Aletheia push
+git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
+
+# S4: Session log (write entry manually or via script)
+# S5: FINAL COMMIT (one commit for everything)
+git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/
+git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: session closeout $(powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd'")"
+git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
 ### Full Mode (Copy-Paste)
 ```bash
+# F1-F5: Git/worktree/branch/issue hygiene
 git -C /c/Users/mcwiz/Projects/Aletheia branch --list | grep -v "^\* main$" | grep -v "^  main$"
 git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 git -C /c/Users/mcwiz/Projects/Aletheia branch -vv && git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune origin && git -C /c/Users/mcwiz/Projects/Aletheia branch -r
 gh pr list --state open --repo martymcenroe/Aletheia && gh issue list --state open --repo martymcenroe/Aletheia
+
+# F7: Cost control
 /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
-git -C /c/Users/mcwiz/Projects/Aletheia status
-poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
 /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-off.sh
+
+# F9-F10: Inventory and doc sync (stage only, NO COMMIT)
+git -C /c/Users/mcwiz/Projects/Aletheia add docs/0003-file-inventory.md
+poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
+git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
+
+# F11-F12: Session log and browser cleanup
+# F13: FINAL COMMIT (one commit for everything)
+git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/ docs/9000-lessons-learned.md docs/0000a-IMMEDIATE-PLAN.md
+git -C /c/Users/mcwiz/Projects/Aletheia status
+git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: full cleanup $(powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd'")"
+git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
 ---
@@ -367,8 +415,10 @@ Report to human if any of these occur:
 
 | Don't | Do Instead |
 |:------|:-----------|
+| **Commit after each step** | **Stage with `git add`, ONE commit at end** |
 | Close laptop mid-conversation | Complete the turn, write session-log |
 | Leave feature branch checked out | Return to main |
 | Assume issues auto-closed | Verify with `gh issue view` |
 | Skip session-log "just this once" | It's 2 minutes, do it |
 | Leave stash entries unexplained | Document or drop them |
+| Run audits with separate commits each | Batch all audit fixes into closeout commit |

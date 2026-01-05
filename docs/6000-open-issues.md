@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-04 20:17 CT
-**Total Open Issues:** 28
+**Generated:** 2026-01-05 01:53 CT
+**Total Open Issues:** 36
 
 ---
 
@@ -51,7 +51,7 @@ LangSmith removed from scope (LangChain-specific, we're using Naked Python per A
 **Labels:** high-priority, chore
 
 **Created:** 2025-12-10
-**Updated:** 2026-01-04
+**Updated:** 2026-01-05
 
 ### Description
 
@@ -408,10 +408,10 @@ The markdown-to-PDF printing pipeline (tools/print/print_markdown.py) does not r
 
 ## Issue #116: feat: Authenticate users via LinkedIn OAuth
 
-**Labels:** security, feature
+**Labels:** security, high-priority, feature
 
 **Created:** 2025-12-30
-**Updated:** 2025-12-30
+**Updated:** 2026-01-05
 
 ### Description
 
@@ -626,7 +626,6 @@ Users should not be overwhelmed. They should see the artifact (Signal) and a bri
 - [ ] 'Expand' action reveals full context.
 - [ ] Visual hierarchy clearly distinguishes the three tiers.
 
-
 ---
 
 ## Issue #126: feat: Implement Hard vs. Soft Blocking Logic
@@ -702,7 +701,6 @@ Update `docs/0008-orchestrator-instructions.md` to require **Plan-Referenced Pro
 - [ ] `docs/0004-orchestration-protocol.md` updated with 'Active Plan' requirement.
 - [ ] `docs/0008-orchestrator-instructions.md` updated with Prompting Templates.
 
-
 ---
 
 ## Issue #128: process: Formalize 'Scaffolding vs. Logic' Task Splitting
@@ -742,7 +740,6 @@ Modify `docs/0102-TEMPLATE-feature-lld.md` or `docs/0004-orchestration-protocol.
 - [ ] Documentation updated to reflect the Two-Pass workflow.
 - [ ] Example provided in `0004-orchestration-protocol.md`.
 
-
 ---
 
 ## Issue #129: audit: Integrate 'Red Team' Architecture Challenge
@@ -771,7 +768,6 @@ Before coding begins, a separate Model (e.g., Gemini if Claude wrote the LLD) mu
 ## Definition of Done
 - [ ] `docs/0004-orchestration-protocol.md` updated with the Red Team step.
 - [ ] `docs/0109-gemini-lld-review-procedure.md` updated to include specific 'Red Team' attack vectors.
-
 
 ---
 
@@ -827,7 +823,7 @@ We need email capability for:
 ## Issue #137: Investigate 5-second Lambda latency
 
 **Created:** 2026-01-02
-**Updated:** 2026-01-02
+**Updated:** 2026-01-05
 
 ### Description
 
@@ -872,7 +868,7 @@ The extension shows "Saving..." for ~5 seconds before transitioning to "Context 
 **Labels:** security, backend, audit
 
 **Created:** 2026-01-04
-**Updated:** 2026-01-04
+**Updated:** 2026-01-05
 
 ### Description
 
@@ -930,7 +926,7 @@ aws dynamodb update-time-to-live \
 
 ## Issue #147: GDPR: Implement data erasure process (right to be forgotten)
 
-**Labels:** security, backend, audit
+**Labels:** security, high-priority, backend, audit
 
 **Created:** 2026-01-04
 **Updated:** 2026-01-05
@@ -1350,5 +1346,449 @@ These functions have a `url: str` parameter expecting a pytest fixture, but no s
 ## Impact
 
 Currently causes 5 errors in every test run (159 passed, 5 errors).
+
+---
+
+## Issue #154: feat: Add ARIA attributes for screen reader accessibility
+
+**Labels:** enhancement, frontend
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Summary
+
+The extension UI (overlay and popup) lacks ARIA attributes, making it inaccessible to users with screen readers.
+
+## Current State
+
+- Overlay appears/disappears with no announcement to assistive technology
+- No `role`, `aria-live`, or `aria-label` attributes on dynamic content
+- Keyboard navigation not fully supported (no `tabindex` management)
+
+## Acceptance Criteria
+
+### Overlay (`overlay.js`)
+- [ ] Add `role="alert"` to overlay container
+- [ ] Add `aria-live="polite"` for status updates
+- [ ] Ensure overlay content is announced when it appears
+
+### Popup (`popup.html`, `popup.js`)
+- [ ] Add `aria-label` to icon buttons
+- [ ] Add `role="status"` to dynamic status areas
+- [ ] Ensure allowlist toggle is keyboard accessible
+- [ ] Add `aria-checked` to toggle states
+
+### Blocked State
+- [ ] Announce "This site is blocked" to screen readers
+- [ ] Provide keyboard-accessible way to understand why
+
+## Technical Notes
+
+```javascript
+// Example fix for overlay.js
+shadow.innerHTML = `
+  <div class="overlay"
+       role="alert"
+       aria-live="polite"
+       aria-label="Aletheia status">
+    ${message}
+  </div>
+`;
+```
+
+## References
+
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [MDN ARIA Guide](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA)
+- [Chrome Extension Accessibility](https://developer.chrome.com/docs/extensions/mv3/a11y/)
+
+## Labels
+
+accessibility, enhancement, frontend
+
+---
+
+## Issue #155: feat: Implement 'noarchive' signal logic in Lambda
+
+**Labels:** security, feature, backend
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Context
+
+`docs/0007-signal-handling.md` states that content with the `noarchive` signal should be transformed/summarized and not persisted. Currently, `src/lambda_function.py` persists all text to DynamoDB regardless of signals.
+
+## Problem
+
+The Lambda handler does not check for `noarchive` signals before persisting user text to DynamoDB, violating the signal handling policy.
+
+## Requirements
+
+Update the Lambda logic to check the `signals` payload and skip the `save_state` call if `noarchive` is present.
+
+### Implementation
+
+**1. Check signals before save:**
+```python
+# In lambda_handler, before save_state():
+signals = event.get('signals', {})
+if not signals.get('noarchive', False):
+    save_state(thread_id, text, url, safety_score)
+```
+
+**2. Extension must pass signals:**
+Ensure `extension-chrome-V3/service-worker.js` includes parsed signals in the Lambda request payload.
+
+## Acceptance Criteria
+
+- [ ] Lambda checks for `noarchive` signal before persisting
+- [ ] If `noarchive` is true, `save_state()` is skipped
+- [ ] Extension passes signals from content script to Lambda
+- [ ] Unit tests verify both paths (with/without noarchive)
+
+## References
+
+- Signal Handling Policy: `docs/0007-signal-handling.md`
+- Privacy Audit: `docs/0810-audit-privacy.md`
+- Related: #145 (DynamoDB TTL)
+
+---
+
+## Issue #156: perf: Optimize extension 'Time to Feedback' latency
+
+**Labels:** enhancement, frontend
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Context
+
+0812 Performance Audit identified a HIGH severity issue: the time between user clicking "Explain with AI" and the "Saving..." overlay appearing is 500-1000ms (target: <100ms).
+
+## Root Cause
+
+Cumulative latency of sequential asynchronous operations:
+1. `contextMenus.onClicked` fires
+2. `storage.local.get` (Allowlist Check) - async
+3. `scripting.executeScript` (Inject Overlay) - async
+4. `scripting.executeScript` (Show Message) - async
+
+## Architectural Trade-off (ADR 0201)
+
+**Privacy wins, Performance loses.**
+
+Because we use `activeTab` permission instead of `host_permissions: ["<all_urls>"]`, we MUST use `scripting.executeScript` at interaction time. This is inherently slower than a pre-loaded content script but protects user privacy.
+
+## Optimization Options
+
+1. **Parallelize Allowlist Check and Script Injection:** Start injecting overlay script while checking allowlist
+2. **Pre-inject overlay on allowlisted domains:** After allowlist check passes, inject overlay.js immediately so it's ready for future clicks
+3. **Reduce async chain:** Combine multiple scripting.executeScript calls where possible
+
+## Acceptance Criteria
+
+- [ ] Measure current "click-to-glass" time in Chrome DevTools
+- [ ] Implement parallelization of allowlist check and script injection
+- [ ] Verify improvement (target: <200ms)
+- [ ] Apply to both Chrome and Firefox extensions
+
+## References
+
+- docs/GEMINI-HANDOFF-OVERLAY-TIMING.md
+- docs/0812-audit-performance.md
+- ADR 0201 (Privacy First Architecture)
+
+---
+
+## Issue #157: chore: Migrate ESLint to flat config format
+
+**Labels:** chore
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Context
+
+0813 Code Quality Audit identified that our ESLint configuration uses the legacy format (`.eslintrc.json`). ESLint 9+ uses "flat config" (`eslint.config.js`).
+
+## Current State
+
+- File: `.eslintrc.json`
+- Format: Legacy JSON config
+- Works with: ESLint v8 (currently pinned)
+
+## Problem
+
+- ESLint v9+ requires flat config format
+- Continuing to use legacy format creates upgrade friction
+- Eventually ESLint will drop support for legacy config
+
+## Migration Steps
+
+1. Create `eslint.config.js` with equivalent rules
+2. Update any `ESLINT_USE_FLAT_CONFIG` env var usage
+3. Test on both Chrome and Firefox extension code
+4. Remove `.eslintrc.json`
+5. Update CI workflow if needed
+
+## References
+
+- [ESLint Flat Config Migration Guide](https://eslint.org/docs/latest/use/configure/migration-guide)
+- [ESLint v9 Release Notes](https://eslint.org/blog/2024/04/eslint-v9.0.0-released/)
+
+## Priority
+
+LOW - Current setup works, this is future-proofing.
+
+---
+
+## Issue #159: docs: Update GitHub Wiki for 0817 audit findings
+
+**Labels:** documentation
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Context
+
+0817 Wiki Alignment Audit (Gemini 3.0 Pro, 2026-01-05) identified content drift between the GitHub Wiki and actual system behavior.
+
+## Required Updates
+
+### 1. Privacy Page (CRITICAL)
+
+**Current State:** Wiki says "in-memory only"
+**Actual State:** Lambda persists data to DynamoDB
+
+**Updates needed:**
+- Disclose DynamoDB persistence
+- Document 24/48h TTL (once #145 is implemented)
+- Note lack of user authentication
+- Reference data erasure process (#147)
+
+### 2. Terms of Use Page (HIGH)
+
+**Required:** Create page detailing prohibited content categories enforced by:
+- `extension-chrome-V3/content-safety.js` (client-side age gate)
+- `src/guardrails/denylist.py` (server-side hate speech filter)
+
+Content categories from `src/guardrails/resources/taxonomy.json`:
+- Hate Speech
+- Harassment
+- Sexual Content
+- Age-restricted content
+
+### 3. Architecture Page (MEDIUM)
+
+**Updates needed:**
+- Remove references to LangGraph/LangChain (per ADR 0211 Naked Python)
+- Add Digital Etymologist persona (#124)
+- Document buffered response pattern
+- Update data flow diagram
+
+## Wiki Edit Process
+
+Per `docs/0817-audit-wiki-alignment.md` §5:
+```bash
+git clone https://github.com/martymcenroe/Aletheia.wiki.git
+cd Aletheia.wiki
+# Edit .md files
+git commit -am "docs: update wiki per 0817 audit"
+git push
+```
+
+## References
+
+- 0817 Audit: `docs/0817-audit-wiki-alignment.md`
+- Privacy Audit: `docs/0810-audit-privacy.md`
+- Related: #145 (TTL), #147 (GDPR), #148 (Bedrock no-training)
+
+---
+
+## Issue #160: chore: Automate accessibility checks in CI (pa11y/axe-core)
+
+**Labels:** testing, chore
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Context
+
+0899 Meta-Audit identified that 0811 (Accessibility) is currently a manual procedure with high toil, likely to be skipped during crunch times.
+
+## Proposal
+
+Add automated accessibility scanning to CI pipeline using:
+- **pa11y** - CLI accessibility testing
+- **axe-core** - Accessibility testing engine (used by Playwright)
+
+## Implementation Options
+
+### Option A: pa11y in CI
+\
+added 128 packages in 40s
+
+8 packages are looking for funding
+  run aletheia@1.0.0
+├─┬ https://eslint.org/donate
+│ │ └── eslint@9.39.2, @eslint/js@9.39.2
+│ ├── https://opencollective.com/eslint
+│ │   └── @eslint-community/eslint-utils@4.9.1, eslint-visitor-keys@3.4.3, @eslint/eslintrc@3.3.3, eslint-scope@8.4.0, eslint-visitor-keys@4.2.1, espree@10.4.0
+│ ├── https://github.com/sponsors/nzakas
+│ │   └── @humanwhocodes/module-importer@1.0.1, @humanwhocodes/retry@0.4.3
+│ ├── https://github.com/sponsors/epoberezkin
+│ │   └── ajv@6.12.6, ajv@8.12.0
+│ └─┬ https://github.com/chalk/chalk?sponsor=1
+│   │ └── chalk@4.1.2, chalk@5.0.1
+│   └── https://github.com/chalk/ansi-styles?sponsor=1
+│       └── ansi-styles@4.3.0, ansi-styles@6.2.3
+├── https://github.com/chalk/chalk-template?sponsor=1
+│   └── chalk-template@0.4.0
+└── https://github.com/sponsors/ljharb
+    └── minimist@1.2.8 for details
+
+Welcome to Pa11y
+
+ > Running Pa11y on URL http://localhost:8080/popup.html
+### Option B: axe-core with Playwright
+\
+## Acceptance Criteria
+
+- [ ] CI fails on WCAG Level A violations
+- [ ] CI warns on WCAG Level AA violations
+- [ ] Popup.html and overlay tested
+- [ ] Results logged for audit record
+
+## References
+
+- 0811 Accessibility Audit: - 0899 Meta-Audit recommendation #1
+- Issue #154 (ARIA attributes) - manual fixes needed first
+
+---
+
+## Issue #161: chore: Automate performance benchmarks in CI
+
+**Labels:** testing, chore
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Context
+
+0899 Meta-Audit identified that 0812 (Performance) is currently a manual procedure involving "Check CloudWatch" with high toil.
+
+## Proposal
+
+Add automated performance benchmarks to CI pipeline.
+
+## Implementation Options
+
+### Option A: pytest-benchmark for Lambda
+```python
+def test_lambda_handler_latency(benchmark):
+    result = benchmark(lambda_handler, mock_event, mock_context)
+    assert result['statusCode'] == 200
+```
+
+### Option B: Playwright performance metrics
+```javascript
+test('extension load performance', async ({ page }) => {
+  const metrics = await page.metrics();
+  expect(metrics.TaskDuration).toBeLessThan(100);
+});
+```
+
+### Option C: Dedicated benchmark workflow
+Run on schedule (weekly) rather than every PR to avoid CI slowdown.
+
+## Metrics to Track
+
+| Metric | Target | Source |
+|--------|--------|--------|
+| Lambda cold start | <500ms | CloudWatch |
+| Lambda warm | <100ms | pytest-benchmark |
+| Extension load | <100ms | Playwright metrics |
+| Click-to-glass | <200ms | Playwright |
+
+## Acceptance Criteria
+
+- [ ] Benchmark tests added to test suite
+- [ ] Baseline metrics documented in 0812
+- [ ] Regression detection (fail if >20% slower)
+
+## References
+
+- 0812 Performance Audit: `docs/0812-audit-performance.md`
+- 0899 Meta-Audit recommendation #1
+- Issue #156 (frontend latency optimization)
+
+---
+
+## Issue #162: feat: Implement 'noarchive' signal logic in Lambda
+
+**Labels:** feature, backend
+
+**Created:** 2026-01-05
+**Updated:** 2026-01-05
+
+### Description
+
+## Problem
+
+`docs/0007-signal-handling.md` documents that we respect the `noarchive` signal by routing to the Transform layer (summarization for copyright compliance). However, `lambda_function.py` currently ignores this signal entirely.
+
+**This is a Documentation vs Code drift.**
+
+## Current State
+
+- `docs/0007` states: `noarchive` → Action: TRANSFORM
+- `src/lambda_function.py`: No `noarchive` handling exists
+- Signal Inspector (`src/signal_inspector/`) can detect `noarchive` but Lambda doesn't use it
+
+## Requirements
+
+1. Lambda should check for `noarchive` signal (via meta tag or X-Robots-Tag header)
+2. If present, route response through Transform layer (summarization)
+3. If absent, return full context
+
+## Technical Approach
+
+Option A: Client-side detection
+- Extension detects `noarchive` and sends flag in request payload
+- Lambda checks flag and applies Transform layer
+
+Option B: Server-side detection
+- Lambda fetches page headers/meta (adds latency)
+- Apply Transform layer if `noarchive` detected
+
+**Recommendation:** Option A (client already has page context)
+
+## References
+
+- Signal handling spec: `docs/0007-signal-handling.md`
+- Signal Inspector: `src/signal_inspector/`
+- Transform layer: Currently implemented as summarization in etymologist response
+
+## Acceptance Criteria
+
+- [ ] Lambda respects `noarchive` signal per 0007 spec
+- [ ] Transform layer applies summarization when signal present
+- [ ] Tests verify both paths (with/without `noarchive`)
 
 ---
