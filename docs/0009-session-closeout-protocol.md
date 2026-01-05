@@ -237,6 +237,14 @@ No `cd` needed - use `git -C` and absolute paths throughout.
 **Also check:**
 - [ ] LLD status updated? ("Approved" → "Complete" for finished features)
 - [ ] Lessons captured in `docs/9000-lessons-learned.md`?
+- [ ] `docs/0000a-IMMEDIATE-PLAN.md` reflects reality? (Current State table, Critical Path steps, Open PRs count)
+
+**⚠️ CRITICAL:** If any issues/PRs were closed this session, update 0000a:
+```bash
+🤖 # Review current state
+🤖 cat /c/Users/mcwiz/Projects/Aletheia/docs/0000a-IMMEDIATE-PLAN.md | head -50
+🤖 # Edit to mark completed items as ✅ COMPLETE, update "Next Action", etc.
+```
 
 ### F10a. Wiki Alignment Check (0817)
 
