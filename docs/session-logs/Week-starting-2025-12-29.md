@@ -1777,14 +1777,22 @@ Tested 0009 closeout procedure autonomy. Discovered two permission blockers: (1)
 - **Permission pattern matching:** `cd /c/Users/mcwiz/Projects/Aletheia && poetry run` doesn't match `Bash(poetry:*)` because pattern matches from command start
 - **Workaround:** `poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/...` works without prompting
 
+### Documentation Fixes
+- **0000-GUIDE.md:** Added missing 0006-0015 standards, added missing 01xx templates
+- **CLAUDE.md:** Added mandatory Session Closeout section referencing 0009
+- **0807-agentos-audit.md:** Added Step 7 - verify 0000-GUIDE lists all actual files
+- **9000-lessons-learned.md:** Added "never guess filenames" lesson
+
 ### Commits
 - `886fcb7` - docs: regenerate 6000-open-issues.md
 - `da7991f` - docs: session log for 2026-01-04 (closeout autonomy test)
 - `a65d7fa` - docs: update 0009 to use absolute paths (no permission prompts)
+- `52b7475` - docs: update session log with 0009 fix
+- `c95b541` - docs: add missing files to 0000-GUIDE, add 0807 Step 7 audit, lesson learned
 
 ### State on Exit
-- **Branch:** main @ a65d7fa
+- **Branch:** main @ c95b541
 - **Worktrees:** Only main
 - **Open PRs:** 0
 - **Lambda:** Not checked
-- **Next:** 0009 closeout should now run without permission prompts
+- **Next:** 0009 closeout should now run without permission prompts; 0807 audit has new Step 7
