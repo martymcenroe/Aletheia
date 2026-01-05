@@ -74,27 +74,21 @@ Quick 5-10 minute closeout for routine session endings.
 
 ### S4. Session Log Entry
 
+**Option A: Use append script (recommended - avoids token limits)**
+```bash
+🤖 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
+    --model "Claude Opus 4.5" \
+    --summary "Brief description of session accomplishments" \
+    --created "None" \
+    --closed "None" \
+    --next "Per user direction"
+```
+
+**Option B: Manual append (if script unavailable)**
 ```bash
 🤖 powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
 ```
-
-Append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md`:
-
-```markdown
-## YYYY-MM-DD HH:MM CT | Model Name
-
-### Summary
-One paragraph describing the session's main accomplishment.
-
-### Issues
-- Created: #XX, #YY
-- Closed: #ZZ
-
-### State on Exit
-- Branch: main
-- Last commit: <sha>
-- Next: What the next session should pick up
-```
+Then append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md` (read with offset if file is large).
 
 ### S5. Final Verification
 
@@ -267,34 +261,23 @@ See `docs/0817-audit-wiki-alignment.md` for full audit procedure.
 
 ### F11. Session Log Entry
 
+**Option A: Use append script (recommended - avoids token limits)**
+```bash
+🤖 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
+    --model "Claude Opus 4.5" \
+    --summary "Brief description of session accomplishments" \
+    --created "#XX, #YY" \
+    --closed "#ZZ" \
+    --next "Next steps for following session"
+```
+
+**Option B: Manual append (if script unavailable)**
 ```bash
 🤖 powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"
 ```
+Then append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md` (read with offset if file is large).
 
-Append entry to `docs/session-logs/Week-starting-YYYY-MM-DD.md`:
-
-```markdown
-## YYYY-MM-DD HH:MM CT | Model Name
-
-### Summary
-One paragraph describing the session's main accomplishment.
-
-### Feature Work
-- Shipped features, implementations, bug fixes
-
-### Tooling
-- Documentation updates, template improvements, process refinements
-
-### Issues
-- Created: #XX, #YY
-- Closed: #ZZ
-
-### State on Exit
-- Branch: main
-- Last commit: <sha>
-- Open PRs: 0
-- Next: What the next session should pick up
-```
+For Full Mode, consider adding Feature Work and Tooling sections manually after script appends the base template.
 
 ### F12. Browser Extension Cleanup (👤 Human Only)
 

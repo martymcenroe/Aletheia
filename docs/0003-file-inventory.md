@@ -248,6 +248,7 @@
 | `tools/print/print_most_recent_open_issues.py` | **Utility** | 🟢 **Stable** | - | GitHub issues fetcher/printer (saves to docs/6000-*.md). |
 | `tools/print/audit_long_lines.py` | **Utility** | 🟢 **Stable** | #103 | Audits markdown files for print overflow (>100 char lines). |
 | `tools/print/pandoc-header.tex` | **Asset** | 🟢 **Stable** | - | LaTeX header template for PDF generation (fancy headers). |
+| `tools/append_session_log.py` | **Utility** | 🟢 **Stable** | - | Append session log entries without reading entire file (avoids token limits). |
 | `tools/aws/lambda-status.sh` | **Utility** | 🟢 **Stable** | - | Show Lambda concurrency status (ON/OFF). |
 | `tools/aws/lambda-on.sh` | **Utility** | 🟢 **Stable** | - | Enable Lambda (remove concurrency limit). |
 | `tools/aws/lambda-off.sh` | **Utility** | 🟢 **Stable** | - | Disable Lambda (set concurrency=0). |
