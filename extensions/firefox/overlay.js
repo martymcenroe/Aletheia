@@ -1,4 +1,4 @@
-// extension-firefox-V2/overlay.js
+// extensions/firefox/overlay.js
 // MV2 Implementation with Firefox timing fixes
 
 console.log("[Aletheia] overlay.js injected");

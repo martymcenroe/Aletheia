@@ -1,4 +1,4 @@
-// extension-firefox-V2/popup.js
+// extensions/firefox/popup.js
 // Firefox MV2 - uses browser.* API
 
 // State management

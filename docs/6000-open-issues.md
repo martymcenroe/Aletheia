@@ -69,7 +69,7 @@ Prepare assets (Manifest, Privacy Policy, Store Listing) for submission.
 ### Description
 
 ## Status Update (2026-01-04)
-**Partially Complete:** `tools/generate_store_assets.py` and `tools/build_release.py` exist but reference old `extension/` path. Need to update for `extension-chrome-V3/` directory structure.
+**Partially Complete:** `tools/generate_store_assets.py` and `tools/build_release.py` exist but reference old `extension/` path. Need to update for `extensions/chrome/` directory structure.
 
 ---
 
@@ -80,7 +80,7 @@ Create a script (`tools/generate_store_assets.py`) to deterministically generate
 
 ### 1. Icon Generation
 - **Input:** `tools/master_lambda.png` (High-res source)
-- **Output:** `extension-chrome-V3/icons/` {16, 32, 48, 128}.png
+- **Output:** `extensions/chrome/icons/` {16, 32, 48, 128}.png
 - **Constraint:** Transparent backgrounds, optimized PNGs.
 
 ### 2. Promotional Tiles (Placeholders)
@@ -95,7 +95,7 @@ Create a script (`tools/generate_store_assets.py`) to deterministically generate
 ## Acceptance Criteria
 - [ ] Zip file contains **only** client-side artifacts.
 - [ ] No Python code or secrets leaked in the extension zip.
-- [ ] Scripts updated for `extension-chrome-V3/` directory structure.
+- [ ] Scripts updated for `extensions/chrome/` directory structure.
 
 ---
 
@@ -1443,7 +1443,7 @@ if not signals.get('noarchive', False):
 ```
 
 **2. Extension must pass signals:**
-Ensure `extension-chrome-V3/service-worker.js` includes parsed signals in the Lambda request payload.
+Ensure `extensions/chrome/service-worker.js` includes parsed signals in the Lambda request payload.
 
 ## Acceptance Criteria
 
@@ -1581,7 +1581,7 @@ LOW - Current setup works, this is future-proofing.
 ### 2. Terms of Use Page (HIGH)
 
 **Required:** Create page detailing prohibited content categories enforced by:
-- `extension-chrome-V3/content-safety.js` (client-side age gate)
+- `extensions/chrome/content-safety.js` (client-side age gate)
 - `src/guardrails/denylist.py` (server-side hate speech filter)
 
 Content categories from `src/guardrails/resources/taxonomy.json`:

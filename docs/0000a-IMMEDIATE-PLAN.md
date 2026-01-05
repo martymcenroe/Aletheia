@@ -9,8 +9,8 @@
 
 | Component | Status |
 |-----------|--------|
-| Extension - Chrome MV3 | ✅ Working (`extension-chrome-V3/`) |
-| Extension - Firefox MV2 | ✅ Working (`extension-firefox-V2/`) |
+| Extension - Chrome MV3 | ✅ Working (`extensions/chrome/`) |
+| Extension - Firefox MV2 | ✅ Working (`extensions/firefox/`) |
 | Lambda (Bedrock + DynamoDB) | ✅ Deployed |
 | Denylist (803 Wikipedia terms) | ✅ Integrated |
 | Semantic guardrails | ✅ Active |

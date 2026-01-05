@@ -111,11 +111,11 @@ export default [
     }
   },
   {
-    files: ["extension-chrome-V3/**/*.js"],
+    files: ["extensions/chrome/**/*.js"],
     // Chrome-specific overrides
   },
   {
-    files: ["extension-firefox-V2/**/*.js"],
+    files: ["extensions/firefox/**/*.js"],
     // Firefox-specific overrides
   }
 ];
@@ -157,8 +157,8 @@ N/A - Configuration file, no code interfaces.
 
 | ID | Scenario | Type | Input | Expected Output | Pass Criteria |
 |----|----------|------|-------|-----------------|---------------|
-| 010 | Lint Chrome extension | Auto | `npx eslint extension-chrome-V3/` | Same warnings/errors | Output matches |
-| 020 | Lint Firefox extension | Auto | `npx eslint extension-firefox-V2/` | Same warnings/errors | Output matches |
+| 010 | Lint Chrome extension | Auto | `npx eslint extensions/chrome/` | Same warnings/errors | Output matches |
+| 020 | Lint Firefox extension | Auto | `npx eslint extensions/firefox/` | Same warnings/errors | Output matches |
 | 030 | CI workflow passes | Auto | Push to branch | Green CI | Lint step passes |
 
 ### 11.2 Test Commands
@@ -166,10 +166,10 @@ N/A - Configuration file, no code interfaces.
 ```bash
 # Compare outputs before/after migration
 # Before (with .eslintrc.json)
-ESLINT_USE_FLAT_CONFIG=false npx eslint extension-chrome-V3/ > eslint-before.txt
+ESLINT_USE_FLAT_CONFIG=false npx eslint extensions/chrome/ > eslint-before.txt
 
 # After (with eslint.config.js)
-npx eslint extension-chrome-V3/ > eslint-after.txt
+npx eslint extensions/chrome/ > eslint-after.txt
 
 diff eslint-before.txt eslint-after.txt
 ```

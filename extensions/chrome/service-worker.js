@@ -1,4 +1,4 @@
-// extension-chrome-V3/service-worker.js
+// extensions/chrome/service-worker.js
 // Chrome Manifest V3 version
 
 // [CV-7] CONSTANTS - WIRED TO CLOUDFRONT (WAF-protected)

@@ -1,4 +1,4 @@
-// extension-chrome-V3/popup.js
+// extensions/chrome/popup.js
 // State management
 let currentDomain = null;
 const selectedDomains = new Set();

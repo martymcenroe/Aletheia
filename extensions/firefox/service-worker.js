@@ -1,4 +1,4 @@
-// extension-firefox-V2/service-worker.js
+// extensions/firefox/service-worker.js
 // Firefox Manifest V2 version
 
 // [CV-7] CONSTANTS - WIRED TO AWS LAMBDA

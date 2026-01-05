@@ -39,7 +39,7 @@ function checkPageRating() {
  * Inline copy of isAgeRestricted logic from content-safety.js
  * Required because content scripts can't import ES modules in MV3
  *
- * Keep in sync with extension-chrome-V3/content-safety.js
+ * Keep in sync with extensions/chrome/content-safety.js
  */
 function isAgeRestrictedInline(ratingContent) {
     const RTA_LABEL_PATTERN = 'rta-5042-1996-1400-1577-rta';

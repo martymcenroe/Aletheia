@@ -240,8 +240,8 @@ document.body.appendChild(host);
 
 ### 9.3 Dual-Extension Requirement (Chrome + Firefox)
 The extension is maintained as **two separate codebases**:
-- `extension-chrome-V3/` — Manifest V3 for Chrome (uses `chrome.*` APIs)
-- `extension-firefox-V2/` — Manifest V2 for Firefox (uses `browser.*` APIs)
+- `extensions/chrome/` — Manifest V3 for Chrome (uses `chrome.*` APIs)
+- `extensions/firefox/` — Manifest V2 for Firefox (uses `browser.*` APIs)
 
 **Rule:** When making ANY change to extension logic, you MUST:
 1. Apply the change to BOTH directories

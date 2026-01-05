@@ -99,7 +99,7 @@ sequenceDiagram
 
 ## 6. Technical Approach
 
-* **Module:** `extension-chrome-V3/service-worker.js`, `extension-chrome-V3/content-check.js` (new), `extension-chrome-V3/content-safety.js` (new - pure logic)
+* **Module:** `extensions/chrome/service-worker.js`, `extensions/chrome/content-check.js` (new), `extensions/chrome/content-safety.js` (new - pure logic)
 * **Dependencies:** Chrome Extension APIs (`scripting`, `tabs`, `action`)
 * **Required Permissions:** `scripting`, `tabs`, `activeTab` (NO `<all_urls>` - see ADR 0201)
 * **Pattern:** Event-driven state machine per tab
@@ -331,7 +331,7 @@ function clearTabState(tabId: number): void;
 
 ```javascript
 // tests/test_content_safety.js
-const { isAgeRestricted, RTA_LABEL_PATTERN } = require('../extension-chrome-V3/content-safety.js');
+const { isAgeRestricted, RTA_LABEL_PATTERN } = require('../extensions/chrome/content-safety.js');
 
 describe('isAgeRestricted', () => {
     // Blocked cases

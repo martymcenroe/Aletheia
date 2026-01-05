@@ -1,4 +1,4 @@
-// extension-chrome-V3/overlay.js
+// extensions/chrome/overlay.js
 // V3 Implementation
 
 if (!window.updateAletheiaOverlay) {
