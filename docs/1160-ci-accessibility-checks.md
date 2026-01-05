@@ -9,11 +9,16 @@
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
 
-- [ ] Should we use pa11y (CLI-based) or axe-core with Playwright (already in stack)?
+- [x] ~~Should we use pa11y (CLI-based) or axe-core with Playwright (already in stack)?~~ **axe-core with Playwright**
 - [ ] Should CI fail on WCAG Level A violations only, or also AA?
 - [ ] Do we need to test popup.html served from a local server, or can we test the file directly?
-- [ ] Should we test the overlay in-page, or is popup.html sufficient?
+- [x] ~~Should we test the overlay in-page, or is popup.html sufficient?~~ **MUST test Overlay DOM in-page**
 - [ ] What's the baseline? Do we fix existing issues first (#154) or document them as known?
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: Should we test the overlay in-page?**
+   **A: YES - REQUIRED.** Testing `popup.html` covers the popup, but the Overlay (injected into content pages) is a SEPARATE DOM structure that interacts with arbitrary host page CSS. The Overlay must be tested in-page with `axe.analyze()` on the overlay container specifically.
 
 ## 2. Requirements
 
@@ -92,6 +97,29 @@ test.describe('Accessibility', () => {
       console.warn('WCAG AA violations:', results.violations);
     }
   });
+
+  // CRITICAL: Test Overlay DOM in-page (per Gemini review)
+  test('overlay in-page has no WCAG A violations', async ({ page }) => {
+    await page.goto('/test-page.html');
+
+    // Inject overlay (simulate extension behavior)
+    await page.evaluate(() => {
+      const overlay = document.createElement('div');
+      overlay.className = 'aletheia-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'false');
+      overlay.innerHTML = '<div aria-live="polite">Test content</div><button aria-label="Close">×</button>';
+      document.body.appendChild(overlay);
+    });
+
+    // Run axe on overlay specifically
+    const results = await new AxeBuilder({ page })
+      .include('.aletheia-overlay')
+      .withTags(['wcag2a', 'wcag21a'])
+      .analyze();
+
+    expect(results.violations).toEqual([]);
+  });
 });
 ```
 
@@ -141,6 +169,7 @@ N/A - Test infrastructure, no code interfaces.
 |----|----------|------|-------|-----------------|---------------|
 | 010 | Clean popup passes | Auto | Accessible popup.html | No violations | Zero A violations |
 | 020 | Violation detected | Auto | Add inaccessible element | Violation reported | Test fails |
+| 030 | **Overlay in-page** | Auto | Inject overlay into test page | No violations | Zero A violations |
 
 ### 11.2 Test Commands
 
@@ -165,3 +194,18 @@ npx pa11y extension-chrome-V3/popup.html --standard WCAG2A
 ### Documentation
 - [ ] 0811 Accessibility Audit updated with automation status
 - [ ] 0899 Meta-Audit recommendation marked resolved
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Must test Overlay DOM, not just Popup | Added test case 030 that injects overlay and runs axe.analyze() on it specifically |
+
+**Verdict:** APPROVED - With overlay testing requirement.

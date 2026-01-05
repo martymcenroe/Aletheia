@@ -10,10 +10,15 @@
 *Questions that need clarification before or during implementation. Remove when resolved.*
 
 - [ ] What's the current measured latency breakdown? (allowlist check vs script injection vs message passing)
-- [ ] Is parallelization of allowlist check and script injection safe? Any race conditions?
+- [x] ~~Is parallelization of allowlist check and script injection safe? Any race conditions?~~ **Yes - use Promise.all, cleanup AFTER both resolve**
 - [ ] Should we pre-inject overlay.js on allowlisted domains? Privacy implications?
 - [ ] Is 200ms target achievable given activeTab permission model constraints?
 - [ ] Do we need Chrome DevTools profiling first to identify actual bottlenecks?
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: Race condition risk with parallel operations?**
+   **A: Use `Promise.all` and cleanup AFTER both resolve.** Do NOT try to cleanup "early" - wait for BOTH promises to resolve, THEN check `allowed`, THEN remove overlay if denied. This ensures the injection is complete before attempting removal.
 
 ## 2. Requirements
 
@@ -97,20 +102,26 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// Proposed (parallel where safe)
+// Proposed (parallel where safe) - CORRECT PATTERN
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  // Start both immediately
+  // Start both immediately - Promise.all waits for BOTH to complete
   const [allowed, _injected] = await Promise.all([
     checkAllowlist(tab.url),
     injectOverlay(tab.id)  // Inject optimistically
   ]);
 
+  // CRITICAL: Only cleanup AFTER Promise.all resolves
+  // This ensures injection is complete before we try to remove
   if (allowed) {
     await showMessage(tab.id, "Analyzing...");
   } else {
-    await hideOverlay(tab.id);  // Clean up if not allowed
+    // Safe to remove - injection is definitely complete
+    await removeOverlay(tab.id);
   }
 });
+
+// WARNING: Do NOT do this (race condition)
+// ❌ if (!allowed) removeOverlay() // might run before injection completes
 ```
 
 ## 7. Interface Specification
@@ -184,3 +195,22 @@ npx playwright test --grep latency
 
 ### Documentation
 - [ ] 0812 Performance Audit updated with new metrics
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Race condition on cleanup | Added explicit warning: cleanup ONLY after `Promise.all` resolves |
+
+### Tier 3 Issues (SUGGESTIONS) - Noted
+
+| Issue | Status |
+|-------|--------|
+| Optimistic UI ("Thinking..." spinner) | Good idea for perceived performance; consider in implementation |

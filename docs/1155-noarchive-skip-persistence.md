@@ -9,11 +9,22 @@
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
 
-- [ ] Should the extension detect `noarchive` (client-side) or should Lambda fetch/check headers (server-side)?
-- [ ] Issue body suggests client-side (Option A) - confirm this is the approach?
-- [ ] What happens to the response if we don't persist? Still return analysis but don't save?
-- [ ] Should we log that persistence was skipped (for debugging) without logging the content?
-- [ ] How does this interact with #162 (Transform layer)? Are these the same signal handling or different responses?
+- [x] ~~Should the extension detect `noarchive` (client-side) or should Lambda fetch/check headers (server-side)?~~ **Client-side (extension)**
+- [x] ~~Issue body suggests client-side (Option A) - confirm this is the approach?~~ **Yes, confirmed**
+- [x] ~~What happens to the response if we don't persist?~~ **Still return analysis, just don't save to DynamoDB**
+- [x] ~~Should we log that persistence was skipped?~~ **Yes - log `{"action": "save_state_skipped", "reason": "noarchive_signal"}`**
+- [x] ~~How does this interact with #162 (Transform layer)?~~ **BOTH apply - they are additive privacy layers**
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: How does this interact with #162 (Transform layer)?**
+   **A: BOTH apply.** The signals are NOT mutually exclusive; they are additive privacy layers:
+   - **#1155 (this):** Skip DynamoDB persistence
+   - **#162:** Summarize/transform the output
+   When `noarchive` is present, apply BOTH: don't save AND summarize.
+
+2. **Q: Should we log when persistence is skipped?**
+   **A: Yes.** Log `{"action": "save_state_skipped", "reason": "noarchive_signal"}` (without content). This is crucial for debugging why an item is "missing" from DynamoDB later.
 
 ## 2. Requirements
 
@@ -52,8 +63,10 @@ Page ──extension detects noarchive──► Include in request ──Lambda 
 
 | Fixture | Source | Notes |
 |---------|--------|-------|
-| Page with noarchive meta | Test HTML | For E2E testing |
+| `noarchive.html` | Test HTML (GitHub Pages) | **Required** - dedicated fixture for deterministic testing |
 | Page without noarchive | Test HTML | Control case |
+
+**Note:** E2E test suite MUST include `tests/fixtures/noarchive.html` with `<meta name="robots" content="noarchive">` to deterministically test this behavior.
 
 ## 5. Diagram
 
@@ -116,12 +129,17 @@ const payload = {
 
 ```python
 # lambda_function.py
+import json
+
 def lambda_handler(event, context):
     ...
     signals = event.get('signals', {})
 
     # Only persist if noarchive is not set
-    if not signals.get('noarchive', False):
+    if signals.get('noarchive', False):
+        # Log skip for debugging (no content logged)
+        print(json.dumps({"action": "save_state_skipped", "reason": "noarchive_signal"}))
+    else:
         save_state(thread_id, text, url, safety_score)
 
     return response
@@ -205,8 +223,29 @@ npx playwright test --grep noarchive
 - [ ] Both Chrome and Firefox extensions updated
 
 ### Tests
-- [ ] Unit test for Lambda conditional
-- [ ] E2E test with noarchive test page
+- [ ] Unit test for Lambda conditional (includes logging verification)
+- [ ] E2E test with `noarchive.html` fixture
+- [ ] Verify log output: `{"action": "save_state_skipped", "reason": "noarchive_signal"}`
 
 ### Documentation
 - [ ] 0007-signal-handling.md verified as accurate
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Interaction with #162 | Clarified: BOTH apply - additive privacy layers |
+| Test fixture | Added requirement for `noarchive.html` dedicated fixture |
+
+### Tier 3 Issues (SUGGESTIONS) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Logging | Added structured JSON log: `{"action": "save_state_skipped", "reason": "noarchive_signal"}` |

@@ -9,12 +9,23 @@
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
 
-- [ ] What exactly does "Transform layer" mean? Summarize the LLM response before returning to user?
-- [ ] Is this about copyright compliance (don't reproduce full content) or privacy (don't persist)?
-- [ ] How aggressive should summarization be? 50% reduction? Key points only?
-- [ ] Should Transform apply INSTEAD of or IN ADDITION to skipping persistence (#155)?
+- [x] ~~What exactly does "Transform layer" mean?~~ **Summarize/abstract the output via modified prompt**
+- [x] ~~Is this about copyright compliance (don't reproduce full content) or privacy (don't persist)?~~ **Both - complementary to #155**
+- [x] ~~How aggressive should summarization be?~~ **Brief abstract (2-3 sentences), no deep analysis**
+- [x] ~~Should Transform apply INSTEAD of or IN ADDITION to skipping persistence (#155)?~~ **IN ADDITION - both apply**
 - [ ] Does the Digital Etymologist persona already do some summarization? Is this redundant?
-- [ ] What's the difference between this issue and #155? Both mention noarchive signal.
+- [x] ~~What's the difference between this issue and #155?~~ **#155 skips persistence, #162 summarizes output**
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: Which implementation option?**
+   **A: Option B - Prompt Engineering (SELECTED).** Latency is critical. We CANNOT afford a 2x slowdown for privacy compliance. Use a single LLM call with conditionally modified prompt.
+
+2. **Q: How does this interact with #155?**
+   **A: Both apply (additive privacy layers).** When `noarchive` is present:
+   - #155: Skip DynamoDB persistence
+   - #162 (this): Summarize/transform the output
+   Apply BOTH, not one or the other.
 
 ## 2. Requirements
 
@@ -27,12 +38,12 @@ Per docs/0007-signal-handling.md:
 
 | Option | Pros | Cons | Decision |
 |--------|------|------|----------|
-| Summarize at Lambda response | Centralized | Adds latency | Consider |
-| Summarize in extension | No Lambda change | JS complexity | Rejected |
-| Truncate response | Simple | Loses context | Rejected |
-| Different prompt for noarchive | Clean separation | Prompt maintenance | Consider |
+| Second LLM call for summarization | Complete separation | **2x latency/cost** | **Rejected** |
+| **Conditional prompt modification** | Single LLM call, no latency penalty | Prompt complexity | **Selected** |
+| Truncate response | Simple | Loses context, not a real summary | Rejected |
+| Summarize in extension | No Lambda change | JS complexity, client-side processing | Rejected |
 
-**Rationale:** TBD - need clarification on Transform layer definition.
+**Rationale:** Latency is critical. Using a conditionally modified prompt (Option B) achieves summarization without doubling LLM calls. The prompt instructs: "Since this content is marked noarchive, provide a brief abstract/summary only. Do not analyze in depth."
 
 ## 4. Data & Fixtures
 
@@ -68,47 +79,63 @@ sequenceDiagram
 ## 6. Technical Approach
 
 * **Module:** `src/lambda_function.py`
-* **Dependencies:** Bedrock (for summarization call)
-* **Pattern:** Post-processing transformation
+* **Dependencies:** Bedrock (existing - no additional calls)
+* **Pattern:** Conditional prompt modification (SELECTED)
 
-### Implementation Options
-
-#### Option A: Second LLM Call for Summarization
-
-```python
-def transform_response(full_response: str) -> str:
-    """Summarize response for noarchive compliance."""
-    prompt = f"""Summarize this analysis in 2-3 key points:
-    {full_response}"""
-    return invoke_bedrock_for_summary(prompt)
-```
-
-**Concern:** Doubles LLM cost and latency.
-
-#### Option B: Different Prompt for noarchive
+### 6.1 Selected Implementation: Conditional Prompt
 
 ```python
 def get_prompt(text: str, context: str, noarchive: bool) -> str:
+    """
+    Generate prompt, with summarization mode for noarchive content.
+
+    When noarchive=True, instruct LLM to provide brief abstract only.
+    This avoids a second LLM call while respecting copyright signals.
+    """
+    base_prompt = f"""You are a Digital Etymologist analyzing this text:
+    {text}
+    """
+
     if noarchive:
-        return f"""Provide a brief summary analysis (2-3 sentences) of: {text}
-        Do not reproduce source content verbatim."""
+        # TRANSFORM MODE: Brief summary only
+        return base_prompt + """
+        IMPORTANT: This content is marked 'noarchive' for copyright/privacy.
+        Provide ONLY a brief abstract (2-3 sentences) summarizing the key point.
+        Do NOT analyze in depth or reproduce source content verbatim.
+        """
     else:
-        return f"""Provide detailed analysis of: {text}..."""
+        # FULL MODE: Detailed analysis
+        return base_prompt + """
+        Provide a detailed analysis including etymology, context, and usage.
+        """
 ```
 
-**Benefit:** Single LLM call, but different output.
-
-#### Option C: Truncation (Simple)
+### 6.2 Lambda Handler Integration
 
 ```python
-def transform_response(full_response: str, max_chars: int = 500) -> str:
-    """Truncate response for noarchive compliance."""
-    if len(full_response) <= max_chars:
-        return full_response
-    return full_response[:max_chars] + "... [summarized for copyright compliance]"
+def lambda_handler(event, context):
+    signals = event.get('signals', {})
+    noarchive = signals.get('noarchive', False)
+
+    # Single LLM call with conditional prompt
+    prompt = get_prompt(text, page_context, noarchive=noarchive)
+    response = invoke_bedrock(prompt)
+
+    # Also skip persistence (per #155)
+    if not noarchive:
+        save_state(thread_id, text, url, safety_score)
+
+    return {'statusCode': 200, 'body': response}
 ```
 
-**Concern:** Loses context, not a real summary.
+### 6.3 Rejected: Second LLM Call
+
+```python
+# ❌ REJECTED - 2x latency/cost penalty
+def transform_response(full_response: str) -> str:
+    prompt = f"Summarize this: {full_response}"
+    return invoke_bedrock_for_summary(prompt)  # EXTRA LLM CALL
+```
 
 ## 7. Interface Specification
 
@@ -175,17 +202,37 @@ poetry run pytest tests/test_lambda_function.py -v -k transform
 
 ## 12. Definition of Done
 
-### Prerequisites
-- [ ] Clarify: What is Transform layer exactly?
-- [ ] Clarify: Relationship to #155 (skip persistence)
+### Prerequisites (RESOLVED)
+- [x] ~~Clarify: What is Transform layer exactly?~~ **Conditional prompt for brief summary**
+- [x] ~~Clarify: Relationship to #155 (skip persistence)~~ **Both apply - additive privacy layers**
 
 ### Code
-- [ ] Transform logic implemented
-- [ ] Single-call approach preferred (no double LLM)
+- [ ] `get_prompt()` function with `noarchive` parameter
+- [ ] Conditional prompt instructs LLM to summarize when `noarchive=True`
+- [ ] **Single LLM call** - no second call for summarization
+- [ ] Integrate with #155 skip-persistence logic
 
 ### Tests
-- [ ] Unit tests for transform logic
-- [ ] E2E test with noarchive page
+- [ ] Unit tests for `get_prompt()` with both modes
+- [ ] Verify summarized response is shorter/different
+- [ ] E2E test with `noarchive.html` fixture (shared with #155)
 
 ### Documentation
 - [ ] 0007-signal-handling.md verified/updated
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Option A vs B left as open alternatives | **Selected Option B (Prompt Engineering)** to avoid 2x latency/cost |
+
+**Verdict:** APPROVED after selecting Option B.
+
+**Key Decision:** Latency is critical. Use conditional prompt modification (single LLM call) instead of post-processing with a second LLM call.

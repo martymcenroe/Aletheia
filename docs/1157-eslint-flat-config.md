@@ -13,6 +13,19 @@
 - [ ] Do we need to maintain backwards compatibility with ESLint v8 during transition?
 - [ ] Any custom rules or plugins that may not support flat config yet?
 - [ ] Should we also migrate to ESM (`eslint.config.mjs`) or stay with CommonJS?
+- [x] ~~Does `globals` package have `webextensions` key?~~ **Verify - may need manual definitions**
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: Does `globals.webextensions` exist in the globals package?**
+   **A: Verify before using.** The `globals` npm package may not export `webextensions`. If not available, manually define:
+   ```javascript
+   globals: {
+     ...globals.browser,
+     chrome: "readonly",
+     browser: "readonly"  // Firefox API
+   }
+   ```
 
 ## 2. Requirements
 
@@ -74,6 +87,12 @@ N/A
 import js from "@eslint/js";
 import globals from "globals";
 
+// Check if webextensions exists, fallback to manual definitions
+const webExtensionGlobals = globals.webextensions || {
+  chrome: "readonly",
+  browser: "readonly"
+};
+
 export default [
   js.configs.recommended,
   {
@@ -82,8 +101,9 @@ export default [
       sourceType: "module",
       globals: {
         ...globals.browser,
-        ...globals.webextensions,
-        chrome: "readonly"
+        ...webExtensionGlobals,
+        chrome: "readonly",   // Explicit - Chrome extension API
+        browser: "readonly"   // Explicit - Firefox extension API
       }
     },
     rules: {
@@ -100,6 +120,8 @@ export default [
   }
 ];
 ```
+
+**Note:** The explicit `chrome: "readonly"` and `browser: "readonly"` ensure WebExtension APIs are available regardless of whether `globals.webextensions` exists.
 
 ## 7. Interface Specification
 
@@ -165,3 +187,18 @@ diff eslint-before.txt eslint-after.txt
 
 ### Documentation
 - [ ] Update any ESLint instructions in README or contributing docs
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| WebExtension globals verification | Added fallback pattern with explicit `chrome`/`browser` definitions |
+
+**Verdict:** APPROVED - Proceed with implementation.

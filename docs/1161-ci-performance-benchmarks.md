@@ -12,16 +12,22 @@
 - [ ] Should benchmarks run on every PR (slows CI) or on schedule (weekly)?
 - [ ] For Lambda benchmarks, do we test against mocked Bedrock or real API? Cost implications?
 - [ ] What's the baseline for regression detection? Need to establish first.
-- [ ] Is 20% regression threshold appropriate, or should it be tighter/looser?
+- [x] ~~Is 20% regression threshold appropriate, or should it be tighter/looser?~~ **Start with 50% or "Warn Only"**
 - [ ] Should we store historical benchmark data somewhere (artifact, DB)?
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: Is 20% regression threshold appropriate?**
+   **A: Start with 50% threshold or "Warn Only" mode.** CI environments (GitHub Actions) are notoriously noisy/variable in performance. A 20% threshold might trigger false alarms. Establish a reliable baseline over several weeks before tightening the threshold or blocking PRs.
 
 ## 2. Requirements
 
 Per 0899 Meta-Audit:
 1. Benchmark tests added to test suite
 2. Baseline metrics documented in 0812
-3. Regression detection (fail if >20% slower than baseline)
+3. Regression detection: **Start with 50% threshold or "Warn Only"** (per Gemini review)
 4. Track: Lambda cold/warm start, extension load, click-to-glass
+5. Tighten threshold to 20% only after establishing reliable baseline
 
 ## 3. Alternatives Considered
 
@@ -57,10 +63,11 @@ flowchart TD
     D --> E
     D --> F
     D --> G[Live Lambda benchmark]
-    E --> H{Regression > 20%?}
+    E --> H{Regression > 50%?}
     F --> H
-    H -->|Yes| I[Fail CI]
+    H -->|Yes| I[Warn or Fail CI]
     H -->|No| J[Pass + Store results]
+    Note over H: Start with 50% threshold<br/>Tighten after baseline established
 ```
 
 ## 6. Technical Approach
@@ -190,3 +197,19 @@ poetry run pytest --benchmark-compare
 ### Documentation
 - [ ] 0812 Performance Audit updated with baselines
 - [ ] 0899 Meta-Audit recommendation resolved
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 3 Issues (SUGGESTIONS) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| CI environment flakiness | Start with 50% threshold or "Warn Only" mode for first few weeks |
+| 20% threshold may cause false alarms | Tighten only after establishing reliable baseline |
+
+**Verdict:** APPROVED - Proceed with implementation.
