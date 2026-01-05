@@ -9,10 +9,17 @@
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
 
-- [ ] What is the intended purpose of these test functions? Are they pytest tests or manual invocation functions?
-- [ ] If they're manual functions, should they be renamed to not start with `test_` to avoid pytest collection?
-- [ ] If they're pytest tests, what URL fixture should be provided? A local test server? GitHub Pages test site?
-- [ ] Should these tests use the test site infrastructure from #105?
+- [x] ~~What is the intended purpose of these test functions?~~ **Manual/post-deployment verification, NOT unit tests**
+- [x] ~~Should they be renamed?~~ **Yes - rename `test_*` to `verify_*` to exclude from pytest collection**
+- [x] ~~Should these tests use the test site infrastructure from #105?~~ **No - smoke tests hit live endpoints**
+
+### Resolved Questions (Gemini Review 2026-01-05)
+
+1. **Q: What is the purpose of these functions?**
+   **A: Smoke tests for manual/post-deployment verification.** These are NOT unit tests. They're intended to verify a live deployed endpoint works correctly. They should NOT be collected by pytest during unit test runs.
+
+2. **Q: How to fix the fixture errors?**
+   **A: Rename functions from `test_*` to `verify_*`.** This prevents pytest from collecting them while preserving their ability to be called manually or via CLI.
 
 ## 2. Requirements
 
@@ -24,12 +31,13 @@
 
 | Option | Pros | Cons | Decision |
 |--------|------|------|----------|
-| Rename to not start with `test_` | Quick fix, keeps manual usage | Loses test coverage | Consider |
-| Create URL fixture in conftest.py | Proper pytest integration | Need to determine correct URL | Consider |
-| Parametrize with test URLs | Full test coverage | More complex | Consider |
+| **Rename `test_*` to `verify_*`** | Quick fix, preserves manual usage, clear intent | None | **Selected** |
+| Create URL fixture in conftest.py | Proper pytest integration | Defeats purpose of smoke tests (which hit live endpoints) | Rejected |
+| Parametrize with test URLs | Full test coverage | Wrong abstraction - these aren't unit tests | Rejected |
+| Mark with `@pytest.mark.skip` | Quick | Confusing intent, still collected | Rejected |
 | Delete file entirely | Clean codebase | Lose smoke test capability | Rejected |
 
-**Rationale:** TBD - depends on intended purpose of these functions.
+**Rationale:** Smoke tests are for manual/post-deployment verification against live endpoints. They are NOT unit tests. Renaming to `verify_*` clearly communicates intent and excludes them from pytest collection without losing functionality.
 
 ## 4. Data & Fixtures
 
@@ -42,43 +50,70 @@ N/A
 ## 6. Technical Approach
 
 * **Module:** `tools/smoke_test.py`
-* **Dependencies:** pytest, requests
-* **Pattern:** Fixture injection or function renaming
+* **Dependencies:** requests (NOT pytest - these are manual scripts)
+* **Pattern:** Rename functions to exclude from pytest collection
 
-### Option A: Create fixture in conftest.py
+### 6.1 Rename Functions
 
-```python
-# tests/conftest.py or tools/conftest.py
-import pytest
-
-@pytest.fixture
-def url():
-    """Provide test URL for smoke tests."""
-    return os.environ.get("TEST_BASE_URL", "https://martymcenroe.github.io/Aletheia/tests/")
-```
-
-### Option B: Rename functions
+Rename all `test_*` functions to `verify_*`:
 
 ```python
-# Rename test_valid_input to smoke_valid_input
-# Will not be collected by pytest
-```
-
-### Option C: Mark as not a test
-
-```python
-# Add pytest.mark.skip or move to different module
-```
-
-## 7. Interface Specification
-
-### Current Broken Functions
-```python
-def test_valid_input(url: str) -> dict:  # url fixture not found
+# BEFORE (collected by pytest, causes fixture errors)
+def test_valid_input(url: str) -> dict:
 def test_blocked_input(url: str) -> dict:
 def test_empty_input(url: str) -> dict:
 def test_prompt_injection(url: str) -> dict:
 def test_tone_neutrality(url: str) -> dict:
+
+# AFTER (NOT collected by pytest, works as manual script)
+def verify_valid_input(url: str) -> dict:
+def verify_blocked_input(url: str) -> dict:
+def verify_empty_input(url: str) -> dict:
+def verify_prompt_injection(url: str) -> dict:
+def verify_tone_neutrality(url: str) -> dict:
+```
+
+### 6.2 Robust CLI Entry Point
+
+Ensure the `if __name__ == "__main__":` block calls all `verify_*` functions:
+
+```python
+if __name__ == "__main__":
+    import sys
+    url = sys.argv[1] if len(sys.argv) > 1 else "https://your-api-endpoint.com"
+
+    print(f"Running smoke tests against: {url}")
+    results = [
+        ("valid_input", verify_valid_input(url)),
+        ("blocked_input", verify_blocked_input(url)),
+        ("empty_input", verify_empty_input(url)),
+        ("prompt_injection", verify_prompt_injection(url)),
+        ("tone_neutrality", verify_tone_neutrality(url)),
+    ]
+
+    for name, result in results:
+        status = "✓" if result.get("success") else "✗"
+        print(f"  {status} {name}")
+```
+
+## 7. Interface Specification
+
+### Current (Broken - Collected by pytest)
+```python
+def test_valid_input(url: str) -> dict:  # ❌ fixture 'url' not found
+def test_blocked_input(url: str) -> dict:
+def test_empty_input(url: str) -> dict:
+def test_prompt_injection(url: str) -> dict:
+def test_tone_neutrality(url: str) -> dict:
+```
+
+### After Fix (Not collected by pytest)
+```python
+def verify_valid_input(url: str) -> dict:  # ✓ Manual invocation only
+def verify_blocked_input(url: str) -> dict:
+def verify_empty_input(url: str) -> dict:
+def verify_prompt_injection(url: str) -> dict:
+def verify_tone_neutrality(url: str) -> dict:
 ```
 
 ## 8. Security Considerations
@@ -111,20 +146,49 @@ N/A - Test infrastructure change.
 ### 11.2 Test Commands
 
 ```bash
-# Verify no more fixture errors
+# Verify no more fixture errors (should return 0)
 poetry run pytest --collect-only 2>&1 | grep -c "fixture 'url' not found"
-# Should return 0
 
-# Full test run
+# Verify smoke_test.py NOT collected
+poetry run pytest --collect-only | grep smoke_test
+# Should return nothing (no output)
+
+# Full test run (should pass without fixture errors)
 poetry run pytest -v
+
+# Manual smoke test invocation (still works)
+python tools/smoke_test.py https://your-deployed-endpoint.com
 ```
 
 ## 12. Definition of Done
 
 ### Code
+- [ ] All `test_*` functions renamed to `verify_*` in `tools/smoke_test.py`
+- [ ] CLI entry point (`__main__`) updated to call `verify_*` functions
 - [ ] No more "fixture 'url' not found" errors
-- [ ] Smoke test functionality preserved
 
 ### Tests
-- [ ] pytest runs without collection errors
-- [ ] All legitimate tests pass
+- [ ] `pytest --collect-only` does NOT collect `smoke_test.py`
+- [ ] `pytest -v` runs without fixture errors
+- [ ] Manual invocation `python tools/smoke_test.py <url>` still works
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| Ambiguous purpose | Clarified: smoke tests are for manual/post-deployment verification, NOT unit tests |
+| Multiple options without decision | Selected Option B (rename to `verify_*`) as definitive requirement |
+
+### Tier 3 Issues (SUGGESTIONS) - Addressed
+
+| Issue | Resolution |
+|-------|------------|
+| CLI Entry Point | Added §6.2 with robust CLI invocation example |
+| Alternative pytest marker | Rejected in favor of cleaner rename approach |
