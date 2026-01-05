@@ -1730,3 +1730,37 @@ Created Dependabot PR audit (0816), executed it to merge 4 pending PRs. Created 
 - **Lambda:** OFF
 - **Wiki:** https://github.com/martymcenroe/Aletheia/wiki (uses `main` branch)
 - **Next:** User to review wiki, address any feedback
+
+---
+
+## 2026-01-04 19:41 CT | Claude Opus 4.5
+
+### Summary
+Short session focused on improving Claude Code permissions. User reported repeated permission prompts during closeout sessions. Audited `.claude/settings.local.json`, identified redundant entries and path format inconsistencies, and cleaned up 7 redundant permission entries.
+
+### Tooling
+- **Permissions audit:** Reviewed settings.local.json for conflicts and redundancies
+- **Cleanup:** Removed 7 redundant Bash permission entries that were subsets of broader patterns
+
+### Redundant Entries Removed
+- `Bash(./tools/aws/*:*)` - covered by `Bash(./tools/*:*)`
+- `Bash(./tools/print/*:*)` - covered by `Bash(./tools/*:*)`
+- `Bash(./tools/aws/lambda-status.sh:*)` - covered by `Bash(./tools/*:*)`
+- `Bash(./tools/aws/lambda-off.sh:*)` - covered by `Bash(./tools/*:*)`
+- `Bash(./tools/aws/lambda-on.sh:*)` - covered by `Bash(./tools/*:*)`
+- `Bash(~/Projects/Aletheia/tools/*:*)` - tilde expansion unreliable on Windows
+- `Bash(python tools/print/print_most_recent_open_issues.py:*)` - covered by `Bash(python:*)`
+
+### Issues Identified (Not Fixed)
+- Path format inconsistency: Read/Write/Edit use `//c/` while some Bash use `/c/`
+- Missing `start` command (Windows URL/file opener)
+
+### Commits
+- `f9e5794` - chore: clean up redundant permission entries
+
+### State on Exit
+- **Branch:** main @ f9e5794
+- **Worktrees:** Only main
+- **Open PRs:** 0
+- **Lambda:** Unknown (not checked)
+- **Next:** Continue capturing permission prompts to eliminate all closeout friction
