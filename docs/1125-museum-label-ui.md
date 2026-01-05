@@ -514,3 +514,22 @@ CLOSE BEHAVIOR:
 - [ ] Security review (no innerHTML)
 - [ ] Code review completed
 - [ ] User approval before closing issue
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Noted
+
+| Issue | Action Required |
+|-------|-----------------|
+| Focus Trap on Expand | When Context expands, ensure new content is keyboard-reachable. "Show More" button should remain focused OR focus moves logically to content. Close button MUST always be Tab-reachable (focus loop) |
+
+### Implementation Note
+
+The overlay is non-modal (`aria-modal="false"`), so it shouldn't trap focus aggressively. However, ensure Tab key cycles through: Show More → Content links (if any) → Close button.
+
+**Verdict:** APPROVED - Proceed with implementation.

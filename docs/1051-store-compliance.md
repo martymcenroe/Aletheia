@@ -97,3 +97,19 @@ Stop guessing what you are reading. Aletheia brings the power of Large Language 
 * [ ] Manifest verified as compliant
 * [ ] Assets generated and verified
 * [ ] Store Listing text finalized
+* [ ] **Privacy policy URL verified** (see Gemini review note)
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 3 Issues (SUGGESTIONS)
+
+| Issue | Action Required |
+|-------|-----------------|
+| Privacy Policy URL | **VERIFY** that https://martymcenroe.github.io/Aletheia/ exists and contains required privacy text (data usage, retention, etc.) BEFORE store submission |
+
+**Verdict:** APPROVED - Ready for submission preparation.

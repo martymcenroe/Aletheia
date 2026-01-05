@@ -553,3 +553,26 @@ class TestDecisionMatrix:
 - [ ] Sample term review
 - [ ] Code review completed
 - [ ] User approval before closing issue
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Noted
+
+| Issue | Action Required |
+|-------|-----------------|
+| Wikipedia Denylist Source | Ensure `fetch_denylist.py` (if it exists) handles Wikipedia's formatting variability OR use a **static snapshot**. Do NOT rely on live Wikipedia scraping during Lambda execution (slow/fragile). The denylist MUST be a **static JSON baked into Lambda deployment** |
+
+### Implementation Note
+
+The denylist should be:
+1. Generated offline via `tools/fetch_denylist.py`
+2. Saved as `data/denylist.json`
+3. Bundled with Lambda deployment
+4. Loaded once at Lambda cold start (not fetched per-request)
+
+**Verdict:** APPROVED - Proceed with implementation.

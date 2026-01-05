@@ -622,3 +622,31 @@ class TestTokenValidation:
 - [ ] Security review of CSRF protection
 - [ ] Code review completed
 - [ ] User approval before closing issue
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-05
+**Reviewer:** Gemini 3 Pro
+
+### Tier 2 Issues (HIGH) - Noted
+
+| Issue | Action Required |
+|-------|-----------------|
+| Stable Extension ID | OAuth redirect URIs (`https://<id>.chromiumapp.org/`) depend on Extension ID. **MUST** add a fixed `key` field in `manifest.json` so ID remains stable across reloads and matches LinkedIn Developer Portal registration |
+| State validation strictness | Ensure validation handles multiple popup opens (overwriting state). Check must be **strict**: `returned_state === stored_state` |
+
+### Implementation Note
+
+```json
+// manifest.json - Add key for stable extension ID
+{
+  "key": "YOUR_BASE64_ENCODED_PUBLIC_KEY_HERE",
+  ...
+}
+```
+
+Generate the key using: `openssl genrsa 2048 | openssl rsa -pubout -outform DER | openssl base64 -A`
+
+**Verdict:** APPROVED - With reminder to fix Extension Key in manifest.json.
