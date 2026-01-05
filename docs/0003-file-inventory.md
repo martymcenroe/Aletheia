@@ -98,6 +98,7 @@
 | `docs/0814-audit-license-compliance.md` | **Protocol** | 🟢 **Stable** | - | License compliance audit (SPDX). |
 | `docs/0815-audit-claude-capabilities.md` | **Protocol** | 🟢 **Stable** | - | Claude Code capabilities audit (weekly). |
 | `docs/0816-audit-dependabot-prs.md` | **Protocol** | 🟢 **Stable** | - | Dependabot PR audit with regression detection. Prerequisite for 0809. |
+| `docs/0817-audit-wiki-alignment.md` | **Protocol** | 🟢 **Stable** | - | Wiki alignment audit. Part of 0009 Full Mode. |
 | `docs/0899-meta-audit.md` | **Protocol** | 🟢 **Stable** | - | Meta-audit (audit of audits). |
 
 ### 10xx Feature Specifications

@@ -41,6 +41,7 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 | **0814** | License Compliance Audit | Per dependency | When adding dependencies |
 | **0815** | Claude Capabilities Audit | Weekly | Mondays (track Anthropic evolution) |
 | **0816** | Dependabot PR Audit | Weekly / Pre-0809 | Before security audit, when PRs accumulate |
+| **0817** | Wiki Alignment Audit | Monthly / On change | After user-facing changes, part of 0009 Full Mode |
 | **0899** | Meta-Audit | Quarterly | Audit health check |
 
 ## Audit Procedures
@@ -152,6 +153,14 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 **Prerequisite For:** 0809 Security Audit (MUST run before security audit begins).
 **Philosophy:** Dependencies stay current; regressions are caught and isolated automatically.
 
+### 0817 - Wiki Alignment Audit
+**File:** `docs/0817-audit-wiki-alignment.md`
+**Purpose:** Ensure GitHub Wiki accurately reflects current project state.
+**Trigger:** Monthly, after user-facing changes, part of 0009 Full Mode.
+**Output:** Updated wiki pages, drift corrections.
+**Critical Pages:** Privacy.md (data handling), Features (current capabilities).
+**Philosophy:** Wiki is user-facing documentation; inaccuracy creates confusion and liability.
+
 ### 0899 - Meta-Audit (Audit of Audits)
 **File:** `docs/0899-meta-audit.md`
 **Purpose:** Ensure audit suite itself remains healthy and complete.
@@ -165,7 +174,7 @@ Audits are numbered in recommended execution order. Run sequentially for best re
 |----------|-------------------|
 | **0004 §8.6** | 0802 (Reports Completeness) |
 | **0009 Session** | 0802 (Quick Closeout) |
-| **0009 Full** | 0802, 0804 (Comprehensive Cleanup) |
+| **0009 Full** | 0802, 0804, 0817 (Comprehensive Cleanup + Wiki) |
 | **0809 Security** | 0816 (Dependabot PRs - PREREQUISITE) |
 
 ## Quick Reference Commands
@@ -194,6 +203,7 @@ grep -r "docs/0[0-9]" docs/*.md | grep -v "0800-common-audits"
 
 | Date | Change |
 |------|--------|
+| 2026-01-04 | Added 0817 Wiki Alignment Audit. Integrated with 0009 Full Mode. |
 | 2026-01-04 | Added 0816 Dependabot PR Audit. Prerequisite for 0809 Security Audit. |
 | 2026-01-04 | Added 0811-0815 (Accessibility, Performance, Code Quality, License, Claude Capabilities) and 0899 Meta-Audit. |
 | 2026-01-04 | Added 0808 Permission Permissiveness, 0809 Security Audit, 0810 Privacy Audit. |

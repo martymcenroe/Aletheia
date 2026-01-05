@@ -247,6 +247,28 @@ Comprehensive 20-30 minute cleanup. Includes everything in Session Mode plus dee
 - [ ] LLD status updated? ("Approved" → "Complete" for finished features)
 - [ ] Lessons captured in `docs/9000-lessons-learned.md`?
 
+### F10a. Wiki Alignment Check (0817)
+
+**If any user-facing changes were made this session:**
+
+```bash
+🤖 cd /c/Users/mcwiz/Projects/Aletheia-wiki
+🤖 git pull origin master
+```
+
+**Review for staleness:**
+- [ ] Privacy.md reflects current data handling?
+- [ ] Features list current?
+- [ ] Any "coming soon" items now shipped?
+
+**If updates needed:**
+```bash
+🤖 # Edit relevant .md files
+🤖 git add -A && git commit -m "docs: wiki alignment update" && git push origin master
+```
+
+See `docs/0817-audit-wiki-alignment.md` for full audit procedure.
+
 ### F11. Session Log Entry
 
 ```bash
