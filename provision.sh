@@ -271,10 +271,9 @@ rm -rf build dependencies.zip
 echo ""
 echo "[5/9] Deploying Agent Lambda..."
 
-# Create deployment package from real source
-echo "Packaging $AGENT_LAMBDA_SOURCE..."
-cp "$AGENT_LAMBDA_SOURCE" lambda_function.py
-zip -q agent_lambda.zip lambda_function.py
+# Create deployment package from real source (entire src/ package for relative imports)
+echo "Packaging src/ directory..."
+zip -rq agent_lambda.zip src/
 
 if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/dev/null 2>&1; then
     echo "Creating Lambda function: $FUNC_NAME"
@@ -282,13 +281,13 @@ if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/d
         --function-name "$FUNC_NAME" \
         --runtime python3.12 \
         --role "arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}" \
-        --handler lambda_function.lambda_handler \
+        --handler src.lambda_function.lambda_handler \
         --zip-file fileb://agent_lambda.zip \
         --architectures x86_64 \
         --timeout 60 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,TABLE_NAME=$TABLE_NAME}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Agent Lambda (X-Ray enabled)${NC}"
@@ -305,16 +304,16 @@ else
     # Update configuration including layer, handler, and X-Ray tracing (Issue #7)
     aws lambda update-function-configuration \
         --function-name "$FUNC_NAME" \
-        --handler lambda_function.lambda_handler \
+        --handler src.lambda_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,TABLE_NAME=$TABLE_NAME}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
     echo -e "${GREEN}Updated Agent Lambda (X-Ray enabled)${NC}"
 fi
 
-rm -f lambda_function.py agent_lambda.zip
+rm -f agent_lambda.zip
 
 # =============================================================================
 # Step 6: Deploy Auth Lambda (Real Code - No More "Init"!)
