@@ -7,19 +7,17 @@
  * Extension ID derived from manifest.json key field.
  * This ID is stable across installs due to the explicit key.
  *
- * To calculate: The key in manifest.json is a base64-encoded public key.
- * Chrome derives the extension ID by taking SHA256 of the key,
- * then taking first 32 chars and mapping to a-p alphabet.
+ * Calculated from manifest key using Chrome's algorithm:
+ * 1. Base64-decode the public key from manifest.json
+ * 2. SHA-256 hash the decoded bytes
+ * 3. Take first 32 hex chars, map 0-9a-f to a-p
  *
- * For Aletheia, this produces: (calculated at runtime from key)
+ * See extensions/chrome/manifest.json for the source key.
  */
+const EXTENSION_ID = 'hgkgcicdgpckniojmneapkafkklhnbdj';
+
 function getExtensionId() {
-    // The extension ID is deterministic based on the manifest key.
-    // For development, we can derive it or hardcode it after first run.
-    // Playwright can also get it from the context.
-    //
-    // For now, return null - tests should get ID from context.serviceWorkers()
-    return null;
+    return EXTENSION_ID;
 }
 
 /**
