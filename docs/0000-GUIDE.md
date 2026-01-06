@@ -14,10 +14,10 @@ This is more than a Content Management System. It's:
 
 | Layer | What It Does | Examples |
 |-------|--------------|----------|
-| **Process Automation** | Checklists that execute, not just document | 0009 (Session/Full Closeout) |
+| **Process Automation** | Checklists that execute, not just document | 0009 (`/cleanup --quick/--normal/--full`) |
 | **Context Persistence** | State preserved across sessions and agents | Session logs, 0000a-IMMEDIATE-PLAN |
 | **Agent Orchestration** | Who does what, when, how | CLAUDE.md, GEMINI.md, 0004 |
-| **Reality Verification** | Don't trust metadata—verify actual state | 0009 Full Mode (0000a check) |
+| **Reality Verification** | Don't trust metadata—verify actual state | 0009 `/cleanup --full` (0000a check) |
 | **Executable Standards** | Rules that agents can follow literally | 0002 (Coding), Forbidden Commands |
 
 **The Operating System Metaphor:**
@@ -34,11 +34,18 @@ This is more than a Content Management System. It's:
 **The Solution:** Everything an LLM needs to know lives in this system. The orchestrator's job is NOT to remember context—it's to point the LLM at the right documents.
 
 **How to Start Any Session:**
-1. Read this file (`docs/0000-GUIDE.md`) - understand the system
-2. Read `docs/0000a-IMMEDIATE-PLAN.md` - current focus and context
-3. Read `docs/6000-open-issues.md` - what's open
-4. Read relevant session logs in `docs/session-logs/` - recent history
-5. **State the Bash Command Oath** (see below)
+
+**Option A: Quick Onboard (~$0.02, 30s)** - For simple tasks:
+1. Run `/onboard --quick` or read `docs/0000b-ONBOARD-DIGEST.md`
+2. State the Bash Command Oath
+
+**Option B: Full Onboard (~$0.35, 2min)** - For complex work:
+1. Run `/onboard` or read these files:
+   - `docs/0000-GUIDE.md` - understand the system
+   - `docs/0000a-IMMEDIATE-PLAN.md` - current focus and context
+   - `docs/6000-open-issues.md` - what's open (scan titles, skip bodies)
+   - Recent session logs in `docs/session-logs/` - last 3 entries
+2. **State the Bash Command Oath** (see below)
 
 ---
 
@@ -121,7 +128,7 @@ git -C /c/Users/mcwiz/Projects/Aletheia-102 status
 | If the issue involves... | Check this Audit... |
 |--------------------------|---------------------|
 | Dependency Updates / PRs | `0816-audit-dependabot-prs.md` |
-| Permissions / CLI Errors | `0808-audit-permission-permissiveness.md` |
+| Permissions / CLI Errors | `0808-audit-permission-permissiveness.md`, `0824-audit-permission-friction.md` |
 | Security / WAF / Auth | `0809-audit-security.md` |
 | Privacy / Data Storage | `0810-audit-privacy.md` |
 | Performance / Latency | `0812-audit-performance.md` |
@@ -165,7 +172,7 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * `0006-mermaid-diagrams.md` — Diagram standards and rendering.
     * `0007-signal-handling.md` — How the extension handles signals.
     * `0008-orchestrator-instructions.md` — Human orchestrator quick reference.
-    * `0009-session-closeout-protocol.md` — **End every session with this.** Session Mode (quick) or Full Mode (comprehensive).
+    * `0009-session-closeout-protocol.md` — **End every session with `/cleanup`.** Quick/Normal/Full modes.
     * `0010-standard-labels.md` — GitHub issue label taxonomy.
     * `0012-devops-architecture.md` — CI/CD and deployment.
     * `0013-testing-architecture.md` — Test infrastructure design.
@@ -197,7 +204,8 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * `0805-terminology-audit.md` — Consistent naming across docs.
     * `0806-architecture-audit.md` — ADR compliance check.
     * `0807-agentos-audit.md` — AgentOS health check (system self-audit).
-    * `0808-audit-permission-permissiveness.md` — Claude Code permission audit.
+    * `0808-audit-permission-permissiveness.md` — Claude Code permission audit (deny dangerous).
+    * `0824-audit-permission-friction.md` — Permission friction analysis (find missing allows).
     * `0809-audit-security.md` — OWASP/security vulnerability scan.
     * `0810-audit-privacy.md` — GDPR/privacy compliance check.
     * `0811-audit-accessibility.md` — WCAG 2.1 accessibility audit.

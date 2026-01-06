@@ -229,11 +229,12 @@ When you solve a novel problem:
 ## You Are Not Alone
 Other agents work on this project. Check `docs/session-logs/` for recent context. The Orchestrator (Marty) coordinates all work via GitHub Projects.
 
-## Session Closeout (MANDATORY)
-**Every session must end with the 0009 closeout protocol.**
+## Session Cleanup (MANDATORY)
+**Every session must end with the `/cleanup` command.**
 - See `docs/0009-session-closeout-protocol.md` for full procedure
-- **Session Mode:** Quick 5-10 min closeout for routine endings
-- **Full Mode:** Comprehensive 20-30 min cleanup (after features, before breaks)
+- `/cleanup --quick` — Minimal ~2 min (end of chat, nothing changed)
+- `/cleanup` — Normal ~5 min (standard session end, default)
+- `/cleanup --full` — Comprehensive ~12 min (after features, before breaks)
 
 ## Session Logging
 At end of session, append a summary to the current week's file in `docs/session-logs/Week-starting-YYYY-MM-DD.md`.
