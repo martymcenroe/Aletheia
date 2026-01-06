@@ -19,10 +19,12 @@ Comprehensive privacy audit covering data protection, user consent, data minimiz
 | Data Type | Collection Point | Storage | Retention | Status |
 |-----------|------------------|---------|-----------|--------|
 | Selected text | User selection | DynamoDB | TTL 30 days (#145) | ✅ |
-| Analysis results | Bedrock response | In-memory only | Display duration | |
-| Preferences | Extension settings | localStorage | Until cleared | |
-| Rate limit state | Lambda | DynamoDB | TTL auto-expire | |
-| CloudWatch logs | Lambda execution | AWS CloudWatch | 30 days | |
+| Analysis results | Bedrock response | In-memory only | Display duration | ✅ |
+| Preferences | Extension settings | localStorage | Until cleared | ✅ |
+| Rate limit state | Lambda | DynamoDB | TTL auto-expire | ✅ |
+| CloudWatch logs | Lambda execution | AWS CloudWatch | **14 days (#7)** | ✅ |
+| X-Ray traces | Lambda execution | AWS X-Ray | **14 days (#7)** | ✅ |
+| Custom metrics | Lambda execution | CloudWatch Metrics | Rolling (no PII) | ✅ |
 
 ### Data Path Verification (CRITICAL)
 
@@ -358,6 +360,32 @@ fi
 | lambda_function.py:278 | Error codes | No | ✅ Pass |
 | lambda_function.py:283 | Exception type | No | ✅ Pass |
 | etymologist.py | Warnings only | No | ✅ Pass |
+| observability.py | tokens_used, model_id, latency | No | ✅ Pass |
+
+#### X-Ray Tracing Privacy (Issue #7)
+
+| Concern | Mitigation | Status |
+|---------|------------|--------|
+| Prompt text in traces | **STRICT BAN** - never logged | ✅ Verified |
+| Completion text in traces | **STRICT BAN** - never logged | ✅ Verified |
+| User input in annotations | Prohibited by code comments | ✅ Verified |
+| Trace retention | 14 days (privacy-aligned) | ✅ Configured |
+| Sampling rate | 5% (cost/privacy balance) | ✅ Configured |
+
+**Safe Metadata Only:**
+- `tokens_used` (int)
+- `model_id` (str)
+- `latency_ms` (int)
+- `status` (str: success/error/fallback)
+- `error_type` (str, if applicable)
+
+**Verification Command:**
+```bash
+# PII audit - MUST return empty
+aws xray get-trace-summaries --start-time ... | grep -i "prompt\|completion\|input\|text"
+```
+
+**Code Evidence:** See `src/observability.py` lines 13-18 for STRICT BAN documentation.
 
 #### Overall Result
 

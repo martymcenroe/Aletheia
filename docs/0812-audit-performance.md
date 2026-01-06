@@ -73,13 +73,50 @@ See Issue #156 for optimization tracking.
 | Sonnet response (generation) | < 2s | ~2.5s | ⚠️ MARGINAL |
 | Total E2E latency | < 3s | **~5s** | ❌ FAIL |
 
-**Root Cause:** Not yet instrumented. Hypothesized breakdown:
+**Root Cause:** Now instrumented via Issue #7. Hypothesized breakdown:
 - Cold start: ~2s
 - Semantic guard (Haiku): ~1s
 - DynamoDB write: ~0.1s
 - Bedrock generation (Sonnet): ~2s
 
-See Issue #137 for instrumentation and optimization tracking.
+See Issue #137 for optimization tracking.
+
+### Observability Tracing (Issue #7)
+
+| Component | Implementation | Status |
+|-----------|----------------|--------|
+| AWS X-Ray | Active tracing on Lambda | ✅ Enabled |
+| Sampling rate | 5% (cost control) | ✅ Configured |
+| CloudWatch Metrics | Custom `Aletheia/BedrockTokensUsed` | ✅ Implemented |
+| Log retention | 14 days (privacy-aligned) | ✅ Configured |
+
+**Custom Metrics:**
+- `BedrockTokensUsed` - Token consumption per model
+- `BedrockLatency` - Bedrock API latency in ms
+
+**CloudWatch Insights Query:**
+```sql
+fields @timestamp, mode, input_chars
+| filter action = "analysis_request"
+| stats count() as requests, avg(input_chars) as avg_chars by mode
+```
+
+**Verification Commands:**
+```bash
+# Check X-Ray is enabled
+aws lambda get-function-configuration \
+    --function-name AletheiaAgent \
+    --query 'TracingConfig.Mode'
+
+# Get custom metrics
+aws cloudwatch get-metric-statistics \
+    --namespace Aletheia \
+    --metric-name BedrockTokensUsed \
+    --start-time $(date -d '1 hour ago' -Iseconds) \
+    --end-time $(date -Iseconds) \
+    --period 300 \
+    --statistics Sum
+```
 
 ---
 

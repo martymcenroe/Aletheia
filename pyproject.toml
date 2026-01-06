@@ -15,6 +15,7 @@ pywin32 = {version = "^311", markers = "sys_platform == 'win32'"}
 requests = "^2.32.5"
 beautifulsoup4 = "^4.14.3"
 colorama = "^0.4.6"
+aws-xray-sdk = "^2.14.0"  # Issue #7: Observability tracing
 
 [build-system]
 requires = ["poetry-core"]
@@ -45,5 +46,7 @@ module = [
     "boto3.*",
     "botocore",
     "botocore.*",
+    "aws_xray_sdk",
+    "aws_xray_sdk.*",
 ]
 ignore_missing_imports = true
