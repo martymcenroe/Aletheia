@@ -151,3 +151,19 @@ Track B frontend/testing work: Fixed #153 (smoke test fixture errors - renamed t
 - Branch: main @ af38eeb
 - Open PRs: 0
 - Next: Store Compliance (#51) per IMMEDIATE-PLAN
+
+---
+
+## 2026-01-05 21:34 CT | Claude Opus 4.5
+
+### Summary
+Implemented Tooling Regression Suite (Issue #158). Created tests/test_tools_regression.py with import and --help tests for log_viewer.py, smoke_test.py. Added conditional skip for data_hygiene.py (not yet merged). PR #169 merged.
+
+### Issues
+- Created: None
+- Closed: #158
+
+### State on Exit
+- Branch: main @ bb7e0ef
+- Open PRs: 0
+- Next: Per user direction
