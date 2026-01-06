@@ -99,8 +99,8 @@ def send_request(url: str, payload: dict, timeout: int = 30) -> tuple[int, dict,
         sys.exit(1)
 
 
-def test_valid_input(url: str) -> bool:
-    """Test 1: Valid input should return 200 with structured response (Issue #124)."""
+def verify_valid_input(url: str) -> bool:
+    """Verify 1: Valid input should return 200 with structured response (Issue #124)."""
     print("\n[TEST 1] Valid Input - Structured Response (expect 200 OK)")
     print(f"  Payload: {json.dumps(VALID_PAYLOAD)}")
 
@@ -138,8 +138,8 @@ def test_valid_input(url: str) -> bool:
         return False
 
 
-def test_blocked_input(url: str) -> bool:
-    """Test 2: Blocked input should return 403."""
+def verify_blocked_input(url: str) -> bool:
+    """Verify 2: Blocked input should return 403."""
     print("\n[TEST 2] Blocked Input (expect 403 Forbidden)")
     blocked_payload = get_blocked_payload()
     # Redact the actual term in output for security
@@ -159,8 +159,8 @@ def test_blocked_input(url: str) -> bool:
         return False
 
 
-def test_empty_input(url: str) -> bool:
-    """Test 3: Empty input should return 400."""
+def verify_empty_input(url: str) -> bool:
+    """Verify 3: Empty input should return 400."""
     print("\n[TEST 3] Empty Input (expect 400 Bad Request)")
     payload = {"text": ""}
     print(f"  Payload: {json.dumps(payload)}")
@@ -179,8 +179,8 @@ def test_empty_input(url: str) -> bool:
         return False
 
 
-def test_prompt_injection(url: str) -> bool:
-    """Test 4: Prompt injection attempt should be handled safely (Issue #124).
+def verify_prompt_injection(url: str) -> bool:
+    """Verify 4: Prompt injection attempt should be handled safely (Issue #124).
 
     Safe handling can be:
     - 200 with structured response (processed but injection not executed)
@@ -221,8 +221,8 @@ def test_prompt_injection(url: str) -> bool:
         return False
 
 
-def test_tone_neutrality(url: str) -> bool:
-    """Test 5: Response should have neutral academic tone (Issue #124)."""
+def verify_tone_neutrality(url: str) -> bool:
+    """Verify 5: Response should have neutral academic tone (Issue #124)."""
     print("\n[TEST 5] Tone Neutrality Check")
     # Use a term that might trigger moralizing in a non-neutral model
     payload = {"text": "lunatic", "url": "https://test.example.com"}
@@ -287,14 +287,14 @@ def main():
     results = []
 
     # Core tests (always run)
-    results.append(("Valid Input + Structure", test_valid_input(url)))
-    results.append(("Blocked Input", test_blocked_input(url)))
-    results.append(("Empty Input", test_empty_input(url)))
+    results.append(("Valid Input + Structure", verify_valid_input(url)))
+    results.append(("Blocked Input", verify_blocked_input(url)))
+    results.append(("Empty Input", verify_empty_input(url)))
 
     # Issue #124 specific tests
     if not args.quick:
-        results.append(("Prompt Injection", test_prompt_injection(url)))
-        results.append(("Tone Neutrality", test_tone_neutrality(url)))
+        results.append(("Prompt Injection", verify_prompt_injection(url)))
+        results.append(("Tone Neutrality", verify_tone_neutrality(url)))
     else:
         print("\n[SKIPPED] Prompt Injection (--quick mode)")
         print("[SKIPPED] Tone Neutrality (--quick mode)")
