@@ -12,11 +12,19 @@ const TabState = {
 };
 
 // DOM Elements
+const loginView = document.getElementById('login-view');
 const mainView = document.getElementById('main-view');
 const manageView = document.getElementById('manage-view');
 const confirmView = document.getElementById('confirm-view');
 const restrictedView = document.getElementById('restricted-view');
 const checkingView = document.getElementById('checking-view');
+
+// Auth Elements (Issue #116)
+const loginButton = document.getElementById('login-button');
+const loginError = document.getElementById('login-error');
+const userBar = document.getElementById('user-bar');
+const userName = document.getElementById('user-name');
+const logoutButton = document.getElementById('logout-button');
 
 const currentDomainEl = document.getElementById('current-domain');
 const statusLabel = document.getElementById('status-label');
@@ -113,13 +121,16 @@ async function clearAllData() {
 // ============================================================================
 
 function showView(viewName) {
+  loginView.style.display = 'none';
   mainView.style.display = 'none';
   manageView.style.display = 'none';
   confirmView.style.display = 'none';
   restrictedView.style.display = 'none';
   checkingView.style.display = 'none';
 
-  if (viewName === 'main') {
+  if (viewName === 'login') {
+    loginView.style.display = 'block';
+  } else if (viewName === 'main') {
     mainView.style.display = 'block';
   } else if (viewName === 'manage') {
     manageView.style.display = 'block';
@@ -381,10 +392,54 @@ async function checkAgeGate() {
 }
 
 // ============================================================================
+// AUTH HANDLERS (Issue #116)
+// ============================================================================
+
+async function handleLoginClick() {
+  try {
+    loginButton.disabled = true;
+    loginButton.textContent = 'Signing in...';
+    loginError.style.display = 'none';
+
+    const user = await window.AletheiaAuth.initiateLogin();
+
+    // Update user bar and proceed to main flow
+    userName.textContent = user.name;
+    await checkAgeGate();
+
+  } catch (error) {
+    console.error('[Aletheia] Login failed:', error);
+    loginError.textContent = error.message || 'Login failed. Please try again.';
+    loginError.style.display = 'block';
+    loginButton.disabled = false;
+    loginButton.innerHTML = '<span class="linkedin-icon">in</span> Sign in with LinkedIn';
+  }
+}
+
+async function handleLogoutClick() {
+  await window.AletheiaAuth.logout();
+  showView('login');
+}
+
+async function updateUserBar() {
+  const authState = await window.AletheiaAuth.getAuthState();
+  if (authState) {
+    userName.textContent = authState.displayName;
+    userBar.style.display = 'flex';
+  } else {
+    userBar.style.display = 'none';
+  }
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
 async function init() {
+  // Auth event listeners (Issue #116)
+  loginButton.addEventListener('click', handleLoginClick);
+  logoutButton.addEventListener('click', handleLogoutClick);
+
   // Main view event listeners
   powerButton.addEventListener('click', handlePowerToggle);
   manageButton.addEventListener('click', handleManageClick);
@@ -398,7 +453,19 @@ async function init() {
   cancelButton.addEventListener('click', handleCancelClick);
   confirmClearButton.addEventListener('click', handleConfirmClearClick);
 
-  // Age gate check first, then render appropriate view
+  // Check auth state first (Issue #116)
+  const isAuthed = await window.AletheiaAuth.isAuthenticated();
+
+  if (!isAuthed) {
+    // Not logged in - show login view
+    showView('login');
+    return;
+  }
+
+  // Update user bar with name
+  await updateUserBar();
+
+  // Age gate check, then render appropriate view
   await checkAgeGate();
 }
 
