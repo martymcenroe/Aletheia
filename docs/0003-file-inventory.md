@@ -30,6 +30,7 @@
 | `pyproject.toml` | **Config** | 🟢 **Stable** | - | Python dependencies. |
 | `package.json` | **Config** | 🟢 **Stable** | #95 | Node.js dependencies (Playwright E2E). |
 | `playwright.config.js` | **Config** | 🟢 **Stable** | #95 | Playwright test configuration. |
+| `eslint.config.mjs` | **Config** | 🟢 **Stable** | #157 | ESLint flat config for browser extensions. |
 
 ### 00xx Core Standards
 | File | Role | Status | Linked Issue | Description |
