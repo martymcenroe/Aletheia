@@ -55,6 +55,13 @@ git -C /c/Users/mcwiz/Projects/Aletheia-102 status
 - ❌ `git clean -fd` - Permanent data loss
 - ❌ `pip install` - Use `poetry add` instead
 - ❌ `TZ='America/Chicago' date` - Returns UTC on Windows, not local time
+- ❌ `/tmp` or system temp directories - Use project-local `tmp/` instead
+
+### Temporary Files Rule:
+- ❌ NEVER use `/tmp`, `$TEMP`, or system temp directories
+- ✅ Use `{project}/tmp/` for any temporary files
+- ✅ Ensure `tmp/` is in `.gitignore`
+- **Why:** System temp varies by OS, is shared, and may be cleaned unexpectedly. Project-local tmp is predictable and isolated.
 
 ### Required Workflow:
 - **Docs before Code:** You MUST write the relevant `docs/` file (LLD or Standard) *before* writing a single line of code.

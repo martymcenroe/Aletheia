@@ -92,3 +92,12 @@ format-issues.py
 # Playwright test artifacts
 playwright-report/
 test-results/
+
+# Project-local temp directory (use instead of system /tmp)
+tmp/*
+!tmp/.gitkeep
+
+# Audit artifacts (output is transient, results are local)
+audit-output.md
+docs/audit-results/
+run-audit.bat

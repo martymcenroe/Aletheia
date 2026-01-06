@@ -1,0 +1,3 @@
+# Project-local temporary directory
+# Used instead of system /tmp for predictable, isolated temp files
+# All contents except this file are gitignored

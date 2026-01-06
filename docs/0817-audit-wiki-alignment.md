@@ -39,6 +39,32 @@ Ensure GitHub Wiki pages accurately reflect the current project state, features,
 
 ## 4. Audit Checklist
 
+### 4.0 Wiki Availability (CRITICAL)
+
+**Run this check FIRST before any content audit.**
+
+```bash
+# Clone wiki fresh - this reveals HEAD/branch issues
+rm -rf /tmp/wiki-test && git clone https://github.com/martymcenroe/Aletheia.wiki.git /tmp/wiki-test 2>&1
+
+# Check for "nonexistent ref" warning (indicates broken HEAD)
+# If clone shows empty directory or "unable to checkout" - wiki is broken
+
+# Verify files exist
+ls /tmp/wiki-test/*.md | wc -l  # Should be 11+
+```
+
+| Check | Command | Expected | Status |
+|-------|---------|----------|--------|
+| Wiki clones successfully | `git clone ... 2>&1` | No "nonexistent ref" warning | ☐ |
+| Home.md exists | `ls /tmp/wiki-test/Home.md` | File exists | ☐ |
+| All pages present | `ls /tmp/wiki-test/*.md \| wc -l` | 11+ files | ☐ |
+| Web accessible | Visit wiki URL | Pages render | ☐ |
+
+**If availability fails:** The wiki remote HEAD may be pointing to a nonexistent branch. GitHub wikis require `master` branch. Fix with: `git push origin main:master`
+
+---
+
 ### 4.1 Privacy Accuracy (CRITICAL)
 
 | Check | Verify Against | Status |
@@ -124,6 +150,7 @@ git push origin master
 
 | Date | Auditor | Pages Updated | Issues Found |
 |------|---------|---------------|--------------|
+| 2026-01-06 | Claude Opus 4.5 | All pages (timestamps added) | Wiki was BLANK - remote HEAD pointed to nonexistent branch. Fixed by pushing `master` branch. Added §4.0 availability check. |
 | 2026-01-04 | Claude Opus 4.5 | Privacy, FAQ, Architecture, Security, Terms-of-Use (new) | Privacy was inaccurate (said in-memory only) |
 
 ---
@@ -132,4 +159,5 @@ git push origin master
 
 | Date | Change |
 |------|--------|
+| 2026-01-06 | Added §4.0 Wiki Availability check after wiki went blank due to missing `master` branch. |
 | 2026-01-04 | Created. Triggered by privacy page inaccuracy discovery. |
