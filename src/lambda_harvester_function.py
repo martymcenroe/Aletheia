@@ -1,12 +1,16 @@
 import json
+import time
 import boto3
 import uuid
-from datetime import datetime, timezone
 
 # Connect to DynamoDB
 dynamodb = boto3.resource('dynamodb')
 TABLE_NAME = "AletheiaAgentState"
 table = dynamodb.Table(TABLE_NAME)
+
+# TTL: 30 days in seconds
+TTL_SECONDS = 2592000
+
 
 def lambda_handler(event, context):
     try:
@@ -19,18 +23,20 @@ def lambda_handler(event, context):
         if not user_input:
             return {"statusCode": 400, "body": json.dumps({"error": "No word provided"})}
 
-        # 2. Create Record
+        # 2. Create Record with current schema
         record_id = str(uuid.uuid4())
+        now_ms = str(int(time.time() * 1000))  # Epoch milliseconds as string
+        ttl_value = int(time.time()) + TTL_SECONDS
 
         item = {
             "thread_id": record_id,
-            "checkpoint_id": "raw_capture",
-            "user_input": user_input,
+            "checkpoint_id": now_ms,  # Sort key: epoch ms timestamp
+            "input": user_input,      # Current schema field name
             "url": body.get("url", "N/A"),
             "title": body.get("title", "N/A"),
             "raw_context": body.get("context", ""),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "status": "harvested"
+            "status": "harvested",
+            "ttl": ttl_value,         # 30-day auto-expiry
         }
 
         # 3. Save to DB

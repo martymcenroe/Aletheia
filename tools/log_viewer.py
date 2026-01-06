@@ -12,19 +12,34 @@ def parse_args():
     parser.add_argument("--full-url", action="store_true", help="Show full URL instead of just the domain")
     return parser.parse_args()
 
-def format_timestamp(iso_str):
-    """Parses ISO string and converts to Central Time (Dec 20 10:01)."""
-    if not iso_str:
+def format_timestamp(ts_value):
+    """Parses timestamp and converts to Central Time (Dec 20 10:01).
+
+    Handles both:
+    - ISO strings (old): "2025-12-16T20:05:29.124328+00:00"
+    - Epoch milliseconds (new): "1709123456789" or 1709123456789
+    """
+    if not ts_value:
         return "N/A"
+
+    ts_str = str(ts_value)
+
     try:
-        # Parse ISO (e.g., 2025-12-16T20:05:29.124328+00:00)
-        dt_utc = datetime.fromisoformat(iso_str)
+        # Check if it's epoch milliseconds (all digits, typically 13 digits)
+        if ts_str.isdigit() and len(ts_str) >= 10:
+            # Convert milliseconds to seconds
+            epoch_seconds = int(ts_str) / 1000 if len(ts_str) > 10 else int(ts_str)
+            dt_utc = datetime.fromtimestamp(epoch_seconds, tz=ZoneInfo("UTC"))
+        else:
+            # Parse ISO (e.g., 2025-12-16T20:05:29.124328+00:00)
+            dt_utc = datetime.fromisoformat(ts_str)
+
         # Convert to Central
         dt_central = dt_utc.astimezone(ZoneInfo("America/Chicago"))
         # Format: Dec 20 10:01
         return dt_central.strftime("%b %d %H:%M")
-    except ValueError:
-        return iso_str
+    except (ValueError, OSError):
+        return ts_str
 
 def extract_domain(url_str):
     """Extracts domain (e.g., wsj.com) from a URL."""
@@ -36,10 +51,20 @@ def extract_domain(url_str):
         return url_str
 
 def get_display_data(item):
-    """Extracts and normalizes display fields from a DynamoDB item."""
-    word = item.get('user_input') or item.get('word') or "N/A"
+    """Extracts and normalizes display fields from a DynamoDB item.
+
+    Handles schema evolution:
+    - word: input (new) > user_input (old) > word (old)
+    - timestamp: checkpoint_id (new) > timestamp (old)
+    """
+    # Word field: new schema uses 'input', old used 'user_input' or 'word'
+    word = item.get('input') or item.get('user_input') or item.get('word') or "N/A"
+
+    # Site field
     site = item.get('url') or item.get('title') or "Unknown"
-    raw_ts = item.get('timestamp') or ""
+
+    # Timestamp field: new schema uses 'checkpoint_id' (epoch ms), old used 'timestamp' (ISO)
+    raw_ts = item.get('checkpoint_id') or item.get('timestamp') or ""
 
     return {
         "raw_timestamp": raw_ts,
