@@ -11,9 +11,11 @@ from unittest.mock import MagicMock, patch
 
 
 from src.lambda_function import (
+    TTL_SECONDS,
     generate_thread_id,
     lambda_handler,
     run_guardrails,
+    save_state,
     validate_input,
 )
 
@@ -314,3 +316,59 @@ class TestWillisonProtocol:
         # it would fail the Willison Protocol. The test passes by design
         # because we only use MOCK_DENYLIST placeholders.
         assert len(MOCK_DENYLIST) > 0, "Mock denylist should have terms"
+
+
+class TestSaveStateTTL:
+    """
+    Tests for Issue #145: DynamoDB TTL auto-expiry.
+
+    See: docs/1145-dynamodb-ttl.md Section 11.1
+    """
+
+    def test_010_item_saved_with_ttl_attribute(self):
+        """Scenario 010: save_state adds ttl attribute to DynamoDB item."""
+
+        with patch("src.lambda_function.get_dynamodb_client") as mock_dynamo:
+            mock_client = MagicMock()
+            mock_dynamo.return_value = mock_client
+
+            save_state("test_thread_id", {"text": "apple", "url": "https://example.com"})
+
+            # Verify put_item was called
+            mock_client.put_item.assert_called_once()
+            call_args = mock_client.put_item.call_args
+
+            # Extract the Item from the call
+            item = call_args.kwargs.get("Item") or call_args[1].get("Item")
+            assert item is not None, "put_item should have Item kwarg"
+            assert "ttl" in item, "Item should have ttl attribute"
+            assert "N" in item["ttl"], "ttl should be a Number type"
+
+    def test_020_ttl_is_30_days_ahead(self):
+        """Scenario 020: TTL value is approximately 30 days from now."""
+        import time
+
+        with patch("src.lambda_function.get_dynamodb_client") as mock_dynamo:
+            mock_client = MagicMock()
+            mock_dynamo.return_value = mock_client
+
+            before = int(time.time())
+            save_state("test_thread_id", {"text": "apple", "url": "https://example.com"})
+            after = int(time.time())
+
+            call_args = mock_client.put_item.call_args
+            item = call_args.kwargs.get("Item") or call_args[1].get("Item")
+            ttl_value = int(item["ttl"]["N"])
+
+            # TTL should be now + 30 days (within 2 second tolerance)
+            expected_min = before + TTL_SECONDS
+            expected_max = after + TTL_SECONDS + 2
+
+            assert expected_min <= ttl_value <= expected_max, (
+                f"TTL {ttl_value} should be between {expected_min} and {expected_max}"
+            )
+
+    def test_ttl_seconds_constant_is_30_days(self):
+        """TTL_SECONDS constant equals 30 days in seconds."""
+        assert TTL_SECONDS == 2592000, "TTL_SECONDS should be 30 days (2592000 seconds)"
+        assert TTL_SECONDS == 30 * 24 * 60 * 60, "TTL_SECONDS should be 30 days"
