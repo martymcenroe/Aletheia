@@ -1,6 +1,6 @@
 ---
 description: Full 08xx audit suite (1-2 hours)
-args: "[--deep] [NNNN]"
+argument-hint: "[--deep] [NNNN]"
 ---
 
 # Full Audit Suite (0800)
