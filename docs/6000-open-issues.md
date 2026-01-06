@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-05 21:34 CT
-**Total Open Issues:** 30
+**Generated:** 2026-01-05 22:00 CT
+**Total Open Issues:** 29
 
 ---
 
@@ -1154,71 +1154,6 @@ Ensure `extension-chrome-V3/service-worker.js` includes parsed signals in the La
 - Signal Handling Policy: `docs/0007-signal-handling.md`
 - Privacy Audit: `docs/0810-audit-privacy.md`
 - Related: #145 (DynamoDB TTL)
-
----
-
-## Issue #159: docs: Update GitHub Wiki for 0817 audit findings
-
-**Labels:** documentation
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Context
-
-0817 Wiki Alignment Audit (Gemini 3.0 Pro, 2026-01-05) identified content drift between the GitHub Wiki and actual system behavior.
-
-## Required Updates
-
-### 1. Privacy Page (CRITICAL)
-
-**Current State:** Wiki says "in-memory only"
-**Actual State:** Lambda persists data to DynamoDB
-
-**Updates needed:**
-- Disclose DynamoDB persistence
-- Document 24/48h TTL (once #145 is implemented)
-- Note lack of user authentication
-- Reference data erasure process (#147)
-
-### 2. Terms of Use Page (HIGH)
-
-**Required:** Create page detailing prohibited content categories enforced by:
-- `extension-chrome-V3/content-safety.js` (client-side age gate)
-- `src/guardrails/denylist.py` (server-side hate speech filter)
-
-Content categories from `src/guardrails/resources/taxonomy.json`:
-- Hate Speech
-- Harassment
-- Sexual Content
-- Age-restricted content
-
-### 3. Architecture Page (MEDIUM)
-
-**Updates needed:**
-- Remove references to LangGraph/LangChain (per ADR 0211 Naked Python)
-- Add Digital Etymologist persona (#124)
-- Document buffered response pattern
-- Update data flow diagram
-
-## Wiki Edit Process
-
-Per `docs/0817-audit-wiki-alignment.md` §5:
-```bash
-git clone https://github.com/martymcenroe/Aletheia.wiki.git
-cd Aletheia.wiki
-# Edit .md files
-git commit -am "docs: update wiki per 0817 audit"
-git push
-```
-
-## References
-
-- 0817 Audit: `docs/0817-audit-wiki-alignment.md`
-- Privacy Audit: `docs/0810-audit-privacy.md`
-- Related: #145 (TTL), #147 (GDPR), #148 (Bedrock no-training)
 
 ---
 

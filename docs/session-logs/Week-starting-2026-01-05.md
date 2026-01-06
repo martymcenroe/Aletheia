@@ -167,3 +167,19 @@ Implemented Tooling Regression Suite (Issue #158). Created tests/test_tools_regr
 - Branch: main @ bb7e0ef
 - Open PRs: 0
 - Next: Per user direction
+
+---
+
+## 2026-01-05 22:01 CT | Claude Opus 4.5
+
+### Summary
+Implemented --deduplicate mode for data hygiene tool (#159). Added deduplication logic that groups items by (input, url), keeps newest checkpoint_id, deletes rest. Dry-run tested against production (25 duplicates found). PR #170 merged. Ran deduplication on production (25 items deleted, 79 remaining).
+
+### Issues
+- Created: None
+- Closed: #159
+
+### State on Exit
+- Branch: main @ 9a7f05f
+- Open PRs: 0
+- Next: Per user direction
