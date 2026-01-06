@@ -74,13 +74,64 @@ git -C /c/Users/mcwiz/Projects/Aletheia-102 status
   - See `docs/0004-orchestration-protocol.md` §8.6 for requirements
 - **Update inventory:** Add new files to `docs/0003-file-inventory.md`
 
+### PRE-MERGE REVIEW GATE (MANDATORY)
+
+**Before ANY commit/push/merge, you MUST complete these steps:**
+
+1. **Create reports locally** (do NOT commit yet):
+   - `docs/reports/{IssueID}/implementation-report.md`
+   - `docs/reports/{IssueID}/test-report.md`
+
+2. **Write lessons learned locally** (do NOT commit yet):
+   - Append entries to `docs/9000-lessons-learned.md`
+
+3. **Stage files but DO NOT COMMIT:**
+   - `git add .` to stage all changes
+   - **STOP HERE** - do not run `git commit`
+
+4. **Present for Gemini review:**
+   - Notify orchestrator that work is ready for review
+   - Wait for Gemini feedback
+   - Incorporate ALL feedback
+
+5. **Only after approval:** commit, push, and merge
+
+**Why this gate exists:** PRs merged without reports bypass the quality review process. Gemini cannot review work that has already been merged. This gate ensures every piece of work is reviewed BEFORE it becomes permanent.
+
+### Decision-Making Protocol
+
+**When you encounter an unexpected error or decision point:**
+
+1. **STOP** - Do not apply quick fixes
+2. **Check documentation:**
+   - `docs/08xx-*.md` - Audit logs for known issues (see table below)
+   - `docs/9000-lessons-learned.md` - Previous solutions
+   - Open issues - Related work in progress
+   - LLDs - Requirements that might be affected
+3. **If still unsure: ASK** - Query the orchestrator
+4. **Never prioritize "getting it done" over "getting it done right"**
+
+**Audit Trigger Table:**
+
+| If the issue involves... | Check this Audit... |
+|--------------------------|---------------------|
+| Dependency Updates / PRs | `0816-audit-dependabot-prs.md` |
+| Permissions / CLI Errors | `0808-audit-permission-permissiveness.md` |
+| Security / WAF / Auth | `0809-audit-security.md` |
+| Privacy / Data Storage | `0810-audit-privacy.md` |
+| Performance / Latency | `0812-audit-performance.md` |
+| Code Quality / Linting | `0813-audit-code-quality.md` |
+
+The documentation system exists so you don't need persistent memory. USE IT.
+
 ### Python Dependencies:
 - ✅ Use `poetry add <package>` for all dependencies
 - ❌ NEVER use `pip install` - it bypasses the lock file
 
 ### Claude Code Permissions:
-- When you are granted a new permission, **commit `.claude/settings.local.json` to main immediately**
-- Use the main worktree to commit: `cd /c/Users/mcwiz/Projects/Aletheia && git add .claude/settings.local.json && git commit -m "chore: update Claude Code permissions" && git push`
+- When granted a new permission, **stage** `.claude/settings.local.json` and request an immediate **Permissions Review**
+- Do NOT bypass the Pre-Merge Gate even for permissions
+- After approval: `git -C /c/Users/mcwiz/Projects/Aletheia add .claude/settings.local.json`
 - This prevents permission loss when branches are abandoned
 
 ### Pre-Code Checklist (MANDATORY):

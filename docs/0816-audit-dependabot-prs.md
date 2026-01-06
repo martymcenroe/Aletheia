@@ -14,7 +14,41 @@ Automated process to safely merge pending Dependabot PRs with regression verific
 |---------|---------|
 | **Pre-Security Audit** | MUST run before 0809 Security Audit |
 | **Weekly** | Part of regular maintenance (Mondays) |
-| **On Demand** | When Dependabot PRs accumulate |
+| **On Demand** | When Dependabot PRs accumulate or security concern arises |
+
+---
+
+## 2a. Force Run Protocol (On-Demand)
+
+Relying on the weekly schedule is insufficient for high-velocity development or when you suspect a security issue *now*. Use these methods to trigger Dependabot immediately:
+
+### Method 1: GitHub UI (Quickest)
+
+1. Navigate to repository on GitHub
+2. Go to **Insights** → **Dependency graph** → **Dependabot**
+3. Click **"Check for updates"** to force an immediate scan
+
+For security alerts specifically:
+- Go to **Security** tab → **Dependabot**
+- Security alerts trigger automatically on manifest changes
+
+### Method 2: Config Bump (Most Reliable)
+
+Dependabot *always* runs when its configuration file changes. Add a timestamp comment and push:
+
+```bash
+# Add trigger comment to dependabot.yml
+echo "# Triggering scan: $(date +%Y-%m-%d)" >> .github/dependabot.yml
+git add .github/dependabot.yml
+git commit -m "chore: trigger Dependabot scan"
+git push
+```
+
+This forces a re-evaluation of the entire dependency tree immediately.
+
+### Method 3: PR-Time Scanning (Automated)
+
+The CI workflow includes `dependency-review-action` which scans every PR automatically. This catches vulnerable packages *before* merge, providing callable feedback on every push.
 
 ---
 
@@ -337,3 +371,4 @@ Before beginning security audit, run 0816-audit-dependabot-prs to ensure:
 | Date | Change |
 |------|--------|
 | 2026-01-04 | Created. Automated Dependabot PR merge with regression detection. |
+| 2026-01-05 | Added §2a Force Run Protocol. Added `dependency-review-action` to CI. |

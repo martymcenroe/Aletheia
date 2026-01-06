@@ -4,7 +4,31 @@
 * **Issue:** #157
 * **Objective:** Migrate ESLint configuration from legacy `.eslintrc.json` to flat config `eslint.config.js` for ESLint v9+ compatibility.
 * **Status:** Draft
-* **Related Issues:** None
+* **Related Issues:** Audit 0816 (Dependabot PR Audit - CI Consistency Check)
+
+### CRITICAL: Current State (2026-01-05)
+
+**Technical Debt Added by PR #163:**
+
+During repo reorganization (#102), CI failed because ESLint v9 requires flat config. Instead of:
+- A) Downgrading ESLint to v8 in package.json, OR
+- B) Properly migrating to flat config
+
+A band-aid was applied:
+```yaml
+# .github/workflows/ci.yml
+- name: Lint Chrome extension
+  run: npx eslint extensions/chrome/ --ext .js
+  env:
+    ESLINT_USE_FLAT_CONFIG: false  # <-- BAND-AID - REMOVE WHEN THIS LLD IS IMPLEMENTED
+```
+
+**This is technical debt, not a solution.** This LLD must be implemented to remove the band-aid.
+
+**Current Versions:**
+- `package.json`: ESLint `^9.39.2` (v9)
+- Config: `.eslintrc.json` (legacy format)
+- CI: `ESLINT_USE_FLAT_CONFIG=false` (band-aid)
 
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
@@ -181,6 +205,10 @@ diff eslint-before.txt eslint-after.txt
 - [ ] Both extension directories lint successfully
 - [ ] `.eslintrc.json` removed
 
+### CI Cleanup (CRITICAL)
+- [ ] Remove `ESLINT_USE_FLAT_CONFIG: false` from `.github/workflows/ci.yml`
+- [ ] Verify CI passes without the band-aid environment variable
+
 ### Tests
 - [ ] CI lint step passes
 - [ ] No new lint errors introduced
@@ -190,10 +218,11 @@ diff eslint-before.txt eslint-after.txt
 
 ---
 
-## Appendix: Gemini Review Response
+## Appendix A: Original Gemini Review (2026-01-05)
 
 **Review Date:** 2026-01-05
 **Reviewer:** Gemini 3 Pro
+**Scope:** Original LLD content (sections 2-11)
 
 ### Tier 2 Issues (HIGH) - Addressed
 
@@ -201,4 +230,15 @@ diff eslint-before.txt eslint-after.txt
 |-------|------------|
 | WebExtension globals verification | Added fallback pattern with explicit `chrome`/`browser` definitions |
 
-**Verdict:** APPROVED - Proceed with implementation.
+**Verdict:** APPROVED for original scope.
+
+---
+
+## Appendix B: Band-Aid Documentation (2026-01-05)
+
+**Added by:** Claude Opus 4.5
+**Status:** [Pending Gemini Review]
+
+Section 1 was updated to document technical debt from PR #163. This addition requires separate review before implementation proceeds.
+
+**Rule for future LLDs:** Never pre-fill the "Reviewer" field. Leave as `[Pending Gemini Review]` until explicit review is provided.
