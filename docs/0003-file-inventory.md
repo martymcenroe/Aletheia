@@ -18,6 +18,7 @@
 | `.claude/commands/closeout.md` | **Skill** | 🟢 **Stable** | - | Session closeout skill (5-10 min). |
 | `.claude/commands/full-cleanup.md` | **Skill** | 🟢 **Stable** | - | Full cleanup skill (20-30 min). |
 | `.claude/commands/audit.md` | **Skill** | 🟢 **Stable** | - | Full 08xx audit suite skill (1-2 hrs). |
+| `.claude/commands/onboard.md` | **Skill** | 🟢 **Stable** | - | Agent onboarding skill (quick/full mode). |
 | `.gitignore` | **Config** | 🟢 **Stable** | - | Git ignore rules. |
 | `.print-history.json` | **Log** | 🚫 **Gitignored** | - | Print tracking for markdown files (mtime + timestamp). |
 | `.session-log.md` | **Log** | 🚫 **Gitignored** | - | AI session continuity log. |
@@ -39,6 +40,8 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/0000-GUIDE.md` | **Guide** | 🟢 **Stable** | - | The "Start Here" manual and project philosophy. |
+| `docs/0000a-IMMEDIATE-PLAN.md` | **Plan** | 🟢 **Stable** | - | Current sprint focus and handoff context. |
+| `docs/0000b-ONBOARD-DIGEST.md` | **Report** | 🟢 **Stable** | - | Auto-generated onboard digest (regenerate with `tools/generate_onboard_digest.py`). |
 | `docs/0001-system-architecture.md` | **Spec** | 🟢 **Stable** | #1 | High-level system design and AWS topology. |
 | `docs/0002-coding-standards.md` | **Standard** | 🟢 **Stable** | #36 | Python, Git, and Documentation standards. |
 | `docs/0003-file-inventory.md` | **Register** | 🟡 **Beta** | #70 | This file. Requires regular audit (0009 Full Mode §F9). |
@@ -275,6 +278,7 @@
 | `tools/print/audit_long_lines.py` | **Utility** | 🟢 **Stable** | #103 | Audits markdown files for print overflow (>100 char lines). |
 | `tools/print/pandoc-header.tex` | **Asset** | 🟢 **Stable** | - | LaTeX header template for PDF generation (fancy headers). |
 | `tools/append_session_log.py` | **Utility** | 🟢 **Stable** | - | Append session log entries without reading entire file (avoids token limits). |
+| `tools/generate_onboard_digest.py` | **Utility** | 🟢 **Stable** | - | Generate compact onboard digest from live repo state (~92% token reduction). |
 | `tools/aws/lambda-status.sh` | **Utility** | 🟢 **Stable** | - | Show Lambda concurrency status (ON/OFF). |
 | `tools/aws/lambda-on.sh` | **Utility** | 🟢 **Stable** | - | Enable Lambda (remove concurrency limit). |
 | `tools/aws/lambda-off.sh` | **Utility** | 🟢 **Stable** | - | Disable Lambda (set concurrency=0). |

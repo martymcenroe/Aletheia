@@ -34,8 +34,17 @@ If the user says something that seems to conflict with AgentOS documentation (CL
 - ✅ Use absolute paths (e.g., `/c/Users/mcwiz/Projects/Aletheia-102`)
 - ✅ Use `git -C /path/to/repo` instead of `cd /path && git`
 - ✅ Run multiple independent commands as parallel Bash tool calls
+- ✅ **AWS CLI:** ALWAYS prefix with `MSYS_NO_PATHCONV=1` (Windows path conversion breaks `/aws/...` paths)
 
 **Why:** Pipes and `&&` trigger permission approval dialogs that interrupt the user's workflow. This is unacceptable. Single commands with absolute paths are pre-approved and run silently.
+
+**AWS CLI on Windows (MANDATORY):**
+Git Bash converts Unix paths like `/aws/lambda/...` to `C:/aws/lambda/...`, breaking AWS commands. ALWAYS use:
+```bash
+MSYS_NO_PATHCONV=1 aws logs tail /aws/lambda/Aletheia --follow
+MSYS_NO_PATHCONV=1 aws lambda get-function-configuration --function-name Aletheia
+```
+Never use bare `aws` commands - they will fail silently or produce wrong results.
 
 **Example - WRONG:**
 ```bash

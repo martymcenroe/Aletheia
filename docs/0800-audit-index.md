@@ -37,16 +37,17 @@ Audits exist because:
 
 | Category | Count | Focus |
 |----------|-------|-------|
-| Core Development | 9 | Code quality, security, privacy |
+| Core Development | 10 | Code quality, security, privacy |
 | AI Governance | 6 | AI-specific controls and compliance |
 | Meta | 2 | Audit system governance |
-| **Total** | **17** | |
+| **Total** | **18** | |
 
 ### 3.2 Quick Reference
 
 | Audit | One-Line Description |
 |-------|----------------------|
-| 0808 | Agent permission friction assessment |
+| 0808 | Agent permission policy (deny dangerous commands) |
+| 0824 | Permission friction analysis (find missing allows) |
 | 0809 | Security (OWASP, ASVS, prompt injection) |
 | 0810 | Privacy (GDPR-aware, data handling) |
 | 0811 | Linting (ruff, eslint) |
@@ -75,6 +76,7 @@ Audits for code quality, security, and development practices.
 | Number | Name | Frequency | Automation |
 |--------|------|-----------|------------|
 | 0808 | Permission Permissiveness | On friction | Manual |
+| 0824 | Permission Friction | On friction | Manual (/friction) |
 | 0809 | Security | Quarterly | Manual |
 | 0810 | Privacy | Quarterly | Manual |
 | 0811 | Linting | Per PR | CI |
@@ -118,7 +120,7 @@ Audits that govern the audit system itself.
 | **Weekly** | 0816 |
 | **Monthly** | 0815, 0821 |
 | **Quarterly** | 0809, 0810, 0818, 0819, 0820, 0822, 0898, 0899 |
-| **On Event** | 0808 (friction), 0823 (incident) |
+| **On Event** | 0808 (policy), 0824 (friction analysis), 0823 (incident) |
 
 ### 5.2 Calendar View
 
@@ -214,6 +216,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 ### 9.1 By Number
 
 - [0808 - Permission Permissiveness](0808-audit-permission-permissiveness.md)
+- [0824 - Permission Friction](0824-audit-permission-friction.md)
 - [0809 - Security](0809-audit-security.md)
 - [0810 - Privacy](0810-audit-privacy.md)
 - [0811 - Linting](0811-audit-linting.md)
@@ -235,7 +238,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 | Topic | Relevant Audits |
 |-------|-----------------|
-| Agent behavior | 0808, 0815, 0821 |
+| Agent behavior | 0808, 0824, 0815, 0821 |
 | AI safety | 0809, 0818, 0821, 0822 |
 | Code quality | 0811, 0812, 0813, 0814 |
 | Compliance | 0818, 0820, 0898 |
