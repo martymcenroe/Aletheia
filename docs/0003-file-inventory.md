@@ -207,6 +207,7 @@
 | `src/lambda_function.py` | **Entry** | 🟢 **Stable** | #113, #124 | Main AWS Lambda handler (Naked Python orchestrator, Digital Etymologist). |
 | `src/lambda_harvester_function.py` | **Entry** | 🟢 **Stable** | - | Data harvester Lambda handler. |
 | `src/etymologist.py` | **Logic** | 🟢 **Stable** | #124 | Digital Etymologist persona with structured JSON output. |
+| `src/observability.py` | **Logic** | 🟢 **Stable** | #7 | X-Ray tracing and CloudWatch metrics (STRICT BAN on PII). |
 | `src/__init__.py` | **Module** | 🟢 **Stable** | - | Package init. |
 | `src/guardrails/__init__.py` | **Module** | 🟢 **Stable** | - | Guardrails package init. |
 | `src/guardrails/denylist.py` | **Logic** | 🟢 **Stable** | #45 | Denylist guardrail (hash-based term blocking). |
