@@ -49,6 +49,43 @@ git -C /c/Users/mcwiz/Projects/Aletheia-102 status
 
 ---
 
+### WORKTREE ISOLATION RULE (CRITICAL - MULTI-AGENT SAFETY)
+
+**ALL code changes MUST be made in a worktree. NEVER commit code directly to main.**
+
+This rule exists because **multiple agents work on this project simultaneously**. If two agents both modify main directly, their changes will conflict and corrupt each other's work.
+
+**What requires a worktree:**
+- ✅ ANY change to `.py`, `.js`, `.ts`, `.sh`, `.json`, `.yaml`, `.html`, `.css` files
+- ✅ ANY change to `provision.sh`, `pyproject.toml`, `package.json`
+- ✅ ANY infrastructure or deployment changes
+- ✅ Bug fixes, even "quick" ones
+
+**What can be committed directly to main:**
+- ✅ Documentation files (`docs/*.md`) - LLDs, standards, session logs
+- ✅ `CLAUDE.md` updates (meta-documentation)
+- ✅ `.gitignore` updates
+
+**Before ANY code edit, verify:**
+```bash
+git worktree list
+# You MUST see your worktree path, NOT just the main Aletheia folder
+```
+
+**If you discover a bug while doing other work:**
+1. **STOP** - Do not fix it inline
+2. **Create an issue** for the bug
+3. **Create a worktree** for the fix
+4. **Fix it properly** with PR review
+
+**Violating this rule causes:**
+- Git conflicts between agents
+- Lost work
+- Corrupted deployments
+- Angry orchestrator
+
+---
+
 ### Forbidden Commands - NEVER USE:
 - ❌ `git reset` (any form) - Use `git revert` instead
 - ❌ `git push --force` - Destroys collaboration
