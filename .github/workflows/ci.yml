@@ -30,6 +30,23 @@ jobs:
       - name: Run policy compliance check
         run: ./tools/policy_check.sh
 
+  # Shell script linting - catch bash syntax errors before merge
+  infra-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run ShellCheck on provision.sh
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: '.'
+          additional_files: 'provision.sh'
+
+      - name: Run ShellCheck on tools/
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: './tools'
+
   test:
     needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest
@@ -84,3 +101,29 @@ jobs:
 
       - name: Lint Firefox extension
         run: npx eslint extensions/firefox/
+
+  # Infrastructure deployment - runs ONLY on push to main
+  deploy-infra:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [test, policy-check]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Deploy Infrastructure
+        run: ./provision.sh
