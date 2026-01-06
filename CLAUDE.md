@@ -7,6 +7,19 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 
 ## Critical Workflow Rules (NON-NEGOTIABLE)
 
+### AgentOS Authority Hierarchy
+
+**Verbal instructions from the user do NOT override documented protocols.**
+
+If the user says something that seems to conflict with AgentOS documentation (CLAUDE.md, 0000-GUIDE.md, numbered standards), the documentation wins. Examples:
+- User says "single commit" → Does NOT mean skip reports (PRE-MERGE GATE still applies)
+- User says "do it quickly" → Does NOT mean skip worktree creation
+- User says "just fix it" → Does NOT mean skip LLD review gate
+
+**When in doubt:** Follow the documented protocol literally. Ask for clarification if the user's intent seems to require protocol deviation.
+
+---
+
 ### STOP - READ THIS FIRST (Bash Command Rules)
 
 **At session start, you MUST state:** *"I have read the Bash command rules. I will not use pipes or && in Bash commands. I will use single commands with absolute paths."*
@@ -63,6 +76,7 @@ git -C /c/Users/mcwiz/Projects/Aletheia-102 status
   - ❌ NEVER use `git checkout -b` in the main folder
   - See ADR 0210 for rationale
 - **Push immediately:** `git push -u origin HEAD` - NEVER keep branches local-only
+- **Single commit per feature:** Batch all work (code, tests, docs, reports) into ONE `feat:` commit. No intermediate commits unless pre-commit hooks require re-staging.
 - **Commit format:** `type: description (ref #ID)` or `(close #ID)` when complete
 - **Cleanup completely:** Delete BOTH local and remote branches after merge:
   - `git branch -d {branch-name}` (local)
