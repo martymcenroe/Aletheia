@@ -1,6 +1,6 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-06 01:26 CT
+**Generated:** 2026-01-06 02:10 CT
 **Total Open Issues:** 28
 
 ---
@@ -461,39 +461,6 @@ This led to the realization that what we'd built wasn't just documentation—it 
 - Target audience: AI/ML practitioners, developer tooling engineers, anyone working with AI agents
 - Angle: Novel framing of documentation as executable infrastructure
 - Could include diagrams showing the "OS layers" and agent execution flow
-
----
-
-## Issue #125: feat: Implement 'Museum Label' Progressive Disclosure UI
-
-**Labels:** feature, frontend
-
-**Created:** 2025-12-31
-**Updated:** 2025-12-31
-
-### Description
-
-
-## Objective
-Update the overlay UI to support the 'Signal -> Gem -> Context' progressive disclosure flow.
-
-## The 'Museum Label' Concept
-Users should not be overwhelmed. They should see the artifact (Signal) and a brief description (Gem). The deep history (Context) is opt-in.
-
-## UX Flow
-1. **Tier 1 (Glance):** Show the Amber/Red Badge + The 'Signal' (Category).
-2. **Tier 2 (Hover):** Show The 'Gem' (1-sentence summary).
-3. **Tier 3 (Click/Expand):** Reveal The 'Context' (Full historical detail).
-
-## Technical Changes
-- Update `overlay.js` to parse the new JSON response.
-- Create CSS animations for the expansion (smooth slide-down).
-- Ensure the 'Close' button is always accessible.
-
-## Acceptance Criteria
-- [ ] UI defaults to compact view (Signal + Gem).
-- [ ] 'Expand' action reveals full context.
-- [ ] Visual hierarchy clearly distinguishes the three tiers.
 
 ---
 
@@ -1289,5 +1256,61 @@ Option B: Server-side detection
 - [ ] Lambda respects `noarchive` signal per 0007 spec
 - [ ] Transform layer applies summarization when signal present
 - [ ] Tests verify both paths (with/without `noarchive`)
+
+---
+
+## Issue #173: feat: Visual Regression Testing Infrastructure (Phase 1)
+
+**Labels:** testing, feature
+
+**Created:** 2026-01-06
+**Updated:** 2026-01-06
+
+### Description
+
+## Context
+
+To support Issue #53 (Store Assets) and improve testing automation, we need visual regression testing infrastructure. This Phase 1 issue covers the foundational setup.
+
+## Objective
+
+Set up Playwright-based visual regression testing that:
+1. Catches UI drift via screenshot comparison
+2. Provides deterministic, Lambda-free testing
+3. Enables future store asset generation
+
+## Requirements
+
+### Infrastructure
+- [ ] Configure Playwright `toHaveScreenshot()` settings
+- [ ] Add `npm run test:visual` script
+- [ ] Create shared test utilities (`tests/e2e/utils/`)
+- [ ] Create mock data modules (`tests/e2e/mocks/`)
+
+### Proof of Concept
+- [ ] One visual regression test (`visual-poc.spec.js`)
+- [ ] Baseline generation and comparison working
+- [ ] Diff detection on intentional changes
+
+## Technical Approach
+
+- Use Playwright's native `toHaveScreenshot()` (v1.40.0+)
+- Mock API responses via `page.route()` - no Lambda dependency
+- `maxDiffPixels: 100` tolerance for antialiasing
+- Serial execution (`workers: 1`) for extension stability
+- Baselines committed to git in `__snapshots__/`
+
+## Related
+
+- #53 (Store Assets) - depends on this infrastructure
+- #160 (Accessibility automation) - can use same infrastructure
+- #161 (Performance benchmarks) - can extend this approach
+
+## Future Phases (Not This Issue)
+
+- Phase 2: Full visual regression suite (popup + overlay)
+- Phase 3: Store asset generation
+- Phase 4: Expanded E2E coverage
+- Phase 5: CI integration
 
 ---
