@@ -9,9 +9,11 @@
     "test:e2e:ui": "playwright test --ui",
     "test:waf": "playwright test tests/e2e/waf-integration.spec.js",
     "test:visual": "npx playwright test tests/e2e/visual-poc.spec.js",
-    "test:visual:update": "npx playwright test tests/e2e/visual-poc.spec.js --update-snapshots"
+    "test:visual:update": "npx playwright test tests/e2e/visual-poc.spec.js --update-snapshots",
+    "test:a11y": "npx playwright test tests/e2e/accessibility.spec.js"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.40.0",
     "eslint": "^9.39.2",
