@@ -100,6 +100,34 @@ else
     echo "TTL already enabled"
 fi
 
+# Issue #147: Add GSI on user_id for GDPR data erasure queries
+echo "Checking GSI on user_id..."
+GSI_EXISTS=$(aws dynamodb describe-table \
+    --table-name "$TABLE_NAME" \
+    --region "$REGION" \
+    --query "Table.GlobalSecondaryIndexes[?IndexName=='user_id-index'].IndexName" \
+    --output text 2>/dev/null || echo "")
+
+if [ -z "$GSI_EXISTS" ]; then
+    echo "Creating GSI on user_id for GDPR erasure queries..."
+    aws dynamodb update-table \
+        --table-name "$TABLE_NAME" \
+        --region "$REGION" \
+        --attribute-definitions AttributeName=user_id,AttributeType=S \
+        --global-secondary-index-updates '[{
+            "Create": {
+                "IndexName": "user_id-index",
+                "KeySchema": [{"AttributeName": "user_id", "KeyType": "HASH"}],
+                "Projection": {"ProjectionType": "KEYS_ONLY"}
+            }
+        }]'
+    echo "Waiting for GSI to become active..."
+    aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION"
+    echo -e "${GREEN}GSI user_id-index created${NC}"
+else
+    echo "GSI user_id-index already exists"
+fi
+
 # =============================================================================
 # Step 2: DynamoDB Users Table (Issue #116: LinkedIn OAuth)
 # =============================================================================
@@ -166,6 +194,7 @@ aws iam put-role-policy \
             ],
             "Resource": [
                 "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'",
+                "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'/index/*",
                 "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'"
             ]
         },
@@ -338,7 +367,7 @@ if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION
         --timeout 30 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Auth Lambda (X-Ray enabled)${NC}"
@@ -357,7 +386,7 @@ else
         --function-name "$AUTH_FUNC_NAME" \
         --handler lambda_auth_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 

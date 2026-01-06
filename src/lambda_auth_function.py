@@ -27,6 +27,7 @@ logger.setLevel(logging.INFO)
 # Configuration
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 USERS_TABLE = os.environ.get("USERS_TABLE", "aletheia-users")
+AGENT_STATE_TABLE = os.environ.get("AGENT_STATE_TABLE", "AletheiaAgentState")
 
 # LinkedIn OAuth endpoints
 LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
@@ -383,6 +384,115 @@ def handle_validate_token(headers: dict) -> dict:
     }
 
 
+def delete_user_data(user_id: str) -> int:
+    """
+    Delete all DynamoDB items for a user from AletheiaAgentState table.
+
+    Issue #147: GDPR Article 17 - Right to Erasure implementation.
+    Uses GSI on user_id to efficiently query user's items.
+
+    Args:
+        user_id: LinkedIn OIDC 'sub' identifier.
+
+    Returns:
+        Count of items deleted.
+    """
+    client = get_dynamodb_client()
+    deleted_count = 0
+
+    try:
+        # Query all items for this user using GSI
+        response = client.query(
+            TableName=AGENT_STATE_TABLE,
+            IndexName="user_id-index",
+            KeyConditionExpression="user_id = :uid",
+            ExpressionAttributeValues={":uid": {"S": user_id}},
+            ProjectionExpression="thread_id, checkpoint_id",
+        )
+
+        items = response.get("Items", [])
+
+        # Handle pagination for users with many items
+        while response.get("LastEvaluatedKey"):
+            response = client.query(
+                TableName=AGENT_STATE_TABLE,
+                IndexName="user_id-index",
+                KeyConditionExpression="user_id = :uid",
+                ExpressionAttributeValues={":uid": {"S": user_id}},
+                ProjectionExpression="thread_id, checkpoint_id",
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+            )
+            items.extend(response.get("Items", []))
+
+        # Delete each item (DynamoDB requires primary key for deletion)
+        for item in items:
+            client.delete_item(
+                TableName=AGENT_STATE_TABLE,
+                Key={
+                    "thread_id": item["thread_id"],
+                    "checkpoint_id": item["checkpoint_id"],
+                },
+            )
+            deleted_count += 1
+
+        logger.info(f"GDPR erasure: deleted {deleted_count} items for user {user_id}")
+        return deleted_count
+
+    except ClientError as e:
+        logger.error(f"GDPR erasure failed: {e}")
+        raise
+
+
+def handle_delete_my_data(headers: dict) -> dict:
+    """
+    Handle DELETE /my-data - GDPR Article 17 data erasure endpoint.
+
+    Issue #147: Implements user's right to erasure.
+    Requires valid OAuth token to identify user.
+
+    Expects Authorization header: Bearer <token>
+    """
+    auth_header = headers.get("Authorization", headers.get("authorization", ""))
+
+    if not auth_header.startswith("Bearer "):
+        return {
+            "statusCode": 401,
+            "body": json.dumps({"error": "Missing or invalid Authorization header"}),
+        }
+
+    token = auth_header.replace("Bearer ", "")
+    user_info = get_linkedin_user_info(token)
+
+    if user_info is None:
+        return {
+            "statusCode": 401,
+            "body": json.dumps({"error": "Invalid token - cannot verify identity"}),
+        }
+
+    user_id = user_info["sub"]
+
+    try:
+        # Delete user's analysis data from agent state table
+        deleted_count = delete_user_data(user_id)
+
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "success": True,
+                "message": "Your data has been deleted",
+                "itemsDeleted": deleted_count,
+            }),
+        }
+
+    except ClientError as e:
+        logger.error(f"GDPR deletion error for user {user_id}: {e}")
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": "Deletion failed - please try again"}),
+        }
+
+
 def lambda_handler(event: dict, context: Any) -> dict:
     """
     Main entry point for auth Lambda.
@@ -391,8 +501,9 @@ def lambda_handler(event: dict, context: Any) -> dict:
     - POST /auth/token - Exchange code for tokens
     - POST /auth/refresh - Refresh access token
     - GET /auth/validate - Validate access token
+    - DELETE /my-data - GDPR erasure (Issue #147)
 
-    See: docs/1116-linkedin-oauth.md
+    See: docs/1116-linkedin-oauth.md, docs/1147-gdpr-data-erasure.md
     """
     try:
         # Parse HTTP method and path
@@ -423,6 +534,8 @@ def lambda_handler(event: dict, context: Any) -> dict:
             return handle_token_refresh(body)
         elif path == "/auth/validate" and http_method == "GET":
             return handle_validate_token(headers)
+        elif path == "/my-data" and http_method == "DELETE":
+            return handle_delete_my_data(headers)
         else:
             return {
                 "statusCode": 404,

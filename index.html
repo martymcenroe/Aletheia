@@ -74,10 +74,11 @@
             </div>
             <section id="privacy">
                 <h3>>> PRIVACY POLICY</h3>
-                <p class="legal-text"><strong>Effective Date:</strong> December 2025</p>
-                <p class="legal-text">1. <strong>No Data Collection:</strong> Aletheia does not collect, transmit, or sell your browsing history, personal information, or interaction data.</p>
-                <p class="legal-text">2. <strong>Local Processing:</strong> All AI analysis is performed within the browser environment or via direct, user-authorized API calls. No intermediate servers store your data.</p>
-                <p class="legal-text">3. <strong>Permissions:</strong> We request only the permissions strictly necessary to function (e.g., modifying the current tab when activated).</p>
+                <p class="legal-text"><strong>Effective Date:</strong> January 2026</p>
+                <p class="legal-text">1. <strong>Data We Process:</strong> When you analyze text, we send it to our AWS Lambda backend for AI analysis. Analyzed text is stored temporarily (30 days) to enable conversation context, then automatically deleted.</p>
+                <p class="legal-text">2. <strong>No Selling:</strong> We never sell your data. AWS Bedrock (our AI provider) does not train on your data.</p>
+                <p class="legal-text">3. <strong>Your Rights (GDPR/CCPA):</strong> You can delete all your data at any time using the DELETE /my-data endpoint while logged in. Data without user association expires automatically in 30 days.</p>
+                <p class="legal-text">4. <strong>Permissions:</strong> We request only permissions strictly necessary: activeTab (to analyze selected text) and storage (for preferences).</p>
             </section>
         </main>
         <footer>
