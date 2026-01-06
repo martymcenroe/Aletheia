@@ -211,10 +211,31 @@ User selects text → Extension reads (activeTab)
 
 | Concern | AWS Commitment | Status |
 |---------|----------------|--------|
-| Data isolation | Per-account isolation | |
-| No training on prompts | Confirmed in TOS | |
-| Data residency | US region | |
-| Compliance | SOC 2, ISO 27001 | |
+| Data isolation | Per-account isolation | ✅ |
+| No training on prompts | Confirmed in TOS (see below) | ✅ |
+| Data residency | US region (us-east-1) | ✅ |
+| Compliance | SOC 2, ISO 27001 | ✅ |
+
+#### AWS Bedrock No-Training Commitment (Issue #148)
+
+**Verified:** 2026-01-06
+
+Per [AWS Bedrock FAQ](https://aws.amazon.com/bedrock/faqs/#Security_and_Privacy):
+
+> "Your content is not used to train the base models underlying Amazon Bedrock."
+
+> "Amazon Bedrock does not store or log your prompts and completions."
+
+**Technical Verification:**
+1. Bedrock model invocation via `InvokeModelWithResponseStream` - no opt-in training flags
+2. No Bedrock features enabled that would share data (e.g., no model customization)
+3. CloudWatch logging configured for Lambda execution only, not Bedrock payloads
+
+**Privacy Policy Implication:**
+Our privacy policy states "We do not train AI on your data" - this is accurate because:
+- We use AWS Bedrock which has contractual commitment not to train
+- We do not use model fine-tuning or customization features
+- Prompts and completions are processed transiently
 
 ---
 
