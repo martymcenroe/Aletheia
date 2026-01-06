@@ -3,8 +3,24 @@
 ## 1. Context & Goal
 * **Issue:** #116
 * **Objective:** Implement LinkedIn OAuth to gate extension features and enable user identification.
-* **Status:** Draft
+* **Status:** In Progress
 * **Related Issues:** #117 (spike: unauthenticated access), #25 (superseded), #88 (superseded)
+
+### User Identity Decision (2026-01-05)
+
+**Investigation Finding:** LinkedIn's OpenID Connect `/v2/userinfo` endpoint does NOT return the vanity handle (`vanityName`). The `vanityName` is only available via the `/v2/me` Profile API, which requires `r_basicprofile` permission (restricted, requires LinkedIn approval).
+
+**Decision:** Use the stable `sub` field from OIDC as the primary user identifier.
+
+| Field | Source | Usage |
+|-------|--------|-------|
+| `user_id` | OIDC `sub` (e.g., `"782bbtaQ"`) | DynamoDB primary key |
+| `display_name` | OIDC `name` (e.g., `"John Doe"`) | UI display |
+
+**Rationale:**
+- `sub` is stable (doesn't change if user updates their profile URL)
+- Available via standard OIDC flow (no special permissions)
+- `vanityName` is mutable and requires restricted API access
 
 ### Background
 
@@ -61,7 +77,7 @@ User Click ──launchWebAuthFlow──► LinkedIn ──callback──► Ext
 | Mock OAuth response | `MOCK_MODE` in auth.js | Deterministic fake token for automated tests |
 | Expired token response | Generated | Test lazy refresh flow |
 | Invalid token response | Generated | Test error handling |
-| Profile data mock | Generated | `{id: "mock-user-123", name: "Test User"}` |
+| Profile data mock | Generated | `{sub: "mock-sub-782bbtaQ", name: "Test User"}` (OIDC format) |
 
 ### 4.4 Deployment Pipeline
 
@@ -256,8 +272,8 @@ function mockLogin() {
         refreshToken: 'mock-refresh-token-67890',
         expiresIn: 3600,
         user: {
-            id: 'mock-user-123',
-            name: 'Test User'
+            id: 'mock-sub-782bbtaQ',    // Mimics OIDC 'sub' format
+            name: 'Test User'            // OIDC 'name' → display_name
         }
     };
     return storeTokens(
@@ -333,8 +349,16 @@ interface SessionAuth {
 
 interface LocalAuth {
     refreshToken: string;
-    userId: string;         // LinkedIn user ID (sub claim)
-    displayName: string;    // User's name for display
+    userId: string;         // LinkedIn OIDC 'sub' claim (e.g., "782bbtaQ")
+    displayName: string;    // LinkedIn OIDC 'name' claim (e.g., "John Doe")
+}
+
+// DynamoDB User Record (created on first login)
+interface DynamoDBUser {
+    user_id: string;        // PK: LinkedIn OIDC 'sub' (e.g., "782bbtaQ")
+    display_name: string;   // OIDC 'name' for UI
+    created_at: string;     // ISO 8601 timestamp
+    last_login: string;     // ISO 8601 timestamp (updated on each login)
 }
 
 // Token exchange request (to Lambda)
