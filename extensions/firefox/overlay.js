@@ -466,7 +466,6 @@ function showResultOverlay(response, httpStatus = 200) {
     // Build HTML structure
     const signal = response?.signal || 'Analysis';
     const gem = response?.gem || '';
-    const context = response?.context || '';
     const blockedReason = response?.blocked || 'Content blocked by safety filter';
 
     const cardClass = `aletheia-card ${pos.position}${hardBlock ? ' hard-block' : ''}`;
