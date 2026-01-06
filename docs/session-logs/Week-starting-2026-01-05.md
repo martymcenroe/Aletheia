@@ -263,3 +263,19 @@ Major session: (1) Rewrote provision.sh as batteries-included deployment with le
 - Branch: main @ bbe9554
 - Open PRs: 0
 - Next: Per user direction
+
+---
+
+## 2026-01-06 02:13 CT | Claude Opus 4.5
+
+### Summary
+Implemented Issue #125 Museum Label UI - rewrote overlay.js with Shadow DOM isolation, three-tier progressive disclosure (Signal→Gem→Context), typewriter animation, Hard Block state. Created 16 Playwright E2E tests with custom Shadow DOM helpers. PR #172 merged.
+
+### Issues
+- Created: None
+- Closed: #125
+
+### State on Exit
+- Branch: main @ 674a448
+- Open PRs: 0
+- Next: Per user direction
