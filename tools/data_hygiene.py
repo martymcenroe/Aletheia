@@ -5,7 +5,8 @@ DynamoDB Data Hygiene Tool.
 Cleans up the Aletheia database by:
 1. Normalizing schema to current format (--normalize)
 2. Backfilling TTL on historical data (--backfill-ttl)
-3. Deleting common/boring words, keeping novel ones (--clean-common)
+3. Removing duplicate entries (--deduplicate)
+4. Deleting common/boring words, keeping novel ones (--clean-common)
 
 See: docs/1150-dynamodb-data-hygiene.md
 
@@ -21,12 +22,16 @@ Usage:
     python tools/data_hygiene.py --backfill-ttl --dry-run
     python tools/data_hygiene.py --backfill-ttl --no-dry-run
 
+    # Remove duplicates (same input+url, keep newest)
+    python tools/data_hygiene.py --deduplicate --dry-run
+    python tools/data_hygiene.py --deduplicate --no-dry-run
+
     # Delete common words
     python tools/data_hygiene.py --clean-common --dry-run
     python tools/data_hygiene.py --clean-common --no-dry-run
 
-    # Full pipeline: normalize -> backfill -> clean
-    python tools/data_hygiene.py --normalize --backfill-ttl --clean-common --no-dry-run
+    # Full pipeline: normalize -> backfill -> deduplicate -> clean
+    python tools/data_hygiene.py --normalize --backfill-ttl --deduplicate --clean-common --no-dry-run
 """
 
 import argparse
@@ -63,6 +68,8 @@ class CleanupStats:
     novel_words_kept: int = 0
     needs_normalization: int = 0
     normalized: int = 0
+    duplicates_found: int = 0
+    duplicates_deleted: int = 0
     errors: int = 0
 
 
@@ -417,6 +424,87 @@ def clean_common_words(dry_run: bool = True) -> CleanupStats:
     return stats
 
 
+def deduplicate(dry_run: bool = True) -> CleanupStats:
+    """
+    Remove duplicate entries, keeping only the most recent per (input, url).
+
+    Groups items by (input.lower(), url) tuple.
+    For each group with >1 item, keeps the one with highest checkpoint_id
+    (which is a timestamp in milliseconds) and deletes the rest.
+    """
+    stats = CleanupStats()
+    table = get_dynamodb_table()
+
+    print("=" * 60)
+    print("DEDUPLICATE")
+    print(f"  Table: {TABLE_NAME}")
+    print(f"  Dry run: {dry_run}")
+    print("  Logic: Group by (input, url), keep newest, delete rest")
+    print("=" * 60)
+
+    items = scan_all_items()
+    stats.total_scanned = len(items)
+
+    print(f"\nGrouping {stats.total_scanned:,} items by (input, url)...\n")
+
+    # Group by (input, url)
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for item in items:
+        input_text = get_input_text(item).lower().strip()
+        url = item.get("url", "N/A")
+        key = (input_text, url)
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(item)
+
+    # Process groups with duplicates
+    for (input_text, url), group_items in groups.items():
+        if len(group_items) > 1:
+            # Count extra copies (total - 1 that we keep)
+            extra_copies = len(group_items) - 1
+            stats.duplicates_found += extra_copies
+
+            # Sort by checkpoint_id descending (keep newest)
+            # Cast to int to avoid lexicographical sorting bugs (e.g., "9" > "10")
+            sorted_items = sorted(
+                group_items,
+                key=lambda x: int(x.get("checkpoint_id", 0)),
+                reverse=True,
+            )
+            delete_items = sorted_items[1:]
+
+            if dry_run:
+                print(
+                    f"[DRY-RUN] Found duplicate '{input_text}' "
+                    f"({len(group_items)} copies). "
+                    f"Would delete {len(delete_items)}, keep 1."
+                )
+            else:
+                for item in delete_items:
+                    try:
+                        table.delete_item(
+                            Key={
+                                "thread_id": item["thread_id"],
+                                "checkpoint_id": item["checkpoint_id"],
+                            }
+                        )
+                        stats.duplicates_deleted += 1
+                        print(f"[DELETED] Duplicate '{input_text}'")
+                    except ClientError as e:
+                        stats.errors += 1
+                        print(f"[ERROR] Failed to delete duplicate: {e}")
+
+    print("\n" + "-" * 60)
+    print(f"Total scanned: {stats.total_scanned:,}")
+    print(f"Unique (input, url) groups: {len(groups):,}")
+    print(f"Duplicates found: {stats.duplicates_found:,}")
+    if not dry_run:
+        print(f"Duplicates deleted: {stats.duplicates_deleted:,}")
+        print(f"Errors: {stats.errors:,}")
+
+    return stats
+
+
 def scan_only() -> CleanupStats:
     """Scan and report statistics without making any changes."""
     stats = CleanupStats()
@@ -432,6 +520,10 @@ def scan_only() -> CleanupStats:
     print(f"\nAnalyzing {stats.total_scanned:,} items...\n")
 
     raw_capture_count = 0
+
+    # Group by (input, url) for duplicate detection
+    groups: dict[tuple[str, str], list[dict]] = {}
+
     for item in items:
         input_text = get_input_text(item)
 
@@ -449,11 +541,23 @@ def scan_only() -> CleanupStats:
         else:
             stats.novel_words_kept += 1
 
+        # Track for duplicate detection
+        key = (input_text.lower().strip(), item.get("url", "N/A"))
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(item)
+
+    # Count duplicates (extra copies beyond the first)
+    for group_items in groups.values():
+        if len(group_items) > 1:
+            stats.duplicates_found += len(group_items) - 1
+
     print("-" * 60)
     print(f"Total items: {stats.total_scanned:,}")
     print(f"Needs schema normalization: {stats.needs_normalization:,}")
     print(f"  - checkpoint_id='raw_capture': {raw_capture_count:,}")
     print(f"Missing TTL: {stats.missing_ttl:,}")
+    print(f"Duplicates (would delete): {stats.duplicates_found:,}")
     print(f"Common words (would delete): {stats.common_words_found:,}")
     print(f"Novel words (would keep): {stats.novel_words_kept:,}")
 
@@ -471,9 +575,10 @@ Examples:
   %(prog)s --normalize --dry-run       # Preview schema normalization
   %(prog)s --normalize --no-dry-run    # Actually normalize schema
   %(prog)s --backfill-ttl --dry-run    # Preview TTL backfill
+  %(prog)s --deduplicate --dry-run     # Preview duplicate removal
   %(prog)s --clean-common --dry-run    # Preview common word cleanup
 
-Recommended order: --normalize first, then --backfill-ttl, then --clean-common
+Recommended order: --normalize, --backfill-ttl, --deduplicate, --clean-common
         """,
     )
 
@@ -498,6 +603,11 @@ Recommended order: --normalize first, then --backfill-ttl, then --clean-common
         help="Delete items with common/boring words",
     )
     parser.add_argument(
+        "--deduplicate",
+        action="store_true",
+        help="Remove duplicate (input, url) entries, keeping the newest",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         default=True,
@@ -515,7 +625,7 @@ Recommended order: --normalize first, then --backfill-ttl, then --clean-common
     dry_run = not args.no_dry_run
 
     # Must specify at least one action
-    if not any([args.scan, args.normalize, args.backfill_ttl, args.clean_common]):
+    if not any([args.scan, args.normalize, args.backfill_ttl, args.deduplicate, args.clean_common]):
         parser.print_help()
         sys.exit(1)
 
@@ -533,11 +643,14 @@ Recommended order: --normalize first, then --backfill-ttl, then --clean-common
     if args.backfill_ttl:
         backfill_ttl(dry_run=dry_run)
 
+    if args.deduplicate:
+        deduplicate(dry_run=dry_run)
+
     if args.clean_common:
         clean_common_words(dry_run=dry_run)
 
     # Summary
-    if dry_run and (args.normalize or args.backfill_ttl or args.clean_common):
+    if dry_run and (args.normalize or args.backfill_ttl or args.deduplicate or args.clean_common):
         print("")
         print("=" * 60)
         print("DRY RUN COMPLETE - No changes were made.")
