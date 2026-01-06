@@ -187,7 +187,81 @@ STOP_WORDS = {
 COMMON_WORDS = COMMON_WORDS.union(STOP_WORDS)
 ```
 
-### 6.4 CLI Interface
+### 6.4 Deduplication Mode
+
+Testing has created duplicate entries where the same word and URL appear multiple times. The `--deduplicate` mode cleans this up.
+
+**Logic:**
+1. Scan the table
+2. Group items by `(input, url)` tuple
+3. If a group has > 1 item:
+   - Keep the most recent item (highest `checkpoint_id` timestamp)
+   - Delete all others
+
+**Safety:** Defaults to `--dry-run`. Must use `--no-dry-run` to actually delete.
+
+```python
+def deduplicate(dry_run: bool = True) -> CleanupStats:
+    """
+    Remove duplicate entries, keeping only the most recent per (input, url).
+
+    Groups items by (input.lower(), url) tuple.
+    For each group with >1 item, keeps the one with highest checkpoint_id
+    (which is a timestamp in milliseconds) and deletes the rest.
+    """
+    stats = CleanupStats()
+    table = get_dynamodb_table()
+
+    items = scan_all_items()
+    stats.total_scanned = len(items)
+
+    # Group by (input, url)
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for item in items:
+        input_text = get_input_text(item).lower().strip()
+        url = item.get("url", "N/A")
+        key = (input_text, url)
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(item)
+
+    # Process groups with duplicates
+    for (input_text, url), group_items in groups.items():
+        if len(group_items) > 1:
+            stats.duplicates_found += len(group_items) - 1
+
+            # Sort by checkpoint_id descending (keep newest)
+            sorted_items = sorted(
+                group_items,
+                key=lambda x: x.get("checkpoint_id", "0"),
+                reverse=True
+            )
+            keep = sorted_items[0]
+            delete_items = sorted_items[1:]
+
+            if dry_run:
+                print(f'[DRY-RUN] Found duplicate "{input_text}" '
+                      f'({len(group_items)} copies). '
+                      f'Would delete {len(delete_items)}, keep 1.')
+            else:
+                for item in delete_items:
+                    try:
+                        table.delete_item(
+                            Key={
+                                "thread_id": item["thread_id"],
+                                "checkpoint_id": item["checkpoint_id"]
+                            }
+                        )
+                        stats.duplicates_deleted += 1
+                        print(f'[DELETED] Duplicate "{input_text}"')
+                    except ClientError as e:
+                        stats.errors += 1
+                        print(f'[ERROR] Failed to delete duplicate: {e}')
+
+    return stats
+```
+
+### 6.5 CLI Interface
 
 ```bash
 # Scan and report (dry run) - DEFAULT
@@ -195,17 +269,18 @@ python tools/data_hygiene.py --scan
 
 # Backfill TTL on historical data (dry run first)
 python tools/data_hygiene.py --backfill-ttl --dry-run
-python tools/data_hygiene.py --backfill-ttl  # Actually do it
+python tools/data_hygiene.py --backfill-ttl --no-dry-run  # Actually do it
 
 # Delete common words (dry run first)
 python tools/data_hygiene.py --clean-common --dry-run
-python tools/data_hygiene.py --clean-common  # Actually do it
+python tools/data_hygiene.py --clean-common --no-dry-run  # Actually do it
 
-# Find and show duplicates
-python tools/data_hygiene.py --duplicates
+# Deduplicate (dry run first)
+python tools/data_hygiene.py --deduplicate --dry-run
+python tools/data_hygiene.py --deduplicate --no-dry-run  # Actually do it
 
-# Full cleanup: backfill TTL + delete common words
-python tools/data_hygiene.py --full-cleanup --dry-run
+# Full cleanup: normalize -> backfill -> deduplicate -> clean
+python tools/data_hygiene.py --normalize --backfill-ttl --deduplicate --clean-common --no-dry-run
 ```
 
 ## 7. Interface Specification
@@ -221,37 +296,46 @@ class DynamoDBEntry:
     timestamp: datetime | None
 
 @dataclass
-class CleanupReport:
-    total_scanned: int
-    missing_ttl: int
-    ttl_backfilled: int
-    common_words_found: int
-    common_words_deleted: int
-    duplicates_found: int
-    duplicates_deleted: int
-    novel_words_kept: int
+class CleanupStats:
+    total_scanned: int = 0
+    missing_ttl: int = 0
+    ttl_backfilled: int = 0
+    common_words_found: int = 0
+    common_words_deleted: int = 0
+    duplicates_found: int = 0        # Count of extra copies (total - 1 per group)
+    duplicates_deleted: int = 0      # Actually deleted in --no-dry-run
+    novel_words_kept: int = 0
+    needs_normalization: int = 0
+    normalized: int = 0
+    errors: int = 0
 ```
 
 ### 7.2 Function Signatures
 ```python
-def scan_entries() -> list[DynamoDBEntry]:
-    """Scan all DynamoDB entries."""
+def scan_all_items() -> list[dict]:
+    """Scan all DynamoDB items with pagination."""
     ...
 
-def backfill_ttl(dry_run: bool = True) -> int:
-    """Add TTL to items missing it. Returns count."""
+def backfill_ttl(dry_run: bool = True) -> CleanupStats:
+    """Add TTL to items missing it."""
     ...
 
-def find_duplicates(entries: list[DynamoDBEntry]) -> list[tuple[DynamoDBEntry, ...]]:
-    """Group entries by (word, url) and return duplicate groups."""
+def deduplicate(dry_run: bool = True) -> CleanupStats:
+    """
+    Remove duplicate entries, keeping only the most recent per (input, url).
+
+    Groups items by (input.lower(), url) tuple.
+    For each group with >1 item, keeps the one with highest checkpoint_id
+    and deletes the rest.
+    """
     ...
 
-def filter_common_words(entries: list[DynamoDBEntry]) -> list[DynamoDBEntry]:
-    """Return entries that should be deleted (common words)."""
+def clean_common_words(dry_run: bool = True) -> CleanupStats:
+    """Delete items where input text is a common word."""
     ...
 
-def delete_entries(entries: list[DynamoDBEntry], dry_run: bool = True) -> int:
-    """Delete entries from DynamoDB. Returns count deleted."""
+def normalize_schema(dry_run: bool = True) -> CleanupStats:
+    """Normalize items to current schema format."""
     ...
 ```
 
@@ -295,6 +379,9 @@ def delete_entries(entries: list[DynamoDBEntry], dry_run: bool = True) -> int:
 | 040 | Short word deleted | Auto | "hi" | should_delete=True | Flagged |
 | 050 | TTL backfill | Auto | Item without TTL | TTL added | ttl = now + 30d |
 | 060 | Dry-run mode | Auto | --dry-run | No changes | DynamoDB unchanged |
+| 070 | Duplicate detection | Auto | 3 items same (input,url) | 2 flagged | duplicates_found=2 |
+| 080 | Keep newest duplicate | Auto | 3 items diff checkpoint_id | Highest kept | Correct item retained |
+| 090 | No false duplicates | Auto | Same input, diff URL | 0 flagged | Both kept |
 
 ### 11.2 Test Commands
 
@@ -309,23 +396,25 @@ python tools/data_hygiene.py --scan --dry-run
 ## 12. Definition of Done
 
 ### Code
-- [ ] CLI tool with all modes implemented
-- [ ] TTL backfill functionality
-- [ ] Novelty filter (common words list)
-- [ ] Dry-run default behavior
-- [ ] Deletion audit logging
+- [x] CLI tool with all modes implemented
+- [x] TTL backfill functionality
+- [x] Novelty filter (common words list)
+- [x] Schema normalization (raw_capture fix)
+- [ ] **Deduplication mode (`--deduplicate`)**
+- [x] Dry-run default behavior
+- [x] Deletion audit logging
 
 ### Data
-- [ ] Common words list sourced (10-20k words)
-- [ ] Stop words added to list
+- [x] Common words list sourced (10-20k words)
+- [x] Stop words added to list
 
 ### Tests
-- [ ] Unit tests with mocked DynamoDB
-- [ ] Dry-run verified on production
+- [ ] Unit tests for deduplication (mocked DynamoDB)
+- [x] Dry-run verified on production
 
 ### Documentation
-- [ ] Usage instructions in tool docstring
-- [ ] Add to file inventory
+- [x] Usage instructions in tool docstring
+- [x] Add to file inventory
 
 ---
 
