@@ -92,10 +92,47 @@ All tests use WCAG 2.0 AA and 2.1 AA tags:
 2. **Phase 3:** Explore `puppeteer-extra-plugin-stealth` or similar for bypassing extension URL restrictions
 3. **CI Integration:** Add accessibility tests to GitHub Actions workflow
 
+## Phase 2: Museum Label ARIA Fix
+
+### Violation Found
+
+Test 070 (Forced Museum Label Scan) detected a **CRITICAL** violation:
+
+- **Rule:** `aria-allowed-attr`
+- **Issue:** `aria-expanded` used on plain `<div>` elements without supporting role
+- **Affected elements:** `.aletheia-gem`, `.aletheia-context`
+
+### Fix Applied
+
+Modified `extensions/chrome/overlay.js`:
+
+1. Added `role="region"` and `aria-label` to gem/context sections
+2. Moved `aria-expanded` to the toggle button (where it belongs)
+3. Added `aria-controls` linking button to controlled sections
+
+**Before:**
+```html
+<div class="aletheia-gem" aria-expanded="false"></div>
+<div class="aletheia-context" aria-expanded="false"></div>
+<button class="aletheia-toggle">Show More</button>
+```
+
+**After:**
+```html
+<div class="aletheia-gem" id="aletheia-gem-section" role="region" aria-label="Quick summary"></div>
+<div class="aletheia-context" id="aletheia-context-section" role="region" aria-label="Full context"></div>
+<button class="aletheia-toggle" aria-expanded="false" aria-controls="aletheia-gem-section aletheia-context-section">Show More</button>
+```
+
+### Result
+
+All 4 overlay states (WARNING, BLOCK, NEUTRAL, LOADING) now pass WCAG 2.0/2.1 AA with zero violations.
+
 ## Files Changed Summary
 
 ```
 M  package.json
 M  tests/e2e/utils/test-helpers.js
+M  extensions/chrome/overlay.js      # ARIA fix
 A  tests/e2e/accessibility.spec.js
 ```

@@ -14,22 +14,24 @@
 | 040: Index page | PASS | 0 | Landing page fixture |
 | 050: Popup HTML scan | SKIP | N/A | Chrome blocks extension URLs |
 | 060: Museum Label UI | SKIP | N/A | Overlay requires allowlisting |
+| 070: Forced Museum Label | PASS | 0 | Direct injection scan |
 
-**Overall:** 6 passed, 0 failed (14.3s)
+**Overall:** 7 passed, 0 failed (17.1s)
 
 ## Test Output
 
 ```
-Running 6 tests using 1 worker
+Running 7 tests using 1 worker
 
-  ✓  010: Test fixture page - baseline accessibility (1.1s)
-  ✓  020: Page with extension loaded - accessibility scan (2.4s)
+  ✓  010: Test fixture page - baseline accessibility (1.0s)
+  ✓  020: Page with extension loaded - accessibility scan (2.5s)
   ✓  030: Adult-restricted page - blocked state accessibility (2.5s)
-  ✓  040: Index page - landing page accessibility (1.0s)
+  ✓  040: Index page - landing page accessibility (989ms)
   ✓  050: Extension popup HTML - direct accessibility scan (2.3s)
   ✓  060: Museum Label UI - triggered overlay accessibility (2.7s)
+  ✓  070: Forced Museum Label Scan - direct injection (2.9s)
 
-  6 passed (14.3s)
+  7 passed (17.1s)
 ```
 
 ## Detailed Results
@@ -69,6 +71,40 @@ aletheia-host after selection: 0
 Overlay still not present. Site may need to be allowlisted.
 This is expected behavior - overlay only shows on allowlisted sites.
 ```
+
+### Test 070: Forced Museum Label Scan
+
+**Status:** PASS (after fix)
+
+This test bypasses extension triggers by directly injecting overlay.js and calling the API.
+Tests 4 overlay states:
+
+1. **WARNING badge (amber)** - Archaic terms, dated language
+2. **BLOCK badge (red)** - Hard block for hate speech
+3. **NEUTRAL badge (blue)** - Etymology information
+4. **LOADING state** - Spinner during analysis
+
+```
+Testing WARNING badge overlay...
+  Overlay injected: true
+  WARNING overlay scan:
+    Total violations: 0
+Testing BLOCK badge overlay...
+  BLOCK overlay scan:
+    Total violations: 0
+Testing NEUTRAL badge overlay...
+  NEUTRAL overlay scan:
+    Total violations: 0
+Testing LOADING state overlay...
+  LOADING overlay scan:
+    Total violations: 0
+
+=== MUSEUM LABEL ACCESSIBILITY SUMMARY ===
+Total violations across all states: 0
+Museum Label passes WCAG 2.0/2.1 AA!
+```
+
+**Note:** Initial scan found 1 CRITICAL violation (`aria-allowed-attr`) which was fixed in overlay.js.
 
 ## WCAG Coverage
 

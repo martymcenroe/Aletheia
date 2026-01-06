@@ -285,4 +285,171 @@ test.describe('Accessibility Compliance (#154)', () => {
         }
     });
 
+    test('070: Forced Museum Label Scan - direct injection', async ({ page }) => {
+        // This test bypasses extension triggers by directly injecting the overlay
+        // component into the DOM for accessibility scanning.
+
+        // Navigate to test fixture
+        await gotoWithCacheBust(page, '/test-clean.html');
+        await page.waitForLoadState('networkidle');
+
+        // Read and inject overlay.js source code
+        const fs = require('fs');
+        const path = require('path');
+        const overlayPath = path.join(__dirname, '../../extensions/chrome/overlay.js');
+        const overlaySource = fs.readFileSync(overlayPath, 'utf-8');
+
+        // Inject overlay.js into page
+        await page.addScriptTag({ content: overlaySource });
+
+        // Create a mock selection position for overlay positioning
+        // The overlay uses window.getSelection() for positioning
+        await page.evaluate(() => {
+            // Create a dummy text node and select it so overlay can position
+            const textEl = document.createElement('p');
+            textEl.textContent = 'Test selection text for Museum Label positioning';
+            textEl.style.cssText = 'position: absolute; top: 100px; left: 100px; padding: 20px;';
+            document.body.appendChild(textEl);
+
+            // Create a range and select the text
+            const range = document.createRange();
+            range.selectNodeContents(textEl);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        });
+
+        // Test 1: Warning badge (amber) - typical use case
+        console.log('Testing WARNING badge overlay...');
+        await page.evaluate(() => {
+            window.showAletheiaResult({
+                signal: 'Archaic Term',
+                gem: 'This word has fallen out of common usage and may carry outdated connotations.',
+                context: 'Originally used in the 18th century, this term now primarily appears in historical texts.'
+            }, 200);
+        });
+        await page.waitForTimeout(300);
+
+        // Verify overlay is in DOM
+        const warningOverlay = await page.locator('#aletheia-overlay-host').count();
+        console.log(`  Overlay injected: ${warningOverlay > 0}`);
+        expect(warningOverlay).toBeGreaterThan(0);
+
+        // Run axe scan on the overlay (axe-core auto-scans shadow DOM)
+        let results = await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+            .include('#aletheia-overlay-host')
+            .analyze();
+
+        console.log('  WARNING overlay scan:');
+        console.log(`    Total violations: ${results.violations.length}`);
+        if (results.violations.length > 0) {
+            console.log(formatViolations(results.violations));
+        }
+
+        // Track all violations across states
+        let allViolations = [...results.violations];
+
+        // Test 2: Block badge (red) - hard block
+        console.log('Testing BLOCK badge overlay...');
+        await page.evaluate(() => {
+            window.showAletheiaResult({
+                signal: 'Hard Block - Hate Speech',
+                blocked: 'This content has been blocked due to hateful language.'
+            }, 403);
+        });
+        await page.waitForTimeout(300);
+
+        results = await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+            .include('#aletheia-overlay-host')
+            .analyze();
+
+        console.log('  BLOCK overlay scan:');
+        console.log(`    Total violations: ${results.violations.length}`);
+        if (results.violations.length > 0) {
+            console.log(formatViolations(results.violations));
+        }
+        allViolations = [...allViolations, ...results.violations];
+
+        // Test 3: Neutral badge (blue) - informational
+        console.log('Testing NEUTRAL badge overlay...');
+        await page.evaluate(() => {
+            window.showAletheiaResult({
+                signal: 'Etymology Info',
+                gem: 'From Latin "exemplum" meaning sample or pattern.',
+                context: 'First recorded usage in English circa 1400.'
+            }, 200);
+        });
+        await page.waitForTimeout(300);
+
+        results = await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+            .include('#aletheia-overlay-host')
+            .analyze();
+
+        console.log('  NEUTRAL overlay scan:');
+        console.log(`    Total violations: ${results.violations.length}`);
+        if (results.violations.length > 0) {
+            console.log(formatViolations(results.violations));
+        }
+        allViolations = [...allViolations, ...results.violations];
+
+        // Test 4: Loading state
+        console.log('Testing LOADING state overlay...');
+        await page.evaluate(() => {
+            window.showAletheiaLoading();
+        });
+        await page.waitForTimeout(300);
+
+        results = await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+            .include('#aletheia-overlay-host')
+            .analyze();
+
+        console.log('  LOADING overlay scan:');
+        console.log(`    Total violations: ${results.violations.length}`);
+        if (results.violations.length > 0) {
+            console.log(formatViolations(results.violations));
+        }
+        allViolations = [...allViolations, ...results.violations];
+
+        // Summarize results
+        console.log('\n=== MUSEUM LABEL ACCESSIBILITY SUMMARY ===');
+        console.log(`Total violations across all states: ${allViolations.length}`);
+
+        if (allViolations.length > 0) {
+            // Deduplicate violations by rule ID
+            const uniqueViolations = [];
+            const seenIds = new Set();
+            for (const v of allViolations) {
+                if (!seenIds.has(v.id)) {
+                    seenIds.add(v.id);
+                    uniqueViolations.push(v);
+                }
+            }
+
+            console.log(`Unique violation types: ${uniqueViolations.length}`);
+
+            const critical = uniqueViolations.filter(v => v.impact === 'critical');
+            const serious = uniqueViolations.filter(v => v.impact === 'serious');
+            const moderate = uniqueViolations.filter(v => v.impact === 'moderate');
+            const minor = uniqueViolations.filter(v => v.impact === 'minor');
+
+            console.log(`  Critical: ${critical.length}`);
+            console.log(`  Serious: ${serious.length}`);
+            console.log(`  Moderate: ${moderate.length}`);
+            console.log(`  Minor: ${minor.length}`);
+
+            // Show all unique violations for fixing
+            console.log('\nViolations to fix:');
+            console.log(formatViolations(uniqueViolations));
+
+            // Fail on critical/serious violations
+            expect(critical.length + serious.length).toBe(0);
+        } else {
+            console.log('Museum Label passes WCAG 2.0/2.1 AA!');
+        }
+    });
+
 });

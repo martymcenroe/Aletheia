@@ -476,10 +476,12 @@ function showResultOverlay(response, httpStatus = 200) {
             <div class="aletheia-blocked-message"></div>
         `;
     } else {
+        // Use role="region" for expandable sections (supports aria-expanded)
+        // Toggle button controls both regions via aria-controls
         bodyContent = `
-            <div class="aletheia-gem" aria-expanded="false"></div>
-            <div class="aletheia-context" aria-expanded="false"></div>
-            <button class="aletheia-toggle" tabindex="0">Show More</button>
+            <div class="aletheia-gem" id="aletheia-gem-section" role="region" aria-label="Quick summary"></div>
+            <div class="aletheia-context" id="aletheia-context-section" role="region" aria-label="Full context"></div>
+            <button class="aletheia-toggle" tabindex="0" aria-expanded="false" aria-controls="aletheia-gem-section aletheia-context-section">Show More</button>
         `;
     }
 
@@ -560,7 +562,6 @@ function handleMouseEnter(shadow) {
     const gemEl = shadow.querySelector('.aletheia-gem');
     if (gemEl) {
         gemEl.classList.add('visible');
-        updateAriaExpanded(gemEl, true);
     }
     currentOverlayState = OverlayState.HOVER;
 }
@@ -572,7 +573,6 @@ function handleMouseLeave(shadow) {
     const gemEl = shadow.querySelector('.aletheia-gem');
     if (gemEl) {
         gemEl.classList.remove('visible');
-        updateAriaExpanded(gemEl, false);
     }
     currentOverlayState = OverlayState.GLANCE;
 }
@@ -589,31 +589,29 @@ function handleToggleClick(shadow) {
         stopTypewriter();
         if (contextEl) {
             contextEl.classList.remove('expanded');
-            updateAriaExpanded(contextEl, false);
         }
         if (gemEl) {
             gemEl.classList.remove('visible');
-            updateAriaExpanded(gemEl, false);
         }
         if (toggleBtn) {
             toggleBtn.textContent = 'Show More';
+            updateAriaExpanded(toggleBtn, false);
         }
         currentOverlayState = OverlayState.GLANCE;
     } else {
         // Expand
         if (gemEl) {
             gemEl.classList.add('visible');
-            updateAriaExpanded(gemEl, true);
         }
         if (contextEl) {
             contextEl.classList.add('expanded');
-            updateAriaExpanded(contextEl, true);
             // Start typewriter animation
             const contextText = overlayData?.context || '';
             typewriterRender(contextEl, contextText);
         }
         if (toggleBtn) {
             toggleBtn.textContent = 'Show Less';
+            updateAriaExpanded(toggleBtn, true);
         }
         currentOverlayState = OverlayState.EXPANDED;
     }
