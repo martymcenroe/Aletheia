@@ -140,6 +140,12 @@ aws iam attach-role-policy \
     --role-name "$ROLE_NAME" \
     --policy-arn "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" 2>/dev/null || true
 
+# Issue #7: Attach X-Ray write access for observability tracing
+echo "Attaching AWSXRayDaemonWriteAccess..."
+aws iam attach-role-policy \
+    --role-name "$ROLE_NAME" \
+    --policy-arn "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess" 2>/dev/null || true
+
 # Create inline policy with all required permissions
 echo "Configuring inline policy..."
 aws iam put-role-policy \
@@ -186,6 +192,19 @@ aws iam put-role-policy \
                 "logs:PutLogEvents"
             ],
             "Resource": "arn:aws:logs:'"$REGION"':'"$ACCOUNT_ID"':log-group:/aws/lambda/*"
+        },
+        {
+            "Sid": "Issue7CloudWatchMetrics",
+            "Effect": "Allow",
+            "Action": [
+                "cloudwatch:PutMetricData"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "cloudwatch:namespace": "Aletheia"
+                }
+            }
         }
     ]
 }'
@@ -209,8 +228,9 @@ rm -f dependencies.zip 2>/dev/null || true
 mkdir -p build/python
 
 # Install ONLY the required runtime dependencies (cherry-pick, not full poetry export)
-echo "Installing runtime dependencies: requests, python-jose..."
-pip install requests python-jose -t build/python --no-cache-dir --quiet
+# Issue #7: Added aws-xray-sdk for observability tracing
+echo "Installing runtime dependencies: requests, python-jose, aws-xray-sdk..."
+pip install requests python-jose aws-xray-sdk -t build/python --no-cache-dir --quiet
 
 # Remove unnecessary files to reduce layer size
 echo "Cleaning up unnecessary files..."
@@ -232,7 +252,7 @@ echo "Layer size: $LAYER_SIZE"
 echo "Publishing Lambda Layer: $LAYER_NAME..."
 LAYER_VERSION_ARN=$(aws lambda publish-layer-version \
     --layer-name "$LAYER_NAME" \
-    --description "Runtime dependencies for Aletheia Lambdas (requests, python-jose)" \
+    --description "Runtime dependencies for Aletheia Lambdas (requests, python-jose, aws-xray-sdk)" \
     --zip-file fileb://dependencies.zip \
     --compatible-runtimes python3.12 python3.11 python3.10 \
     --compatible-architectures x86_64 \
@@ -269,8 +289,9 @@ if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/d
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
         --environment "Variables={ALETHEIA_ENV=dev,TABLE_NAME=$TABLE_NAME}" \
+        --tracing-config Mode=Active \
         --region "$REGION"
-    echo -e "${GREEN}Created Agent Lambda${NC}"
+    echo -e "${GREEN}Created Agent Lambda (X-Ray enabled)${NC}"
 else
     echo "Updating existing Lambda function: $FUNC_NAME"
     aws lambda update-function-code \
@@ -281,15 +302,16 @@ else
     # Wait for code update to complete before updating configuration
     aws lambda wait function-updated --function-name "$FUNC_NAME" --region "$REGION"
 
-    # Update configuration including layer and handler
+    # Update configuration including layer, handler, and X-Ray tracing (Issue #7)
     aws lambda update-function-configuration \
         --function-name "$FUNC_NAME" \
         --handler lambda_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
         --environment "Variables={ALETHEIA_ENV=dev,TABLE_NAME=$TABLE_NAME}" \
+        --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
-    echo -e "${GREEN}Updated Agent Lambda${NC}"
+    echo -e "${GREEN}Updated Agent Lambda (X-Ray enabled)${NC}"
 fi
 
 rm -f lambda_function.py agent_lambda.zip
@@ -318,8 +340,9 @@ if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
         --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME}" \
+        --tracing-config Mode=Active \
         --region "$REGION"
-    echo -e "${GREEN}Created Auth Lambda${NC}"
+    echo -e "${GREEN}Created Auth Lambda (X-Ray enabled)${NC}"
 else
     echo "Updating existing Lambda function: $AUTH_FUNC_NAME"
     aws lambda update-function-code \
@@ -330,15 +353,16 @@ else
     # Wait for code update to complete before updating configuration
     aws lambda wait function-updated --function-name "$AUTH_FUNC_NAME" --region "$REGION"
 
-    # Update configuration including layer and handler
+    # Update configuration including layer, handler, and X-Ray tracing (Issue #7)
     aws lambda update-function-configuration \
         --function-name "$AUTH_FUNC_NAME" \
         --handler lambda_auth_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
         --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME}" \
+        --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
-    echo -e "${GREEN}Updated Auth Lambda${NC}"
+    echo -e "${GREEN}Updated Auth Lambda (X-Ray enabled)${NC}"
 fi
 
 rm -f lambda_auth_function.py auth_lambda.zip
@@ -416,15 +440,15 @@ for LOG_GROUP in "$AGENT_LOG_GROUP" "$AUTH_LOG_GROUP"; do
         MSYS_NO_PATHCONV=1 aws logs create-log-group --log-group-name "$LOG_GROUP" --region "$REGION" 2>/dev/null || true
     fi
 
-    # Set retention to 7 days
-    echo "Setting 7-day retention on: $LOG_GROUP"
+    # Issue #7: Set retention to 14 days (privacy-aligned per LLD)
+    echo "Setting 14-day retention on: $LOG_GROUP"
     MSYS_NO_PATHCONV=1 aws logs put-retention-policy \
         --log-group-name "$LOG_GROUP" \
-        --retention-in-days 7 \
+        --retention-in-days 14 \
         --region "$REGION"
 done
 
-echo -e "${GREEN}CloudWatch logging configured with 7-day retention${NC}"
+echo -e "${GREEN}CloudWatch logging configured with 14-day retention (Issue #7)${NC}"
 
 # =============================================================================
 # Step 9: Verify LinkedIn OAuth Secret

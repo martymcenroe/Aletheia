@@ -306,6 +306,12 @@ def analyze_term(
                 if block.get("type") == "text":
                     raw_text += block.get("text", "")
 
+        # Issue #7: Extract token usage for observability
+        usage = response_body.get("usage", {})
+        input_tokens = usage.get("input_tokens", 0)
+        output_tokens = usage.get("output_tokens", 0)
+        total_tokens = input_tokens + output_tokens
+
         # Process through extraction and validation
         etymologist_response, status, errors = process_bedrock_response(raw_text)
 
@@ -319,6 +325,10 @@ def analyze_term(
                 "model": model_id,
                 "errors": errors if errors else None,
                 "raw_response_length": len(raw_text),
+                # Issue #7: Token usage for cost tracking
+                "tokens_used": total_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
             },
         )
 

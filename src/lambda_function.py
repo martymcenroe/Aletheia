@@ -8,6 +8,9 @@ Pipeline: Input → Validate → Denylist → Semantic → Persist → Generate 
 
 Updated by Issue #124 to use Digital Etymologist persona with structured JSON output.
 See: docs/1124-digital-etymologist.md
+
+Updated by Issue #7 to add X-Ray tracing and CloudWatch metrics.
+See: docs/1007-observability.md
 """
 import hashlib
 import json
@@ -22,6 +25,9 @@ from botocore.exceptions import ClientError
 from .etymologist import HAIKU_MODEL_ID, AnalysisResult, analyze_term
 from .guardrails.denylist import check_denylist, load_denylist
 from .guardrails.semantic import SemanticGuardrail
+
+# Issue #7: Observability tracing (imported after boto3 so patch_all works)
+from .observability import create_subsegment, log_bedrock_metrics, trace_bedrock_call
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -150,6 +156,8 @@ def generate_etymology(word: str, context: str = "") -> AnalysisResult:
     Uses buffered Bedrock invocation (not streaming) for reliable JSON extraction.
     See: docs/1124-digital-etymologist.md
 
+    Issue #7: Now includes X-Ray tracing and CloudWatch metrics.
+
     Args:
         word: The term to analyze.
         context: Page context for disambiguation.
@@ -158,12 +166,35 @@ def generate_etymology(word: str, context: str = "") -> AnalysisResult:
         AnalysisResult dict with status, response, and metadata.
     """
     client = get_bedrock_client()
-    return analyze_term(
-        word=word,
-        context=context,
-        bedrock_client=client,
-        model_id=BEDROCK_MODEL_ID,
-    )
+
+    # Issue #7: Trace Bedrock call with subsegment
+    with create_subsegment("bedrock_invoke"):
+        result = analyze_term(
+            word=word,
+            context=context,
+            bedrock_client=client,
+            model_id=BEDROCK_MODEL_ID,
+        )
+
+        # Issue #7: Add safe annotations (NO PII - only tokens/model/latency)
+        metadata = result.get("metadata", {})
+        trace_bedrock_call(
+            model_id=metadata.get("model", BEDROCK_MODEL_ID),
+            tokens_used=metadata.get("tokens_used"),
+            latency_ms=metadata.get("latency_ms"),
+            status=result.get("status", "unknown"),
+            error_type=metadata.get("error") if result.get("status") == "error" else None,
+        )
+
+        # Issue #7: Log CloudWatch metrics for cost tracking
+        if metadata.get("tokens_used"):
+            log_bedrock_metrics(
+                tokens_used=metadata["tokens_used"],
+                model_id=metadata.get("model", BEDROCK_MODEL_ID),
+                latency_ms=metadata.get("latency_ms"),
+            )
+
+    return result
 
 
 def run_guardrails(
