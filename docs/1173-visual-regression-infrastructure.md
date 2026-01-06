@@ -7,10 +7,12 @@
 * **Related Issues:** #53 (Store Assets), #160 (Accessibility CI), #161 (Performance CI)
 
 ### Open Questions
-*Questions that need clarification before or during implementation. Remove when resolved.*
+*Resolved per Gemini review 2026-01-06.*
 
-- [ ] Should baselines be platform-specific (Linux vs Windows) or use tolerance?
-- [ ] What specific popup/overlay state should the POC test capture?
+- [x] ~~Should baselines be platform-specific (Linux vs Windows) or use tolerance?~~
+  **Decision:** Platform-specific baselines. Playwright auto-suffixes with platform name. Pixel tolerance is a trap that hides bugs.
+- [x] ~~What specific popup/overlay state should the POC test capture?~~
+  **Decision:** "Main view - inactive" (popup open, site not allowlisted). Most stable state for proving infrastructure.
 
 ## 2. Requirements
 
@@ -160,10 +162,18 @@ const TAB_STATES = {
 
 /**
  * Wait for extension to fully initialize after page load.
+ * Includes font loading wait to prevent flaky text rendering.
  * @param {Page} page - Playwright page object
  * @param {number} timeout - Max wait time in ms (default: 1500)
  */
 async function waitForExtensionReady(page, timeout = 1500);
+
+/**
+ * Wait for all fonts to load before taking screenshots.
+ * Prevents flaky text rendering differences.
+ * @param {Page} page - Playwright page object
+ */
+async function waitForFontsReady(page);
 
 /**
  * Inject mock data into chrome.storage.local before popup loads.
@@ -231,8 +241,9 @@ function screenshotOptions(name, options = {});
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
 | Flaky screenshots (antialiasing) | Med | Med | `maxDiffPixels: 100` tolerance |
-| Platform differences (fonts) | Med | Med | Platform-specific baselines or higher threshold |
-| Extension load timing | Low | Low | `waitForExtensionReady()` helper |
+| Platform differences (fonts) | Med | Med | Platform-specific baselines (Playwright auto-suffix) |
+| Extension load timing | Low | Low | `waitForExtensionReady()` + `waitForFontsReady()` |
+| CI failure visibility | Med | Med | Upload `test-results/` as artifact on failure |
 
 ## 11. Verification & Testing
 
@@ -258,7 +269,23 @@ npm run test:visual:update
 npm run test:visual -- --headed
 ```
 
-### 11.3 Manual Tests (Only If Unavoidable)
+### 11.3 CI Artifact Upload (Future Phase 5)
+
+When CI integration is added, the workflow must upload artifacts on failure:
+
+```yaml
+- name: Upload test results on failure
+  if: failure()
+  uses: actions/upload-artifact@v4
+  with:
+    name: visual-regression-results
+    path: test-results/
+    retention-days: 7
+```
+
+This ensures developers can see diff images when visual tests fail in CI.
+
+### 11.4 Manual Tests (Only If Unavoidable)
 
 N/A - All scenarios automated.
 

@@ -48,6 +48,7 @@ git push
 ## 3. AWS & Infrastructure
 * **Philosophy:** "Bare Metal" Scripting (Bash + AWS CLI).
 * **Lambda Runtime:** Assume `boto3` is pre-installed.
+* **Fail Closed:** Deployment scripts must abort (`exit 1`) if source files are missing. Never deploy placeholders.
 
 ## 4. The 9-Step Workflow ("The Flip Turn")
 1. **Issue:** Discovery (`gh issue list`).

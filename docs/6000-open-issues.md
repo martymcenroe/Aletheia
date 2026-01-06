@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-06 08:36 CT
-**Total Open Issues:** 28
+**Generated:** 2026-01-06 09:47 CT
+**Total Open Issues:** 25
 
 ---
 
@@ -15,34 +15,6 @@
 ### Description
 
 Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
-
----
-
-## Issue #7: chore: Add Observability Tracing
-
-**Labels:** chore
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-30
-
-### Description
-
-Integrate AWS X-Ray and CloudWatch to trace Lambda execution latency and Bedrock token usage.
-
-## Updated Context
-LangSmith removed from scope (LangChain-specific, we're using Naked Python per ADR 0211).
-
-## Goals
-- End-to-end request tracing via X-Ray
-- Bedrock token usage metrics in CloudWatch
-- Cold start latency monitoring
-- Error rate dashboards
-
-## Technical Approach
-- Enable X-Ray tracing on Lambda
-- Use `boto3` X-Ray SDK for custom subsegments (Guardrails, Bedrock calls)
-- CloudWatch custom metrics for token counts
-- CloudWatch Logs Insights for query patterns
 
 ---
 
@@ -972,68 +944,6 @@ jobs:
 
 ---
 
-## Issue #154: feat: Add ARIA attributes for screen reader accessibility
-
-**Labels:** enhancement, frontend
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Summary
-
-The extension UI (overlay and popup) lacks ARIA attributes, making it inaccessible to users with screen readers.
-
-## Current State
-
-- Overlay appears/disappears with no announcement to assistive technology
-- No `role`, `aria-live`, or `aria-label` attributes on dynamic content
-- Keyboard navigation not fully supported (no `tabindex` management)
-
-## Acceptance Criteria
-
-### Overlay (`overlay.js`)
-- [ ] Add `role="alert"` to overlay container
-- [ ] Add `aria-live="polite"` for status updates
-- [ ] Ensure overlay content is announced when it appears
-
-### Popup (`popup.html`, `popup.js`)
-- [ ] Add `aria-label` to icon buttons
-- [ ] Add `role="status"` to dynamic status areas
-- [ ] Ensure allowlist toggle is keyboard accessible
-- [ ] Add `aria-checked` to toggle states
-
-### Blocked State
-- [ ] Announce "This site is blocked" to screen readers
-- [ ] Provide keyboard-accessible way to understand why
-
-## Technical Notes
-
-```javascript
-// Example fix for overlay.js
-shadow.innerHTML = `
-  <div class="overlay"
-       role="alert"
-       aria-live="polite"
-       aria-label="Aletheia status">
-    ${message}
-  </div>
-`;
-```
-
-## References
-
-- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
-- [MDN ARIA Guide](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA)
-- [Chrome Extension Accessibility](https://developer.chrome.com/docs/extensions/mv3/a11y/)
-
-## Labels
-
-accessibility, enhancement, frontend
-
----
-
 ## Issue #155: feat: Skip DynamoDB persistence when 'noarchive' signal present
 
 **Labels:** security, feature, backend
@@ -1256,61 +1166,5 @@ Option B: Server-side detection
 - [ ] Lambda respects `noarchive` signal per 0007 spec
 - [ ] Transform layer applies summarization when signal present
 - [ ] Tests verify both paths (with/without `noarchive`)
-
----
-
-## Issue #173: feat: Visual Regression Testing Infrastructure (Phase 1)
-
-**Labels:** testing, feature
-
-**Created:** 2026-01-06
-**Updated:** 2026-01-06
-
-### Description
-
-## Context
-
-To support Issue #53 (Store Assets) and improve testing automation, we need visual regression testing infrastructure. This Phase 1 issue covers the foundational setup.
-
-## Objective
-
-Set up Playwright-based visual regression testing that:
-1. Catches UI drift via screenshot comparison
-2. Provides deterministic, Lambda-free testing
-3. Enables future store asset generation
-
-## Requirements
-
-### Infrastructure
-- [ ] Configure Playwright `toHaveScreenshot()` settings
-- [ ] Add `npm run test:visual` script
-- [ ] Create shared test utilities (`tests/e2e/utils/`)
-- [ ] Create mock data modules (`tests/e2e/mocks/`)
-
-### Proof of Concept
-- [ ] One visual regression test (`visual-poc.spec.js`)
-- [ ] Baseline generation and comparison working
-- [ ] Diff detection on intentional changes
-
-## Technical Approach
-
-- Use Playwright's native `toHaveScreenshot()` (v1.40.0+)
-- Mock API responses via `page.route()` - no Lambda dependency
-- `maxDiffPixels: 100` tolerance for antialiasing
-- Serial execution (`workers: 1`) for extension stability
-- Baselines committed to git in `__snapshots__/`
-
-## Related
-
-- #53 (Store Assets) - depends on this infrastructure
-- #160 (Accessibility automation) - can use same infrastructure
-- #161 (Performance benchmarks) - can extend this approach
-
-## Future Phases (Not This Issue)
-
-- Phase 2: Full visual regression suite (popup + overlay)
-- Phase 3: Store asset generation
-- Phase 4: Expanded E2E coverage
-- Phase 5: CI integration
 
 ---

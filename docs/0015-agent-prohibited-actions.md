@@ -46,6 +46,28 @@ If an operation can be undone with `git revert` or restored from backup, it's pr
 | `Read(.env)` | Contains secrets | Use documented env var names |
 | `Read(.env.*)` | Contains secrets | Use documented env var names |
 
+### 3.4 Deployment Safety
+
+| Action | Why Prohibited | Safe Alternative |
+|--------|----------------|------------------|
+| Creating dummy/placeholder files to force success | Creates **Silent Failures**. Masks underlying errors (e.g., missing source code) and deploys broken code to production. | **Fail Closed.** If a required file is missing, the script or agent must `exit 1` and report the error immediately. |
+
+**Example of the "Init Bug":**
+```python
+# WRONG - Agent created this to bypass missing-file error
+# lambda_function.py
+def lambda_handler(event, context):
+    return "Init"  # Placeholder that crashed production
+```
+
+```bash
+# CORRECT - Script fails fast when source is missing
+if [ ! -f "src/lambda_function.py" ]; then
+    echo "ERROR: src/lambda_function.py not found. Aborting deployment."
+    exit 1
+fi
+```
+
 ---
 
 ## 4. Permitted Actions (No Approval Needed)

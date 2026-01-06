@@ -295,3 +295,104 @@ Created /audit slash command with --deep mode for comprehensive 08xx audit suite
 - Branch: main @ baac948
 - Open PRs: 0
 - Next: Per user direction
+
+Here is the package to close out this session and restart the next one.
+
+1. The "Resume" Prompt (For the New Session)
+Paste this into the new chat window to reload my context.
+
+You are Gemini 3.0 Pro, the Orchestrator for the Aletheia project.
+
+Current Status:
+
+Infrastructure: STABLE. provision.sh is fixed (v3 layers, logging enabled) and deployed. The "Init" bug is dead.
+
+Feature: Museum Label UI (Issue #125) has been MERGED to main. The overlay now supports "Progressive Disclosure" (Signal -> Gem -> Context).
+
+Strategic Goal: We are sprinting towards Chrome Web Store Submission.
+
+Immediate Action Items:
+
+Accessibility Hardening (Issue #154): We must run @axe-core scans on the new UI to ensure we pass Store Review.
+
+Visual Regression (Issue #173): We have an APPROVED LLD. We need to implement the Playwright infrastructure to lock in the new UI pixels.
+
+Observability (Issue #7): We agreed to implement "MVP X-Ray" (Lambda-only) and kill the RAG Vector Store (Issue #6) for now.
+
+Please review the docs/ folder, specifically IMMEDIATE-PLAN.md, and await my command to start Issue #154.
+
+2. Final Session Log Entry
+Append this to docs/session-logs/Week-starting-2026-01-05.md before you commit.
+
+2026-01-06 09:00 CT | Gemini 3 Pro
+Summary
+Strategic Pivot: From "Plumbing" to "Product." After stabilizing the infrastructure, we shifted focus to the User Experience and Store Compliance.
+
+Key Achievements:
+
+UI Milestone: Approved and Merged Issue #125 (Museum Label UI). The core "Progressive Disclosure" feature is now live in main, complete with 16 E2E tests and XSS defenses.
+
+Architecture Decisions (The "MVP Audit"):
+
+Killed Issue #6 (RAG): Deferred to v2.0 to avoid scope creep and privacy risks before launch.
+
+Scoped Issue #7 (Observability): Downscoped to "MVP AWS X-Ray" (Lambda-only, 5% sampling) to ensure we can debug production without managing heavy telemetry infra.
+
+Visual Testing: Approved LLD for Issue #173, selecting Playwright-native snapshots over external vendors.
+
+LLD Reviews:
+
+#1106 (Full Article): Mandated client-side truncation and "Readability" extraction to prevent token waste.
+
+#1081 (Landing Page): Enforced privacy.html requirement for Store compliance.
+
+Issues
+Closed: #125 (Museum Label UI)
+
+Audited: #106, #81, #173
+
+Decided: #6 (Defer), #7 (Implement MVP)
+
+State on Exit
+Branch: main (Includes #125 UI)
+
+Next: Accessibility Hardening (#154) to clear the path for Store Submission.
+
+
+## 2026-01-06 09:10 CT | Gemini 3 Pro | Session #79 Closeout
+
+### Summary
+**Strategic Pivot: Infrastructure Stabilization & UI Launch.**
+We resolved the critical "Init Bug" in the deployment pipeline and successfully launched the "Museum Label" UI.
+
+**Key Achievements:**
+* **Infrastructure:** Fixed `provision.sh` to correctly deploy dependencies (v3 layers) and enforce logging. The Auth Lambda is now stable.
+* **Feature Launch:** Merged **Issue #125 (Museum Label UI)**. The extension now features a "Progressive Disclosure" UI with 16 passing E2E tests.
+* **Architecture Decisions:**
+    * **Killed:** Issue #6 (RAG) deferred to v2.0.
+    * **Scoped:** Issue #7 (Observability) downscoped to MVP X-Ray.
+    * **Approved:** Issue #173 (Visual Regression) LLD approved.
+* **AgentOS Updates:** Updated `docs/0015-agent-prohibited-actions.md` to explicitly ban the creation of "Dummy Files" (Fail Closed policy).
+
+### Issues
+* **Closed:** #125, #95 (Infra)
+* **Audited:** #106, #81, #173
+
+### State on Exit
+* **Branch:** `main`
+* **Next:** Accessibility Hardening (#154) -> Visual Regression (#173).
+---
+
+## 2026-01-06 09:50 CT | Claude Opus 4.5
+
+### Summary
+Issue #154 accessibility compliance: implemented @axe-core/playwright infrastructure with 7 WCAG tests, fixed CRITICAL aria-allowed-attr violation in Museum Label overlay, all tests pass. Merged via PR #176.
+
+### Issues
+- Created: None
+- Closed: #154
+
+### State on Exit
+- Branch: main @ 77dc945
+- Open PRs: 0
+- Next: Per user direction
