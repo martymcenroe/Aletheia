@@ -263,6 +263,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
                 target: { tabId: tab.id },
                 func: () => window.showAletheiaOverlay("Enable Aletheia for this site", "warning")
             });
+            // [FIX] Also set the warning badge (was missing when overlay pre-injected)
+            chrome.action.setBadgeText({ tabId: tab.id, text: '!' });
+            chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#FBBF24' });
+            setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
         } else {
             await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
         }

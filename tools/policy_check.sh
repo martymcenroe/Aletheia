@@ -36,13 +36,16 @@ fi
 
 # -----------------------------------------------------------------------------
 # POLICY 2: No pip install in scripts (CLAUDE.md - Use poetry add)
+# Exception: 'pip install -t' is allowed for Lambda layer builds
 # -----------------------------------------------------------------------------
 echo -n "Checking for 'pip install' in scripts... "
 
-PIP_VIOLATIONS=$(grep -rn "pip install" *.sh scripts/ tools/*.sh 2>/dev/null | grep -v "policy_check.sh" || true)
+# Find pip install, exclude policy_check.sh, exclude 'pip install ... -t' (Lambda layer builds)
+PIP_VIOLATIONS=$(grep -rn "pip install" *.sh scripts/ tools/*.sh 2>/dev/null | grep -v "policy_check.sh" | grep -v "pip install .* -t" | grep -v "pip3 install .* -t" || true)
 if [ -n "$PIP_VIOLATIONS" ]; then
     echo "FAIL"
     echo "  ERROR: Found 'pip install' in scripts (use 'poetry add' instead):"
+    echo "  Note: 'pip install -t <dir>' is allowed for Lambda layer builds"
     echo "$PIP_VIOLATIONS" | sed 's/^/    /'
     ERRORS=$((ERRORS + 1))
 else

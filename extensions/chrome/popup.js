@@ -243,12 +243,14 @@ async function handlePowerToggle() {
   const isActive = await isAllowlisted(currentDomain);
 
   if (isActive) {
+    // Deactivating - stay open so user sees the change
     await removeFromAllowlist(currentDomain);
+    await renderMainView();
   } else {
+    // Activating - add to allowlist and close popup
     await addToAllowlist(currentDomain);
+    window.close();
   }
-
-  await renderMainView();
 }
 
 function handleCheckboxChange(event) {
@@ -454,15 +456,23 @@ async function init() {
   confirmClearButton.addEventListener('click', handleConfirmClearClick);
 
   // Check auth state first (Issue #116)
-  const isAuthed = await window.AletheiaAuth.isAuthenticated();
+  let isAuthed = false;
+  try {
+    isAuthed = await window.AletheiaAuth.isAuthenticated();
+    console.log('[Aletheia] Auth check result:', isAuthed);
+  } catch (e) {
+    console.error('[Aletheia] Auth check failed:', e);
+  }
 
   if (!isAuthed) {
     // Not logged in - show login view
+    console.log('[Aletheia] Showing login view');
     showView('login');
     return;
   }
 
   // Update user bar with name
+  console.log('[Aletheia] User authenticated, updating user bar');
   await updateUserBar();
 
   // Age gate check, then render appropriate view

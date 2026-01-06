@@ -246,6 +246,10 @@ def handle_token_exchange(body: dict) -> dict:
     code = body.get("code")
     redirect_uri = body.get("redirectUri")
 
+    # Debug logging for redirect URI mismatch issues
+    logger.info(f"Token exchange request - redirectUri: {redirect_uri}")
+    logger.info(f"Token exchange request - code length: {len(code) if code else 0}")
+
     if not code or not redirect_uri:
         return {
             "statusCode": 400,

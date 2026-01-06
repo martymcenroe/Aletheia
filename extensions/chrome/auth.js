@@ -14,15 +14,13 @@ const AUTH_CONFIG = {
     AUTH_URL: 'https://www.linkedin.com/oauth/v2/authorization',
 
     // Lambda Auth endpoint (UPDATE after provisioning)
-    // TODO: Replace with CloudFront URL after WAF setup
-    LAMBDA_AUTH_URL: 'https://YOUR_AUTH_LAMBDA_URL.lambda-url.us-east-1.on.aws',
+    LAMBDA_AUTH_URL: 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws',
 
     // LinkedIn OAuth scopes (minimal - r_liteprofile only)
     SCOPES: 'openid profile',
 
     // LinkedIn Client ID (public, safe to include in extension)
-    // TODO: Replace with actual client ID from LinkedIn Developer Portal
-    CLIENT_ID: 'YOUR_LINKEDIN_CLIENT_ID',
+    CLIENT_ID: '86yrqtke9ewvhk', // gitleaks:allow
 };
 
 // =============================================================================
@@ -86,11 +84,18 @@ async function clearTokens() {
  */
 async function getAuthState() {
     const local = await chrome.storage.local.get(['userId', 'displayName', 'refreshToken']);
+    console.log('[Aletheia Auth] getAuthState storage:', {
+        hasUserId: !!local.userId,
+        hasDisplayName: !!local.displayName,
+        hasRefreshToken: !!local.refreshToken
+    });
 
-    if (local.userId && local.refreshToken) {
+    // Note: refreshToken may be null if LinkedIn hasn't approved refresh token access
+    // We only require userId to consider the user authenticated
+    if (local.userId) {
         return {
             userId: local.userId,
-            displayName: local.displayName
+            displayName: local.displayName || 'User'
         };
     }
 
@@ -98,7 +103,8 @@ async function getAuthState() {
 }
 
 /**
- * Check if user is authenticated (has valid refresh token).
+ * Check if user is authenticated (has userId stored).
+ * Note: We don't require refresh token as LinkedIn may not provide one.
  * @returns {Promise<boolean>}
  */
 async function isAuthenticated() {
