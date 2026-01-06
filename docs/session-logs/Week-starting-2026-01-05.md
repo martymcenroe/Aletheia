@@ -183,3 +183,19 @@ Implemented --deduplicate mode for data hygiene tool (#159). Added deduplication
 - Branch: main @ 9a7f05f
 - Open PRs: 0
 - Next: Per user direction
+
+---
+
+## 2026-01-05 22:26 CT | Claude Opus 4.5
+
+### Summary
+Implemented LinkedIn OAuth authentication (Issue #116). Investigated LinkedIn OIDC API, determined vanity URL not available without restricted permissions. Decided to use OIDC 'sub' as user_id and 'name' as display_name. Created Auth Lambda for token exchange/refresh/validation, users DynamoDB table, chrome.identity OAuth flow with CSRF protection, login/logout UI in popup. Squash merged PR #171 and closed #116.
+
+### Issues
+- Created: None
+- Closed: #116
+
+### State on Exit
+- Branch: main @ 4d988a1
+- Open PRs: 0
+- Next: Per user direction
