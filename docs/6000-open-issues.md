@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-05 18:27 CT
-**Total Open Issues:** 34
+**Generated:** 2026-01-05 20:23 CT
+**Total Open Issues:** 32
 
 ---
 
@@ -773,67 +773,6 @@ The extension shows "Saving..." for ~5 seconds before transitioning to "Context 
 
 ---
 
-## Issue #145: Configure DynamoDB TTL for automatic data expiry
-
-**Labels:** security, backend, audit
-
-**Created:** 2026-01-04
-**Updated:** 2026-01-05
-
-### Description
-
-## Problem
-
-Privacy audit (0810) finding P1: DynamoDB stores user input text without TTL expiry.
-
-**Current Behavior:**
-- User-selected text is stored in DynamoDB `input` field (`src/lambda_function.py:122`)
-- `provision.sh` does not configure `TimeToLiveSpecification`
-- Data persists indefinitely
-
-**Expected Behavior:**
-- User data should auto-expire after 24-48 hours
-- Aligns with ADR 0203 which states "TTL provides automatic data hygiene"
-
-## Impact
-
-- **Privacy:** User text persists longer than necessary
-- **Compliance:** May conflict with data minimization principles (GDPR, CCPA)
-- **Cost:** Accumulating stale data increases DynamoDB storage costs
-
-## Proposed Solution
-
-1. Add `ttl` attribute to DynamoDB items in `src/lambda_function.py`:
-```python
-item = {
-    ...
-    "ttl": {"N": str(int(time.time()) + 86400)},  # 24 hours
-}
-```
-
-2. Enable TTL in `provision.sh`:
-```bash
-aws dynamodb update-time-to-live \
-    --table-name "$TABLE_NAME" \
-    --time-to-live-specification "Enabled=true,AttributeName=ttl"
-```
-
-## Acceptance Criteria
-
-- [ ] Lambda adds TTL attribute to all DynamoDB items
-- [ ] provision.sh enables TTL on table
-- [ ] Existing data cleaned up (or allowed to expire naturally)
-- [ ] Privacy audit 0810 updated to mark P1 as resolved
-
-## References
-
-- Privacy Audit: `docs/0810-audit-privacy.md` (P1)
-- ADR 0203: Stateful Serverless (mentions TTL)
-- Lambda handler: `src/lambda_function.py:119-124`
-- Provision script: `provision.sh:16-22`
-
----
-
 ## Issue #147: GDPR: Implement data erasure process (right to be forgotten)
 
 **Labels:** security, high-priority, backend, audit
@@ -1213,49 +1152,6 @@ jobs:
 
 - [GitHub CodeQL docs](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql)
 - [CodeQL for Python](https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/)
-
----
-
-## Issue #153: Fix smoke_test.py pytest fixture errors
-
-**Labels:** bug, testing
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Summary
-
-`tools/smoke_test.py` has 5 test functions that fail when run via `pytest` due to missing `url` fixture.
-
-## Error
-
-```
-fixture 'url' not found
-```
-
-## Affected Tests
-
-- `test_valid_input`
-- `test_blocked_input`
-- `test_empty_input`
-- `test_prompt_injection`
-- `test_tone_neutrality`
-
-## Cause
-
-These functions have a `url: str` parameter expecting a pytest fixture, but no such fixture is defined. The functions appear designed for manual invocation with a URL argument, not as pytest tests.
-
-## Options
-
-1. **Exclude from pytest** - Add `# noqa: PT` or rename functions to not start with `test_`
-2. **Create fixture** - Add a `url` fixture in `conftest.py`
-3. **Refactor** - Convert to proper pytest tests with fixture or parametrization
-
-## Impact
-
-Currently causes 5 errors in every test run (159 passed, 5 errors).
 
 ---
 
