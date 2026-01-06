@@ -58,6 +58,25 @@ git -C /c/Users/mcwiz/Projects/Aletheia-102 status
 
 ---
 
+### Path Format Rules (CRITICAL)
+
+**Different tools require different path formats on Windows:**
+
+| Tool | Path Format | Example |
+|------|-------------|---------|
+| Bash | Unix-style | `/c/Users/mcwiz/Projects/Aletheia/file.md` |
+| Read, Write, Edit, Glob | Windows-style | `C:\Users\mcwiz\Projects\Aletheia\file.md` |
+
+**Why:** Bash runs in Git Bash (MinGW), which uses Unix mount paths. The Read/Write/Edit/Glob tools access the Windows filesystem directly.
+
+**Common mistake:**
+- ❌ `Read("/c/Users/mcwiz/Projects/Aletheia/docs/file.md")` → "File does not exist"
+- ✅ `Read("C:\Users\mcwiz\Projects\Aletheia\docs\file.md")` → Works
+
+**Tip:** If Read fails with "File does not exist", use Glob first to get the correct Windows path.
+
+---
+
 ### WORKTREE ISOLATION RULE (CRITICAL - MULTI-AGENT SAFETY)
 
 **ALL code changes MUST be made in a worktree. NEVER commit code directly to main.**
