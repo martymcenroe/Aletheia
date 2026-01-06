@@ -3,12 +3,14 @@
   "name": "Aletheia",
   "version": "1.0",
   "description": "AI-Powered Context Analysis",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArhYlTEFPRyBdtDpxYs4lJ3fBLqJ7QTTGEiKBL4T+m8FiX9YWrTSCNBRFVWdZqNpG7VWTzQRGPsH3wAXw6nR5LT+5QJyJLe3HGVKdEqPJrTwLF1M+x8Q6NGKdVhQH4XQb8XPW3BNQT5R+r7yw5m7h8WqX5YJ5M3b7gX9Y5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QNL3R8Q7WrT8XnK5N7L3r9QIDAQAB",
   "permissions": [
     "activeTab",
     "tabs",
     "scripting",
     "contextMenus",
-    "storage"
+    "storage",
+    "identity"
   ],
   "host_permissions": [],
   "background": {

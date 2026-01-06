@@ -9,8 +9,37 @@
 <body>
   <div id="popup-container">
 
+    <!-- LOGIN VIEW (Issue #116 - LinkedIn OAuth) -->
+    <div id="login-view" class="view" style="display: none;">
+      <div class="logo-container">
+        <img src="icons/icon128.png" alt="Aletheia" class="logo">
+      </div>
+
+      <div class="login-content">
+        <div class="login-title">Welcome to Aletheia</div>
+        <div class="login-message">
+          Sign in with LinkedIn to unlock AI-powered context analysis.
+        </div>
+        <button id="login-button" class="login-button">
+          <span class="linkedin-icon">in</span>
+          Sign in with LinkedIn
+        </button>
+        <div class="login-privacy">
+          We only request your name for display. Your data stays private.
+        </div>
+      </div>
+
+      <div id="login-error" class="login-error" style="display: none;"></div>
+    </div>
+
     <!-- MAIN VIEW -->
-    <div id="main-view" class="view">
+    <div id="main-view" class="view" style="display: none;">
+      <!-- User Info Bar (Issue #116) -->
+      <div id="user-bar" class="user-bar">
+        <span id="user-name" class="user-name">User</span>
+        <button id="logout-button" class="logout-button">Logout</button>
+      </div>
+
       <div class="logo-container">
         <img src="icons/icon128.png" alt="Aletheia" class="logo">
       </div>
@@ -97,6 +126,7 @@
 
   </div>
 
+  <script src="auth.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
