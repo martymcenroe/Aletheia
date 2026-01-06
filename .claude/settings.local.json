@@ -111,7 +111,8 @@
       "Skill(closeout)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh:*)",
       "Bash(ESLINT_USE_FLAT_CONFIG=true npx eslint:*)",
-      "Bash(MSYS_NO_PATHCONV=1 aws logs tail:*)"
+      "Bash(MSYS_NO_PATHCONV=1 aws logs tail:*)",
+      "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-off.sh:*)"
     ],
     "deny": [
       "Read(.env)",
