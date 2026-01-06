@@ -63,6 +63,28 @@ Track new Claude Code capabilities and evaluate alignment with AgentOS philosoph
 | New permission patterns? | Hardened: eval, env, python moved to deny | 2026-01-05 |
 | New best practices? | Skills for protocol enforcement | 2026-01-05 |
 | Deprecations announced? | None | 2026-01-05 |
+| New tools available? | Subagents (Task tool), Named Sessions, Status Line, Thinking Mode | 2026-01-06 |
+| Existing tools enhanced? | Task tool now has specialized agent types (Explore, Plan, general-purpose) | 2026-01-06 |
+| New permission patterns? | Path Format Rules (Windows vs Unix) added to CLAUDE.md | 2026-01-06 |
+| New best practices? | Subagents for parallel research, /friction for permission analysis | 2026-01-06 |
+
+### 2026-01-06 Audit Findings (Issue #182)
+
+**New Features Identified via Deep Mode Web Search:**
+
+| Feature | Description | AgentOS Relevance | Priority |
+|---------|-------------|-------------------|----------|
+| **Subagents** | Specialized agents via Task tool (`Explore`, `Plan`, `general-purpose`) | High - could automate research phases | Medium |
+| **Named Sessions** | `/rename`, `/resume` for session continuity | Medium - multi-day tasks | Low |
+| **Status Line** | `/statusline` configuration | Low - UI preference | Low |
+| **Thinking Mode** | Enabled by default for Opus 4.5 | Already active | N/A |
+| **Skills System** | Dynamic instruction loading (we already use: `/audit`, `/onboard`, `/cleanup`, `/friction`) | High - already adopted | ✅ Adopted |
+
+**2026 Preview (Demo Stage):**
+- Long-running tasks
+- Swarm capabilities (multi-agent coordination)
+
+**Recommendation:** Subagents (`Task` tool with `Explore` type) should be evaluated for codebase research tasks. Already seeing benefits in audit execution.
 
 ---
 
@@ -154,6 +176,7 @@ Review `.claude/settings.local.json`:
 | Date | Auditor | New Capabilities Found | Experiments Started |
 |------|---------|------------------------|---------------------|
 | 2026-01-05 | Gemini 3.0 Pro | Custom Slash Commands (active), Browser Integration, MCP CloudWatch | Browser/MCP added to backlog |
+| 2026-01-06 | Claude Opus 4.5 | Subagents (Explore, Plan), Named Sessions, Status Line, Thinking Mode | Subagent research evaluation (active in this session) |
 
 ---
 

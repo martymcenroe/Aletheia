@@ -21,14 +21,30 @@ Track current versions of frameworks that inform our audit suite:
 
 | Framework | Current Version | Last Checked | Our Coverage | Status |
 |-----------|-----------------|--------------|--------------|--------|
-| **OWASP LLM Top 10** | 2025 | | 0809 Security | |
-| **OWASP Agentic Top 10** | 2026 | | 0821 Agentic | |
-| **ISO/IEC 42001** | 2023 | | 0818 AIMS | |
-| **EU AI Act** | 2024 (effective 2025-2027) | | 0809, 0820 | |
-| **NIST AI RMF** | 1.0 (2023) | | 0818, 0823 | |
-| **ASVS** | 4.0.3 | | 0809 §4 | |
-| **CWE Top 25** | 2024 | | 0809 §2 | |
-| **SPDX AI Profile** | 3.0 | | 0819 AIBOM | |
+| **OWASP Top 10** | 2025 | 2026-01-06 | 0809 §2 | ✅ Updated |
+| **OWASP LLM Top 10** | 2025 | 2026-01-06 | 0809 §3 | ✅ Current |
+| **OWASP Agentic Top 10** | 2026 | 2026-01-06 | 0821 Agentic | ✅ Current |
+| **ISO/IEC 42001** | 2023 | 2026-01-06 | 0818 AIMS | ✅ Current |
+| **EU AI Act** | 2024 (GPAI: Aug 2025, High-risk: Aug 2026) | 2026-01-06 | 0809, 0820 | ⚠️ Monitor |
+| **NIST AI RMF** | 1.0 (2023) | 2026-01-06 | 0818, 0823 | ✅ Current |
+| **NIST Cyber AI Profile** | IR 8596 Draft (Dec 2025) | 2026-01-06 | None | 📋 Triage |
+| **ASVS** | 4.0.3 | 2026-01-06 | 0809 §4 | ✅ Current |
+| **CWE Top 25** | 2024 | 2026-01-06 | 0809 §2 | ✅ Current |
+| **SPDX AI Profile** | 3.0 | 2026-01-06 | 0819 AIBOM | 📋 Evaluate |
+
+### 2.1.1 Framework Triage Queue
+
+**NIST Cyber AI Profile (IR 8596)**
+- **Published:** Dec 2025 (Draft)
+- **Comment Period Closes:** Jan 30, 2026
+- **Workshop:** Jan 14, 2026
+- **Relevance:** High (browser extension + AI system)
+- **Action:** Monitor for final release, evaluate for 0809/0818 integration
+
+**SPDX 3.0 AI Profile**
+- **Status:** Released
+- **Relevance:** Medium (for AIBOM in 0819)
+- **Action:** Evaluate for formal AIBOM generation in supply chain audit
 
 ### 2.2 Version Check Procedure
 
@@ -94,7 +110,10 @@ Every quarter, systematically investigate:
 
 | Date | Researcher | Findings | Action Taken |
 |------|------------|----------|--------------|
-| | | | |
+| 2026-01-06 | Claude Opus 4.5 | OWASP Top 10:2025 released (A03 Supply Chain, A10 Exceptions) | Updated 0809 §2 (Issue #180) |
+| 2026-01-06 | Claude Opus 4.5 | NIST Cyber AI Profile (IR 8596) draft released Dec 2025 | Added to triage queue |
+| 2026-01-06 | Claude Opus 4.5 | EU AI Act GPAI obligations effective Aug 2025 | Updated regulatory triggers |
+| 2026-01-06 | Claude Opus 4.5 | Chrome extension security incidents (ShadyPanda, 4.3M users) | Noted in 0809; Aletheia not affected |
 
 ---
 
@@ -186,9 +205,10 @@ Patterns in our own system that suggest audit gaps:
 | Trigger | Date | Response |
 |---------|------|----------|
 | EU AI Act - Prohibited practices | Feb 2025 | ✅ Review complete |
-| EU AI Act - GPAI obligations | Aug 2025 | Review needed |
-| EU AI Act - High-risk obligations | Aug 2026 | Plan compliance review |
-| EU AI Act - Legacy systems | Aug 2027 | Plan legacy review |
+| EU AI Act - GPAI obligations | Aug 2, 2025 | ✅ Review complete (Aletheia not GPAI) |
+| NIST Cyber AI Profile - Comment period | Jan 30, 2026 | ⚠️ Optional: Submit comments |
+| EU AI Act - High-risk obligations | Aug 2, 2026 | ⏳ Plan compliance review Q2 2026 |
+| EU AI Act - Legacy systems | Aug 2, 2027 | Monitor |
 
 ---
 
@@ -302,6 +322,7 @@ Long-term goal: audits generate from CI/CD artifacts, not manual checklists.
 | Date | Activity | Findings | Actions |
 |------|----------|----------|---------|
 | 2026-01-06 | Initial creation | 6 new audits identified | Created 0818-0823 |
+| 2026-01-06 | Deep mode scan | OWASP 2025, NIST Cyber AI Profile, EU AI Act dates | Updated 0809 §2, added to triage queue |
 
 ---
 

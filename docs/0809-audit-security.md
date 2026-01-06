@@ -12,22 +12,62 @@ Comprehensive security audit covering web application, LLM, agentic AI, and brow
 
 ---
 
-## 2. OWASP Top 10 (2021) - Web Application Security
+## 2. OWASP Top 10 (2025) - Web Application Security
+
+> **Updated 2026-01-06:** Migrated from OWASP 2021 to 2025 framework per Issue #180.
+
+### Key Changes from 2021 → 2025
+
+| 2021 Position | 2025 Position | Category | Change |
+|---------------|---------------|----------|--------|
+| A02 | A04 | Cryptographic Failures | Fell from #2 to #4 |
+| A05 | A02 | Security Misconfiguration | Rose from #5 to #2 |
+| A06 | A03 | Vulnerable Components → **Software Supply Chain Failures** | Expanded scope |
+| - | A10 | **Mishandling of Exceptional Conditions** | NEW (24 CWEs) |
+| A10 | Merged | SSRF | Absorbed into Broken Access Control |
 
 ### Checklist
 
 | Risk | Aletheia Applicability | Check | Status |
 |------|------------------------|-------|--------|
-| **A01: Broken Access Control** | Lambda API endpoints | CloudFront + WAF protected | ✅ Pass |
-| **A02: Cryptographic Failures** | Data in transit | HTTPS only via CloudFront | ✅ Pass |
-| **A03: Injection** | User input to Lambda | Input validation (20k limit), no eval() | ✅ Pass |
-| **A04: Insecure Design** | Architecture | ADRs document security decisions | ✅ Pass |
-| **A05: Security Misconfiguration** | AWS, extension | Minimal permissions, no debug endpoints | ✅ Pass |
-| **A06: Vulnerable Components** | Dependencies | npm audit: 0 vulns, poetry.lock pinned | ✅ Pass |
-| **A07: Auth Failures** | N/A (no user accounts) | Not applicable - stateless design | ✅ N/A |
+| **A01: Broken Access Control** | Lambda API endpoints | CloudFront + WAF protected, SSRF controls | ✅ Pass |
+| **A02: Security Misconfiguration** | AWS, extension | Minimal permissions, no debug endpoints | ✅ Pass |
+| **A03: Software Supply Chain Failures** | Dependencies + models | npm audit: 0 vulns, poetry.lock pinned, Bedrock managed | ✅ Pass |
+| **A04: Cryptographic Failures** | Data in transit | HTTPS only via CloudFront | ✅ Pass |
+| **A05: Injection** | User input to Lambda | Input validation (20k limit), no eval() | ✅ Pass |
+| **A06: Insecure Design** | Architecture | ADRs document security decisions | ✅ Pass |
+| **A07: Auth Failures** | LinkedIn OAuth | CSRF protection, secure token storage | ✅ Pass |
 | **A08: Data Integrity Failures** | Extension updates | No remote code, all JS bundled | ✅ Pass |
-| **A09: Logging Failures** | Lambda | CloudWatch enabled, generic error messages | ✅ Pass |
-| **A10: SSRF** | Lambda fetch operations | No user-controlled URLs | ✅ Pass |
+| **A09: Logging & Monitoring Failures** | Lambda | CloudWatch enabled, generic error messages | ✅ Pass |
+| **A10: Mishandling of Exceptional Conditions** | Error handling | Fail-closed guardrails, generic errors to client | ✅ Pass |
+
+### A03: Software Supply Chain Failures (Expanded)
+
+The 2025 framework expands A06 "Vulnerable Components" into broader supply chain concerns:
+
+| Check | Requirement | Status |
+|-------|-------------|--------|
+| Dependency pinning | poetry.lock, package-lock.json committed | ✅ Pass |
+| Dependency scanning | Dependabot configured, 0 open alerts | ✅ Pass |
+| AI model provenance | Bedrock Claude (AWS-managed, Anthropic source) | ✅ Pass |
+| No CDN dependencies | All assets bundled locally | ✅ Pass |
+| Build integrity | No untrusted build plugins | ✅ Pass |
+| Denylist source | Wikipedia via trusted GitHub Gist (#121) | ✅ Pass |
+
+Cross-reference: See 0819 AI Supply Chain Audit for AIBOM details.
+
+### A10: Mishandling of Exceptional Conditions (NEW)
+
+This new category covers 24 CWEs related to error handling, edge cases, and unexpected conditions:
+
+| Check | Requirement | Status |
+|-------|-------------|--------|
+| Fail-closed design | Guardrails block on error | ✅ Pass |
+| Generic error messages | No stack traces to client | ✅ Pass |
+| Rate limit handling | Graceful 429 response | ✅ Pass |
+| Timeout handling | Lambda timeout = 30s, CloudFront = 30s | ✅ Pass |
+| Empty input handling | Returns error, doesn't crash | ✅ Pass |
+| Large input handling | Truncated at 20k chars | ✅ Pass |
 
 ### Aletheia-Specific Checks
 
@@ -310,7 +350,8 @@ This ensures:
 ## 10. References
 
 ### OWASP
-- [OWASP Top 10:2021](https://owasp.org/Top10/2021/)
+- [OWASP Top 10:2025](https://owasp.org/Top10/2025/) (Updated Jan 2026)
+- [OWASP Top 10:2021](https://owasp.org/Top10/2021/) (Historical reference)
 - [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 
