@@ -3,53 +3,45 @@
 ## 1. Context & Goal
 * **Issue:** #157
 * **Objective:** Migrate ESLint configuration from legacy `.eslintrc.json` to flat config `eslint.config.js` for ESLint v9+ compatibility.
-* **Status:** Draft
+* **Status:** Complete
 * **Related Issues:** Audit 0816 (Dependabot PR Audit - CI Consistency Check)
 
-### CRITICAL: Current State (2026-01-05)
+### Resolution (2026-01-05)
 
-**Technical Debt Added by PR #163:**
+**Technical Debt from PR #163 - RESOLVED**
 
-During repo reorganization (#102), CI failed because ESLint v9 requires flat config. Instead of:
-- A) Downgrading ESLint to v8 in package.json, OR
-- B) Properly migrating to flat config
+The band-aid (`ESLINT_USE_FLAT_CONFIG=false`) added during repo reorganization has been removed.
 
-A band-aid was applied:
-```yaml
-# .github/workflows/ci.yml
-- name: Lint Chrome extension
-  run: npx eslint extensions/chrome/ --ext .js
-  env:
-    ESLINT_USE_FLAT_CONFIG: false  # <-- BAND-AID - REMOVE WHEN THIS LLD IS IMPLEMENTED
-```
+**What was done:**
+1. Created `eslint.config.mjs` with flat config format
+2. Added `@eslint/js` and `globals` packages
+3. Verified `globals.webextensions` exists (includes `chrome`, `browser`, `opr`)
+4. Removed `ESLINT_USE_FLAT_CONFIG: false` from CI
+5. Removed legacy `.eslintrc.json`
 
-**This is technical debt, not a solution.** This LLD must be implemented to remove the band-aid.
-
-**Current Versions:**
+**Current State:**
 - `package.json`: ESLint `^9.39.2` (v9)
-- Config: `.eslintrc.json` (legacy format)
-- CI: `ESLINT_USE_FLAT_CONFIG=false` (band-aid)
+- Config: `eslint.config.mjs` (flat config - ESM)
+- CI: Uses native flat config (no env vars needed)
 
-### Open Questions
-*Questions that need clarification before or during implementation. Remove when resolved.*
+### Resolved Questions (Implementation 2026-01-05)
 
-- [ ] Are we upgrading ESLint to v9 as part of this, or just preparing the config format?
-- [ ] Do we need to maintain backwards compatibility with ESLint v8 during transition?
-- [ ] Any custom rules or plugins that may not support flat config yet?
-- [ ] Should we also migrate to ESM (`eslint.config.mjs`) or stay with CommonJS?
-- [x] ~~Does `globals` package have `webextensions` key?~~ **Verify - may need manual definitions**
+All open questions resolved during implementation:
 
-### Resolved Questions (Gemini Review 2026-01-05)
+1. **Q: ESLint v9 upgrade?**
+   **A:** Already on v9.39.2. Just needed config format migration.
 
-1. **Q: Does `globals.webextensions` exist in the globals package?**
-   **A: Verify before using.** The `globals` npm package may not export `webextensions`. If not available, manually define:
-   ```javascript
-   globals: {
-     ...globals.browser,
-     chrome: "readonly",
-     browser: "readonly"  // Firefox API
-   }
-   ```
+2. **Q: ESLint v8 backwards compatibility?**
+   **A:** Not needed. v9 is current, no downgrade required.
+
+3. **Q: Custom rules/plugins?**
+   **A:** None. Only using `eslint:recommended` from `@eslint/js`.
+
+4. **Q: ESM vs CommonJS?**
+   **A:** Used `.mjs` extension for ESM. Works with `"type": "commonjs"` in package.json.
+
+5. **Q: Does `globals.webextensions` exist?**
+   **A:** YES. Verified: `globals.webextensions` includes `browser`, `chrome`, `opr`. Used with explicit fallback for future-proofing.
 
 ## 2. Requirements
 
@@ -201,20 +193,21 @@ diff eslint-before.txt eslint-after.txt
 ## 12. Definition of Done
 
 ### Code
-- [ ] `eslint.config.js` created with equivalent rules
-- [ ] Both extension directories lint successfully
-- [ ] `.eslintrc.json` removed
+- [x] `eslint.config.mjs` created with equivalent rules
+- [x] Both extension directories lint successfully
+- [x] `.eslintrc.json` removed
 
 ### CI Cleanup (CRITICAL)
-- [ ] Remove `ESLINT_USE_FLAT_CONFIG: false` from `.github/workflows/ci.yml`
-- [ ] Verify CI passes without the band-aid environment variable
+- [x] Remove `ESLINT_USE_FLAT_CONFIG: false` from `.github/workflows/ci.yml`
+- [ ] Verify CI passes without the band-aid environment variable (pending PR merge)
 
 ### Tests
-- [ ] CI lint step passes
-- [ ] No new lint errors introduced
+- [x] CI lint step passes (local verification complete)
+- [x] No new lint errors introduced
 
 ### Documentation
-- [ ] Update any ESLint instructions in README or contributing docs
+- [x] Updated file inventory with `eslint.config.mjs`
+- [x] No ESLint instructions in README/CONTRIBUTING that need updating
 
 ---
 
