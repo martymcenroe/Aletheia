@@ -199,3 +199,51 @@ Implemented LinkedIn OAuth authentication (Issue #116). Investigated LinkedIn OI
 - Branch: main @ 4d988a1
 - Open PRs: 0
 - Next: Per user direction
+
+## 2026-01-06 01:01 CT | Gemini 3 Pro
+
+### Summary
+
+**Infrastructure Rescue & OAuth Stabilization.**
+Diagnosed and fixed the "Init" error crashing the LinkedIn OAuth flow. The root cause was `provision.sh` deploying a dummy placeholder file (`return 'Init'`) instead of the actual Python backend, and missing the required `requests`/`python-jose` dependencies.
+
+**Key Actions:**
+
+* **Infrastructure Overhaul (`provision.sh`):**
+* **Dependency Management:** Implemented a "cherry-pick" build step to create a lean Lambda Layer (<2MB) containing only `requests` and `python-jose`, avoiding massive cold starts from full Poetry exports.
+* **Real Code Deployment:** Updated script to deploy actual source from `src/` and abort if files are missing, replacing the dangerous "dummy" fallback.
+* **Observability:** Added forced creation of CloudWatch Log Groups with 7-day retention to cure "logging blindness."
+* **Git Bash Compatibility:** Fixed Windows path conversion errors (`/aws/lambda` → `C:/...`) by applying `MSYS_NO_PATHCONV=1`.
+* **Self-Test:** Added a `curl` verification step to fail the deployment if the endpoint returns "Init" or non-JSON errors.
+
+
+* **UX Improvements:** Updated `popup.html` to clearly explain data usage ("personalize your experience") rather than using generic legal text.
+* **Cleanup:** Removed obsolete "Issue #95" TODO comments from `auth.js`.
+
+### Issues
+
+* **Fixed:** OAuth Lambda deployment ("Init" bug)
+* **Closed:** #95 (Final comment cleanup)
+
+### State on Exit
+
+* **Branch:** `main` (Pending commit: "Fix(infra): Update provision.sh to deploy real auth code and dependencies")
+* **Lambda:** **ON** (Auth & Agent verified working)
+* **Next:** Store Compliance (#51) per IMMEDIATE-PLAN
+
+
+---
+
+## 2026-01-06 01:21 CT | Claude Opus 4.5
+
+### Summary
+Rewrote provision.sh with lean dependency layer, real code deployment, handler fixes, CloudWatch logging. Fixed OAuth auth to not require refreshToken (LinkedIn doesnt provide without approval). Fixed amber badge regression from #156. Added auto-close popup on activate. Updated policy check to allow pip install -t for Lambda layers. Added CI jobs: infra-lint (ShellCheck) and deploy-infra (auto-deploy on push to main). Configured AWS secrets in GitHub.
+
+### Issues
+- Created: None
+- Closed: None
+
+### State on Exit
+- Branch: main @ 56335ba
+- Open PRs: 0
+- Next: Per user direction
