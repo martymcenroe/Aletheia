@@ -15,6 +15,9 @@
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `.claude/settings.local.json` | **Config** | 🟢 **Stable** | - | Claude Code permissions (commit to main when updated). |
+| `.claude/commands/closeout.md` | **Skill** | 🟢 **Stable** | - | Session closeout skill (5-10 min). |
+| `.claude/commands/full-cleanup.md` | **Skill** | 🟢 **Stable** | - | Full cleanup skill (20-30 min). |
+| `.claude/commands/audit.md` | **Skill** | 🟢 **Stable** | - | Full 08xx audit suite skill (1-2 hrs). |
 | `.gitignore` | **Config** | 🟢 **Stable** | - | Git ignore rules. |
 | `.print-history.json` | **Log** | 🚫 **Gitignored** | - | Print tracking for markdown files (mtime + timestamp). |
 | `.session-log.md` | **Log** | 🚫 **Gitignored** | - | AI session continuity log. |
