@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: Museum Label UI (#125)</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+        .test-section { margin: 2rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+        .test-section h3 { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <h1 style="background:yellow;color:red;padding:10px;">
+        QA SANDBOX - Security Research Only - Do Not Use
+    </h1>
+
+    <h1>Museum Label UI Test (#125)</h1>
+
+    <p>This page tests the Museum Label progressive disclosure overlay.</p>
+
+    <div class="test-section">
+        <h3>Test Term: Neutral</h3>
+        <p data-testid="test-neutral">
+            Select this text to test neutral signal display with blue badge.
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Term: Warning</h3>
+        <p data-testid="test-warning">
+            Select this archaic pejorative term to test amber warning badge.
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Term: Blocked</h3>
+        <p data-testid="test-blocked">
+            Select this text to test hard block red badge display.
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test: Long Context</h3>
+        <p data-testid="test-long-context">
+            Select this text to test typewriter animation with long context text.
+        </p>
+    </div>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: #d4edda; border-radius: 4px;">
+        <strong>Expected Behavior:</strong>
+        <ul>
+            <li>Badge color matches signal type (blue/amber/red)</li>
+            <li>Signal text appears in header</li>
+            <li>Gem appears on hover</li>
+            <li>Context expands on "Show More" click with typewriter effect</li>
+            <li>Escape key closes overlay</li>
+            <li>Close button is Tab-accessible</li>
+            <li>Hard block disables hover and expand</li>
+        </ul>
+    </div>
+
+    <p><a href="index.html">Back to test index</a></p>
+</body>
+</html>

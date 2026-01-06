@@ -274,12 +274,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 
     try {
-        // IMMEDIATE FEEDBACK - overlay already injected, just show "Saving..."
-        console.log("[Aletheia] Showing immediate 'Saving...' feedback");
+        // [#125] MUSEUM LABEL UI - Show loading state
+        console.log("[Aletheia] Showing loading overlay...");
         if (overlayInjected) {
             await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: () => window.showAletheiaOverlay("Saving...", "warning", 30000)
+                func: () => window.showAletheiaLoading()
             });
         } else {
             // Fallback: inject and show (shouldn't happen often)
@@ -289,7 +289,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             });
             await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: () => window.showAletheiaOverlay("Saving...", "warning", 30000)
+                func: () => window.showAletheiaLoading()
             });
         }
 
@@ -307,7 +307,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             domContext: fullPageText
         };
 
-        console.log("[CAV-3] Sending payload to AWS:", payload.text);
+        console.log("[Aletheia] Sending payload to AWS:", payload.text);
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
@@ -318,35 +318,49 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             body: JSON.stringify(payload)
         });
 
-        // === UPDATE OVERLAY IN PLACE (no flicker) ===
-        if (response.ok) {
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: () => window.updateAletheiaOverlay("Context Saved", "success")
-            });
-        } else {
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: () => window.updateAletheiaOverlay("Error Saving", "error")
-            });
+        // [#125] MUSEUM LABEL UI - Parse response and show structured result
+        const httpStatus = response.status;
+        let responseData;
+
+        try {
+            responseData = await response.json();
+        } catch (parseError) {
+            console.error("[Aletheia] Failed to parse response JSON:", parseError);
+            responseData = { signal: "Error", gem: "Failed to parse server response." };
         }
 
-        // Set badge
-        const badgeText = response.ok ? '✓' : '✗';
+        console.log("[Aletheia] Response:", httpStatus, responseData);
+
+        // Show Museum Label overlay with structured data
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: (data, status) => window.showAletheiaResult(data, status),
+            args: [responseData, httpStatus]
+        });
+
+        // Set badge based on status
+        const badgeText = response.ok ? '✓' : (httpStatus === 403 ? '⊘' : '✗');
         const badgeColor = response.ok ? '#22C55E' : '#EF4444';
         chrome.action.setBadgeText({ tabId: tab.id, text: badgeText });
         chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: badgeColor });
-        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);
 
     } catch (error) {
-        console.error("[CV-6] Error:", error);
+        console.error("[Aletheia] Error:", error);
+        // Show error in Museum Label format
+        const errorResponse = {
+            signal: "Connection Error",
+            gem: "Could not reach the server. Please try again.",
+            context: ""
+        };
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: () => window.updateAletheiaOverlay("Connection Error", "error")
+            func: (data) => window.showAletheiaResult(data, 500),
+            args: [errorResponse]
         });
         chrome.action.setBadgeText({ tabId: tab.id, text: '✗' });
         chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
-        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);
     }
   }
 });
