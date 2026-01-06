@@ -1,6 +1,6 @@
 ---
 description: Full 08xx audit suite (1-2 hours)
-argument-hint: "[--deep] [NNNN]"
+argument-hint: "[--deep] [NNNN] [NNNN] ..."
 ---
 
 # Full Audit Suite (0800)
@@ -16,13 +16,16 @@ This is **explicit approval** to execute all audits autonomously.
 | (none) | Run ALL audits - internal analysis only |
 | `--deep` | Run ALL audits with web search for external research |
 | `NNNN` | Run SINGLE audit by number (e.g., `0817`, `0821`) |
-| `--deep NNNN` | Run SINGLE audit with web search |
+| `NNNN NNNN ...` | Run MULTIPLE audits by number (space-separated) |
+| `--deep NNNN ...` | Run specified audit(s) with web search |
 
 **Examples:**
 - `/audit` - run full suite (standard mode)
 - `/audit --deep` - run full suite with web research
 - `/audit 0809` - run just security audit
+- `/audit 0809 0810 0811` - run security, privacy, and accessibility audits
 - `/audit --deep 0821` - run agentic governance with web search
+- `/audit --deep 0809 0819` - run security and AI supply chain with web search
 - `ultrathink: /audit 0899` - run meta-audit with extended thinking
 
 ## Deep Mode
