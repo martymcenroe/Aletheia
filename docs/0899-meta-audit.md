@@ -1,174 +1,319 @@
-# 0899 - Meta-Audit: Audit of Audits
+# 0899 - Meta-Audit: Audit Validation & Execution
 
 ## 1. Purpose
 
-Ensure the audit system itself remains effective, complete, and current. This meta-audit validates that:
-- All relevant audit types exist
-- Audit procedures are actually followed
-- Audit findings are acted upon
-- Audit documents stay current with industry standards
+Validate that the AgentOS audit suite is executed correctly, consistently, and effectively. Ensures audit processes are followed, findings are actioned, and the suite maintains its integrity.
 
-**Philosophy:** "Who watches the watchmen?" - Audits only work if they're comprehensive, executed, and evolve.
+**Core Questions:**
+- "Are we executing our audits correctly?"
+- "Are audit findings being addressed?"
+- "Are our audits actually catching problems?"
 
----
-
-## 2. Audit Completeness Matrix
-
-### 2.1 Industry Standard Coverage
-
-| Domain | Standard/Framework | Our Audit | Status |
-|--------|-------------------|-----------|--------|
-| **Security** | OWASP Top 10 (Web) | 0809 §2 | |
-| **Security** | OWASP LLM Top 10 | 0809 §3 | |
-| **Security** | OWASP Agentic Top 10 | 0809 §4 | |
-| **Security** | NIST AI RMF | 0809 §7 | |
-| **Security** | Browser Extension (MV3) | 0809 §5 | |
-| **Privacy** | IAPP Framework | 0810 §2 | |
-| **Privacy** | IEEE 7000 Series | 0810 §3 | |
-| **Privacy** | NIST Privacy Framework | 0810 §4 | |
-| **Privacy** | GDPR/CCPA | 0810 §7 | |
-| **Accessibility** | WCAG 2.1 | 0811 | |
-| **Performance** | Core Web Vitals | 0812 | |
-| **Code Quality** | ISO 25010 | 0813 | |
-| **Code Quality** | Linting (Ruff/ESLint) | CI pipeline | |
-| **Code Quality** | Type Safety (Mypy) | CI pipeline | |
-| **License** | SPDX/OSS Compliance | 0814 | |
-| **Process** | Issue Tracking | 0801-0807 | |
-| **Agent** | Permission Management | 0808 | |
-
-### 2.2 Missing Audit Types
-
-Check if any of these should be added:
-
-| Potential Audit | Relevant? | Notes |
-|-----------------|-----------|-------|
-| Usability/UX | Maybe | Small team, no dedicated UX |
-| Internationalization (i18n) | No | English only |
-| Disaster Recovery | Maybe | AWS handles infra |
-| Penetration Testing | Maybe | Manual, not automated |
-| Vendor Risk | No | Only AWS (trusted) |
+**Relationship to Other Audits:**
+- **0898:** Discovers what audits we should have (horizon scanning)
+- **0899 (this):** Validates audits are executed properly
+- **0800:** Index of all audits
 
 ---
 
-## 3. Audit Execution Verification
+## 2. Audit Suite Inventory
 
-### 3.1 Execution Frequency
+### 2.1 Complete Audit Registry
 
-| Audit | Required Frequency | Last Executed | Overdue? |
-|-------|-------------------|---------------|----------|
-| 0801 (Issues) | Bi-weekly | | |
-| 0802 (Reports) | Weekly | | |
-| 0803 (LLD Alignment) | Per feature | | |
-| 0804 (Inventory) | Weekly | | |
-| 0805 (Terminology) | After renames | | |
-| 0806 (Architecture) | Monthly | | |
-| 0807 (AgentOS) | Monthly | | |
-| 0808 (Permissions) | On friction | | |
-| 0809 (Security) | Quarterly | | |
-| 0810 (Privacy) | Quarterly | | |
+| Number | Name | Category | Frequency | Last Run | Status |
+|--------|------|----------|-----------|----------|--------|
+| **Core Development** |
+| 0808 | Permission Permissiveness | Agent | On friction | | |
+| 0809 | Security | Security | Quarterly | | |
+| 0810 | Privacy | Privacy | Quarterly | | |
+| 0811 | Linting | Code Quality | Per PR | | |
+| 0812 | Type Checking | Code Quality | Per PR | | |
+| 0813 | Test Coverage | Code Quality | Per PR | | |
+| 0814 | Pyright | Code Quality | Per PR | | |
+| 0815 | Claude Code Workflow | Agent | Monthly | | |
+| 0816 | Dependabot PRs | Dependencies | Weekly | | |
+| **AI Governance** |
+| 0818 | AI Management System | Governance | Quarterly | | |
+| 0819 | AI Supply Chain | Security | Quarterly | | |
+| 0820 | Explainability | Transparency | Quarterly | | |
+| 0821 | Agentic AI Governance | Agent | Monthly | | |
+| 0822 | Bias & Fairness | Fairness | Quarterly | | |
+| 0823 | AI Incident Post-Mortem | Operations | On incident | | |
+| **Meta** |
+| 0898 | Horizon Scanning | Discovery | Quarterly | | |
+| 0899 | Meta-Audit (this) | Validation | Quarterly | | |
 
-### 3.2 Audit Record Verification
+### 2.2 Audit Health Dashboard
 
-For each audit, verify:
-- [ ] Audit record section exists
-- [ ] At least one entry in the last required period
-- [ ] Findings have issue references or "None" documented
-- [ ] Remediation actions are tracked
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Audits with documented last run | 100% | | |
+| Audits run within frequency | 100% | | |
+| Audit findings with issues created | 100% | | |
+| Open audit issues | < 10 | | |
+| Stale audits (> 2x frequency) | 0 | | |
 
 ---
 
-## 4. Audit Quality Checks
+## 3. Audit Execution Validation
 
-### 4.1 Are Audits Actionable?
+### 3.1 Per-Audit Checklist
+
+For each audit in §2.1, verify:
 
 | Check | Requirement |
 |-------|-------------|
-| Clear pass/fail criteria | Each check has binary outcome |
-| Severity levels defined | Critical/High/Medium/Low/Info |
-| Remediation guidance | Each finding has recommended fix |
-| Issue creation threshold | When to create vs. note |
+| ☐ Document exists | File present in docs/ |
+| ☐ Format compliant | Follows 08xx template |
+| ☐ Audit Record populated | Last run documented |
+| ☐ Within frequency | Not overdue |
+| ☐ Findings actioned | Issues created for failures |
+| ☐ Issues resolved | No stale audit issues |
 
-### 4.2 Are Audits Current?
+### 3.2 Execution Evidence
 
-| Check | Requirement |
-|-------|-------------|
-| Standards updated | Reference latest versions (OWASP 2025, etc.) |
-| Tools current | npm audit, poetry, ruff versions |
-| Aletheia-specific | Reflects actual architecture |
-
-### 4.3 Are Audits Automated Where Possible?
-
-| Check | Automation Status |
-|-------|-------------------|
-| Policy compliance | ✅ `tools/policy_check.sh` |
-| Dependency vulnerabilities | ✅ Dependabot, npm audit |
-| Linting | ✅ pre-commit, CI |
-| Type checking | ✅ pre-commit, CI |
-| Test coverage | ✅ pytest-cov |
-| Secret scanning | ✅ gitleaks |
-| Accessibility | ❌ Manual |
-| Performance | ❌ Manual |
-| License compliance | ❌ Manual |
+| Audit | Evidence Location | Verification Method |
+|-------|-------------------|---------------------|
+| 0811 Linting | CI logs | Check workflow runs |
+| 0812 Type Checking | CI logs | Check workflow runs |
+| 0813 Test Coverage | CI logs, codecov | Check coverage report |
+| 0814 Pyright | CI logs | Check workflow runs |
+| 0816 Dependabot | GitHub PRs | Review merged PRs |
+| Others | Audit Record section | Manual verification |
 
 ---
 
-## 5. Audit System Health
+## 4. Audit Effectiveness Metrics
 
-### 5.1 Documentation Consistency
+### 4.1 Detection Rate Tracking
 
-| Check | Requirement |
-|-------|-------------|
-| All audits in 0800-common-audits.md | Master index complete |
-| All audits in 0003-file-inventory.md | Inventory current |
-| Consistent structure | All follow same template |
-| Cross-references valid | Links work |
+Are audits actually finding problems?
 
-### 5.2 Process Integration
+| Audit | Issues Found (Last 3 Runs) | False Positives | Trend |
+|-------|----------------------------|-----------------|-------|
+| 0809 Security | | | |
+| 0810 Privacy | | | |
+| 0821 Agentic | | | |
+| 0822 Bias | | | |
 
-| Check | Requirement |
-|-------|-------------|
-| CI runs automated audits | policy_check, lint, test |
-| Pre-commit hooks active | Listed in .pre-commit-config.yaml |
-| Session closeout references audits | 0009 protocol |
-| New features trigger audits | 0803 after implementation |
+### 4.2 Effectiveness Indicators
 
----
+| Indicator | What It Means | Action |
+|-----------|---------------|--------|
+| 0 issues for 3+ runs | Audit may be too weak | Review test cases |
+| High false positive rate | Audit too aggressive | Tune thresholds |
+| Issues found in prod, not audit | Detection gap | Add test cases |
+| Same issue repeatedly | Root cause not fixed | Escalate |
 
-## 6. Audit Procedure
+### 4.3 Stale Audit Detection
 
-1. Check §2 - Verify all relevant standards have audits
-2. Check §3 - Verify audits are executed on schedule
-3. Check §4 - Verify audit quality
-4. Check §5 - Verify system health
-5. Document findings in audit record
-6. Create issues for gaps/failures
+Audits that find nothing may indicate:
+- Excellent compliance (good)
+- Weak audit criteria (bad)
+- Outdated threat model (bad)
 
----
-
-## 7. Meta-Correction Loop
-
-When an audit finds a discrepancy, track the correction:
-
-| Audit | Finding | Correction | Tracked In |
-|-------|---------|------------|------------|
-| 0807 | IMMEDIATE-PLAN stale (#104/#105 shown as pending) | Updated 0000a to reflect reality | Commit bd04a78 |
-| 0809 | eval/env/python in allow list | Moved to deny list | Commit 7a7f267 |
-| 0810 | Privacy drift (DynamoDB persistence) | Wiki update required | Issue #159 |
-| 0814 | package.json license mismatch | Fixed ISC → MIT | Commit caf8de0 |
-| 0817 | Wiki "in-memory only" contradicts code | Wiki update required | Issue #159 |
+| Audit | Consecutive Clean Runs | Investigation Needed? |
+|-------|------------------------|----------------------|
+| | | |
 
 ---
 
-## 8. Audit Record
+## 5. Finding Resolution Tracking
+
+### 5.1 Open Audit Findings
+
+| Audit | Issue # | Finding | Severity | Age (days) | Status |
+|-------|---------|---------|----------|------------|--------|
+| | | | | | |
+
+### 5.2 Resolution SLAs
+
+| Severity | Target Resolution | Escalation |
+|----------|-------------------|------------|
+| Critical | 24 hours | Immediate |
+| High | 1 week | Daily standup |
+| Medium | 2 weeks | Weekly review |
+| Low | 1 month | Monthly review |
+
+### 5.3 Overdue Findings
+
+| Issue # | Audit | Age | SLA | Action Needed |
+|---------|-------|-----|-----|---------------|
+| | | | | |
+
+---
+
+## 6. Audit Document Quality
+
+### 6.1 Template Compliance
+
+Each audit document should have:
+
+| Section | Required | Purpose |
+|---------|----------|---------|
+| Purpose | Yes | Why this audit exists |
+| Scope | Yes | What's covered |
+| Checklist/Procedure | Yes | How to execute |
+| Audit Record | Yes | Execution history |
+| References | Yes | Standards, sources |
+| History | Yes | Document changes |
+
+### 6.2 Quality Checklist
+
+| Audit | Has Purpose | Has Procedure | Has Record | Has Refs | Compliant |
+|-------|-------------|---------------|------------|----------|-----------|
+| 0808 | | | | | |
+| 0809 | | | | | |
+| 0810 | | | | | |
+| 0811 | | | | | |
+| 0812 | | | | | |
+| 0813 | | | | | |
+| 0814 | | | | | |
+| 0815 | | | | | |
+| 0816 | | | | | |
+| 0818 | | | | | |
+| 0819 | | | | | |
+| 0820 | | | | | |
+| 0821 | | | | | |
+| 0822 | | | | | |
+| 0823 | | | | | |
+| 0898 | | | | | |
+
+---
+
+## 7. Industry Standard Coverage
+
+### 7.1 Standards Mapping
+
+Verify audits cover required standards (see 0898 for framework tracking):
+
+| Standard | Version | Audit Coverage | Gaps |
+|----------|---------|----------------|------|
+| OWASP LLM Top 10 | 2025 | 0809 | |
+| OWASP Agentic Top 10 | 2026 | 0821 | |
+| ISO/IEC 42001 | 2023 | 0818 | |
+| ASVS | 4.0.3 | 0809 §4 | |
+| EU AI Act | 2024 | 0809, 0820 | |
+| NIST AI RMF | 1.0 | 0818, 0823 | |
+
+### 7.2 Coverage Verification
+
+For each standard, verify:
+- [ ] Standard requirements enumerated in relevant audit
+- [ ] Test cases exist for key requirements
+- [ ] Last coverage review within 1 year
+
+---
+
+## 8. Cross-Audit Consistency
+
+### 8.1 Overlap Analysis
+
+Ensure audits don't contradict each other:
+
+| Topic | Audits Covering | Consistent? |
+|-------|-----------------|-------------|
+| Prompt injection | 0809 §3 | |
+| Permission model | 0808, 0815, 0821 | |
+| Privacy | 0810, 0818 | |
+| Dependencies | 0816, 0819 | |
+| Bias | 0809 §guardrails, 0822 | |
+
+### 8.2 Gap Analysis
+
+Topics that should be audited but aren't covered:
+
+| Topic | Should Be In | Current Status |
+|-------|--------------|----------------|
+| | | |
+
+*(Detailed gap discovery is in 0898 Horizon Scanning)*
+
+---
+
+## 9. Audit Automation Status
+
+### 9.1 Automation Levels
+
+| Level | Description | Audits |
+|-------|-------------|--------|
+| **Automated** | Runs in CI, no manual steps | 0811, 0812, 0813, 0814 |
+| **Semi-automated** | CLI commands, manual review | 0816, 0819 |
+| **Manual** | Human judgment required | 0808, 0809, 0810, 0815, 0818, 0820, 0821, 0822, 0823 |
+
+### 9.2 Automation Targets
+
+| Audit | Current | Target | Blockers |
+|-------|---------|--------|----------|
+| 0809 Security | Manual | Semi-auto | Need SAST integration |
+| 0819 Supply Chain | Manual | Semi-auto | Need SBOM tooling |
+| 0816 Dependabot | Semi-auto | Automated | Need auto-merge rules |
+
+---
+
+## 10. Audit Execution Procedure
+
+### 10.1 Quarterly Meta-Audit
+
+1. **Inventory Check**
+   - Verify all audits in §2.1 exist
+   - Check for new audits not in registry
+   - Update registry if needed
+
+2. **Execution Verification**
+   - For each audit, verify last run within frequency
+   - Flag overdue audits
+   - Schedule overdue audits
+
+3. **Finding Resolution**
+   - Review all open audit issues
+   - Verify within SLA
+   - Escalate overdue issues
+
+4. **Effectiveness Review**
+   - Check for stale audits (§4.3)
+   - Review detection rates
+   - Recommend improvements
+
+5. **Quality Check**
+   - Verify document compliance (§6.2)
+   - Check cross-audit consistency (§8)
+   - Update this document
+
+### 10.2 Event-Triggered
+
+| Event | Action |
+|-------|--------|
+| New audit created | Add to §2.1 registry |
+| Audit finding | Track in §5.1 |
+| Audit issue closed | Update §5.1 |
+| Production incident | Verify relevant audit coverage |
+
+---
+
+## 11. Audit Record
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| 2026-01-05 | Gemini 3.0 Pro | System self-correcting (validated), Automation gap in 0811/0812, License audit false-green risk | #159 (wiki), #160 (a11y CI), #161 (perf CI) |
+| | | | |
 
 ---
 
-## 9. References
+## 12. References
 
-- [Software Audit Complete Guide 2025](https://imaginovation.net/blog/software-audit-guide/)
-- [SDLC Audit Checklist](https://redwerk.com/blog/sdlc-audit-checklist-auditing-the-software-development-process/)
-- [ISO/IEC 25010 Software Quality](https://iso25000.com/index.php/en/iso-25000-standards/iso-25010)
+### Internal
+- docs/0800-audit-index.md - Audit suite overview
+- docs/0898-horizon-scanning-protocol.md - Gap discovery
+- All 08xx audit documents
+
+### External
+- [ISO 19011:2018](https://www.iso.org/standard/70017.html) - Auditing management systems
+- [IIA Standards](https://www.theiia.org/en/standards/) - Internal audit standards
+
+---
+
+## 13. History
+
+| Date | Change |
+|------|--------|
+| 2026-01-06 | Refactored. Moved horizon scanning to 0898. Focused on validation and execution tracking. Added audit effectiveness metrics. |
