@@ -50,8 +50,6 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | `--normal` | Normal | ~5 min | Standard session end (default) |
 | `--full` | Full | ~12 min | Feature complete, before breaks |
 
-## Execution
-
 **IMPORTANT:** Use the **Task tool** with `model: sonnet` to execute the cleanup. This saves budget while keeping your main session on Opus.
 
 Spawn a Task with `subagent_type: general-purpose` and `model: sonnet` with the following prompt (substitute MODE based on parsed arguments):
