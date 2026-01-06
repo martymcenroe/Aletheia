@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-05 02:13 CT
-**Total Open Issues:** 36
+**Generated:** 2026-01-05 18:27 CT
+**Total Open Issues:** 34
 
 ---
 
@@ -69,7 +69,7 @@ Prepare assets (Manifest, Privacy Policy, Store Listing) for submission.
 ### Description
 
 ## Status Update (2026-01-04)
-**Partially Complete:** `tools/generate_store_assets.py` and `tools/build_release.py` exist but reference old `extension/` path. Need to update for `extensions/chrome/` directory structure.
+**Partially Complete:** `tools/generate_store_assets.py` and `tools/build_release.py` exist but reference old `extension/` path. Need to update for `extension-chrome-V3/` directory structure.
 
 ---
 
@@ -80,7 +80,7 @@ Create a script (`tools/generate_store_assets.py`) to deterministically generate
 
 ### 1. Icon Generation
 - **Input:** `tools/master_lambda.png` (High-res source)
-- **Output:** `extensions/chrome/icons/` {16, 32, 48, 128}.png
+- **Output:** `extension-chrome-V3/icons/` {16, 32, 48, 128}.png
 - **Constraint:** Transparent backgrounds, optimized PNGs.
 
 ### 2. Promotional Tiles (Placeholders)
@@ -95,7 +95,7 @@ Create a script (`tools/generate_store_assets.py`) to deterministically generate
 ## Acceptance Criteria
 - [ ] Zip file contains **only** client-side artifacts.
 - [ ] No Python code or secrets leaked in the extension zip.
-- [ ] Scripts updated for `extensions/chrome/` directory structure.
+- [ ] Scripts updated for `extension-chrome-V3/` directory structure.
 
 ---
 
@@ -147,96 +147,6 @@ Replace the cyberpunk/retro landing page with a modern, professional design that
 - [ ] Loads in <1 second
 - [ ] Privacy policy section retained
 - [ ] Chrome Web Store link works
-
----
-
-## Issue #102: chore: Reorganize repository structure for professional appearance
-
-**Labels:** chore
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Problem
-Repository root has 24 tracked files (vs professional standard of ~10-15 config files). This looks disorganized to visitors on GitHub.
-
-## Current Root (24 files)
-**Config (8):** .gitignore, LICENSE, README.md, pyproject.toml, poetry.lock, CLAUDE.md, GEMINI.md, CHATGPT.md ✅
-**App Code (5):** agent.py, checkpointer.py, compliance.py, lambda_function.py, lambda_harvester_function.py
-**Scripts (4):** aws-cleanup-old-resources.sh, aws-inventory-check.sh, deploy.sh, provision.sh
-**Tools (4):** harvest_test_data.py, run_guardrails.py, verify_bedrock.py, verify_holistic.py
-**Test Data (2):** test_ground_truth.json, test_holistic_data.json
-**Legacy (1):** index.html (KEEP - has privacy policy for Chrome Store)
-
-## Proposed Structure
-```
-aletheia/
-├── [8 config files in root] ✅
-├── src/                        # Move 5 app code files here
-├── scripts/aws/                # Move 4 AWS scripts here
-├── tools/                      # Move 4 tools here + print scripts
-└── tests/data/                 # Move 2 test data files here
-```
-
-## Migration Plan
-
-### Phase 1: Application Code (CRITICAL - Test First!)
-Move to `src/`:
-- agent.py
-- checkpointer.py
-- compliance.py
-- lambda_function.py
-- lambda_harvester_function.py
-
-**⚠️ BLOCKER:** Lambda deployment may break. Test:
-1. Update deploy.sh to handle new paths
-2. Test provision.sh still works
-3. Verify Lambda functions deploy correctly
-4. Check all import paths in Python code
-
-### Phase 2: Scripts (Safe)
-Move to `scripts/aws/`:
-- aws-cleanup-old-resources.sh
-- aws-inventory-check.sh
-- deploy.sh
-- provision.sh
-
-### Phase 3: Tools (Safe)
-Move to `tools/`:
-- harvest_test_data.py
-- run_guardrails.py
-- verify_bedrock.py
-- verify_holistic.py
-- [Print scripts from local .gitignored files]
-
-### Phase 4: Test Data (Safe)
-Move to `tests/data/`:
-- test_ground_truth.json
-- test_holistic_data.json
-
-## Testing Requirements
-- [ ] All Python imports still resolve
-- [ ] deploy.sh successfully deploys Lambda
-- [ ] provision.sh still provisions infrastructure
-- [ ] Local tools (log_viewer.py, etc.) still work
-- [ ] pytest runs successfully
-- [ ] Lambda functions execute in AWS
-
-## Acceptance Criteria
-- [ ] Root directory has ≤15 files (only config)
-- [ ] All files in logical directories
-- [ ] No broken imports
-- [ ] Deployment pipeline still works
-- [ ] All tests pass
-
-## Priority
-Medium - Improves professionalism but not user-facing. Complete before going public or seeking contributors.
-
-## Prep Work Done
-- Created directory structure (scripts/aws/, tests/data/, tools/print/)
-- Deleted legacy/ directory (only contained .py_bak files)
 
 ---
 
@@ -1443,7 +1353,7 @@ if not signals.get('noarchive', False):
 ```
 
 **2. Extension must pass signals:**
-Ensure `extensions/chrome/service-worker.js` includes parsed signals in the Lambda request payload.
+Ensure `extension-chrome-V3/service-worker.js` includes parsed signals in the Lambda request payload.
 
 ## Acceptance Criteria
 
@@ -1508,50 +1418,6 @@ Because we use `activeTab` permission instead of `host_permissions: ["<all_urls>
 
 ---
 
-## Issue #157: chore: Migrate ESLint to flat config format
-
-**Labels:** chore
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Context
-
-0813 Code Quality Audit identified that our ESLint configuration uses the legacy format (`.eslintrc.json`). ESLint 9+ uses "flat config" (`eslint.config.js`).
-
-## Current State
-
-- File: `.eslintrc.json`
-- Format: Legacy JSON config
-- Works with: ESLint v8 (currently pinned)
-
-## Problem
-
-- ESLint v9+ requires flat config format
-- Continuing to use legacy format creates upgrade friction
-- Eventually ESLint will drop support for legacy config
-
-## Migration Steps
-
-1. Create `eslint.config.js` with equivalent rules
-2. Update any `ESLINT_USE_FLAT_CONFIG` env var usage
-3. Test on both Chrome and Firefox extension code
-4. Remove `.eslintrc.json`
-5. Update CI workflow if needed
-
-## References
-
-- [ESLint Flat Config Migration Guide](https://eslint.org/docs/latest/use/configure/migration-guide)
-- [ESLint v9 Release Notes](https://eslint.org/blog/2024/04/eslint-v9.0.0-released/)
-
-## Priority
-
-LOW - Current setup works, this is future-proofing.
-
----
-
 ## Issue #159: docs: Update GitHub Wiki for 0817 audit findings
 
 **Labels:** documentation
@@ -1581,7 +1447,7 @@ LOW - Current setup works, this is future-proofing.
 ### 2. Terms of Use Page (HIGH)
 
 **Required:** Create page detailing prohibited content categories enforced by:
-- `extensions/chrome/content-safety.js` (client-side age gate)
+- `extension-chrome-V3/content-safety.js` (client-side age gate)
 - `src/guardrails/denylist.py` (server-side hate speech filter)
 
 Content categories from `src/guardrails/resources/taxonomy.json`:
