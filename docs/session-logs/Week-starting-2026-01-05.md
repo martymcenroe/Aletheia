@@ -247,3 +247,19 @@ Rewrote provision.sh with lean dependency layer, real code deployment, handler f
 - Branch: main @ 56335ba
 - Open PRs: 0
 - Next: Per user direction
+
+---
+
+## 2026-01-06 01:28 CT | Claude Opus 4.5
+
+### Summary
+Major session: (1) Rewrote provision.sh as batteries-included deployment with lean dependency layer, CloudWatch logs, self-verification; (2) Fixed OAuth login-when-already-authenticated bug (removed refreshToken requirement since LinkedIn doesn't provide one); (3) Fixed amber badge for pre-injected overlay; (4) Added auto-close popup on activate; (5) Fixed gitleaks CLIENT_ID flag; (6) Updated policy_check.sh to allow 'pip install -t' for Lambda layers; (7) Added infra-lint and deploy-infra jobs to CI workflow; (8) Configured AWS secrets in GitHub
+
+### Issues
+- Created: None
+- Closed: None
+
+### State on Exit
+- Branch: main @ bbe9554
+- Open PRs: 0
+- Next: Per user direction
