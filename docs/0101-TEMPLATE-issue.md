@@ -58,6 +58,31 @@ Copy this template when creating a new feature issue via `gh issue create`.
 - [ ] {Testable criterion 2}
 - [ ] {Testable criterion 3}
 
+## Definition of Done
+
+### Implementation
+- [ ] Core feature implemented
+- [ ] Unit tests written and passing
+
+### Tools
+- [ ] Update/create relevant CLI tools in `tools/` (if applicable)
+- [ ] Document tool usage
+
+### Documentation
+- [ ] Update wiki pages affected by this change
+- [ ] Update README.md if user-facing
+- [ ] Update relevant ADRs or create new ones
+- [ ] Add new files to `docs/0003-file-inventory.md`
+
+### Reports (Pre-Merge Gate)
+- [ ] `docs/reports/{IssueID}/implementation-report.md` created
+- [ ] `docs/reports/{IssueID}/test-report.md` created
+
+### Verification
+- [ ] Run 0809 Security Audit - PASS (if security-relevant)
+- [ ] Run 0810 Privacy Audit - PASS (if privacy-relevant)
+- [ ] Run 0817 Wiki Alignment Audit - PASS (if wiki updated)
+
 ## Testing Notes
 {Any special instructions for how to test, including how to force error states}
 ```
