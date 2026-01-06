@@ -113,7 +113,12 @@
       "Bash(ESLINT_USE_FLAT_CONFIG=true npx eslint:*)",
       "Bash(MSYS_NO_PATHCONV=1 aws logs tail:*)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-off.sh:*)",
-      "Bash(MSYS_NO_PATHCONV=1 aws logs:*)"
+      "Bash(MSYS_NO_PATHCONV=1 aws logs:*)",
+      "Bash(MSYS_NO_PATHCONV=1 aws lambda get-function-configuration:*)",
+      "Bash(./provision.sh:*)",
+      "Skill(audit)",
+      "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/policy_check.sh:*)",
+      "Bash(MSYS_NO_PATHCONV=1 aws dynamodb describe-time-to-live:*)"
     ],
     "deny": [
       "Read(.env)",
