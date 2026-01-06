@@ -79,29 +79,69 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "explain-with-ai") {
         console.log("[Aletheia] Processing 'Explain with AI'...");
 
-        // ALLOWLIST GATE
         const domain = extractDomain(info.pageUrl);
         console.log("[Aletheia] Domain:", domain);
 
-        const result = await browser.storage.local.get('allowlist');
-        const allowlist = result.allowlist || [];
-        console.log("[Aletheia] Allowlist:", allowlist);
+        // [#156] PARALLEL OPTIMIZATION: Start allowlist check and overlay injection simultaneously
+        // This reduces click-to-glass latency from ~500-1000ms to <200ms target
+        console.log("[Aletheia] Starting parallel operations (allowlist, overlay)...");
 
-        if (!allowlist.includes(domain)) {
+        // Helper to inject overlay (returns success boolean)
+        const injectOverlayPromise = (async () => {
+            try {
+                await browser.tabs.executeScript(tab.id, { file: 'overlay.js' });
+                return true;
+            } catch (e) {
+                console.log("[Aletheia] Overlay injection failed (CSP?):", e.message);
+                return false;
+            }
+        })();
+
+        // Helper to check allowlist
+        const allowlistPromise = (async () => {
+            const result = await browser.storage.local.get('allowlist');
+            const allowlist = result.allowlist || [];
+            console.log("[Aletheia] Allowlist:", allowlist);
+            return allowlist.includes(domain);
+        })();
+
+        // CRITICAL: Wait for BOTH operations to complete before checking results
+        // This prevents race conditions where cleanup runs before injection finishes
+        const [overlayInjected, isAllowlisted] = await Promise.all([
+            injectOverlayPromise,
+            allowlistPromise
+        ]);
+
+        // Check allowlist result
+        if (!isAllowlisted) {
             console.log(`[Aletheia] Blocked: ${domain} not in allowlist`);
-            await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
+            if (overlayInjected) {
+                // Overlay was injected optimistically, show warning message
+                await browser.tabs.executeScript(tab.id, {
+                    code: `window.showAletheiaOverlay("Enable Aletheia for this site", "warning");`
+                });
+            } else {
+                await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
+            }
             return;
         }
 
         console.log("[Aletheia] Domain is allowlisted, proceeding...");
 
         try {
-            // IMMEDIATE FEEDBACK - show "Saving..." with long timeout (won't expire before response)
+            // IMMEDIATE FEEDBACK - overlay already injected, just show "Saving..."
             console.log("[Aletheia] Showing immediate 'Saving...' feedback");
-            await browser.tabs.executeScript(tab.id, { file: 'overlay.js' });
-            await browser.tabs.executeScript(tab.id, {
-                code: `window.showAletheiaOverlay("Saving...", "warning", 30000);`
-            });
+            if (overlayInjected) {
+                await browser.tabs.executeScript(tab.id, {
+                    code: `window.showAletheiaOverlay("Saving...", "warning", 30000);`
+                });
+            } else {
+                // Fallback: inject and show (shouldn't happen often)
+                await browser.tabs.executeScript(tab.id, { file: 'overlay.js' });
+                await browser.tabs.executeScript(tab.id, {
+                    code: `window.showAletheiaOverlay("Saving...", "warning", 30000);`
+                });
+            }
 
             // MV2: executeScript returns array of results
             console.log("[Aletheia] Getting page text...");

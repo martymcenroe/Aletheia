@@ -202,37 +202,92 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "explain-with-ai") {
+    const domain = extractDomain(info.pageUrl);
 
-    // AGE GATE CHECK (Issue #104) - On-demand check using activeTab permission
-    // We check NOW when user interacts, not proactively (respects ADR 0201)
-    await checkTabForAgeRestriction(tab.id, tab.url);
+    // [#156] PARALLEL OPTIMIZATION: Start all checks and overlay injection simultaneously
+    // This reduces click-to-glass latency from ~500-1000ms to <200ms target
+    console.log("[Aletheia] Starting parallel operations (age gate, allowlist, overlay)...");
+
+    // Helper to inject overlay (returns success boolean)
+    const injectOverlayPromise = (async () => {
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['overlay.js']
+            });
+            return true;
+        } catch (e) {
+            console.log("[Aletheia] Overlay injection failed (CSP?):", e.message);
+            return false;
+        }
+    })();
+
+    // Helper to check allowlist
+    const allowlistPromise = (async () => {
+        const { allowlist = [] } = await chrome.storage.local.get('allowlist');
+        return allowlist.includes(domain);
+    })();
+
+    // Helper for age gate (already mutates tabStates, returns void)
+    const ageGatePromise = checkTabForAgeRestriction(tab.id, tab.url);
+
+    // CRITICAL: Wait for ALL operations to complete before checking results
+    // This prevents race conditions where cleanup runs before injection finishes
+    const [overlayInjected, isAllowlisted] = await Promise.all([
+        injectOverlayPromise,
+        allowlistPromise,
+        ageGatePromise  // We don't need its return value, just wait for completion
+    ]);
+
+    // Now check results - age gate first (most severe)
     if (isTabRestricted(tab.id)) {
-      console.log(`[Aletheia] Blocked: Age-restricted content on tab ${tab.id}`);
-      await showFeedback(tab.id, "Not permitted on this site", "error");
-      return;
+        console.log(`[Aletheia] Blocked: Age-restricted content on tab ${tab.id}`);
+        if (overlayInjected) {
+            // Overlay was injected optimistically, show error message
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.showAletheiaOverlay("Not permitted on this site", "error")
+            });
+        } else {
+            await showFeedback(tab.id, "Not permitted on this site", "error");
+        }
+        return;
     }
 
-    // ALLOWLIST GATE
-    const domain = extractDomain(info.pageUrl);
-    const { allowlist = [] } = await chrome.storage.local.get('allowlist');
-
-    if (!allowlist.includes(domain)) {
-      console.log(`[Aletheia] Blocked: ${domain}`);
-      await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
-      return;
+    // Check allowlist
+    if (!isAllowlisted) {
+        console.log(`[Aletheia] Blocked: ${domain} not in allowlist`);
+        if (overlayInjected) {
+            // Overlay was injected optimistically, show warning message
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.showAletheiaOverlay("Enable Aletheia for this site", "warning")
+            });
+        } else {
+            await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
+        }
+        return;
     }
 
     try {
-        // IMMEDIATE FEEDBACK - show "Saving..." with long timeout (won't expire before response)
+        // IMMEDIATE FEEDBACK - overlay already injected, just show "Saving..."
         console.log("[Aletheia] Showing immediate 'Saving...' feedback");
-        await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['overlay.js']
-        });
-        await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: () => window.showAletheiaOverlay("Saving...", "warning", 30000)
-        });
+        if (overlayInjected) {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.showAletheiaOverlay("Saving...", "warning", 30000)
+            });
+        } else {
+            // Fallback: inject and show (shouldn't happen often)
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['overlay.js']
+            });
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.showAletheiaOverlay("Saving...", "warning", 30000)
+            });
+        }
 
         const injectionResults = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
