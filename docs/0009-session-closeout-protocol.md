@@ -183,7 +183,7 @@ gh issue list --state open --repo martymcenroe/Aletheia
 4. **Stash Check** - Document any stash entries
 5. **Doc Sync** - Regenerate 6000-open-issues.md
 6. **Inventory Audit** - Glob check against 0003-file-inventory.md
-7. **Plan Check** - Update 0000a-IMMEDIATE-PLAN.md if needed
+7. **Plan Check** - Validate IMMEDIATE-PLAN issue references (see § IMMEDIATE-PLAN Staleness Detection)
 8. **Wiki Check** - If user-facing changes, check wiki alignment (0817)
 
 **Phase 3 - Session Log:**
@@ -250,6 +250,71 @@ Report to human if any of these occur:
 | Lambda still ON after off command | `⚠️ UNEXPECTED: Lambda still ON` |
 | Uncommitted work in worktree | `⚠️ UNEXPECTED: Uncommitted changes` |
 | File not in inventory | `⚠️ DRIFT: File {path} not in 0003` |
+
+---
+
+## IMMEDIATE-PLAN Staleness Detection
+
+**Problem:** `docs/0000a-IMMEDIATE-PLAN.md` references issues (e.g., "#147 is BLOCKED BY #116") that can become stale when issues are closed. Without validation, these stale references persist and mislead future agents.
+
+**Trigger:** Full mode cleanup, OR when any issue is closed during the session.
+
+### Detection Procedure
+
+**Step 1: Extract issue references from IMMEDIATE-PLAN**
+
+Use Grep to find all `#NNN` patterns:
+```bash
+grep -oE '#[0-9]+' /c/Users/mcwiz/Projects/Aletheia/docs/0000a-IMMEDIATE-PLAN.md
+```
+
+**Step 2: Check each unique issue's state**
+
+For each issue number found, query GitHub:
+```bash
+gh issue view NNN --repo martymcenroe/Aletheia --json state,title
+```
+
+**Step 3: Identify stale references**
+
+An issue reference is **stale** if:
+- The issue is CLOSED, AND
+- IMMEDIATE-PLAN describes it as current work, blocking, or pending
+
+**Step 4: Report findings**
+
+| Condition | Action |
+|-----------|--------|
+| All referenced issues are OPEN | ✅ No action needed |
+| Closed issue in "Critical Path" section | ⚠️ Update section to mark step complete |
+| Closed issue in "BLOCKED BY" relationship | ⚠️ Remove blocking constraint, update dependent issue |
+| Closed issue in "V2 Features" table | ⚠️ Update status column |
+
+### Remediation
+
+When stale references are found:
+
+1. **Read the full IMMEDIATE-PLAN** to understand context
+2. **Check the closed issue** for resolution details: `gh issue view NNN --repo martymcenroe/Aletheia`
+3. **Update IMMEDIATE-PLAN** to reflect current reality:
+   - Mark completed steps as ✅ COMPLETE
+   - Remove or update blocking relationships
+   - Update status indicators
+4. **Stage the change**: `git -C /c/Users/mcwiz/Projects/Aletheia add docs/0000a-IMMEDIATE-PLAN.md`
+
+### Example
+
+**Before (stale):**
+```markdown
+| #116 | LinkedIn OAuth (auth gate) | **HIGH** - enables user identification |
+| #147 | GDPR data erasure | ⛔ **BLOCKED BY #116** |
+```
+
+**After (current):**
+```markdown
+| #116 | LinkedIn OAuth (auth gate) | ✅ COMPLETE (PR #XXX) |
+| #147 | GDPR data erasure | **HIGH** - auth gate complete, ready to implement |
+```
 
 ---
 
