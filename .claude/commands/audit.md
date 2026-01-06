@@ -1,5 +1,6 @@
 ---
 description: Full 08xx audit suite (1-2 hours)
+args: "[--deep]"
 ---
 
 # Full Audit Suite (0800)
@@ -8,13 +9,28 @@ Execute all 08xx audits in sequence per @docs/0800-common-audits.md
 
 This is **explicit approval** to execute all audits autonomously.
 
+## Arguments
+
+| Arg | Effect |
+|-----|--------|
+| (none) | Standard audit - internal analysis only |
+| `--deep` | Deep audit - enables web search for external research |
+
+**Deep mode enables:**
+- 0809 Security: Search for latest OWASP guidelines, CVEs, security advisories
+- 0810 Privacy: Search for latest GDPR/CCPA guidance, regulatory updates
+- 0814 License: Search for license compatibility edge cases
+- 0815 Claude Capabilities: Search Anthropic changelog, Claude Code releases
+- 0899 Meta-Audit: Search for industry audit best practices
+
 ## Rules
 - Use absolute paths and `git -C` patterns (no cd && chaining)
 - Use `--repo martymcenroe/Aletheia` for all gh commands
 - **Evidence over inference:** Grep code/config, don't trust doc claims
 - **Do NOT auto-fix issues** - report findings for orchestrator triage
 - Report findings with severity: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFO`
-- Skip audits that require external access (e.g., 0815 web search) unless explicitly enabled
+- In standard mode: Skip audits that require external access
+- In deep mode: Use WebSearch tool for external research
 
 ## Audit Sequence
 
@@ -90,6 +106,13 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 3. OWASP Agentic Security (2026)
 4. Extension-specific (Manifest V3, CSP)
 
+**Deep mode additions:**
+- WebSearch: "OWASP Top 10 2025 updates"
+- WebSearch: "Chrome extension security vulnerabilities 2026"
+- WebSearch: "AWS Lambda security best practices 2026"
+- WebSearch: "LLM prompt injection CVEs recent"
+- Cross-reference findings against codebase
+
 ### 0810 - Privacy Audit
 **Purpose:** Verify data protection compliance.
 **Check per** `docs/0810-audit-privacy.md`:
@@ -97,6 +120,12 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 2. Storage duration
 3. User consent mechanisms
 4. Data deletion capability
+
+**Deep mode additions:**
+- WebSearch: "GDPR browser extension requirements 2026"
+- WebSearch: "CCPA compliance updates 2026"
+- WebSearch: "Chrome Web Store privacy policy requirements"
+- Cross-reference against current implementation
 
 ### 0811 - Accessibility Audit
 **Purpose:** WCAG 2.1 compliance for browser extension.
@@ -131,9 +160,23 @@ npm ls --all
 ```
 Verify all dependencies use: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, Unlicense
 
-### 0815 - Claude Capabilities (SKIP unless enabled)
+**Deep mode additions:**
+- WebSearch: "[package-name] license" for any unclear licenses
+- WebSearch: "SPDX license compatibility MIT"
+- Verify transitive dependency licenses
+
+### 0815 - Claude Capabilities
 **Purpose:** Track new Claude Code features.
-**Note:** Requires web search. Skip unless user explicitly requests.
+**Standard mode:** SKIP (requires web search)
+**Deep mode:** ENABLED
+
+**Deep mode searches:**
+- WebSearch: "Claude Code changelog 2026"
+- WebSearch: "Anthropic Claude Code new features"
+- WebSearch: "Claude Code MCP servers"
+- WebFetch: https://docs.anthropic.com/en/docs/claude-code (check for updates)
+- Compare against current CLAUDE.md and .claude/ config
+- Flag new capabilities to adopt or experiment with
 
 ### 0816 - Dependabot PR Audit
 **Purpose:** Review and merge pending Dependabot PRs.
@@ -156,6 +199,12 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 1. All 08xx procedures are indexed in 0800
 2. No stale audit procedures
 3. Audit triggers are appropriate
+
+**Deep mode additions:**
+- WebSearch: "software audit best practices 2026"
+- WebSearch: "AI system audit frameworks"
+- WebSearch: "browser extension compliance audit checklist"
+- Compare against industry standards and flag gaps
 
 ## Output Format
 
