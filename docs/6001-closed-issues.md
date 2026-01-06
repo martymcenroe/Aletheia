@@ -1,7 +1,7 @@
 # Aletheia - Closed Issues
 
-**Generated:** 2026-01-01 10:26 CT
-**Total Closed Issues:** 61
+**Generated:** 2026-01-05 CT
+**Total Closed Issues:** 62
 
 ---
 
@@ -1592,5 +1592,29 @@ Issue #119 implemented a workaround using a third-party GitHub Gist for RSDB dat
 
 ## Labels
 enhancement, post-mvp, data-source
+
+---
+
+## Issue #116: LinkedIn OAuth Authentication
+
+**Labels:** security, feature
+
+**Created:** 2025-12-22
+**Closed:** 2026-01-05
+
+### Description
+
+Implement LinkedIn OAuth to gate extension features and establish user identity. Uses chrome.identity.launchWebAuthFlow for Chrome-compliant OAuth flow.
+
+**Key Decisions:**
+- User ID: Uses OIDC `sub` claim (stable, available without special permissions)
+- Display: Stores OIDC `name` claim for UI
+- Vanity URL: NOT fetched (requires restricted `r_basicprofile` permission)
+
+**Implementation:**
+- Auth Lambda for token exchange, refresh, and validation
+- Users DynamoDB table with `user_id` as primary key
+- Extension auth.js module with CSRF protection
+- Login/logout UI in popup
 
 ---
