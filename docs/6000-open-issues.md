@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-05 20:23 CT
-**Total Open Issues:** 32
+**Generated:** 2026-01-05 21:16 CT
+**Total Open Issues:** 31
 
 ---
 
@@ -1263,54 +1263,6 @@ Ensure `extension-chrome-V3/service-worker.js` includes parsed signals in the La
 - Signal Handling Policy: `docs/0007-signal-handling.md`
 - Privacy Audit: `docs/0810-audit-privacy.md`
 - Related: #145 (DynamoDB TTL)
-
----
-
-## Issue #156: perf: Optimize extension 'Time to Feedback' latency
-
-**Labels:** enhancement, frontend
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Context
-
-0812 Performance Audit identified a HIGH severity issue: the time between user clicking "Explain with AI" and the "Saving..." overlay appearing is 500-1000ms (target: <100ms).
-
-## Root Cause
-
-Cumulative latency of sequential asynchronous operations:
-1. `contextMenus.onClicked` fires
-2. `storage.local.get` (Allowlist Check) - async
-3. `scripting.executeScript` (Inject Overlay) - async
-4. `scripting.executeScript` (Show Message) - async
-
-## Architectural Trade-off (ADR 0201)
-
-**Privacy wins, Performance loses.**
-
-Because we use `activeTab` permission instead of `host_permissions: ["<all_urls>"]`, we MUST use `scripting.executeScript` at interaction time. This is inherently slower than a pre-loaded content script but protects user privacy.
-
-## Optimization Options
-
-1. **Parallelize Allowlist Check and Script Injection:** Start injecting overlay script while checking allowlist
-2. **Pre-inject overlay on allowlisted domains:** After allowlist check passes, inject overlay.js immediately so it's ready for future clicks
-3. **Reduce async chain:** Combine multiple scripting.executeScript calls where possible
-
-## Acceptance Criteria
-
-- [ ] Measure current "click-to-glass" time in Chrome DevTools
-- [ ] Implement parallelization of allowlist check and script injection
-- [ ] Verify improvement (target: <200ms)
-- [ ] Apply to both Chrome and Firefox extensions
-
-## References
-
-- docs/GEMINI-HANDOFF-OVERLAY-TIMING.md
-- docs/0812-audit-performance.md
-- ADR 0201 (Privacy First Architecture)
 
 ---
 
