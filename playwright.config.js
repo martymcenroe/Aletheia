@@ -9,10 +9,13 @@ const path = require('path');
  *   npm run test:e2e           # Run all E2E tests
  *   npm run test:e2e:headed    # Run with browser visible
  *   npm run test:waf           # Run only WAF integration tests
+ *   npm run test:visual        # Run visual regression tests
+ *   npm run test:visual:update # Update visual baselines
  *
  * Environment Variables:
- *   TEST_BASE_URL     - Base URL for test fixtures (default: GitHub Pages)
- *   SKIP_LAMBDA_TESTS - Set to 'true' to skip tests requiring Lambda ON
+ *   TEST_BASE_URL      - Base URL for test fixtures (default: localhost:3000)
+ *   SKIP_LAMBDA_TESTS  - Set to 'true' to skip tests requiring Lambda ON
+ *   UPDATE_SNAPSHOTS   - Set to 'true' to update visual baselines
  */
 
 // Extension path - use Chrome MV3 extension
@@ -40,8 +43,20 @@ module.exports = defineConfig({
     // Timeouts
     timeout: 30000,
     expect: {
-        timeout: 5000
+        timeout: 5000,
+        // Visual regression settings (Issue #173)
+        toHaveScreenshot: {
+            maxDiffPixels: 100,        // Antialiasing tolerance
+            threshold: 0.2,            // Per-pixel color threshold (0-1)
+            animations: 'disabled',    // Disable animations for deterministic captures
+        }
     },
+
+    // Visual regression snapshot directory
+    snapshotDir: './tests/e2e/__snapshots__',
+
+    // Snapshots: Use --update-snapshots CLI flag to update baselines
+    // Default: only create missing baselines (don't overwrite existing)
 
     // Use Chromium with extension
     use: {
