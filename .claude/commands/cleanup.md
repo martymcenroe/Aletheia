@@ -1,8 +1,46 @@
 ---
 description: Session cleanup with quick/normal/full modes (project)
+argument-hint: "[--help] [--quick|--normal|--full]"
 ---
 
 # Cleanup
+
+**If `$ARGUMENTS` contains `--help`:** Display the Help section below and STOP.
+
+---
+
+## Help
+
+Usage: `/cleanup [--help] [--quick|--normal|--full]`
+
+| Argument | Description |
+|----------|-------------|
+| `--help` | Show this help message and exit |
+| `--quick` | Minimal cleanup (~2 min) - end of chat, nothing changed |
+| `--normal` | Standard cleanup (~5 min) - typical session end (default) |
+| `--full` | Comprehensive cleanup (~12 min) - after features, before breaks |
+
+**Examples:**
+- `/cleanup --help` - show this help
+- `/cleanup` - normal mode (default)
+- `/cleanup --quick` - fast exit
+- `/cleanup --full` - thorough cleanup
+
+**What each mode does:**
+| Check | Quick | Normal | Full |
+|-------|:-----:|:------:|:----:|
+| Git status | ✅ | ✅ | ✅ |
+| Branch list | ✅ | ✅ | ✅ |
+| Open PRs | ✅ | ✅ | ✅ |
+| Stash list | | ✅ | ✅ |
+| Regenerate 6000 | | ✅ | ✅ |
+| Worktree list | | | ✅ |
+| Lambda status | | | ✅ |
+| Inventory audit | | | ✅ |
+
+---
+
+## Execution
 
 **Mode:** Parse `$ARGUMENTS` for flags. Default is `--normal` if no flag provided.
 

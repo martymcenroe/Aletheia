@@ -1,9 +1,43 @@
 ---
 description: Full 08xx audit suite (1-2 hours)
-argument-hint: "[--deep] [NNNN] [NNNN] ..."
+argument-hint: "[--help] [--deep] [NNNN] [NNNN] ..."
 ---
 
 # Full Audit Suite (0800)
+
+**If `$ARGUMENTS` contains `--help`:** Display the Help section below and STOP. Do not execute any audits.
+
+---
+
+## Help
+
+Usage: `/audit [--help] [--deep] [NNNN] [NNNN] ...`
+
+| Argument | Description |
+|----------|-------------|
+| `--help` | Show this help message and exit |
+| `--deep` | Enable web search for external research (CVEs, GDPR, etc.) |
+| `NNNN` | Run specific audit(s) by number (e.g., `0809`, `0810`) |
+| (none) | Run ALL audits in sequence (internal analysis only) |
+
+**Examples:**
+- `/audit --help` - show this help
+- `/audit` - run full suite (standard mode, 1-2 hours)
+- `/audit --deep` - run full suite with web research
+- `/audit 0809` - run just security audit
+- `/audit 0809 0810 0811` - run security, privacy, accessibility
+- `/audit --deep 0809` - run security audit with CVE lookups
+
+**Time estimates:**
+- Single audit: 5-15 minutes
+- Full suite (standard): 1-2 hours
+- Full suite (deep): 2-3 hours
+
+**Output:** Results saved to `docs/audit-results/YYYY-MM-DD.md`
+
+---
+
+## Execution
 
 Execute all 08xx audits in sequence per @docs/0800-audit-index.md
 

@@ -149,3 +149,57 @@ Each weekly file should start with:
 ```
 
 **Entries must be sorted chronologically** (oldest at top, newest at bottom) so the log reads like a story.
+
+---
+
+## Slash Commands (`.claude/commands/`)
+
+Slash commands are Markdown files in `.claude/commands/` that Claude Code executes as prompts.
+
+### Required Structure
+
+Every slash command **MUST** support `--help`:
+
+```markdown
+---
+description: Brief description (shown in /help)
+argument-hint: "[--help] [other args]"
+---
+
+# Command Name
+
+**If `$ARGUMENTS` contains `--help`:** Display the help section below and stop.
+
+## Help
+
+Usage: `/command [--help] [arguments]`
+
+| Argument | Description |
+|----------|-------------|
+| `--help` | Show this help message |
+| ... | ... |
+
+**Examples:**
+- `/command` - default behavior
+- `/command --help` - show help
+- `/command arg1` - with argument
+
+---
+
+## Execution
+
+[Rest of command logic - only runs if --help not present]
+```
+
+### Naming Convention
+- File: `.claude/commands/{name}.md`
+- Invoke: `/{name}` or `/{name} --help`
+
+### Existing Commands
+| Command | File | Purpose |
+|---------|------|---------|
+| `/audit` | `audit.md` | Full 08xx audit suite |
+| `/cleanup` | `cleanup.md` | Session cleanup (quick/normal/full) |
+| `/full-cleanup` | `full-cleanup.md` | Comprehensive cleanup (0009 Full Mode) |
+| `/friction` | `friction.md` | Permission friction analysis |
+| `/onboard` | `onboard.md` | Agent onboarding guide |
