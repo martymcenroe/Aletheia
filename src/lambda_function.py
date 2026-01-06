@@ -32,6 +32,9 @@ DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", "aletheia-state")
 BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", HAIKU_MODEL_ID)
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
+# Issue #145: TTL for automatic data expiry (30 days)
+TTL_SECONDS = 2592000
+
 # Lazy-initialized clients (warm start optimization)
 _dynamodb_client = None
 _bedrock_client = None
@@ -109,12 +112,14 @@ def generate_thread_id(event: dict) -> str:
 
 def save_state(thread_id: str, data: dict) -> None:
     """
-    Persist context to DynamoDB.
+    Persist context to DynamoDB with 30-day TTL.
 
     See: docs/1113-naked-python-architecture.md Section 7.2
+    Issue #145: Added TTL for automatic data expiry.
     """
     client = get_dynamodb_client()
-    timestamp = str(int(time.time() * 1000))
+    now = int(time.time())
+    timestamp = str(now * 1000)
 
     item = {
         "thread_id": {"S": thread_id},
@@ -122,6 +127,7 @@ def save_state(thread_id: str, data: dict) -> None:
         "input": {"S": data.get("text", "")},
         "url": {"S": data.get("url", "")},
         "safety_score": {"S": json.dumps(data.get("safety_score", {}))},
+        "ttl": {"N": str(now + TTL_SECONDS)},  # Issue #145: Auto-expire after 30 days
     }
 
     # TODO: Issue #116 - Add user_id when LinkedIn Auth is implemented

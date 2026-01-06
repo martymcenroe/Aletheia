@@ -11,7 +11,7 @@ FUNC_NAME="${APP_NAME}Agent"
 echo "=== Provisioning Infrastructure for $APP_NAME ($REGION) ==="
 
 # 1. DynamoDB Table
-echo "[1/4] Checking DynamoDB Table..."
+echo "[1/5] Checking DynamoDB Table..."
 if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" >/dev/null 2>&1; then
     aws dynamodb create-table \
         --table-name "$TABLE_NAME" \
@@ -22,8 +22,26 @@ if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" >
     aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION"
 fi
 
+# 1.5. DynamoDB TTL (Issue #145: 30-day auto-expiry)
+echo "[1.5/5] Checking DynamoDB TTL..."
+TTL_STATUS=$(aws dynamodb describe-time-to-live \
+    --table-name "$TABLE_NAME" \
+    --region "$REGION" \
+    --query 'TimeToLiveDescription.TimeToLiveStatus' \
+    --output text 2>/dev/null || echo "DISABLED")
+
+if [ "$TTL_STATUS" != "ENABLED" ]; then
+    echo "Enabling TTL on $TABLE_NAME..."
+    aws dynamodb update-time-to-live \
+        --table-name "$TABLE_NAME" \
+        --region "$REGION" \
+        --time-to-live-specification "Enabled=true,AttributeName=ttl"
+else
+    echo "TTL already enabled on $TABLE_NAME"
+fi
+
 # 2. IAM Role
-echo "[2/4] Checking IAM Role..."
+echo "[2/5] Checking IAM Role..."
 TRUST_POLICY='{"Version": "2012-10-17","Statement": [{"Effect": "Allow","Principal": { "Service": "lambda.amazonaws.com" },"Action": "sts:AssumeRole"}]}'
 
 if ! aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
@@ -41,7 +59,7 @@ aws iam put-role-policy --role-name "$ROLE_NAME" --policy-name "${APP_NAME}Acces
 sleep 5
 
 # 3. Lambda Function (x86_64 Enforced)
-echo "[3/4] Creating Lambda Function..."
+echo "[3/5] Creating Lambda Function..."
 echo "def lambda_handler(event, context): return 'Init'" > lambda_function.py
 cat << 'PY_SCRIPT' > zipper.py
 import zipfile
@@ -65,7 +83,7 @@ fi
 rm init.zip lambda_function.py zipper.py
 
 # 4. Function URL
-echo "[4/4] Configuring URL..."
+echo "[4/5] Configuring URL..."
 aws lambda create-function-url-config --function-name "$FUNC_NAME" --auth-type NONE --cors "AllowOrigins=['*'],AllowMethods=['POST'],AllowHeaders=['Content-Type']" --region "$REGION" 2>/dev/null || true
 aws lambda add-permission --function-name "$FUNC_NAME" --action lambda:InvokeFunctionUrl --statement-id FunctionURLAllowPublicAccess --principal "*" --function-url-auth-type NONE --region "$REGION" 2>/dev/null || true
 
