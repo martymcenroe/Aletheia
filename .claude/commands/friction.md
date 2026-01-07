@@ -1,6 +1,6 @@
 ---
-description: Analyze session logs for permission friction (15-30 min)
-argument-hint: "[--help] [--sessions N] [--since YYYY-MM-DD] [--file PATH]"
+description: Analyze session transcripts for permission friction (15-30 min)
+argument-hint: "[--help] [--sessions N] [--since YYYY-MM-DD]"
 ---
 
 # Permission Friction Analysis (0824)
@@ -11,27 +11,29 @@ argument-hint: "[--help] [--sessions N] [--since YYYY-MM-DD] [--file PATH]"
 
 ## Help
 
-Usage: `/friction [--help] [--sessions N] [--since YYYY-MM-DD] [--file PATH]`
+Usage: `/friction [--help] [--sessions N] [--since YYYY-MM-DD]`
 
 | Argument | Description |
 |----------|-------------|
 | `--help` | Show this help message and exit |
-| `--sessions N` | Analyze last N session entries (default: 5) |
-| `--since YYYY-MM-DD` | Analyze entries since date |
-| `--file PATH` | Analyze specific log file |
+| `--sessions N` | Analyze last N session files (default: 3) |
+| `--since YYYY-MM-DD` | Analyze sessions since date |
 
 **Examples:**
 - `/friction --help` - show this help
-- `/friction` - analyze last 5 session entries
-- `/friction --sessions 10` - analyze last 10 entries
-- `/friction --since 2026-01-01` - analyze all entries since Jan 1
-- `/friction --file docs/session-logs/Week-starting-2026-01-05.md` - analyze specific file
+- `/friction` - analyze last 3 session transcripts
+- `/friction --sessions 5` - analyze last 5 sessions
+- `/friction --since 2026-01-05` - analyze sessions since Jan 5
 
 **What it does:**
-1. Searches session logs for permission friction (approval prompts, MSYS issues, pattern failures)
-2. Categorizes findings (MISSING, MSYS, PATTERN, ENV_PREFIX, NEW_TOOL)
-3. Generates remediation plan with specific fixes
-4. Outputs report with proposed settings.local.json changes
+1. Searches Claude Code's verbatim session transcripts (NOT agent-written summaries)
+2. Finds tool calls that resulted in errors or permission prompts
+3. Categorizes findings (MISSING, MSYS, PATTERN, ENV_PREFIX, DENIED)
+4. Generates remediation plan with specific settings.local.json changes
+
+**Where it searches:**
+- `~/.claude/projects/C--Users-mcwiz-Projects-Aletheia/*.jsonl` (actual session transcripts)
+- NOT `docs/session-logs/` (those are agent-written summaries)
 
 **Time:** ~15-30 minutes depending on scope
 
@@ -39,136 +41,170 @@ Usage: `/friction [--help] [--sessions N] [--since YYYY-MM-DD] [--file PATH]`
 
 ## Execution
 
-Analyze session logs to identify commands that caused approval prompts or workflow friction.
+Analyze Claude Code session transcripts to find commands that caused friction.
 
 **Ref:** `docs/0824-audit-permission-friction.md`
 
-## Arguments
+---
 
-| Arg | Effect | Default |
-|-----|--------|---------|
-| `--sessions N` | Analyze last N session entries | 5 |
-| `--since YYYY-MM-DD` | Analyze entries since date | (none) |
-| `--file PATH` | Analyze specific log file | (none) |
+## CRITICAL: Permission-Safe Execution
 
-**Examples:**
-- `/friction` - analyze last 5 session entries
-- `/friction --sessions 10` - analyze last 10 entries
-- `/friction --since 2026-01-01` - analyze all entries since Jan 1
-- `/friction --file docs/session-logs/Week-starting-2026-01-05.md` - analyze specific file
+This skill MUST NOT trigger permission prompts itself. Use ONLY these tools:
+
+| Tool | Why Safe |
+|------|----------|
+| **Glob** | No path restrictions |
+| **Grep** | No path restrictions, uses ripgrep |
+| **Read** | System allows `Read(//c/Users/mcwiz/.claude/**)` |
+| **Bash(ls:*)** | Explicitly allowed |
+| **Bash(head:*)** | Explicitly allowed |
+| **Bash(wc:*)** | Explicitly allowed |
+
+**DO NOT USE:**
+- Complex Bash pipelines with `|` or `&&`
+- `python` or `python3` (denied)
+- `jq` with pipes
 
 ---
 
 ## Procedure
 
-### Step 1: List Session Logs
+### Step 1: List Available Session Transcripts
 
-```bash
-ls -la /c/Users/mcwiz/Projects/Aletheia/docs/session-logs/
+Use Glob to find session files:
+```
+Glob pattern: *.jsonl
+Path: C:\Users\mcwiz\.claude\projects\C--Users-mcwiz-Projects-Aletheia
 ```
 
-Determine which logs to analyze based on arguments.
+This returns all session transcript files. Sort by modification time (most recent first).
 
-### Step 2: Search for Friction Patterns
+### Step 2: Identify Sessions to Analyze
 
-For each session log in scope, search for these patterns:
+Based on arguments:
+- Default: Last 3 `.jsonl` files by modification time (exclude `agent-*.jsonl`)
+- `--sessions N`: Last N files
+- `--since YYYY-MM-DD`: Files modified after that date
 
-**Permission mentions:**
-```
-grep -in "permission\|approval\|confirm\|prompted" {log}
-```
+**Filter out subagent files:** Skip files matching `agent-*.jsonl` (these are subagent transcripts, not main sessions).
 
-**MSYS path conversion:**
-```
-grep -in "MSYS_NO_PATHCONV\|path conversion\|/aws/" {log}
-```
+### Step 3: Search for Friction Patterns
 
-**Pattern matching failures:**
-```
-grep -in "cd &&\|doesn't match\|pattern match" {log}
-```
+For each session file, use **Grep** to search for friction indicators:
 
-**Retry/workaround patterns:**
+**Error patterns (in tool results):**
 ```
-grep -in "retry\|workaround\|instead of" {log}
+Grep pattern: "error".*"Exit code
+Grep pattern: "Permission denied"
+Grep pattern: "not allowed"
+Grep pattern: "requires approval"
 ```
 
-### Step 3: Read Current Permissions
-
-```bash
-cat /c/Users/mcwiz/Projects/Aletheia/.claude/settings.local.json
+**MSYS path issues:**
+```
+Grep pattern: MSYS_NO_PATHCONV
+Grep pattern: C:/Program Files/Git
+Grep pattern: path conversion
 ```
 
-### Step 4: Categorize Findings
+**Command structure issues:**
+```
+Grep pattern: "cd.*&&"
+Grep pattern: "\\|"  (pipe in command)
+```
 
-Classify each friction instance:
+**Permission blocks:**
+```
+Grep pattern: "deny"
+Grep pattern: "blocked"
+```
 
-| Category | Description |
-|----------|-------------|
-| **MISSING** | Command should be in allowlist but isn't |
-| **MSYS** | Windows path conversion issue |
-| **PATTERN** | Command structure doesn't match patterns |
-| **ENV_PREFIX** | Env var prefix not in allowlist |
-| **NEW_TOOL** | New tool not yet permitted |
+### Step 4: Read Current Permissions
 
-### Step 5: Generate Remediation Plan
+Use Read tool on settings.local.json:
+```
+Read: C:\Users\mcwiz\Projects\Aletheia\.claude\settings.local.json
+```
 
-For each finding, determine:
-1. **Remediation type:** Add permission, change command pattern, update docs
-2. **Priority:** HIGH (frequent), MEDIUM (occasional), LOW (rare)
-3. **Action:** Specific change to make
+### Step 5: Analyze and Categorize
 
----
+For each friction instance found, classify:
 
-## Output Format
+| Category | Description | Remediation |
+|----------|-------------|-------------|
+| **MISSING** | Command not in allowlist | Add `Bash(cmd:*)` to allow |
+| **MSYS** | Windows path conversion | Add `MSYS_NO_PATHCONV=1` prefix |
+| **PATTERN** | Command structure blocked | Change to allowed pattern (e.g., `git -C` instead of `cd && git`) |
+| **ENV_PREFIX** | Env var prefix not allowed | Add `Bash(VAR=val cmd:*)` |
+| **DENIED** | Intentionally blocked | Document why, no action needed |
 
-Produce a report following this template:
+### Step 6: Generate Report
+
+Output format:
 
 ```markdown
 ## Permission Friction Analysis - YYYY-MM-DD
 
-**Scope:** [description of what was analyzed]
+**Scope:** Analyzed N session transcripts from [date range]
+**Location:** ~/.claude/projects/C--Users-mcwiz-Projects-Aletheia/
 
 ### Findings Summary
 
 | Category | Count | Priority |
 |----------|-------|----------|
-| MISSING | N | ... |
+| MISSING | N | HIGH/MED/LOW |
 | MSYS | N | ... |
 | PATTERN | N | ... |
+| DENIED | N | ... |
 
 ### Detailed Findings
 
-#### [Category]: [Command/Pattern]
-- **Session:** [log file and approximate date]
-- **Context:** [what was being done]
-- **Friction:** [what happened]
+#### [Category]: [Command Pattern]
+- **Session:** [filename] @ [timestamp]
+- **Context:** [what was being attempted]
+- **Error:** [exact error message]
 - **Remediation:** [specific fix]
 
 ### Remediation Actions
 
-#### Immediate (settings.local.json)
+#### Add to settings.local.json allow list:
 ```json
-// Add to allow list:
 "Bash(new-pattern:*)",
 ```
 
-#### Documentation Updates (CLAUDE.md)
-- [Any command pattern changes needed]
+#### Update CLAUDE.md:
+- [Any workflow changes needed]
 
-#### No Action Needed
-- [Patterns that are intentionally blocked]
+#### No Action (Intentionally Blocked):
+- [Patterns that should remain blocked]
 ```
+
+---
+
+## JSONL Structure Reference
+
+Session transcripts are JSONL (one JSON object per line):
+
+```jsonl
+{"type":"user","message":{"content":"..."}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Bash","input":{"command":"..."}}]}}
+{"type":"tool_result","result":"..."}  // <-- Look for errors here
+```
+
+**Key fields to examine:**
+- `type: "tool_result"` - Contains command outcomes
+- `message.content[].type: "tool_use"` - Contains the command attempted
+- `error` or `Exit code 1` in results - Indicates friction
 
 ---
 
 ## Rules
 
-- Use absolute paths and `git -C` patterns (no cd && chaining)
-- **Evidence-based:** Only report friction found in logs, don't guess
-- **Actionable output:** Every finding must have a specific remediation
-- Produce the report, then ask user which remediations to apply
-- Do NOT auto-modify settings.local.json without approval
+- **Use allowed tools only** - See "Permission-Safe Execution" above
+- **Evidence-based** - Only report friction actually found in transcripts
+- **Actionable output** - Every finding must have a specific remediation
+- **Ask before applying** - Do NOT modify settings.local.json without user approval
+- **One command per Bash call** - No pipes or chains
 
 ---
 
@@ -176,8 +212,8 @@ Produce a report following this template:
 
 | Friction Type | Fix |
 |--------------|-----|
-| AWS commands fail on Windows | Add `Bash(MSYS_NO_PATHCONV=1 aws:*)` |
-| `cd /path && git` blocked | Use `git -C /path` instead |
-| Tool not in allowlist | Add `Bash(tool-name:*)` |
-| Env prefix not matched | Add `Bash(VAR=value cmd:*)` |
-| Glob too shallow | Change `*` to `**` in pattern |
+| AWS path mangling | Prefix with `MSYS_NO_PATHCONV=1` |
+| `cd /path && git` | Use `git -C /path` instead |
+| Tool not allowed | Add `Bash(tool-name:*)` to allow |
+| Env prefix blocked | Add `Bash(VAR=value cmd:*)` |
+| Python blocked | Use `poetry run python` instead |
