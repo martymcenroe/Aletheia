@@ -117,7 +117,8 @@
       "Skill(exit)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/policy_check.sh:*)",
       "Bash(MSYS_NO_PATHCONV=1 aws:*)",
-      "Bash(/c/Users/mcwiz/Projects/Aletheia-137/provision.sh)"
+      "Bash(/c/Users/mcwiz/Projects/Aletheia-137/provision.sh)",
+      "Bash(/c/Users/mcwiz/Projects/Aletheia/provision.sh)"
     ],
     "deny": [
       "Read(.env)",

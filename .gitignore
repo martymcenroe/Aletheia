@@ -101,3 +101,7 @@ tmp/*
 audit-output.md
 docs/audit-results/
 run-audit.bat
+
+# Lambda build artifacts
+build/
+dependencies.zip
