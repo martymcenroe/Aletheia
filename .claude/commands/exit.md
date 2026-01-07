@@ -78,7 +78,7 @@ Display:
 ✅ Session log written and pushed.
    File: docs/session-logs/Week-starting-YYYY-MM-DD.md
 
-Safe to close this session.
+Safe to close this session (Marty affirms).
 ```
 
 ---
