@@ -20,6 +20,66 @@ If the user says something that seems to conflict with AgentOS documentation (CL
 
 ---
 
+### VISIBLE SELF-CHECK PROTOCOL (MANDATORY)
+
+**Every tool call requires visible self-checking. No exceptions. No silent checks.**
+
+#### Bash Commands - Pre-Call Check
+
+Before EVERY Bash tool call, output this block:
+
+```
+**Bash Check:** `[the command]`
+**Scan:** [&&, |, ;, cd at start?] → [CLEAN or VIOLATION]
+**Action:** [Execute or Rewrite to: X]
+```
+
+If violation found:
+1. Show the rewrite
+2. Execute the rewritten version
+3. NEVER execute the original
+
+Example - Violation Caught:
+```
+**Bash Check:** `cd /foo && git status`
+**Scan:** && found, cd at start → VIOLATION
+**Action:** Rewrite to: `git -C /foo status`
+```
+
+Example - Clean:
+```
+**Bash Check:** `git -C /c/Users/mcwiz/Projects/Aletheia status`
+**Scan:** No &&, no |, no ;, no cd at start → CLEAN
+**Action:** Execute
+```
+
+#### Gate Compliance - Pre-Action Check
+
+Before EVERY tool call (any tool), output this block:
+
+```
+**Gate:** [current gate state]
+**Action:** [what I'm about to do]
+**Permitted:** [YES or NO - with reason if NO]
+```
+
+If not permitted: STOP. Do not execute. State why blocked.
+
+#### Why Visible?
+
+- Silent checking has no accountability
+- If the check is missing, the violation is obvious
+- Cost: ~20 tokens per tool call
+- Benefit: No human babysitting required
+
+#### Spawning Agents
+
+When spawning to other models (Sonnet, Haiku), ALWAYS include in the prompt:
+
+> "CRITICAL BASH RULES: NEVER use &&, |, or ; in Bash commands. Use single commands with absolute paths. One command per Bash call. If you need to run multiple commands, make parallel Bash tool calls."
+
+---
+
 ### STOP - READ THIS FIRST (Bash Command Rules)
 
 **At session start, you MUST state:** *"I have read the Bash command rules. I will not use pipes or && in Bash commands. I will use single commands with absolute paths."*
