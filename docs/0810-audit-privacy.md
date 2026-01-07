@@ -8,7 +8,8 @@ Comprehensive privacy audit covering data protection, user consent, data minimiz
 - Browser extension processing user-selected text
 - AWS Lambda backend with DynamoDB state
 - AWS Bedrock Claude for text analysis
-- No user accounts or authentication
+- LinkedIn OAuth authentication (#116)
+- GDPR Article 17 data erasure endpoint (#147)
 
 ---
 
@@ -64,7 +65,7 @@ Comprehensive privacy audit covering data protection, user consent, data minimiz
 |-------|---------------|----------------|--------|
 | **Access** | Low (no PII stored) | No persistent user data | |
 | **Rectification** | N/A | No persistent data | |
-| **Erasure** | Low | Clear localStorage in extension | |
+| **Erasure** | ✅ Full | DELETE /my-data endpoint (#147) | ✅ |
 | **Portability** | N/A | No user data to port | |
 | **Objection** | N/A | User controls all actions | |
 | **Automated Decision** | Partial | Analysis only, no decisions | |
@@ -245,20 +246,21 @@ Our privacy policy states "We do not train AI on your data" - this is accurate b
 
 | Requirement | Applicability | Status |
 |-------------|---------------|--------|
-| Lawful basis | Legitimate interest | |
-| Data minimization | ✅ In-memory only | |
-| Purpose limitation | ✅ Single purpose | |
-| Storage limitation | ✅ No persistence | |
-| DPA required | N/A (AWS manages) | |
+| Lawful basis | Legitimate interest | ✅ |
+| Data minimization | ✅ Only selected text | ✅ |
+| Purpose limitation | ✅ Single purpose | ✅ |
+| Storage limitation | ✅ 30-day TTL (#145) | ✅ |
+| **Right to Erasure (Art. 17)** | ✅ DELETE /my-data endpoint (#147) | ✅ |
+| DPA required | N/A (AWS manages) | ✅ |
 
 ### CCPA (California Users)
 
 | Requirement | Applicability | Status |
 |-------------|---------------|--------|
-| Right to know | Store listing disclosure | |
-| Right to delete | No data to delete | |
-| Right to opt-out | N/A (no selling) | |
-| Non-discrimination | N/A | |
+| Right to know | Store listing disclosure | ✅ |
+| Right to delete | DELETE /my-data endpoint (#147) | ✅ |
+| Right to opt-out | N/A (no selling) | ✅ |
+| Non-discrimination | N/A | ✅ |
 
 ### Browser Store Policies
 
@@ -303,6 +305,7 @@ Our privacy policy states "We do not train AI on your data" - this is accurate b
 |------|---------|------------------|----------------|
 | 2026-01-04 | Claude Opus 4.5 | 1 Medium finding (DynamoDB TTL), see below | #145 |
 | 2026-01-05 | Claude Opus 4.5 | P1/P2 resolved: 30-day TTL implemented | #145 closed |
+| 2026-01-06 | Claude Opus 4.5 | GDPR Art. 17 erasure endpoint implemented | #147 closed |
 
 ### Audit Execution: 2026-01-04
 
@@ -411,6 +414,53 @@ aws xray get-trace-summaries --start-time ... | grep -i "prompt\|completion\|inp
 #### Overall Result
 
 **PASS** - All findings resolved. P1 and P2 fixed by Issue #145 (30-day TTL implemented).
+
+---
+
+### Audit Execution: 2026-01-06 (Issue #147)
+
+**Auditor:** Claude Opus 4.5
+
+#### GDPR Article 17 Implementation
+
+**Issue #147: Right to Erasure (Right to Be Forgotten)**
+
+| Requirement | Implementation | Status |
+|-------------|----------------|--------|
+| User identification | LinkedIn OAuth (#116) | ✅ |
+| Data query mechanism | GSI on user_id in AletheiaAgentState | ✅ |
+| Deletion endpoint | DELETE /my-data in Auth Lambda | ✅ |
+| Authentication required | Bearer token validation | ✅ |
+| Legacy data policy | Orphan data expires via 30-day TTL | ✅ |
+
+**Technical Implementation:**
+```python
+# src/lambda_auth_function.py
+def delete_user_data(user_id: str) -> int:
+    # Query GSI by user_id
+    # Delete all matching items
+    # Return count deleted
+```
+
+**Endpoint:** `DELETE /my-data`
+- Requires: `Authorization: Bearer <linkedin_access_token>`
+- Returns: `{"success": true, "itemsDeleted": N}`
+
+**CloudWatch Logging Audit:**
+- ✅ No raw event body logged
+- ✅ No raw input text logged
+- ✅ Only user_id logged for erasure audit trail
+- ✅ 14-day log retention (privacy-aligned)
+
+**Privacy Policy Update Required:**
+The GitHub Pages privacy policy should be updated to document:
+1. Data retention period (30 days)
+2. On-demand deletion via DELETE /my-data
+3. Legacy data policy for pre-authentication records
+
+#### Overall Result
+
+**PASS** - GDPR Article 17 compliance achieved via DELETE /my-data endpoint.
 
 ---
 

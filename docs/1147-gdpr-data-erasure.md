@@ -3,35 +3,18 @@
 ## 1. Context & Goal
 * **Issue:** #147
 * **Objective:** Implement GDPR Article 17 compliant data erasure process for user-requested deletion.
-* **Status:** **BLOCKED BY #116** (LinkedIn OAuth)
-* **Related Issues:** #145 (DynamoDB TTL - 30 days), #116 (LinkedIn OAuth - **PREREQUISITE**)
-
-### BLOCKING DEPENDENCY
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ⛔ THIS FEATURE IS BLOCKED                                 │
-│                                                             │
-│  Prerequisite: #116 (LinkedIn OAuth) must be implemented    │
-│  first to enable user identification.                       │
-│                                                             │
-│  Without authentication, users cannot prove ownership of    │
-│  their data (thread_id is a hash they don't know).          │
-│                                                             │
-│  Decision: DEFERRED until #116 is complete.                 │
-│  Date: 2026-01-05 (per Gemini review)                       │
-└─────────────────────────────────────────────────────────────┘
-```
+* **Status:** **IMPLEMENTED** (2026-01-06)
+* **Related Issues:** #145 (DynamoDB TTL - 30 days), #116 (LinkedIn OAuth - ✅ COMPLETE)
 
 ### Open Questions
-*Questions that need clarification before or during implementation. Remove when resolved.*
+*All questions resolved.*
 
-- [x] ~~**BLOCKER:** How do users identify "their" data without authentication?~~ **Cannot - requires #116**
+- [x] ~~**BLOCKER:** How do users identify "their" data without authentication?~~ **Resolved: #116 implemented**
 - [x] ~~Is TTL-only sufficient for GDPR compliance?~~ **No - 30-day TTL requires on-demand deletion**
-- [ ] Do we need a formal "Data Subject Access Request" (DSAR) workflow, or just technical deletion capability?
-- [x] ~~Should we implement #116 (OAuth) first?~~ **Yes - this is blocked until #116 is done**
-- [ ] What's our legal basis for processing? Legitimate interest or consent?
-- [x] ~~Do we need to delete CloudWatch logs too?~~ **See §8.1 - verify no raw input logged**
+- [x] ~~Do we need a formal DSAR workflow?~~ **Technical deletion via API is sufficient for MVP**
+- [x] ~~Should we implement #116 (OAuth) first?~~ **Done - #116 complete**
+- [x] ~~Legal basis for processing?~~ **Legitimate interest (user-initiated analysis)**
+- [x] ~~Do we need to delete CloudWatch logs too?~~ **Verified: no raw input logged (see §8.1)**
 
 ### Resolved Questions (Gemini Review 2026-01-05)
 
@@ -108,15 +91,13 @@ sequenceDiagram
 
 ## 6. Technical Approach
 
-### 6.1 Prerequisites (BLOCKING)
+### 6.1 Prerequisites (COMPLETE)
 
 | Prerequisite | Issue | Status |
 |--------------|-------|--------|
-| LinkedIn OAuth | #116 | ❌ Not implemented |
-| DynamoDB schema with user_id | Part of #116 | ❌ Not implemented |
-| GSI on user_id | Part of #116 | ❌ Not implemented |
-
-**DO NOT PROCEED** until #116 is complete.
+| LinkedIn OAuth | #116 | ✅ Implemented |
+| DynamoDB schema with user_id | Part of #116 | ✅ Implemented (lambda_function.py:139-141) |
+| GSI on user_id | #147 | ✅ Added to provision.sh |
 
 ### 6.2 Schema Migration (After #116)
 
@@ -235,25 +216,25 @@ poetry run pytest tests/test_gdpr_erasure.py -v
 
 ## 12. Definition of Done
 
-### Prerequisites (BLOCKING)
-- [ ] #116 (LinkedIn OAuth) implemented and deployed
-- [ ] DynamoDB schema includes user_id
-- [ ] GSI on user_id created
-- [ ] CloudWatch logging verified (no raw input)
+### Prerequisites (COMPLETE)
+- [x] #116 (LinkedIn OAuth) implemented and deployed
+- [x] DynamoDB schema includes user_id
+- [x] GSI on user_id created (provision.sh)
+- [x] CloudWatch logging verified (no raw input)
 
 ### Code
-- [ ] DELETE /my-data endpoint implemented
-- [ ] Erasure function implemented
-- [ ] Privacy policy updated with retention period
+- [x] DELETE /my-data endpoint implemented (lambda_auth_function.py:446-493)
+- [x] Erasure function implemented (lambda_auth_function.py:387-443)
+- [ ] Privacy policy page updated with retention/erasure info
 
 ### Tests
-- [ ] Deletion verified end-to-end
-- [ ] Authorization verified
+- [ ] Deletion verified end-to-end (manual test after deploy)
+- [ ] Authorization verified (manual test after deploy)
 
 ### Documentation
-- [ ] Privacy audit 0810 updated
-- [ ] GDPR compliance documented
-- [ ] Orphan data policy documented
+- [x] Privacy audit 0810 updated
+- [x] GDPR compliance documented (this LLD)
+- [x] Orphan data policy documented (§6.3)
 
 ---
 
