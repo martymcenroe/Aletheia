@@ -152,7 +152,7 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
     --next "Per user direction"
 ```
 
-If the script fails, manually append to the current week's session log file.
+If the script fails, manually append to the current day's session log file.
 
 ## Phase 4: Single Commit & Push
 

@@ -57,7 +57,7 @@ Read these files simultaneously:
 - `docs/6000-open-issues.md` - Open issues (scan titles/labels, skip bodies)
 
 ### Step 2: Session Context
-- Glob `docs/session-logs/Week-starting-*.md`
+- Glob `docs/session-logs/*.md` (daily format: YYYY-MM-DD.md)
 - Read the most recent session log (last 3 entries only)
 
 ### Step 3: Acknowledge

@@ -322,13 +322,17 @@
 | `docs/security/vulnerability-test.md` | **Test** | 🟢 **Stable** | #95 | Manual vulnerability reproduction scripts. |
 
 ### Session Logs
+
+**Format change (2026-01-07):** New session logs use daily format `YYYY-MM-DD.md`. Legacy weekly files remain for historical reference.
+
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/session-logs/Week-starting-2025-12-15.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 15-21. |
-| `docs/session-logs/Week-starting-2025-12-22.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 22-28. |
-| `docs/session-logs/Week-starting-2025-12-29.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 29 - Jan 4 (part 1). |
-| `docs/session-logs/Week-starting-2025-12-29-part2.md` | **Log** | 🟢 **Stable** | - | Session log week of Dec 29 - Jan 4 (part 2, split due to file size). |
-| `docs/session-logs/Week-starting-2026-01-05.md` | **Log** | 🟠 **In-Progress** | - | Session log week of Jan 5+. |
+| `docs/session-logs/YYYY-MM-DD.md` | **Log** | 🟠 **In-Progress** | #191 | Daily session logs (new format). |
+| `docs/session-logs/Week-starting-2025-12-15.md` | **Log** | 🟢 **Stable** | - | (Legacy) Session log week of Dec 15-21. |
+| `docs/session-logs/Week-starting-2025-12-22.md` | **Log** | 🟢 **Stable** | - | (Legacy) Session log week of Dec 22-28. |
+| `docs/session-logs/Week-starting-2025-12-29.md` | **Log** | 🟢 **Stable** | - | (Legacy) Session log week of Dec 29 - Jan 4 (part 1). |
+| `docs/session-logs/Week-starting-2025-12-29-part2.md` | **Log** | 🟢 **Stable** | - | (Legacy) Session log week of Dec 29 - Jan 4 (part 2). |
+| `docs/session-logs/Week-starting-2026-01-05.md` | **Log** | 🟢 **Stable** | - | (Legacy) Last weekly log before format change. |
 
 ### Legacy & Abandoned
 | File | Role | Status | Linked Issue | Description |

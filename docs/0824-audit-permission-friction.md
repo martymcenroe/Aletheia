@@ -201,7 +201,7 @@ For commands that can be restructured:
 
 **Scope:** [N sessions / since DATE]
 **Session Logs Analyzed:**
-- docs/session-logs/Week-starting-YYYY-MM-DD.md
+- docs/session-logs/YYYY-MM-DD.md
 
 ### Findings by Category
 

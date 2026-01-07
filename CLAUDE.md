@@ -387,9 +387,9 @@ Other agents work on this project. Check `docs/session-logs/` for recent context
 - `/cleanup --full` — Comprehensive ~12 min (after features, before breaks)
 
 ## Session Logging
-At end of session, append a summary to the current week's file in `docs/session-logs/Week-starting-YYYY-MM-DD.md`.
-- **Week boundary:** Monday 3:00 AM CT to following Monday 2:59 AM CT
-- **Format:** Use ISO 8601 dates (YYYY-MM-DD) where the date is the Monday starting the week
+At end of session, append a summary to the current day's file in `docs/session-logs/YYYY-MM-DD.md`.
+- **Day boundary:** 3:00 AM CT to following day 2:59 AM CT (work at 2am goes in previous day's log)
+- **Format:** Use ISO 8601 dates (YYYY-MM-DD) for filenames
 - **Timestamp command:** `powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"`
 - See `docs/0100-TEMPLATE-GUIDE.md` for the full entry template
 - Include: date/time, model name, summary, files, issues, state on exit

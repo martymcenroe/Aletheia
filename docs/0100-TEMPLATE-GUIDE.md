@@ -74,9 +74,9 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 
 ## Session Logs
 
-Session logs are stored in `docs/session-logs/` with weekly files using ISO 8601 date format.
+Session logs are stored in `docs/session-logs/` with daily files using ISO 8601 date format.
 
-**Week boundary:** Monday 3:00 AM CT to following Monday 2:59 AM CT
+**Day boundary:** 3:00 AM CT to following day 2:59 AM CT (work at 2am goes in previous day's log)
 
 ### Getting Timestamps on Windows
 **CORRECT command for Windows:**
@@ -92,10 +92,10 @@ TZ='America/Chicago' date   # Returns UTC, not local time
 **AI Agents:** On Windows, use PowerShell's `Get-Date` for timestamps. Git Bash's `date` command doesn't support Windows timezones. If unsure, ask the user for the current time.
 
 ### File Naming
-- Format: `Week-starting-YYYY-MM-DD.md` where the date is the Monday that starts the week
+- Format: `YYYY-MM-DD.md` (daily files)
 - Use ISO 8601 format (YYYY-MM-DD) with zero-padded month and day for proper sorting
-- Example: Work done Sunday night 2025-12-21 at 11pm goes in `Week-starting-2025-12-15.md` (prior week)
-- Example: Work done Monday 2025-12-22 at 9am goes in `Week-starting-2025-12-22.md` (new week)
+- Example: Work done at 2am on 2025-12-22 goes in `2025-12-21.md` (previous day, before 3am boundary)
+- Example: Work done at 9am on 2025-12-22 goes in `2025-12-22.md` (same day, after 3am boundary)
 
 ### Entry Template
 ```markdown
@@ -125,25 +125,25 @@ One paragraph describing the session's main accomplishment.
 
 **Maximum file size: 75KB** (~20,000 tokens)
 
-When a session log file approaches 75KB, split it:
-1. Create a new file with `-part2` suffix: `Week-starting-YYYY-MM-DD-part2.md`
+Daily files should rarely hit this limit. If a single day's log approaches 75KB, split it:
+1. Create a new file with `-part2` suffix: `YYYY-MM-DD-part2.md`
 2. Continue new entries in the part2 file
-3. Add a note at the end of part1: `*Continued in Week-starting-YYYY-MM-DD-part2.md*`
+3. Add a note at the end of part1: `*Continued in YYYY-MM-DD-part2.md*`
 
 **Why:** The Read tool has a 25,000 token limit (~80-90KB). Keeping files under 75KB ensures agents can always read the full file without needing offset/limit parameters.
 
 **Check before appending:**
 ```bash
-wc -c docs/session-logs/Week-starting-YYYY-MM-DD.md
+wc -c docs/session-logs/YYYY-MM-DD.md
 # If over 75000 bytes, create part2 file
 ```
 
-### Weekly File Header
-Each weekly file should start with:
+### Daily File Header
+Each daily file should start with:
 ```markdown
-# Session Log: Week starting YYYY-MM-DD
+# Session Log: YYYY-MM-DD
 
-**Period:** Monday YYYY-MM-DD 3:00 AM CT → Monday YYYY-MM-DD 2:59 AM CT
+**Period:** YYYY-MM-DD 3:00 AM CT → YYYY-MM-DD+1 2:59 AM CT
 
 ---
 ```

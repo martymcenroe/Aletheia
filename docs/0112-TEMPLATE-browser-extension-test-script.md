@@ -389,7 +389,7 @@ git checkout {branch}         # Switch branches
 2. Verify all prerequisites still valid
 3. Start with a simple test to verify environment
 4. Don't assume anything works - verify each step
-5. If confused, check session logs: `docs/session-logs/Week-starting-YYYY-MM-DD.md`
+5. If confused, check session logs: `docs/session-logs/YYYY-MM-DD.md`
 
 ---
 

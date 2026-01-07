@@ -174,8 +174,11 @@ def extract_current_focus(immediate_plan_path):
 def get_recent_session_entries(session_logs_dir, count=3):
     """Get the last N session log entries."""
     try:
-        # Find most recent session log
-        logs = sorted(session_logs_dir.glob("Week-starting-*.md"), reverse=True)
+        # Find most recent session logs (daily format: YYYY-MM-DD.md)
+        # Also check for legacy weekly format for backwards compatibility
+        daily_logs = list(session_logs_dir.glob("[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md"))
+        weekly_logs = list(session_logs_dir.glob("Week-starting-*.md"))
+        logs = sorted(daily_logs + weekly_logs, reverse=True)
         if not logs:
             return "(No session logs found)"
 

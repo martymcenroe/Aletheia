@@ -2,15 +2,15 @@
 """
 Append Session Log Entry
 
-Appends a new session log entry to the correct week file without reading
+Appends a new session log entry to the correct daily file without reading
 the entire file. Solves the token limit problem for large session logs.
 
 Usage:
     poetry run python tools/append_session_log.py --model "Claude Opus 4.5" --summary "Did stuff" --commit abc1234
     poetry run python tools/append_session_log.py --template  # Just append template for manual fill-in
 
-The script determines the correct week file based on the current date.
-Week boundary: Monday 3:00 AM CT to following Monday 2:59 AM CT.
+The script determines the correct daily file based on the current date.
+Day boundary: 3:00 AM CT to following day 2:59 AM CT.
 """
 
 import argparse
@@ -26,30 +26,29 @@ SESSION_LOGS_DIR = Path("docs/session-logs")
 CT_TIMEZONE = ZoneInfo("America/Chicago")
 
 
-def get_week_start_date() -> datetime:
+def get_session_date() -> datetime:
     """
-    Get the Monday that starts the current week.
+    Get the date for the current session's log file.
 
-    Week boundary: Monday 3:00 AM CT to following Monday 2:59 AM CT.
+    Day boundary: 3:00 AM CT to following day 2:59 AM CT.
+    Work done at 2am belongs to the previous calendar day's log.
     """
     now = datetime.now(CT_TIMEZONE)
 
-    # Find the most recent Monday
-    days_since_monday = now.weekday()  # Monday = 0
-    monday = now - timedelta(days=days_since_monday)
-
-    # If it's Monday but before 3:00 AM, use previous Monday
-    if days_since_monday == 0 and now.hour < 3:
-        monday = monday - timedelta(days=7)
+    # If before 3:00 AM, use previous day
+    if now.hour < 3:
+        session_date = now - timedelta(days=1)
+    else:
+        session_date = now
 
     # Return just the date portion
-    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+    return session_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def get_week_filename() -> str:
-    """Get the filename for the current week's session log."""
-    monday = get_week_start_date()
-    return f"Week-starting-{monday.strftime('%Y-%m-%d')}.md"
+def get_session_filename() -> str:
+    """Get the filename for the current day's session log."""
+    session_date = get_session_date()
+    return f"{session_date.strftime('%Y-%m-%d')}.md"
 
 
 def get_current_timestamp() -> str:
@@ -144,30 +143,29 @@ def format_entry(
 """
 
 
-def ensure_week_file_exists(filepath: Path) -> None:
-    """Create week file with header if it doesn't exist."""
+def ensure_session_file_exists(filepath: Path) -> None:
+    """Create daily session file with header if it doesn't exist."""
     if not filepath.exists():
-        monday = get_week_start_date()
-        # Calculate the Sunday that ends the week
-        sunday = monday + timedelta(days=6)
+        session_date = get_session_date()
+        next_day = session_date + timedelta(days=1)
 
-        header = f"""# Session Log: Week of {monday.strftime('%Y-%m-%d')}
+        header = f"""# Session Log: {session_date.strftime('%Y-%m-%d')}
 
-**Week:** {monday.strftime('%Y-%m-%d')} (Mon) to {sunday.strftime('%Y-%m-%d')} (Sun)
+**Period:** {session_date.strftime('%Y-%m-%d')} 3:00 AM CT → {next_day.strftime('%Y-%m-%d')} 2:59 AM CT
 
 ---
 """
         filepath.parent.mkdir(parents=True, exist_ok=True)
         filepath.write_text(header, encoding="utf-8")
-        print(f"Created new week file: {filepath}")
+        print(f"Created new session file: {filepath}")
 
 
 def append_entry(entry: str) -> Path:
-    """Append entry to the current week's session log."""
-    filename = get_week_filename()
+    """Append entry to the current day's session log."""
+    filename = get_session_filename()
     filepath = SESSION_LOGS_DIR / filename
 
-    ensure_week_file_exists(filepath)
+    ensure_session_file_exists(filepath)
 
     # Append the entry
     with open(filepath, "a", encoding="utf-8") as f:
