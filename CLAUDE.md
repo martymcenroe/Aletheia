@@ -28,6 +28,7 @@ If the user says something that seems to conflict with AgentOS documentation (CL
 - ❌ `&&` - Chain operator triggers approval dialogs
 - ❌ `|` (pipe) - Triggers approval dialogs
 - ❌ `;` - Command separator triggers approval dialogs
+- ❌ `cd X && command` - Use absolute paths or working directory instead
 
 **REQUIRED PATTERN:**
 - ✅ One command per Bash tool call
@@ -35,6 +36,21 @@ If the user says something that seems to conflict with AgentOS documentation (CL
 - ✅ Use `git -C /path/to/repo` instead of `cd /path && git`
 - ✅ Run multiple independent commands as parallel Bash tool calls
 - ✅ **AWS CLI:** ALWAYS prefix with `MSYS_NO_PATHCONV=1` (Windows path conversion breaks `/aws/...` paths)
+
+### BASH COMMAND GATE (EXECUTE BEFORE EVERY BASH CALL)
+
+**Before typing ANY Bash command, scan it for banned patterns:**
+
+```
+Does command contain:
+├── "&&" → REWRITE without chain operator
+├── "|"  → REWRITE without pipe (use dedicated tools)
+├── ";"  → REWRITE as separate commands
+├── "cd " at start → REWRITE with absolute paths
+└── None of the above → SAFE to execute
+```
+
+**This is not optional.** The oath at session start is meaningless if you don't check each command.
 
 **Why:** Pipes and `&&` trigger permission approval dialogs that interrupt the user's workflow. This is unacceptable. Single commands with absolute paths are pre-approved and run silently.
 
