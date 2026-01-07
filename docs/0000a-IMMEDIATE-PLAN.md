@@ -20,11 +20,12 @@
 | Test Infrastructure | ✅ Complete |
 | Age-restricted blocking | ✅ Complete |
 | Store assets | ✅ Complete |
-| LinkedIn OAuth | ✅ Complete (closed #116) |
-| DynamoDB TTL | ✅ Complete (closed #145) |
-| GDPR data erasure | ✅ Complete (closed #147) |
-| Lambda Latency | ✅ Resolved (closed #137) |
-| Museum Label UI | ✅ Complete (closed #125) |
+| LinkedIn OAuth | ✅ Complete |
+| DynamoDB TTL | ✅ Complete |
+| GDPR data erasure | ✅ Complete |
+| Lambda Latency | ✅ Resolved |
+| Museum Label UI | ✅ Complete |
+| NoArchive Transform | ✅ Complete |
 
 ---
 
@@ -57,7 +58,6 @@ Remaining work after store submission:
 | Issue | Feature | Status |
 |-------|---------|--------|
 | #126 | Hard vs. Soft blocking | Open |
-| #162 | Transform layer (noarchive summarization) | In Progress (worktree exists) |
 
 ---
 

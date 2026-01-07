@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-07 01:20 CT
-**Total Open Issues:** 20
+**Generated:** 2026-01-07 01:31 CT
+**Total Open Issues:** 19
 
 ---
 
@@ -877,58 +877,5 @@ Run on schedule (weekly) rather than every PR to avoid CI slowdown.
 - 0812 Performance Audit: `docs/0812-audit-performance.md`
 - 0899 Meta-Audit recommendation #1
 - Issue #156 (frontend latency optimization)
-
----
-
-## Issue #162: feat: Apply Transform layer (summarization) when 'noarchive' signal present
-
-**Labels:** feature, backend
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Problem
-
-`docs/0007-signal-handling.md` documents that we respect the `noarchive` signal by routing to the Transform layer (summarization for copyright compliance). However, `lambda_function.py` currently ignores this signal entirely.
-
-**This is a Documentation vs Code drift.**
-
-## Current State
-
-- `docs/0007` states: `noarchive` → Action: TRANSFORM
-- `src/lambda_function.py`: No `noarchive` handling exists
-- Signal Inspector (`src/signal_inspector/`) can detect `noarchive` but Lambda doesn't use it
-
-## Requirements
-
-1. Lambda should check for `noarchive` signal (via meta tag or X-Robots-Tag header)
-2. If present, route response through Transform layer (summarization)
-3. If absent, return full context
-
-## Technical Approach
-
-Option A: Client-side detection
-- Extension detects `noarchive` and sends flag in request payload
-- Lambda checks flag and applies Transform layer
-
-Option B: Server-side detection
-- Lambda fetches page headers/meta (adds latency)
-- Apply Transform layer if `noarchive` detected
-
-**Recommendation:** Option A (client already has page context)
-
-## References
-
-- Signal handling spec: `docs/0007-signal-handling.md`
-- Signal Inspector: `src/signal_inspector/`
-- Transform layer: Currently implemented as summarization in etymologist response
-
-## Acceptance Criteria
-
-- [ ] Lambda respects `noarchive` signal per 0007 spec
-- [ ] Transform layer applies summarization when signal present
-- [ ] Tests verify both paths (with/without `noarchive`)
 
 ---

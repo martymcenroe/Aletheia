@@ -156,7 +156,7 @@
 | `docs/1157-eslint-flat-config.md` | **Spec** | 🟠 **In-Progress** | #157 | ESLint flat config migration. |
 | `docs/1160-ci-accessibility-checks.md` | **Spec** | 🟠 **In-Progress** | #160 | Automated accessibility checks in CI. |
 | `docs/1161-ci-performance-benchmarks.md` | **Spec** | 🟠 **In-Progress** | #161 | Automated performance benchmarks in CI. |
-| `docs/1162-noarchive-transform-layer.md` | **Spec** | 🟠 **In-Progress** | #162 | Transform layer (summarization) for noarchive. |
+| `docs/1162-noarchive-transform-layer.md` | **Spec** | 🟢 **Stable** | #162 | Transform layer (summarization) for noarchive. |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |
@@ -195,6 +195,8 @@
 | `docs/reports/105/test-report.md` | **Report** | 🟢 **Stable** | #105 | Test report for test site infrastructure. |
 | `docs/reports/124/implementation-report.md` | **Report** | 🟢 **Stable** | #124 | Implementation report for Digital Etymologist. |
 | `docs/reports/124/test-report.md` | **Report** | 🟢 **Stable** | #124 | Test report for Digital Etymologist. |
+| `docs/reports/162/implementation-report.md` | **Report** | 🟢 **Stable** | #162 | Implementation report for NoArchive Transform layer. |
+| `docs/reports/162/test-report.md` | **Report** | 🟢 **Stable** | #162 | Test report for NoArchive Transform layer. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |
@@ -298,6 +300,7 @@
 | `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
 | `tests/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113, #124 | Unit tests for Lambda handler. |
 | `tests/test_etymologist.py` | **Test** | 🟢 **Stable** | #124 | Unit tests for Digital Etymologist (51 tests). |
+| `tests/test_noarchive.py` | **Test** | 🟢 **Stable** | #162 | Unit tests for NoArchive Transform layer (25 tests). |
 | `tests/test_signal_inspector.py` | **Test** | 🟢 **Stable** | #84 | Unit + live tests for Signal Inspector (31 tests). |
 | `tests/fixtures/signal_inspector/` | **Data** | 🟢 **Stable** | #84 | HTML/txt test fixtures for signal parsing. |
 | `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
