@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoArchive Test Page - Issue #162</title>
+
+    <!--
+        Issue #162: NoArchive Transform Layer Test Fixture
+
+        This page includes the noarchive directive in the robots meta tag.
+        When Aletheia processes text from this page, it should NOT persist
+        the query or response to DynamoDB.
+
+        Test scenarios:
+        1. robots with noarchive alone
+        2. robots with noarchive + other directives
+        3. googlebot variant (comment out robots to test)
+    -->
+
+    <!-- Standard robots noarchive directive -->
+    <meta name="robots" content="noarchive">
+
+    <!-- Alternative: noarchive with other directives (comma-separated) -->
+    <!-- <meta name="robots" content="noindex, noarchive, nofollow"> -->
+
+    <!-- Alternative: Google-specific variant -->
+    <!-- <meta name="googlebot" content="noarchive"> -->
+
+</head>
+<body>
+    <h1>NoArchive Test Page</h1>
+
+    <p>This page has a <code>&lt;meta name="robots" content="noarchive"&gt;</code> tag.</p>
+
+    <p>
+        When you select text on this page and use "Explain with AI", the extension
+        should detect the noarchive signal and include <code>signals.noarchive: true</code>
+        in the payload sent to Lambda.
+    </p>
+
+    <h2>Test Words</h2>
+    <p>Select one of these words to test:</p>
+    <ul>
+        <li><strong>Etymology</strong> - The study of word origins</li>
+        <li><strong>Serendipity</strong> - Finding something good without looking for it</li>
+        <li><strong>Ephemeral</strong> - Lasting for a very short time</li>
+    </ul>
+
+    <h2>Expected Behavior</h2>
+    <ol>
+        <li>Extension detects <code>noarchive</code> meta tag</li>
+        <li>Payload includes <code>signals: { noarchive: true }</code></li>
+        <li>Lambda generates etymology (user sees result)</li>
+        <li>Lambda does NOT call <code>save_state()</code></li>
+        <li>No record in DynamoDB</li>
+    </ol>
+
+    <h2>Verification</h2>
+    <p>Check CloudWatch logs for: <code>NOARCHIVE: Skipping persistence for thread_id=...</code></p>
+</body>
+</html>

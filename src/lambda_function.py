@@ -326,6 +326,10 @@ def lambda_handler(
         # Issue #177: Extract domContext (truncate to 100KB for DynamoDB safety)
         dom_context = (body.get("domContext", "") or "")[:100000]
 
+        # Issue #162: Extract noarchive signal - skip persistence if publisher requests
+        signals = body.get("signals", {})
+        skip_persistence = signals.get("noarchive", False)
+
         # 4. Generate etymology analysis (buffered, not streaming)
         # Issue #124: Digital Etymologist returns structured JSON
         # Issue #178: Wrapped in try/finally to ensure save_state always runs
@@ -354,21 +358,27 @@ def lambda_handler(
             }
             logger.error(f"Etymology generation failed: {e}")
         finally:
-            # Issue #177 & #178: ALWAYS save - even on failure
-            # This ensures we know what input caused issues for post-mortem analysis
-            t0 = time.time()
-            save_state(
-                thread_id,
-                {
-                    "text": text,
-                    "domContext": dom_context,  # Issue #177
-                    "url": body.get("url", ""),
-                    "userId": body.get("userId"),  # May be None pre-#116
-                    "safety_score": metadata.get("scores", {}),
-                    "response": response_data,  # Issue #178
-                },
-            )
-            timings["dynamodb_write_ms"] = int((time.time() - t0) * 1000)
+            # Issue #162: Skip persistence if noarchive signal is present
+            if skip_persistence:
+                logger.info(
+                    f"NOARCHIVE: Skipping persistence for thread_id={thread_id}"
+                )
+                timings["dynamodb_write_ms"] = 0  # No write performed
+            else:
+                # Issue #177 & #178: Save state for analysis
+                t0 = time.time()
+                save_state(
+                    thread_id,
+                    {
+                        "text": text,
+                        "domContext": dom_context,  # Issue #177
+                        "url": body.get("url", ""),
+                        "userId": body.get("userId"),  # May be None pre-#116
+                        "safety_score": metadata.get("scores", {}),
+                        "response": response_data,  # Issue #178
+                    },
+                )
+                timings["dynamodb_write_ms"] = int((time.time() - t0) * 1000)
 
         # If generation failed, return 500 after saving state
         if generation_error is not None:
