@@ -1,6 +1,6 @@
 ---
-description: Exit session with mandatory session log (project)
-argument-hint: "[--help] [--summary 'text'] [--created '#XX'] [--closed '#YY']"
+description: Exit session with mandatory session log (project) (project)
+argument-hint: "[--quick] [--summary 'text'] [--created '#XX'] [--closed '#YY']"
 ---
 
 # Exit Session
@@ -11,22 +11,24 @@ argument-hint: "[--help] [--summary 'text'] [--created '#XX'] [--closed '#YY']"
 
 ## Help
 
-Usage: `/exit [--help] [--summary 'text'] [--created '#XX'] [--closed '#YY']`
+Usage: `/exit [--help] [--quick] [--summary 'text'] [--created '#XX'] [--closed '#YY']`
 
 | Argument | Description |
 |----------|-------------|
 | `--help` | Show this help message and exit |
-| `--summary 'text'` | Session summary (prompted if not provided) |
+| `--quick` | Quick exit with auto-generated summary (no prompt) |
+| `--summary 'text'` | Session summary (auto-generated if not provided) |
 | `--created '#XX'` | Issues created this session (default: None) |
 | `--closed '#YY'` | Issues closed this session (default: None) |
 
 **Examples:**
-- `/exit` - Interactive mode (prompts for summary)
-- `/exit --summary "Fixed bug in auth flow"` - Quick exit with summary
+- `/exit` - Auto-generates summary from session context
+- `/exit --quick` - Same as `/exit` (explicit quick mode)
+- `/exit --summary "Fixed bug in auth flow"` - Exit with custom summary
 - `/exit --summary "Implemented feature X" --closed "#123"` - Exit with issue tracking
 
 **What this does:**
-1. Prompts for session summary if not provided
+1. Auto-generates session summary from context (or uses provided summary)
 2. Appends session log entry to current week's file
 3. Stages and commits the session log
 4. Pushes to remote
@@ -39,7 +41,10 @@ Usage: `/exit [--help] [--summary 'text'] [--created '#XX'] [--closed '#YY']`
 ### Step 1: Gather Information
 
 Parse `$ARGUMENTS` for:
-- `--summary` - If not provided, ASK the user: "What did we accomplish this session? (1-2 sentences)"
+- `--summary` - If provided, use it. Otherwise, AUTO-GENERATE from session context:
+  - If only onboarding occurred: "Full onboarding, no work performed"
+  - If issues were worked: Summarize based on tools used and files changed
+  - NEVER ask the user - just generate a reasonable summary
 - `--created` - Default to "None" if not provided
 - `--closed` - Default to "None" if not provided
 
