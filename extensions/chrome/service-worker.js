@@ -23,6 +23,9 @@ const TabState = {
 // In-memory tab states (no persistence - privacy by design)
 const tabStates = new Map();
 
+// Issue #162: Store noarchive signals per tab
+const tabNoArchive = new Map();
+
 /**
  * Check if a URL should be checked for age-restricted content.
  * Only check navigable web pages (http/https).
@@ -33,12 +36,15 @@ function shouldCheckTab(url) {
 }
 
 /**
- * Check a tab for age-restricted content by injecting content-check.js
+ * Check a tab for age-restricted content and noarchive signal by injecting content-check.js
+ * Issue #104: Age-Restricted Blocking
+ * Issue #162: NoArchive Transform Layer
  */
 async function checkTabForAgeRestriction(tabId, url) {
     if (!shouldCheckTab(url)) {
         // Non-web pages are allowed (chrome://, file://, etc.)
         tabStates.set(tabId, TabState.ALLOWED);
+        tabNoArchive.set(tabId, false);
         return;
     }
 
@@ -49,8 +55,14 @@ async function checkTabForAgeRestriction(tabId, url) {
             files: ['content-check.js']
         });
 
-        // The script returns the result from checkPageRating()
+        // The script returns the result from checkPageSignals()
         const result = results?.[0]?.result;
+
+        // Issue #162: Store noarchive signal
+        tabNoArchive.set(tabId, result?.noarchive || false);
+        if (result?.noarchive) {
+            console.log(`[Aletheia] NoArchive signal detected on tab ${tabId}`);
+        }
 
         if (result?.isRestricted) {
             tabStates.set(tabId, TabState.RESTRICTED);
@@ -63,6 +75,7 @@ async function checkTabForAgeRestriction(tabId, url) {
     } catch (error) {
         // FAIL OPEN: If we can't inject (CSP, etc.), allow the tab
         tabStates.set(tabId, TabState.ALLOWED);
+        tabNoArchive.set(tabId, false);
         console.log(`[Aletheia] Tab ${tabId} check failed (fail open):`, error.message);
     }
 }
@@ -117,6 +130,7 @@ function isTabRestricted(tabId) {
 // Clean up state when tabs close (memory hygiene)
 chrome.tabs.onRemoved.addListener((tabId) => {
     tabStates.delete(tabId);
+    tabNoArchive.delete(tabId);  // Issue #162
 });
 
 // =============================================================================
@@ -300,11 +314,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         const fullPageText = injectionResults[0].result;
 
+        // Issue #162: Include noarchive signal in payload
+        const hasNoArchive = tabNoArchive.get(tab.id) || false;
+
         const payload = {
             text: info.selectionText,
             url: info.pageUrl,
             title: tab.title,
-            domContext: fullPageText
+            domContext: fullPageText,
+            signals: {
+                noarchive: hasNoArchive
+            }
         };
 
         console.log("[Aletheia] Sending payload to AWS:", payload.text);
