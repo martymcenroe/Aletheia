@@ -460,3 +460,51 @@ Issue #137 latency investigation: identified root causes (two sequential LLM cal
 - Branch: main @ f1e111b
 - Open PRs: 0
 - Next: Tier 1 Audit (Privacy/Security)
+
+---
+
+## 2026-01-06 18:55 CT | Claude Opus 4.5
+
+### Summary
+Implemented #53 store assets build script. Updated build_release.py for separated extension directories (extensions/chrome, extensions/firefox). Fixed manifest parity check to only validate identity/branding keys. Added icon size validation. PR #185 merged. Documented PRE-MERGE GATE violation in lessons-learned.
+
+### Issues
+- Created: None
+- Closed: #53
+
+### State on Exit
+- Branch: main @ 4daeeaa
+- Open PRs: 0
+- Next: Per user direction
+
+---
+
+## 2026-01-06 18:55 CT | Claude Sonnet 4.5
+
+### Summary
+Full cleanup execution
+
+### Issues
+- Created: None
+- Closed: None
+
+### State on Exit
+- Branch: main @ 4daeeaa
+- Open PRs: 0
+- Next: Per user direction
+
+---
+
+## 2026-01-06 18:55 CT | Claude Opus 4.5
+
+### Summary
+Issue #137 latency investigation and O1 fix. Identified root causes (two sequential LLM calls, duplicate boto3 client, DynamoDB blocking). Implemented shared boto3 client optimization. PR #184 merged. Lambda deployed with timing instrumentation.
+
+### Issues
+- Created: None
+- Closed: #137
+
+### State on Exit
+- Branch: main @ 4daeeaa
+- Open PRs: 0
+- Next: Tier 1 Audit (Privacy/Security)

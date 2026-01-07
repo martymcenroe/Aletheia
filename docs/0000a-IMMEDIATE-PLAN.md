@@ -57,13 +57,14 @@
 - Privacy policy (may need GitHub Pages)
 - Store listing description
 
-### Step 5: Store Assets (#53)
+### Step 5: Store Assets (#53) ✅ COMPLETE
 **LLD:** `docs/1053-store-assets.md`
-**Status:** LLD updated, partially implemented
+**PR:** #185 - merged 2026-01-06
 
 - Extension zips (created by `tools/build_release.py`)
-- Screenshots (1280x800 or 640x400) - NOT DONE
-- Promotional tiles (440x280) - NOT DONE
+- Screenshots generation (`tools/generate_store_assets.py`)
+- Promotional tiles generation (`tools/generate_store_assets.py`)
+- Assets output to `dist/store-assets/chrome/` and `dist/store-assets/firefox/`
 
 ### Step 6: Submit to Chrome Web Store
 - Developer account ($5 one-time)

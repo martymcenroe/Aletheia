@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-06 16:56 CT
-**Total Open Issues:** 27
+**Generated:** 2026-01-06 18:54 CT
+**Total Open Issues:** 23
 
 ---
 
@@ -28,46 +28,6 @@ Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
 ### Description
 
 Prepare assets (Manifest, Privacy Policy, Store Listing) for submission.
-
----
-
-## Issue #53: Generate Store Assets
-
-**Labels:** chore
-
-**Created:** 2025-12-10
-**Updated:** 2026-01-04
-
-### Description
-
-## Status Update (2026-01-04)
-**Partially Complete:** `tools/generate_store_assets.py` and `tools/build_release.py` exist but reference old `extension/` path. Need to update for `extension-chrome-V3/` directory structure.
-
----
-
-## Objective
-Create a script (`tools/generate_store_assets.py`) to deterministically generate production-ready assets for the Chrome Web Store submission.
-
-## Requirements
-
-### 1. Icon Generation
-- **Input:** `tools/master_lambda.png` (High-res source)
-- **Output:** `extension-chrome-V3/icons/` {16, 32, 48, 128}.png
-- **Constraint:** Transparent backgrounds, optimized PNGs.
-
-### 2. Promotional Tiles (Placeholders)
-- **Small Tile:** 440x280px (Required by Store) - Simple brand color background + Logo.
-- **Marquee:** 1400x560px (Required by Store) - "Context, Verified" tagline.
-
-### 3. Zip Packaging
-- Script must create `aletheia-chrome-v{version}.zip` and `aletheia-firefox-v{version}.zip`.
-- **CRITICAL EXCLUSIONS:** `src/` (Python backend), `.git/`, `docs/`, `tests/`, `.env`.
-- **INCLUSIONS:** `manifest.json`, `service-worker.js`, `overlay.js`, `popup.html`, `popup.js`, `popup.css`, `icons/`, content scripts.
-
-## Acceptance Criteria
-- [ ] Zip file contains **only** client-side artifacts.
-- [ ] No Python code or secrets leaked in the extension zip.
-- [ ] Scripts updated for `extension-chrome-V3/` directory structure.
 
 ---
 
@@ -628,104 +588,6 @@ We need email capability for:
 
 ---
 
-## Issue #137: Investigate 5-second Lambda latency
-
-**Created:** 2026-01-02
-**Updated:** 2026-01-05
-
-### Description
-
-## Problem
-
-The extension shows "Saving..." for ~5 seconds before transitioning to "Context Saved". This delay persists even with `max_tokens=10`, disproving the hypothesis that Sonnet generation time is the cause.
-
-## Tested
-
-- `max_tokens=10` in `src/lambda_function.py` - still 5 second delay
-- Timer/gap bugs fixed in extension overlay (separate issue #100)
-
-## Likely Causes to Investigate
-
-1. **Lambda Cold Start** - First invocation after idle period spins up container
-2. **Semantic Guardrail** - `SemanticGuardrail.check_safety()` makes an LLM call before generation
-3. **DynamoDB Write** - `save_state()` is in the critical path
-4. **Network Latency** - Round trip to AWS us-east-1
-
-## Proposed Investigation
-
-1. Add timing logs to each stage of `lambda_handler`:
-   - Validation
-   - Guardrails (denylist + semantic)
-   - DynamoDB save
-   - Bedrock generation
-2. Identify the bottleneck
-3. Consider:
-   - Provisioned concurrency for cold starts
-   - Caching semantic guardrail results
-   - Moving DynamoDB write out of critical path (async)
-
-## References
-
-- Extension timing fixes: #100
-- Gemini handoff doc: `docs/GEMINI-HANDOFF-OVERLAY-TIMING.md`
-
----
-
-## Issue #147: GDPR: Implement data erasure process (right to be forgotten)
-
-**Labels:** security, high-priority, backend, audit
-
-**Created:** 2026-01-04
-**Updated:** 2026-01-05
-
-### Description
-
-## Context
-
-GDPR Article 17 requires data controllers to have a process to erase personal data on request. As an EU trader/developer, Aletheia must comply.
-
-**Related:** #145 (DynamoDB TTL) - TTL provides automatic erasure after 24-48 hours, but GDPR may require on-demand erasure.
-
-## Current State
-
-- User text stored in DynamoDB `input` field
-- No mechanism for users to request data deletion
-- No documented data retention policy
-
-## Requirements
-
-### 1. Data Inventory
-Document all user data storage:
-- DynamoDB: thread_id, input (user text), url, safety_score
-- CloudWatch: Lambda logs (30 day retention)
-- Extension: localStorage (preferences only, no PII)
-
-### 2. Erasure Mechanism
-Options to evaluate:
-- A) **TTL-only approach**: Short TTL (24h) means data self-erases quickly
-- B) **On-demand deletion**: API endpoint to delete by thread_id
-- C) **User identification**: Requires auth (#116) to identify "my data"
-
-### 3. Documentation
-- Privacy policy must state retention period
-- Must explain how users can request erasure
-
-## Acceptance Criteria
-
-- [ ] Data retention policy documented
-- [ ] Erasure mechanism implemented (TTL or on-demand)
-- [ ] Privacy policy updated with erasure process
-- [ ] Privacy audit 0810 updated
-
-## References
-
-- [GDPR Article 17](https://gdpr-info.eu/art-17-gdpr/)
-- Privacy Audit: `docs/0810-audit-privacy.md`
-- Related: #145 (DynamoDB TTL)
-- Related: #116 (LinkedIn Auth - enables user identification)
-
----
-
 ## Issue #148: Document AWS Bedrock no-training commitment
 
 **Labels:** documentation, security, audit
@@ -941,55 +803,6 @@ jobs:
 
 - [GitHub CodeQL docs](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql)
 - [CodeQL for Python](https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/)
-
----
-
-## Issue #155: feat: Skip DynamoDB persistence when 'noarchive' signal present
-
-**Labels:** security, feature, backend
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Context
-
-`docs/0007-signal-handling.md` states that content with the `noarchive` signal should be transformed/summarized and not persisted. Currently, `src/lambda_function.py` persists all text to DynamoDB regardless of signals.
-
-## Problem
-
-The Lambda handler does not check for `noarchive` signals before persisting user text to DynamoDB, violating the signal handling policy.
-
-## Requirements
-
-Update the Lambda logic to check the `signals` payload and skip the `save_state` call if `noarchive` is present.
-
-### Implementation
-
-**1. Check signals before save:**
-```python
-# In lambda_handler, before save_state():
-signals = event.get('signals', {})
-if not signals.get('noarchive', False):
-    save_state(thread_id, text, url, safety_score)
-```
-
-**2. Extension must pass signals:**
-Ensure `extension-chrome-V3/service-worker.js` includes parsed signals in the Lambda request payload.
-
-## Acceptance Criteria
-
-- [ ] Lambda checks for `noarchive` signal before persisting
-- [ ] If `noarchive` is true, `save_state()` is skipped
-- [ ] Extension passes signals from content script to Lambda
-- [ ] Unit tests verify both paths (with/without noarchive)
-
-## References
-
-- Signal Handling Policy: `docs/0007-signal-handling.md`
-- Privacy Audit: `docs/0810-audit-privacy.md`
-- Related: #145 (DynamoDB TTL)
 
 ---
 
