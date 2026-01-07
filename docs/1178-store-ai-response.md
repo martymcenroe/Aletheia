@@ -121,23 +121,33 @@ save_state(
 response_body = {...}
 ```
 
-### Edge Case: Generation Failure
-If `generate_etymology()` raises an exception, we should still save the input (for debugging):
+### Edge Case: Generation Failure (CRITICAL - per Gemini Review)
+
+**MANDATORY:** The `save_state()` call MUST happen even if `generate_etymology()` fails. This ensures we capture what input caused the failure for debugging.
 
 ```python
+# REQUIRED PATTERN: try/except/finally ensures save_state always executes
+response_data = None
 try:
     result = generate_etymology(text, context_text)
     response_data = result["response"]
 except Exception as e:
-    response_data = {"signal": "error", "gem": str(e), "context": ""}
-    # Still save for debugging
+    # Capture error state for debugging
+    response_data = {"signal": "error", "gem": str(e), "context": "Generation failed"}
+    logger.error(f"Etymology generation failed: {e}")
 finally:
+    # ALWAYS save - even on failure - so we know what input caused issues
     save_state(thread_id, {
         "text": text,
+        "domContext": dom_context,  # From #177
+        "url": body.get("url", ""),
+        "userId": body.get("userId"),
+        "safety_score": metadata.get("scores", {}),
         "response": response_data,
-        ...
     })
 ```
+
+**Why this matters:** If Lambda crashes or Bedrock times out, we lose visibility into what caused the failure. By saving in `finally`, we ensure the input is always recorded for post-mortem analysis.
 
 ## 7. Interface Specification
 
@@ -233,6 +243,32 @@ N/A - All scenarios automated.
 ### Review
 - [ ] Code review completed
 - [ ] User approval before closing issue
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-06
+**Reviewer:** Gemini 3.0 Pro
+
+### Verdict: APPROVED WITH ADVISORY
+
+### Architectural Alignment
+- **Latency Optimization:** Single write after generation eliminates extra DB round-trip ✅
+- **Coupling:** Correctly identifies dependency on #177 ✅
+
+### Critical Advisory (INCORPORATED)
+
+| Issue | Resolution |
+|-------|------------|
+| Generation failure loses input | **MANDATORY:** try/except/finally pattern ensures save_state() always executes |
+| Observability backup | Issue #7 (X-Ray traces) provides crash-level observability |
+
+**Key Constraint:** The `save_state()` call MUST happen even if `generate_etymology()` raises an exception. We want to know what input caused the failure.
+
+### Action Items
+- Execute implementation with try/finally pattern
+- Coordinate with #177 (both modify save_state)
 
 ---
 

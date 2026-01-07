@@ -92,12 +92,14 @@ save_state(
     },
 )
 
-# Updated:
+# Updated (with safety truncation per Gemini review):
+dom_context = body.get("domContext", "")[:100000]  # 100KB cap prevents DynamoDB 400KB limit
+
 save_state(
     thread_id,
     {
         "text": text,
-        "domContext": body.get("domContext", ""),  # NEW
+        "domContext": dom_context,  # NEW - truncated for safety
         "url": body.get("url", ""),
         "userId": body.get("userId"),
         "safety_score": metadata.get("scores", {}),
@@ -188,3 +190,27 @@ N/A - All scenarios automated.
 ### Review
 - [ ] Code review completed
 - [ ] User approval before closing issue
+
+---
+
+## Appendix: Gemini Review Response
+
+**Review Date:** 2026-01-06
+**Reviewer:** Gemini 3.0 Pro
+
+### Verdict: APPROVED
+
+### Architectural Alignment
+- **Privacy-First (ADR 0201):** Relies on existing 30-day TTL for data expiration ✅
+- **Stateful Serverless (ADR 0203):** Extends existing DynamoDB schema correctly ✅
+
+### Refinements Incorporated
+
+| Issue | Resolution |
+|-------|------------|
+| DynamoDB 400KB item limit | Added 100KB hard cap on domContext string before save |
+| Payload size risk | `[:100000]` truncation prevents ValidationException on outliers |
+
+### Action Items
+- Execute implementation with truncation safety
+- Coordinate with #178 (both modify save_state)
