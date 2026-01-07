@@ -130,6 +130,8 @@ def save_state(thread_id: str, data: dict) -> None:
 
     See: docs/1113-naked-python-architecture.md Section 7.2
     Issue #145: Added TTL for automatic data expiry.
+    Issue #177: Added domContext field for surrounding paragraph storage.
+    Issue #178: Added response field for AI etymology output storage.
     """
     client = get_dynamodb_client()
     now = int(time.time())
@@ -143,6 +145,19 @@ def save_state(thread_id: str, data: dict) -> None:
         "safety_score": {"S": json.dumps(data.get("safety_score", {}))},
         "ttl": {"N": str(now + TTL_SECONDS)},  # Issue #145: Auto-expire after 30 days
     }
+
+    # Issue #177: Store surrounding paragraph (domContext)
+    # Default to empty string if missing; truncate to 100KB for DynamoDB safety
+    dom_context = data.get("domContext", "") or ""
+    item["domContext"] = {"S": dom_context[:100000]}
+
+    # Issue #178: Store AI response (signal, gem, context)
+    # May be None if generation failed - serialize as JSON for flexibility
+    response_data = data.get("response")
+    if response_data is not None:
+        item["response"] = {"S": json.dumps(response_data)}
+    else:
+        item["response"] = {"S": "null"}
 
     # TODO: Issue #116 - Add user_id when LinkedIn Auth is implemented
     if data.get("userId"):
@@ -308,25 +323,59 @@ def lambda_handler(
         thread_id = generate_thread_id(body)
         timings["thread_id_ms"] = int((time.time() - t0) * 1000)
 
-        # 4. Persist to DynamoDB
-        t0 = time.time()
-        save_state(
-            thread_id,
-            {
-                "text": text,
-                "url": body.get("url", ""),
-                "userId": body.get("userId"),  # May be None pre-#116
-                "safety_score": metadata.get("scores", {}),
-            },
-        )
-        timings["dynamodb_write_ms"] = int((time.time() - t0) * 1000)
+        # Issue #177: Extract domContext (truncate to 100KB for DynamoDB safety)
+        dom_context = (body.get("domContext", "") or "")[:100000]
 
-        # 5. Generate etymology analysis (buffered, not streaming)
+        # 4. Generate etymology analysis (buffered, not streaming)
         # Issue #124: Digital Etymologist returns structured JSON
-        t0 = time.time()
-        context_text = body.get("domContext", "")
-        result = generate_etymology(text, context_text)
-        timings["etymology_generation_ms"] = int((time.time() - t0) * 1000)
+        # Issue #178: Wrapped in try/finally to ensure save_state always runs
+        response_data = None
+        result = None
+        generation_error = None
+
+        try:
+            t0 = time.time()
+            result = generate_etymology(text, dom_context)
+            timings["etymology_generation_ms"] = int((time.time() - t0) * 1000)
+
+            # Extract response data for persistence
+            response_data = {
+                "signal": result["response"]["signal"],
+                "gem": result["response"]["gem"],
+                "context": result["response"]["context"],
+            }
+        except Exception as e:
+            # Issue #178: Capture error state for debugging
+            generation_error = e
+            response_data = {
+                "signal": "error",
+                "gem": str(e),
+                "context": "Generation failed",
+            }
+            logger.error(f"Etymology generation failed: {e}")
+        finally:
+            # Issue #177 & #178: ALWAYS save - even on failure
+            # This ensures we know what input caused issues for post-mortem analysis
+            t0 = time.time()
+            save_state(
+                thread_id,
+                {
+                    "text": text,
+                    "domContext": dom_context,  # Issue #177
+                    "url": body.get("url", ""),
+                    "userId": body.get("userId"),  # May be None pre-#116
+                    "safety_score": metadata.get("scores", {}),
+                    "response": response_data,  # Issue #178
+                },
+            )
+            timings["dynamodb_write_ms"] = int((time.time() - t0) * 1000)
+
+        # If generation failed, return 500 after saving state
+        if generation_error is not None:
+            raise generation_error
+
+        # Type narrowing: if we reach here, generation succeeded and result is set
+        assert result is not None, "result should be set if no generation_error"
 
         # Calculate total handler time
         timings["handler_total_ms"] = int((time.time() - handler_start) * 1000)
