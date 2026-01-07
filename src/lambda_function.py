@@ -64,10 +64,18 @@ def get_bedrock_client():
 
 
 def get_semantic_guardrail():
-    """Lazy-initialize SemanticGuardrail."""
+    """
+    Lazy-initialize SemanticGuardrail with shared Bedrock client.
+
+    Issue #137: Pass shared client to eliminate duplicate client initialization
+    (~774ms savings on cold start).
+    """
     global _semantic_guardrail
     if _semantic_guardrail is None:
-        _semantic_guardrail = SemanticGuardrail(region_name=AWS_REGION)
+        _semantic_guardrail = SemanticGuardrail(
+            region_name=AWS_REGION,
+            bedrock_client=get_bedrock_client(),
+        )
     return _semantic_guardrail
 
 
@@ -212,23 +220,37 @@ def run_guardrails(
     Returns:
         (is_safe, block_reason, metadata)
     """
+    # Issue #137: Track individual guardrail timings
+    guardrail_timings = {}
+
     # Step 1: Denylist check (fast, deterministic)
+    t0 = time.time()
     denylist_result = check_denylist(text, denylist)
+    guardrail_timings["denylist_ms"] = int((time.time() - t0) * 1000)
     if denylist_result["blocked"]:
-        return False, "Content blocked by safety filter", {"layer": "denylist"}
+        return False, "Content blocked by safety filter", {"layer": "denylist", "timings": guardrail_timings}
 
     # Step 2: Semantic check (LLM-based, slower)
     # MUST run after denylist, MUST block before generation
+    t0 = time.time()
     semantic = get_semantic_guardrail()
+    guardrail_timings["semantic_init_ms"] = int((time.time() - t0) * 1000)
+
+    t0 = time.time()
     semantic_result = semantic.check_safety(text)
+    guardrail_timings["semantic_llm_ms"] = int((time.time() - t0) * 1000)
+
+    # Issue #137: Log guardrail breakdown
+    logger.info(f"GUARDRAIL_BREAKDOWN: {json.dumps(guardrail_timings)}")
+
     if not semantic_result["is_safe"]:
         return (
             False,
             f"Content blocked: {semantic_result['reason']}",
-            {"layer": "semantic", "scores": semantic_result.get("scores", {})},
+            {"layer": "semantic", "scores": semantic_result.get("scores", {}), "timings": guardrail_timings},
         )
 
-    return True, None, {"layer": "passed", "scores": semantic_result.get("scores", {})}
+    return True, None, {"layer": "passed", "scores": semantic_result.get("scores", {}), "timings": guardrail_timings}
 
 
 def lambda_handler(
@@ -248,7 +270,12 @@ def lambda_handler(
         API Gateway response dict.
     """
     try:
+        # Issue #137: Timing instrumentation for latency investigation
+        timings = {}
+        handler_start = time.time()
+
         # Parse body if coming from API Gateway
+        t0 = time.time()
         if "body" in event:
             body = (
                 json.loads(event["body"])
@@ -257,24 +284,32 @@ def lambda_handler(
             )
         else:
             body = event
+        timings["parse_body_ms"] = int((time.time() - t0) * 1000)
 
         # 1. Validation
+        t0 = time.time()
         valid, error = validate_input(body)
+        timings["validation_ms"] = int((time.time() - t0) * 1000)
         if not valid:
             return {"statusCode": 400, "body": json.dumps({"error": error})}
 
         text = body["text"]
 
         # 2. Guardrails (MUST be sequential: Denylist → Semantic)
+        t0 = time.time()
         is_safe, block_reason, metadata = run_guardrails(text, denylist)
+        timings["guardrails_total_ms"] = int((time.time() - t0) * 1000)
         if not is_safe:
             return {"statusCode": 403, "body": json.dumps({"blocked": block_reason})}
 
         # 3. Generate thread ID for persistence
         # TODO: Issue #116 - Use authenticated user ID
+        t0 = time.time()
         thread_id = generate_thread_id(body)
+        timings["thread_id_ms"] = int((time.time() - t0) * 1000)
 
         # 4. Persist to DynamoDB
+        t0 = time.time()
         save_state(
             thread_id,
             {
@@ -284,14 +319,23 @@ def lambda_handler(
                 "safety_score": metadata.get("scores", {}),
             },
         )
+        timings["dynamodb_write_ms"] = int((time.time() - t0) * 1000)
 
         # 5. Generate etymology analysis (buffered, not streaming)
         # Issue #124: Digital Etymologist returns structured JSON
+        t0 = time.time()
         context_text = body.get("domContext", "")
         result = generate_etymology(text, context_text)
+        timings["etymology_generation_ms"] = int((time.time() - t0) * 1000)
+
+        # Calculate total handler time
+        timings["handler_total_ms"] = int((time.time() - handler_start) * 1000)
+
+        # Issue #137: Log all timings for analysis
+        logger.info(f"LATENCY_BREAKDOWN: {json.dumps(timings)}")
 
         # Build response with structured output
-        response_body = {
+        response_body: dict[str, Any] = {
             "thread_id": thread_id,
             "status": result["status"],
             "signal": result["response"]["signal"],
@@ -302,6 +346,13 @@ def lambda_handler(
         # Include latency for monitoring
         if result.get("metadata", {}).get("latency_ms"):
             response_body["latency_ms"] = result["metadata"]["latency_ms"]
+
+        # Issue #137: Include timing breakdown in response only in dev mode
+        # CloudWatch logging (above) remains active for production observability
+        if os.environ.get("ALETHEIA_ENV") == "dev":
+            response_body["_debug_timings"] = timings
+            if metadata.get("timings"):
+                response_body["_debug_timings"]["guardrails"] = metadata["timings"]
 
         return {
             "statusCode": 200,
