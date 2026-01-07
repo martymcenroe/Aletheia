@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 # Add tools directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
 
 import pytest  # noqa: E402
 from fetch_denylist import (  # noqa: E402
@@ -35,7 +35,7 @@ from fetch_denylist import (  # noqa: E402
 @pytest.fixture
 def sample_wikitext():
     """Load sample wikitext from fixture file."""
-    fixture_path = Path(__file__).parent / "fixtures" / "sample_wikitext.txt"
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "sample_wikitext.txt"
     return fixture_path.read_text(encoding="utf-8")
 
 

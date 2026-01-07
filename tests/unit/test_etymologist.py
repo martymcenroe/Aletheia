@@ -23,7 +23,7 @@ from src.etymologist import (
     validate_response_schema,
 )
 
-GOLDEN_SET_PATH = Path(__file__).parent / "data" / "etymology_golden_set.json"
+GOLDEN_SET_PATH = Path(__file__).parent.parent / "data" / "etymology_golden_set.json"
 
 
 @pytest.fixture

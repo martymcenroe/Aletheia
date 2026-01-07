@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 # Path to tools directory
-TOOLS_DIR = Path(__file__).parent.parent / "tools"
+TOOLS_DIR = Path(__file__).parent.parent.parent / "tools"
 
 
 class TestLogViewerSmoke:
