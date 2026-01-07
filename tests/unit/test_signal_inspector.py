@@ -11,9 +11,9 @@ import pytest
 import responses
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from signal_inspector import (
+from signal_inspector import (  # noqa: E402
     AletheiaAction,
     FetchStatus,
     SignalResult,
@@ -24,10 +24,10 @@ from signal_inspector import (
     parse_robots_txt,
     parse_x_robots_tag,
 )
-from signal_inspector.models import HeaderResult, MergedSignals, MetaTagResult, RatingResult
+from signal_inspector.models import HeaderResult, MergedSignals, MetaTagResult, RatingResult  # noqa: E402
 
 # Path to fixtures
-FIXTURES_DIR = Path(__file__).parent / "fixtures" / "signal_inspector"
+FIXTURES_DIR = Path(__file__).parent.parent / "fixtures" / "signal_inspector"
 
 
 def load_fixture(name: str) -> str:
@@ -232,7 +232,7 @@ class TestInspectUrlIntegration:
     def test_full_inspection_clean(self):
         """Test full inspection of clean page."""
         # Import here to avoid import issues
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         # Mock robots.txt (not found)
@@ -264,7 +264,7 @@ class TestInspectUrlIntegration:
     @responses.activate
     def test_full_inspection_noarchive(self):
         """Test full inspection with noarchive."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         responses.add(responses.GET, "https://example.com/robots.txt", status=404)
@@ -284,7 +284,7 @@ class TestInspectUrlIntegration:
     @responses.activate
     def test_gatekeeper_robots_blocked(self):
         """Test 080: Gatekeeper blocks when robots.txt disallows."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         responses.add(
@@ -304,7 +304,7 @@ class TestInspectUrlIntegration:
     @responses.activate
     def test_085_force_bypasses_gatekeeper(self):
         """Test 085: --force flag bypasses robots.txt gatekeeper."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         responses.add(
@@ -330,7 +330,7 @@ class TestInspectUrlIntegration:
         """Test 090: Timeout handling."""
         import requests
 
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         responses.add(responses.GET, "https://example.com/robots.txt", status=404)
@@ -347,7 +347,7 @@ class TestInspectUrlIntegration:
     @responses.activate
     def test_x_robots_tag_in_response(self):
         """Test X-Robots-Tag header is parsed from response."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         responses.add(responses.GET, "https://example.com/robots.txt", status=404)
@@ -408,7 +408,7 @@ class TestLiveWebsites:
 
     def test_wikipedia_allows(self):
         """Test Wikipedia returns ALLOW (permissive, no restrictive signals)."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         result = inspect_url(
@@ -426,7 +426,7 @@ class TestLiveWebsites:
 
     def test_bbc_transforms_via_header(self):
         """Test BBC returns TRANSFORM (has X-Robots-Tag: noarchive header)."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         result = inspect_url(
@@ -446,7 +446,7 @@ class TestLiveWebsites:
 
     def test_noarchive_net_with_force(self):
         """Test noarchive.net has noarchive meta tag (requires --force due to robots.txt)."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         result = inspect_url(
@@ -465,7 +465,7 @@ class TestLiveWebsites:
 
     def test_noarchive_net_blocked_without_force(self):
         """Test noarchive.net is blocked by robots.txt without --force."""
-        sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
         from inspect_signals import inspect_url
 
         result = inspect_url(

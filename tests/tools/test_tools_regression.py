@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 # Resolve paths relative to project root
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 TOOLS_DIR = PROJECT_ROOT / "tools"
 
 

@@ -32,9 +32,16 @@ types-requests = ">=2.32.4.20250913,<3.0.0.0"
 types-colorama = "^0.4.15.20250801"
 
 [tool.pytest.ini_options]
+testpaths = [
+    "tests/unit",
+    "tests/compliance",
+    "tests/tools",
+]
 markers = [
     "live: tests that hit real websites (may be slow/flaky)",
     "audit: compliance tests requiring AWS credentials (runs nightly)",
+    "unit: unit tests for Python modules",
+    "tools: tests for CLI tools",
 ]
 
 [tool.mypy]
