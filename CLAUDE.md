@@ -220,6 +220,30 @@ The documentation system exists so you don't need persistent memory. USE IT.
 - After approval: `git -C /c/Users/mcwiz/Projects/Aletheia add .claude/settings.local.json`
 - This prevents permission loss when branches are abandoned
 
+### CODING TASK GATE (EXECUTE IMMEDIATELY)
+
+**When you receive ANY task that involves modifying code files, STOP and execute this gate BEFORE reading LLDs or planning:**
+
+```
+Step 1: Identify task type
+├── Modifying .py, .js, .ts, .sh, .json, .yaml, .html, .css files?
+│   ├── YES → Execute Step 2 (worktree required)
+│   └── NO (docs only) → Can work on main
+```
+
+```
+Step 2: Create worktree FIRST
+├── git worktree list                              # Verify current state
+├── git worktree add ../Aletheia-{ID} -b {ID}-desc # Create worktree
+├── git push -u origin HEAD                        # Push immediately
+└── ONLY THEN proceed to read LLDs and plan
+```
+
+**Why this order matters:** If you read LLDs first, you enter "implementation mindset" and skip the worktree. Create the worktree BEFORE you start thinking about the code.
+
+**State the gate explicitly:** When you receive a coding task, your FIRST response must be:
+> "This task modifies code files. Executing CODING TASK GATE: creating worktree before proceeding."
+
 ### Pre-Code Checklist (MANDATORY):
 Before writing ANY code file, verify:
 1. [ ] LLD is written and committed to main
@@ -227,6 +251,28 @@ Before writing ANY code file, verify:
 3. [ ] Branch name matches issue ID pattern (e.g., `45-denylist`)
 
 If any check fails, STOP and fix before writing code.
+
+### PRE-COMMIT GATE (EXECUTE BEFORE ANY COMMIT)
+
+**Before running `git commit`, STOP and verify:**
+
+```
+Step 1: Do reports exist?
+├── docs/reports/{IssueID}/implementation-report.md exists?
+├── docs/reports/{IssueID}/test-report.md exists?
+│   ├── YES → Proceed to Step 2
+│   └── NO → CREATE THEM NOW (do not commit without reports)
+```
+
+```
+Step 2: Stage and wait
+├── git add .                    # Stage everything
+├── STOP                         # Do NOT run git commit
+└── Present for Gemini review    # Wait for approval
+```
+
+**State the gate explicitly:** Before any commit, say:
+> "Executing PRE-COMMIT GATE: verifying reports exist before staging for review."
 
 ### Document Mutability (WORM Policy):
 Some documents are **immutable** — NEVER modify after creation:
