@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-07 00:21 CT
-**Total Open Issues:** 21
+**Generated:** 2026-01-07 01:20 CT
+**Total Open Issues:** 20
 
 ---
 
@@ -585,55 +585,6 @@ We need email capability for:
 - [ ] `support@aletheia.study` forwards to Orchestrator's email
 - [ ] Test email received successfully
 - [ ] (Optional) Gmail "send as" configured for replies
-
----
-
-## Issue #148: Document AWS Bedrock no-training commitment
-
-**Labels:** documentation, security, audit
-
-**Created:** 2026-01-04
-**Updated:** 2026-01-04
-
-### Description
-
-## Context
-
-Our privacy policy promises we won't train on user data. We need to:
-1. Verify AWS Bedrock's commitment to not training on customer prompts
-2. Document this in our architecture/privacy docs
-3. Ensure our Bedrock configuration enforces this
-
-## AWS Bedrock Data Handling
-
-Per [AWS Bedrock FAQ](https://aws.amazon.com/bedrock/faqs/):
-> "Your content is not used to train the base models underlying Amazon Bedrock."
-
-> "Amazon Bedrock does not store or log your prompts and completions."
-
-## Verification Needed
-
-- [ ] Confirm Bedrock model invocation doesn't enable training
-- [ ] Verify CloudWatch logging settings for Bedrock calls
-- [ ] Check if any Bedrock features opt into training (and avoid them)
-
-## Documentation Updates
-
-- [ ] Update `docs/0810-audit-privacy.md` with Bedrock verification
-- [ ] Add to privacy policy: "We use AWS Bedrock which does not train on your data"
-- [ ] Reference AWS commitment in `docs/0001-system-architecture.md`
-
-## Acceptance Criteria
-
-- [ ] AWS Bedrock TOS reviewed and documented
-- [ ] Privacy audit confirms no-training guarantee
-- [ ] Architecture docs updated with data flow privacy guarantees
-
-## References
-
-- [AWS Bedrock Privacy](https://aws.amazon.com/bedrock/faqs/#Security_and_Privacy)
-- Privacy Audit: `docs/0810-audit-privacy.md` §6 (AI/LLM Privacy)
-- [AWS Shared Responsibility Model](https://aws.amazon.com/compliance/shared-responsibility-model/)
 
 ---
 

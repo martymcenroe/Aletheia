@@ -1,6 +1,6 @@
 # Immediate Plan: MVP Path to Store Submission
 
-**Updated:** 2026-01-06 (by Claude Opus 4.5)
+**Updated:** 2026-01-07 (Cleanup: Full Mode)
 **Status:** Store Compliance (#51) → Submit
 
 ---
@@ -20,16 +20,15 @@
 | Test Infrastructure | ✅ Complete |
 | Age-restricted blocking | ✅ Complete |
 | Store assets | ✅ Complete |
+| LinkedIn OAuth | ✅ Complete (closed #116) |
+| DynamoDB TTL | ✅ Complete (closed #145) |
+| GDPR data erasure | ✅ Complete (closed #147) |
+| Lambda Latency | ✅ Resolved (closed #137) |
+| Museum Label UI | ✅ Complete (closed #125) |
 
 ---
 
 ## Critical Path to Store Submission
-
-### ✅ Completed Steps
-- Firefox Support (PR #138)
-- Test Infrastructure (PR #139)
-- Age-Restricted Blocking (PR #140)
-- Store Assets (PR #185)
 
 ### Step 1: Store Compliance (#51) ← CURRENT
 **LLD:** `docs/1051-store-compliance.md`
@@ -51,22 +50,14 @@ No open PRs. All feature work merged.
 
 ---
 
-## V2 Features (Post-MVP)
+## Post-Submission Features
 
-These are deferred until after Chrome Web Store submission:
+Remaining work after store submission:
 
-### ✅ Completed V2 Features
-- LinkedIn OAuth (#116) - auth gate for user identification
-- DynamoDB TTL (#145) - 30-day retention
-- GDPR data erasure (#147) - on-demand deletion endpoint
-- Lambda Latency (#137) - investigated and resolved
-- Museum Label UI (#125) - implemented
-
-### Remaining V2
-
-| Issue | Feature |
-|-------|---------|
-| #126 | Hard vs. Soft blocking |
+| Issue | Feature | Status |
+|-------|---------|--------|
+| #126 | Hard vs. Soft blocking | Open |
+| #162 | Transform layer (noarchive summarization) | In Progress (worktree exists) |
 
 ---
 

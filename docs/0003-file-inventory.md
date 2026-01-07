@@ -130,23 +130,24 @@
 | `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
 | `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
-| `docs/1104-age-restricted-blocking.md` | **Spec** | 🟠 **In-Progress** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
-| `docs/1105-test-site-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #105 | Scriptable test site infrastructure (GitHub Pages + Playwright). |
+| `docs/1104-age-restricted-blocking.md` | **Spec** | 🟢 **Stable** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
+| `docs/1105-test-site-infrastructure.md` | **Spec** | 🟢 **Stable** | #105 | Scriptable test site infrastructure (GitHub Pages + Playwright). |
 | `docs/1113-naked-python-architecture.md` | **Spec** | 🟢 **Stable** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
-| `docs/1116-linkedin-oauth.md` | **Spec** | 🟠 **In-Progress** | #116 | LinkedIn OAuth authentication for user gating. |
+| `docs/1116-linkedin-oauth.md` | **Spec** | 🟢 **Stable** | #116 | LinkedIn OAuth authentication for user gating. |
 | `docs/legacy/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
 | `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
 | `docs/1124-digital-etymologist.md` | **Spec** | 🟢 **Stable** | #124 | Digital Etymologist persona with structured JSON response. |
-| `docs/1125-museum-label-ui.md` | **Spec** | 🟠 **In-Progress** | #125 | Museum Label progressive disclosure UI. |
+| `docs/1125-museum-label-ui.md` | **Spec** | 🟢 **Stable** | #125 | Museum Label progressive disclosure UI. |
 | `docs/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
 | `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
 | `docs/1084-signal-inspector.md` | **Spec** | 🟢 **Stable** | #84 | Signal Inspector CLI for compliance auditing. |
 | `docs/1100-firefox-compatibility.md` | **Spec** | 🟢 **Stable** | #100 | Firefox MV2 compatibility. |
 | `docs/1102-repo-reorganization.md` | **Spec** | 🟠 **In-Progress** | #102 | Repository structure reorganization. |
 | `docs/1132-support-email-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #132 | Cloudflare email routing setup. |
-| `docs/1137-lambda-latency-investigation.md` | **Spec** | 🟠 **In-Progress** | #137 | Lambda 5-second latency investigation. |
-| `docs/1145-dynamodb-ttl.md` | **Spec** | 🟠 **In-Progress** | #145 | DynamoDB TTL for automatic data expiry. |
-| `docs/1147-gdpr-data-erasure.md` | **Spec** | 🟠 **In-Progress** | #147 | GDPR Article 17 data erasure process. |
+| `docs/1137-lambda-latency-investigation.md` | **Spec** | 🟢 **Stable** | #137 | Lambda 5-second latency investigation. |
+| `docs/1145-dynamodb-ttl.md` | **Spec** | 🟢 **Stable** | #145 | DynamoDB TTL for automatic data expiry. |
+| `docs/1147-gdpr-data-erasure.md` | **Spec** | 🟢 **Stable** | #147 | GDPR Article 17 data erasure process. |
+| `docs/1148-bedrock-no-training.md` | **Spec** | 🟢 **Stable** | #148 | Bedrock no-training compliance verification (compliance-as-code). |
 | `docs/1150-dynamodb-data-hygiene.md` | **Spec** | 🟠 **In-Progress** | #150 | AI-powered DynamoDB data cleanup tool. |
 | `docs/1153-smoke-test-fixture-fix.md` | **Spec** | 🟠 **In-Progress** | #153 | Fix pytest fixture errors in smoke_test.py. |
 | `docs/1154-aria-accessibility.md` | **Spec** | 🟠 **In-Progress** | #154 | ARIA attributes for screen reader accessibility. |
