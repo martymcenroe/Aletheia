@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-07 01:31 CT
-**Total Open Issues:** 19
+**Generated:** 2026-01-07 01:40 CT
+**Total Open Issues:** 20
 
 ---
 
@@ -877,5 +877,48 @@ Run on schedule (weekly) rather than every PR to avoid CI slowdown.
 - 0812 Performance Audit: `docs/0812-audit-performance.md`
 - 0899 Meta-Audit recommendation #1
 - Issue #156 (frontend latency optimization)
+
+---
+
+## Issue #189: Test suite gaps: missing test_build_release.py and orphan test_guardrails.py
+
+**Created:** 2026-01-07
+**Updated:** 2026-01-07
+
+### Description
+
+## Summary
+
+During the regression test suite audit (#189 task), the following gaps were identified:
+
+## Missing Tests
+
+### `test_build_release.py`
+- **Status:** MISSING
+- **Expected location:** `tests/tools/test_build_release.py`
+- **Context:** Mentioned in task requirements for consolidating tests. The `tools/build_release.py` script (Issue #53) has no automated tests.
+- **Recommendation:** Create unit tests for the build script covering:
+  - Icon verification
+  - Manifest parity check
+  - Version extraction
+  - Zip file generation
+
+## Orphan Tests
+
+### `test_guardrails.py`
+- **Status:** Present but not mentioned in any `docs/reports/*/test-report.md`
+- **Location:** `tests/unit/test_guardrails.py`
+- **Questions:**
+  - Which issue created this file?
+  - Should it be documented in a report?
+  - Is it still relevant or can it be merged into another test file?
+
+## Action Items
+
+- [ ] Create `tests/tools/test_build_release.py` for Issue #53
+- [ ] Investigate `test_guardrails.py` origin and document or consolidate
+
+---
+*Found during test suite reorganization audit*
 
 ---
