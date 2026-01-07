@@ -20,6 +20,8 @@ Comprehensive privacy audit covering data protection, user consent, data minimiz
 | Data Type | Collection Point | Storage | Retention | Status |
 |-----------|------------------|---------|-----------|--------|
 | Selected text | User selection | DynamoDB | TTL 30 days (#145) | ✅ |
+| domContext | User's page context | DynamoDB | TTL 30 days (#177) | ✅ |
+| AI Response | Bedrock etymology | DynamoDB | TTL 30 days (#178) | ✅ |
 | Analysis results | Bedrock response | In-memory only | Display duration | ✅ |
 | Preferences | Extension settings | localStorage | Until cleared | ✅ |
 | Rate limit state | Lambda | DynamoDB | TTL auto-expire | ✅ |
@@ -306,6 +308,7 @@ Our privacy policy states "We do not train AI on your data" - this is accurate b
 | 2026-01-04 | Claude Opus 4.5 | 1 Medium finding (DynamoDB TTL), see below | #145 |
 | 2026-01-05 | Claude Opus 4.5 | P1/P2 resolved: 30-day TTL implemented | #145 closed |
 | 2026-01-06 | Claude Opus 4.5 | GDPR Art. 17 erasure endpoint implemented | #147 closed |
+| 2026-01-06 | Claude Opus 4.5 | **PASS** - Tier 1 Store Compliance. Data Inventory updated for #177/#178 (domContext, AI Response). All fields have 30-day TTL. No PII in logs. | None |
 
 ### Audit Execution: 2026-01-04
 
