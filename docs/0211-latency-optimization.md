@@ -1,6 +1,6 @@
-# 0211 - Lambda Latency Optimization (DRAFT)
+# 0211 - Lambda Latency Optimization
 
-**Status:** Draft (Investigation complete, implementation pending)
+**Status:** Accepted (O1 implemented, O2 pending)
 **Issue:** #137
 **Date:** 2026-01-06
 
@@ -57,11 +57,11 @@ Considered caching semantic results for repeated terms, but rejected:
 
 ## Proposed Optimizations
 
-### O1: Share boto3 Client (RECOMMENDED)
+### O1: Share boto3 Client (IMPLEMENTED)
 
-**Current:** SemanticGuardrail creates its own bedrock-runtime client in `__init__`.
+**Problem:** SemanticGuardrail created its own bedrock-runtime client in `__init__`, duplicating the client created by `get_bedrock_client()`.
 
-**Change:** Inject shared client via dependency injection.
+**Solution:** Inject shared client via dependency injection.
 
 ```python
 # Before
@@ -71,7 +71,8 @@ semantic = SemanticGuardrail(region_name=AWS_REGION)
 semantic = SemanticGuardrail(bedrock_client=get_bedrock_client())
 ```
 
-**Savings:** ~774ms cold start
+**Expected savings:** ~774ms cold start (eliminates duplicate client initialization)
+**Actual:** Verified working - `semantic_init_ms` now includes shared client creation, etymology reuses it
 **Risk:** Low (simple refactor)
 **Effort:** Small
 
