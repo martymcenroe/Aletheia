@@ -34,9 +34,10 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Open PRs | ✅ | ✅ | ✅ |
 | Stash list | | ✅ | ✅ |
 | Regenerate 6000 | | ✅ | ✅ |
-| Worktree list | | | ✅ |
+| Worktree list | | ✅ | ✅ |
 | Lambda status | | | ✅ |
 | Inventory audit | | | ✅ |
+| **Plan staleness** | | | ✅ |
 
 ---
 
@@ -78,13 +79,13 @@ Run these commands simultaneously in a single message with multiple Bash tool ca
 - git -C /c/Users/mcwiz/Projects/Aletheia branch --list
 - gh pr list --state open --repo martymcenroe/Aletheia
 
-**Normal mode adds (6 parallel calls total):**
+**Normal mode adds (7 parallel calls total):**
 - git -C /c/Users/mcwiz/Projects/Aletheia stash list
 - git -C /c/Users/mcwiz/Projects/Aletheia fetch --prune
+- git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 - gh issue list --state open --repo martymcenroe/Aletheia
 
 **Full mode adds (10 parallel calls total):**
-- git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 - git -C /c/Users/mcwiz/Projects/Aletheia branch -vv
 - git -C /c/Users/mcwiz/Projects/Aletheia branch -r
 - /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
@@ -93,10 +94,14 @@ Run these commands simultaneously in a single message with multiple Bash tool ca
 
 **Analyze Phase 1 results:**
 
-1. **Branches** - Flag if any branch other than main exists:
-   - Report: "⚠️ UNEXPECTED: Branch {name} exists without worktree"
+1. **Branches vs Worktrees** - Cross-reference branch list against worktree list:
+   - Parse worktree output: each line shows `path  commit [branch-name]`
+   - For each branch OTHER than main, check if it appears in the worktree list
+   - If branch HAS a worktree: ✅ OK (active multi-agent work - do NOT flag)
+   - If branch has NO worktree: ⚠️ Report: "⚠️ ORPHAN: Branch {name} has no worktree"
+   - **CRITICAL:** Branches WITH worktrees are EXPECTED. Only flag truly orphaned branches.
 
-2. **Worktrees** (Full only) - Flag if stale worktrees exist:
+2. **Stale Worktrees** (Full only) - Flag if worktree path doesn't exist on disk:
    - Report and offer to remove with: git -C /c/Users/mcwiz/Projects/Aletheia worktree remove {path}
 
 3. **Lambda** (Full only) - If ON, turn off:
@@ -116,9 +121,24 @@ git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
 ```
 
 **Full mode only: Additional checks**
-- Inventory audit: Use Glob tool with patterns **/*.py, **/*.js, **/*.md, **/*.sh
-  Compare against docs/0003-file-inventory.md, flag drift
-- Check if docs/0000a-IMMEDIATE-PLAN.md needs updates based on closed issues
+
+1. **Inventory audit**: Use Glob tool with patterns **/*.py, **/*.js, **/*.md, **/*.sh
+   Compare against docs/0003-file-inventory.md, flag drift
+
+2. **IMMEDIATE-PLAN Staleness Check** (MANDATORY):
+   a. Extract issue references:
+      ```bash
+      grep -oE '#[0-9]+' /c/Users/mcwiz/Projects/Aletheia/docs/0000a-IMMEDIATE-PLAN.md
+      ```
+   b. For each unique issue number, check state:
+      ```bash
+      gh issue view NNN --repo martymcenroe/Aletheia --json state,title
+      ```
+   c. If any referenced issue is CLOSED:
+      - Report: `⚠️ STALE: Issue #NNN is CLOSED but still referenced in IMMEDIATE-PLAN`
+      - Read the full IMMEDIATE-PLAN
+      - Update to reflect current reality (mark complete, remove blocking constraints)
+      - Stage: `git -C /c/Users/mcwiz/Projects/Aletheia add docs/0000a-IMMEDIATE-PLAN.md`
 
 ## Phase 3: Session Log
 
