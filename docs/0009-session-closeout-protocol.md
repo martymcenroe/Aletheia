@@ -250,6 +250,7 @@ Report to human if any of these occur:
 | Lambda still ON after off command | `⚠️ UNEXPECTED: Lambda still ON` |
 | Uncommitted work in worktree | `⚠️ UNEXPECTED: Uncommitted changes` |
 | File not in inventory | `⚠️ DRIFT: File {path} not in 0003` |
+| Closed issue in IMMEDIATE-PLAN | `⚠️ STALE: Issue #N is CLOSED but referenced in IMMEDIATE-PLAN` |
 
 ---
 
