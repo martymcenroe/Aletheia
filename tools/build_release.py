@@ -14,6 +14,8 @@ Ref: docs/1053-store-assets.md
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 import json
+import shutil
+import subprocess
 import sys
 
 # Paths - Updated for separated extension directories (Issue #100)
@@ -96,6 +98,38 @@ def should_include(path: Path) -> bool:
     return not any(pattern in path.parts for pattern in EXCLUDE_PATTERNS)
 
 
+def run_firefox_lint() -> None:
+    """Run web-ext lint on Firefox extension. Raises RuntimeError on failure."""
+    # Check if npx is available
+    npx = shutil.which("npx")
+    if not npx:
+        print("  [SKIP] npx not found - skipping Firefox lint")
+        print("         Install Node.js to enable: npm install -g web-ext")
+        return
+
+    # Run web-ext lint
+    result = subprocess.run(
+        ["npx", "web-ext", "lint", "--source-dir", str(FIREFOX_DIR)],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+    )
+
+    if result.returncode != 0:
+        # Parse output for actual errors (not warnings)
+        # web-ext lint returns non-zero for warnings too, so check for ERROR
+        if "ERROR" in result.stdout or "error" in result.stderr.lower():
+            raise RuntimeError(
+                f"Firefox lint failed:\n{result.stdout}\n{result.stderr}"
+            )
+        # Warnings only - report but continue
+        if result.stdout.strip():
+            print(f"  [WARN] Firefox lint warnings:\n{result.stdout}")
+        print("  [OK] Firefox lint passed (warnings only)")
+    else:
+        print("  [OK] Firefox lint passed")
+
+
 def build_zip(source_dir: Path, output: Path, browser: str) -> None:
     """Create a zip archive from a source directory.
 
@@ -136,24 +170,28 @@ def main() -> int:
         print("\nStep 2: Validating manifest parity...")
         validate_parity()
 
-        # Step 3: Extract version from Chrome manifest (source of truth)
-        print("\nStep 3: Reading version...")
+        # Step 3: Run Firefox linter (Issue #193, #194 compliance)
+        print("\nStep 3: Running Firefox linter...")
+        run_firefox_lint()
+
+        # Step 4: Extract version from Chrome manifest (source of truth)
+        print("\nStep 4: Reading version...")
         chrome_manifest = load_manifest(CHROME_DIR / "manifest.json")
         version = chrome_manifest["version"]
         print(f"  [OK] Version: {version}")
 
-        # Step 4: Create dist directory
-        print("\nStep 4: Creating dist directory...")
+        # Step 5: Create dist directory
+        print("\nStep 5: Creating dist directory...")
         DIST_DIR.mkdir(exist_ok=True)
         print(f"  [OK] {DIST_DIR}")
 
-        # Step 5: Build Chrome zip
-        print("\nStep 5: Building Chrome artifact...")
+        # Step 6: Build Chrome zip
+        print("\nStep 6: Building Chrome artifact...")
         chrome_zip = DIST_DIR / f"aletheia-chrome-v{version}.zip"
         build_zip(CHROME_DIR, chrome_zip, "Chrome")
 
-        # Step 6: Build Firefox zip
-        print("\nStep 6: Building Firefox artifact...")
+        # Step 7: Build Firefox zip
+        print("\nStep 7: Building Firefox artifact...")
         firefox_zip = DIST_DIR / f"aletheia-firefox-v{version}.zip"
         build_zip(FIREFOX_DIR, firefox_zip, "Firefox")
 
@@ -174,6 +212,9 @@ def main() -> int:
         print(f"\nERROR: {e}", file=sys.stderr)
         return 1
     except ValueError as e:
+        print(f"\nERROR: {e}", file=sys.stderr)
+        return 1
+    except RuntimeError as e:
         print(f"\nERROR: {e}", file=sys.stderr)
         return 1
     except json.JSONDecodeError as e:

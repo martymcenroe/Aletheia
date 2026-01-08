@@ -192,8 +192,7 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * `0102-TEMPLATE-feature-lld.md` — Low-Level Design doc template.
     * `0103-TEMPLATE-implementation-report.md` — Post-implementation report template.
     * `0104-TEMPLATE-adr.md` — Architecture Decision Record template.
-    * `0108-lld-pre-implementation-review.md` — LLD review procedure.
-    * `0109-gemini-lld-review-procedure.md` — Gemini-specific LLD review.
+    * `0108-lld-pre-implementation-review.md` — LLD review checklist.
     * `0111-TEMPLATE-test-script.md` — Generic manual test procedure.
     * `0112-TEMPLATE-browser-extension-test-script.md` — Browser extension test script.
     * `0113-TEMPLATE-test-report.md` — Test results documentation.
@@ -203,6 +202,10 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * Records significant architecture decisions following Michael Nygard's format.
     * Status: Proposed → Implemented → Deprecated → Superseded.
     * Every ADR requires a Security Risk Analysis section.
+* **`06xx` (Skills):** Skill instructions for agents.
+    * `0600-skill-instructions-index.md` — Index of all skill instructions.
+    * `0601-skill-gemini-lld-review.md` — Gemini LLD review procedure with priority tiers.
+    * Skills are prompts/procedures agents execute verbatim (unlike templates which are filled in).
 * **`08xx` (Audits):** Verification and compliance procedures.
     * `0800-common-audits.md` — Index of all audit procedures.
     * `0801-open-issues-audit.md` — GitHub issues currency check.

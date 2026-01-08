@@ -66,7 +66,6 @@
 | `docs/0103-TEMPLATE-implementation-report.md` | **Template** | 🟢 **Stable** | #77 | Implementation report template for completed features. |
 | `docs/0104-TEMPLATE-adr.md` | **Template** | 🟢 **Stable** | #111 | Architecture Decision Record template. |
 | `docs/0108-lld-pre-implementation-review.md` | **Protocol** | 🟢 **Stable** | - | LLD pre-implementation review checklist. |
-| `docs/0109-gemini-lld-review-procedure.md` | **Protocol** | 🟢 **Stable** | - | Gemini LLD review prompt and procedure. |
 | `docs/0111-TEMPLATE-test-script.md` | **Template** | 🟢 **Stable** | - | Manual test script template (generic). |
 | `docs/0112-TEMPLATE-browser-extension-test-script.md` | **Template** | 🟢 **Stable** | #77 | Browser extension test script template for non-technical users. |
 | `docs/0113-TEMPLATE-test-report.md` | **Template** | 🟢 **Stable** | - | Test report template for recording test execution results. |
@@ -86,6 +85,13 @@
 | `docs/0209-ADR-static-compliance-hosting.md` | **ADR** | 🟢 **Stable** | - | Decision: GitHub Pages for legal docs. |
 | `docs/0210-ADR-git-worktree-isolation.md` | **ADR** | 🟢 **Stable** | - | Decision: Worktrees for feature isolation. |
 | `docs/0211-ADR-naked-python-architecture.md` | **ADR** | 🟢 **Stable** | #113 | Decision: Remove LangGraph, use boto3 directly. |
+| `docs/0212-ADR-unified-v3-secure-dom.md` | **ADR** | 🟢 **Stable** | #193, #194 | Decision: Manifest V3 + DOM methods for security. |
+
+### 06xx Skill Instructions
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/0600-skill-instructions-index.md` | **Index** | 🟢 **Stable** | - | Index of all skill instructions. |
+| `docs/0601-skill-gemini-lld-review.md` | **Skill** | 🟢 **Stable** | - | Gemini LLD review procedure with priority tiers. |
 
 ### 08xx Audit Procedures (Numbered by Execution Order)
 | File | Role | Status | Linked Issue | Description |
