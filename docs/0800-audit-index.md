@@ -37,10 +37,10 @@ Audits exist because:
 
 | Category | Count | Focus |
 |----------|-------|-------|
-| Core Development | 10 | Code quality, security, privacy |
+| Core Development | 11 | Code quality, security, privacy, accessibility |
 | AI Governance | 6 | AI-specific controls and compliance |
 | Meta | 2 | Audit system governance |
-| **Total** | **18** | |
+| **Total** | **19** | |
 
 ### 3.2 Quick Reference
 
@@ -50,10 +50,11 @@ Audits exist because:
 | 0824 | Permission friction analysis (find missing allows) |
 | 0809 | Security (OWASP, ASVS, prompt injection) |
 | 0810 | Privacy (GDPR-aware, data handling) |
-| 0811 | Linting (ruff, eslint) |
-| 0812 | Type checking (mypy) |
-| 0813 | Test coverage |
-| 0814 | Pyright strict mode |
+| 0811 | Accessibility |
+| 0812 | Performance |
+| 0813 | Code Quality |
+| 0814 | License Compliance |
+| 0817 | Wiki Alignment |
 | 0815 | Claude Code workflow compliance |
 | 0816 | Dependabot PR management |
 | 0818 | AI Management System (ISO 42001) |
@@ -79,10 +80,11 @@ Audits for code quality, security, and development practices.
 | 0824 | Permission Friction | On friction | Manual (/friction) |
 | 0809 | Security | Quarterly | Manual |
 | 0810 | Privacy | Quarterly | Manual |
-| 0811 | Linting | Per PR | CI |
-| 0812 | Type Checking | Per PR | CI |
-| 0813 | Test Coverage | Per PR | CI |
-| 0814 | Pyright | Per PR | CI |
+| 0811 | Accessibility | As needed | Manual |
+| 0812 | Performance | Quarterly | Manual |
+| 0813 | Code Quality | Per PR | CI |
+| 0814 | License Compliance | Quarterly | Manual |
+| 0817 | Wiki Alignment | On user-facing changes | Manual |
 | 0815 | Claude Code Workflow | Monthly | Manual |
 | 0816 | Dependabot PRs | Weekly | Semi-auto |
 
@@ -116,10 +118,11 @@ Audits that govern the audit system itself.
 
 | Frequency | Audits |
 |-----------|--------|
-| **Per PR** | 0811, 0812, 0813, 0814 |
+| **Per PR** | 0813 |
+| **As needed** | 0811, 0817 |
 | **Weekly** | 0816 |
 | **Monthly** | 0815, 0821 |
-| **Quarterly** | 0809, 0810, 0818, 0819, 0820, 0822, 0898, 0899 |
+| **Quarterly** | 0809, 0810, 0812, 0814, 0818, 0819, 0820, 0822, 0898, 0899 |
 | **On Event** | 0808 (policy), 0824 (friction analysis), 0823 (incident) |
 
 ### 5.2 Calendar View
@@ -182,7 +185,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 ### 7.2 Run Order (when running multiple)
 
-1. CI audits first (0811-0814)
+1. Code quality audit first (0813)
 2. Dependency audit (0816)
 3. Security/Privacy (0809, 0810)
 4. AI Governance (0818-0822)
@@ -198,7 +201,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 | Role | Audits Owned |
 |------|--------------|
 | **Developer** | All (solo project) |
-| **CI/CD** | 0811, 0812, 0813, 0814 |
+| **CI/CD** | 0813 |
 | **Dependabot** | 0816 (triggers) |
 
 ### 8.2 Accountability
@@ -219,11 +222,12 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 - [0824 - Permission Friction](0824-audit-permission-friction.md)
 - [0809 - Security](0809-audit-security.md)
 - [0810 - Privacy](0810-audit-privacy.md)
-- [0811 - Linting](0811-audit-linting.md)
-- [0812 - Type Checking](0812-audit-type-checking.md)
-- [0813 - Test Coverage](0813-audit-test-coverage.md)
-- [0814 - Pyright](0814-audit-pyright.md)
-- [0815 - Claude Code Workflow](0815-audit-claude-code-workflow.md)
+- [0811 - Accessibility](0811-audit-accessibility.md)
+- [0812 - Performance](0812-audit-performance.md)
+- [0813 - Code Quality](0813-audit-code-quality.md)
+- [0814 - License Compliance](0814-audit-license-compliance.md)
+- [0817 - Wiki Alignment](0817-audit-wiki-alignment.md)
+- [0815 - Claude Code Capabilities](0815-audit-claude-capabilities.md)
 - [0816 - Dependabot PRs](0816-audit-dependabot-prs.md)
 - [0818 - AI Management System](0818-audit-ai-management-system.md)
 - [0819 - AI Supply Chain](0819-audit-ai-supply-chain.md)
@@ -240,7 +244,11 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 |-------|-----------------|
 | Agent behavior | 0808, 0824, 0815, 0821 |
 | AI safety | 0809, 0818, 0821, 0822 |
-| Code quality | 0811, 0812, 0813, 0814 |
+| Accessibility | 0811 |
+| Code quality | 0813 |
+| Performance | 0812 |
+| License | 0814 |
+| Wiki/Docs | 0817 |
 | Compliance | 0818, 0820, 0898 |
 | Dependencies | 0816, 0819 |
 | Incidents | 0823 |
@@ -255,7 +263,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 1. Read this index to understand the audit landscape
 2. Review 0815 for Claude Code workflow rules
-3. CI audits (0811-0814) run automatically on PRs
+3. Code quality audit (0813) runs automatically on PRs
 4. Security (0809) and Privacy (0810) are the most comprehensive
 
 ### 10.2 For Audit Execution
@@ -279,4 +287,5 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 | Date | Change |
 |------|--------|
+| 2026-01-08 | Index consistency audit. Fixed broken links (0811-0814, 0815, 0817). Corrected audit names/descriptions to match actual files. Added 0817 Wiki Alignment. Total audits: 19. |
 | 2026-01-06 | Major update. Added AI Governance audits (0818-0823), split meta-audit into 0898 (horizon scanning) and 0899 (validation). Merged 0800-common-audits.md into this file (preserved Audit Philosophy section). Total audits: 17. |

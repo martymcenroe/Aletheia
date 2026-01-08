@@ -36,6 +36,7 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Regenerate 6000 | | ✅ | ✅ |
 | Worktree list | | ✅ | ✅ |
 | Inventory audit | | | ✅ |
+| **Index consistency** | | | ✅ |
 | **Plan staleness** | | | ✅ |
 
 ---
@@ -120,7 +121,32 @@ git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
 1. **Inventory audit**: Use Glob tool with patterns **/*.py, **/*.js, **/*.md, **/*.sh
    Compare against docs/0003-file-inventory.md, flag drift
 
-2. **IMMEDIATE-PLAN Staleness Check** (MANDATORY):
+2. **Index Consistency Check** (MANDATORY):
+   a. ADR Index - List actual ADR files:
+      ```bash
+      ls /c/Users/mcwiz/Projects/Aletheia/docs/02*-ADR-*.md
+      ```
+      Compare against entries in `docs/0200-ADR-index.md`. Flag missing/orphaned.
+
+   b. Audit Index - List actual audit files:
+      ```bash
+      ls /c/Users/mcwiz/Projects/Aletheia/docs/08*-audit-*.md
+      ```
+      Compare against entries in `docs/0800-audit-index.md` §9.1. Flag missing/orphaned.
+
+   c. Template Registry - List templates:
+      ```bash
+      ls /c/Users/mcwiz/Projects/Aletheia/docs/01*-TEMPLATE-*.md
+      ```
+      Verify all referenced in `docs/0100-TEMPLATE-GUIDE.md`.
+
+   d. If drift found, update index files and stage:
+      ```bash
+      git -C /c/Users/mcwiz/Projects/Aletheia add docs/0200-ADR-index.md
+      git -C /c/Users/mcwiz/Projects/Aletheia add docs/0800-audit-index.md
+      ```
+
+3. **IMMEDIATE-PLAN Staleness Check** (MANDATORY):
    a. Extract issue references:
       ```bash
       grep -oE '#[0-9]+' /c/Users/mcwiz/Projects/Aletheia/docs/0000a-IMMEDIATE-PLAN.md

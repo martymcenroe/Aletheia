@@ -26,6 +26,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 | [0208](0208-ADR-client-side-preference-storage.md) | Client-Side Preference Storage | Implemented | Privacy, UX, Data | 2025-12-29 |
 | [0209](0209-ADR-static-compliance-hosting.md) | Static Compliance Hosting | Implemented | Compliance, Cost, Infra | 2025-12-29 |
 | [0210](0210-ADR-git-worktree-isolation.md) | Git Worktree Isolation | Implemented | Process, Infra, UX | 2025-12-29 |
+| [0211](0211-ADR-naked-python-architecture.md) | Naked Python Architecture | Implemented | Architecture, Performance | 2026-01-05 |
 | [0212](0212-ADR-unified-v3-secure-dom.md) | Unified Manifest V3 & Secure DOM | Accepted | Security, Architecture | 2026-01-08 |
 
 ---
@@ -74,6 +75,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 ### Performance
 - [0204](0204-ADR-defense-funnel.md)
 - [0206](0206-ADR-streaming-sse.md)
+- [0211](0211-ADR-naked-python-architecture.md)
 
 ### UX
 - [0201](0201-ADR-privacy-first-permissions.md)
@@ -83,6 +85,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 - [0210](0210-ADR-git-worktree-isolation.md)
 
 ### Architecture
+- [0211](0211-ADR-naked-python-architecture.md)
 - [0212](0212-ADR-unified-v3-secure-dom.md)
 
 ---

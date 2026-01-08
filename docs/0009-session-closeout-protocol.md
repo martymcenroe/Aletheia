@@ -178,8 +178,9 @@ gh issue list --state open --repo martymcenroe/Aletheia
 3. **Stash Check** - Document any stash entries
 4. **Doc Sync** - Regenerate 6000-open-issues.md
 5. **Inventory Audit** - Glob check against 0003-file-inventory.md
-6. **Plan Check** - Validate IMMEDIATE-PLAN issue references (see § IMMEDIATE-PLAN Staleness Detection)
-7. **Wiki Check** - If user-facing changes, check wiki alignment (0817)
+6. **Index Consistency Check** - Verify index files match reality (see § Index Consistency Verification)
+7. **Plan Check** - Validate IMMEDIATE-PLAN issue references (see § IMMEDIATE-PLAN Staleness Detection)
+8. **Wiki Check** - If user-facing changes, check wiki alignment (0817)
 
 **Phase 3 - Session Log:**
 ```bash
@@ -307,6 +308,76 @@ When stale references are found:
 ```markdown
 | #116 | LinkedIn OAuth (auth gate) | ✅ COMPLETE (PR #XXX) |
 | #147 | GDPR data erasure | **HIGH** - auth gate complete, ready to implement |
+```
+
+---
+
+## Index Consistency Verification
+
+**Problem:** Index files (`0003`, `0200`, `0800`) can drift from reality when files are added/removed without updating the corresponding index.
+
+**Trigger:** Full mode cleanup.
+
+### Index Files to Verify
+
+| Index | Purpose | Verification |
+|-------|---------|--------------|
+| `0003-file-inventory.md` | All project files | Compare against `git ls-files` |
+| `0200-ADR-index.md` | ADR registry | Compare against `docs/02*-ADR-*.md` glob |
+| `0800-audit-index.md` | Audit registry | Compare against `docs/08*-audit-*.md` glob |
+
+### Verification Procedure
+
+**Step 1: ADR Index Check**
+
+```bash
+# List actual ADR files (excluding index)
+ls /c/Users/mcwiz/Projects/Aletheia/docs/02*-ADR-*.md
+```
+
+Compare output against entries in `0200-ADR-index.md`. Flag:
+- ADR files not in index
+- Index entries pointing to non-existent files
+
+**Step 2: Audit Index Check**
+
+```bash
+# List actual audit files (excluding index)
+ls /c/Users/mcwiz/Projects/Aletheia/docs/08*-audit-*.md
+```
+
+Compare output against entries in `0800-audit-index.md` §9.1. Flag:
+- Audit files not in index
+- Index entries pointing to non-existent files
+
+**Step 3: Template Registry Check**
+
+```bash
+# List template files
+ls /c/Users/mcwiz/Projects/Aletheia/docs/01*-TEMPLATE-*.md
+```
+
+Verify all templates are referenced in `0100-TEMPLATE-GUIDE.md`.
+
+### Remediation
+
+| Condition | Action |
+|-----------|--------|
+| File exists, not in index | Add entry to index |
+| Index entry, file missing | Remove from index OR locate moved file |
+| Numbering gap | Note in drift report (gaps are OK) |
+
+### Example Output
+
+```
+⚠️ INDEX DRIFT DETECTED:
+
+ADR Index (0200):
+  - MISSING: 0212-ADR-unified-v3-secure-dom.md not in index table
+  - OK: 10 files, 10 entries
+
+Audit Index (0800):
+  - OK: 17 files, 17 entries
 ```
 
 ---

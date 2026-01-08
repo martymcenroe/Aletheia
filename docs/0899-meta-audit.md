@@ -229,6 +229,37 @@ Topics that should be audited but aren't covered:
 
 *(Detailed gap discovery is in 0898 Horizon Scanning)*
 
+### 8.3 Index File Consistency
+
+Registry/index files must stay synchronized with actual files.
+
+| Index File | Indexes | Verification Method |
+|------------|---------|---------------------|
+| `0003-file-inventory.md` | All project files | `git ls-files` comparison |
+| `0200-ADR-index.md` | ADR documents | Glob `docs/02*-ADR-*.md` |
+| `0800-audit-index.md` | Audit documents | Glob `docs/08*-audit-*.md` |
+| `0100-TEMPLATE-GUIDE.md` | Template files | Glob `docs/01*-TEMPLATE-*.md` |
+
+**Verification Procedure:**
+
+1. **List actual files** using glob patterns
+2. **Extract index entries** from each index file
+3. **Compare** - flag files not in index, index entries without files
+4. **Update indexes** to restore consistency
+
+**Drift Indicators:**
+
+| Finding | Severity | Action |
+|---------|----------|--------|
+| File exists, not in index | Medium | Add to index |
+| Index entry, file missing | High | Remove entry or locate file |
+| "Next available number" stale | Low | Update to current |
+
+**When to Check:**
+- Full mode cleanup (routine)
+- After any ADR/audit creation
+- Quarterly meta-audit (comprehensive)
+
 ---
 
 ## 9. Audit Automation Status
