@@ -1,21 +1,30 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Aletheia",
   "version": "1.0",
   "description": "AI-Powered Context Analysis",
   "permissions": [
     "activeTab",
     "tabs",
+    "scripting",
     "contextMenus",
     "storage"
   ],
+  "host_permissions": [],
   "background": {
     "scripts": ["service-worker.js"]
   },
   "browser_specific_settings": {
     "gecko": {
       "id": "extension@aletheia.study",
-      "strict_min_version": "57.0"
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent", "personallyIdentifyingInfo"],
+        "optional": []
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "120.0"
     }
   },
   "icons": {
@@ -24,7 +33,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "browser_action": {
+  "action": {
     "default_title": "Aletheia",
     "default_popup": "popup.html",
     "default_icon": {

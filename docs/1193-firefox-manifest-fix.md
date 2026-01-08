@@ -3,7 +3,7 @@
 ## 1. Context & Goal
 * **Issue:** #193
 * **Objective:** Add required `data_collection_permissions` and `gecko_android` settings to pass Mozilla Linter
-* **Status:** Draft
+* **Status:** Complete
 * **Related Issues:** #51 (Store Compliance)
 
 ### Open Questions

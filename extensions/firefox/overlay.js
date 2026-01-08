@@ -1,6 +1,7 @@
 // extensions/chrome/overlay.js
 // Museum Label UI - Progressive Disclosure (Issue #125)
 // See: docs/1125-museum-label-ui.md
+// Refactored: Issue #194 - Replaced innerHTML with DOM methods for XSS safety
 
 // =============================================================================
 // CONSTANTS
@@ -251,6 +252,47 @@ const OVERLAY_STYLES = `
 `;
 
 // =============================================================================
+// DOM HELPER FUNCTIONS (Issue #194 - XSS-safe element creation)
+// =============================================================================
+
+/**
+ * Create an element with attributes.
+ * @param {string} tag - Element tag name
+ * @param {Object} attrs - Attributes to set (className, id, role, aria-*, style, etc.)
+ * @param {string} [textContent] - Optional text content (safe - uses textContent)
+ * @returns {HTMLElement}
+ */
+function createElement(tag, attrs = {}, textContent = null) {
+    const el = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs)) {
+        if (key === 'className') {
+            el.className = value;
+        } else if (key === 'style' && typeof value === 'object') {
+            Object.assign(el.style, value);
+        } else if (key.startsWith('data-')) {
+            el.dataset[key.slice(5)] = value;
+        } else {
+            el.setAttribute(key, value);
+        }
+    }
+    if (textContent !== null) {
+        el.textContent = textContent;
+    }
+    return el;
+}
+
+/**
+ * Create a style element with CSS text.
+ * @param {string} cssText - CSS content
+ * @returns {HTMLStyleElement}
+ */
+function createStyleElement(cssText) {
+    const style = document.createElement('style');
+    style.textContent = cssText;
+    return style;
+}
+
+// =============================================================================
 // TYPEWRITER ANIMATION
 // =============================================================================
 
@@ -414,6 +456,7 @@ function updateAriaExpanded(element, expanded) {
 
 /**
  * Show loading state overlay.
+ * Refactored: Issue #194 - Uses DOM methods instead of innerHTML
  */
 function showLoadingOverlay() {
     removeOverlay();
@@ -425,24 +468,34 @@ function showLoadingOverlay() {
     host.id = 'aletheia-overlay-host';
     const shadow = host.attachShadow({ mode: 'open' });
 
-    shadow.innerHTML = `
-        <style>${OVERLAY_STYLES}</style>
-        <div class="aletheia-card ${pos.position}"
-             style="top: ${pos.top}px; left: ${pos.left}px;"
-             role="status"
-             aria-label="Aletheia loading">
-            <div class="aletheia-loading">
-                <div class="aletheia-spinner"></div>
-                <span>Analyzing...</span>
-            </div>
-        </div>
-    `;
+    // Style element (safe - static CSS)
+    shadow.appendChild(createStyleElement(OVERLAY_STYLES));
+
+    // Card container
+    const card = createElement('div', {
+        className: `aletheia-card ${pos.position}`,
+        role: 'status',
+        'aria-label': 'Aletheia loading'
+    });
+    card.style.top = `${pos.top}px`;
+    card.style.left = `${pos.left}px`;
+
+    // Loading content
+    const loading = createElement('div', { className: 'aletheia-loading' });
+    const spinner = createElement('div', { className: 'aletheia-spinner' });
+    const text = createElement('span', {}, 'Analyzing...');
+
+    loading.appendChild(spinner);
+    loading.appendChild(text);
+    card.appendChild(loading);
+    shadow.appendChild(card);
 
     document.body.appendChild(host);
 }
 
 /**
  * Show result overlay with Museum Label UI.
+ * Refactored: Issue #194 - Uses DOM methods instead of innerHTML
  */
 function showResultOverlay(response, httpStatus = 200) {
     removeOverlay();
@@ -463,66 +516,92 @@ function showResultOverlay(response, httpStatus = 200) {
     host.id = 'aletheia-overlay-host';
     const shadow = host.attachShadow({ mode: 'open' });
 
-    // Build HTML structure
+    // Style element (safe - static CSS)
+    shadow.appendChild(createStyleElement(OVERLAY_STYLES));
+
+    // Extract data (will be set via textContent for XSS safety)
     const signal = response?.signal || 'Analysis';
     const gem = response?.gem || '';
     const blockedReason = response?.blocked || 'Content blocked by safety filter';
 
+    // Card container
     const cardClass = `aletheia-card ${pos.position}${hardBlock ? ' hard-block' : ''}`;
+    const card = createElement('div', {
+        className: cardClass,
+        role: 'dialog',
+        'aria-label': 'Aletheia word context'
+    });
+    card.style.top = `${pos.top}px`;
+    card.style.left = `${pos.left}px`;
 
-    let bodyContent;
+    // Header
+    const header = createElement('div', { className: 'aletheia-header' });
+
+    const badge = createElement('span', { className: `aletheia-badge ${badgeType}` }, badgeIcon);
+    const signalEl = createElement('span', { className: 'aletheia-signal' });
+    // XSS-safe: signal text set via textContent
+    signalEl.textContent = signal;
+
+    const closeBtn = createElement('button', {
+        className: 'aletheia-close',
+        'aria-label': 'Close',
+        tabindex: '0'
+    }, '×');
+
+    header.appendChild(badge);
+    header.appendChild(signalEl);
+    header.appendChild(closeBtn);
+    card.appendChild(header);
+
+    // Body content
     if (hardBlock) {
-        bodyContent = `
-            <div class="aletheia-blocked-message"></div>
-        `;
+        const blockedEl = createElement('div', { className: 'aletheia-blocked-message' });
+        // XSS-safe: blocked reason set via textContent
+        blockedEl.textContent = blockedReason;
+        card.appendChild(blockedEl);
     } else {
-        bodyContent = `
-            <div class="aletheia-gem" aria-expanded="false"></div>
-            <div class="aletheia-context" aria-expanded="false"></div>
-            <button class="aletheia-toggle" tabindex="0">Show More</button>
-        `;
+        // Gem section
+        const gemEl = createElement('div', {
+            className: 'aletheia-gem',
+            id: 'aletheia-gem-section',
+            role: 'region',
+            'aria-label': 'Quick summary'
+        });
+        // XSS-safe: gem text set via textContent
+        gemEl.textContent = gem;
+
+        // Context section
+        const contextEl = createElement('div', {
+            className: 'aletheia-context',
+            id: 'aletheia-context-section',
+            role: 'region',
+            'aria-label': 'Full context'
+        });
+
+        // Toggle button
+        const toggleBtn = createElement('button', {
+            className: 'aletheia-toggle',
+            tabindex: '0',
+            'aria-expanded': 'false',
+            'aria-controls': 'aletheia-gem-section aletheia-context-section'
+        }, 'Show More');
+
+        card.appendChild(gemEl);
+        card.appendChild(contextEl);
+        card.appendChild(toggleBtn);
     }
 
-    shadow.innerHTML = `
-        <style>${OVERLAY_STYLES}</style>
-        <div class="${cardClass}"
-             style="top: ${pos.top}px; left: ${pos.left}px;"
-             role="dialog"
-             aria-label="Aletheia word context">
-            <div class="aletheia-header">
-                <span class="aletheia-badge ${badgeType}">${badgeIcon}</span>
-                <span class="aletheia-signal"></span>
-                <button class="aletheia-close" aria-label="Close" tabindex="0">×</button>
-            </div>
-            ${bodyContent}
-        </div>
-    `;
-
-    // Set text content safely (XSS prevention)
-    const signalEl = shadow.querySelector('.aletheia-signal');
-    if (signalEl) signalEl.textContent = signal;
-
-    if (hardBlock) {
-        const blockedEl = shadow.querySelector('.aletheia-blocked-message');
-        if (blockedEl) blockedEl.textContent = blockedReason;
-    } else {
-        const gemEl = shadow.querySelector('.aletheia-gem');
-        if (gemEl) gemEl.textContent = gem;
-    }
+    shadow.appendChild(card);
 
     // Attach event listeners
-    const closeBtn = shadow.querySelector('.aletheia-close');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', handleCloseClick);
-    }
+    closeBtn.addEventListener('click', handleCloseClick);
 
     if (!hardBlock) {
-        const card = shadow.querySelector('.aletheia-card');
-        const toggleBtn = shadow.querySelector('.aletheia-toggle');
         const gemEl = shadow.querySelector('.aletheia-gem');
+        const toggleBtn = shadow.querySelector('.aletheia-toggle');
 
         // Hover behavior for gem
-        if (card && gemEl) {
+        if (gemEl) {
             card.addEventListener('mouseenter', () => handleMouseEnter(shadow));
             card.addEventListener('mouseleave', () => handleMouseLeave(shadow));
         }
@@ -539,9 +618,7 @@ function showResultOverlay(response, httpStatus = 200) {
     document.body.appendChild(host);
 
     // Focus close button for accessibility
-    if (closeBtn) {
-        closeBtn.focus();
-    }
+    closeBtn.focus();
 }
 
 // =============================================================================
@@ -560,7 +637,6 @@ function handleMouseEnter(shadow) {
     const gemEl = shadow.querySelector('.aletheia-gem');
     if (gemEl) {
         gemEl.classList.add('visible');
-        updateAriaExpanded(gemEl, true);
     }
     currentOverlayState = OverlayState.HOVER;
 }
@@ -572,7 +648,6 @@ function handleMouseLeave(shadow) {
     const gemEl = shadow.querySelector('.aletheia-gem');
     if (gemEl) {
         gemEl.classList.remove('visible');
-        updateAriaExpanded(gemEl, false);
     }
     currentOverlayState = OverlayState.GLANCE;
 }
@@ -589,31 +664,29 @@ function handleToggleClick(shadow) {
         stopTypewriter();
         if (contextEl) {
             contextEl.classList.remove('expanded');
-            updateAriaExpanded(contextEl, false);
         }
         if (gemEl) {
             gemEl.classList.remove('visible');
-            updateAriaExpanded(gemEl, false);
         }
         if (toggleBtn) {
             toggleBtn.textContent = 'Show More';
+            updateAriaExpanded(toggleBtn, false);
         }
         currentOverlayState = OverlayState.GLANCE;
     } else {
         // Expand
         if (gemEl) {
             gemEl.classList.add('visible');
-            updateAriaExpanded(gemEl, true);
         }
         if (contextEl) {
             contextEl.classList.add('expanded');
-            updateAriaExpanded(contextEl, true);
             // Start typewriter animation
             const contextText = overlayData?.context || '';
             typewriterRender(contextEl, contextText);
         }
         if (toggleBtn) {
             toggleBtn.textContent = 'Show Less';
+            updateAriaExpanded(toggleBtn, true);
         }
         currentOverlayState = OverlayState.EXPANDED;
     }
@@ -627,6 +700,7 @@ function handleKeydown(event) {
 
 // =============================================================================
 // LEGACY API COMPATIBILITY
+// Refactored: Issue #194 - Uses DOM methods instead of innerHTML
 // =============================================================================
 
 // Keep legacy API for backwards compatibility during transition
@@ -649,44 +723,54 @@ if (!window.showAletheiaOverlay) {
         };
         const borderColor = colors[type] || colors['warning'];
 
-        shadow.innerHTML = `
-            <style>
-                .overlay {
-                    position: absolute;
-                    background: #1F2937;
-                    color: #F9FAFB;
-                    padding: 8px 12px;
-                    border-radius: 6px;
-                    font-family: system-ui, sans-serif;
-                    font-size: 13px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                    z-index: ${OVERLAY_Z_INDEX};
-                    border-left: 3px solid ${borderColor};
-                    white-space: nowrap;
-                    pointer-events: none;
-                }
-                .overlay::after {
-                    content: '';
-                    position: absolute;
-                    border-style: solid;
-                }
-                .overlay.below::after {
-                    bottom: 100%;
-                    left: 20px;
-                    border-width: 0 6px 6px 6px;
-                    border-color: transparent transparent #1F2937 transparent;
-                }
-                .overlay.above::after {
-                    top: 100%;
-                    left: 20px;
-                    border-width: 6px 6px 0 6px;
-                    border-color: #1F2937 transparent transparent transparent;
-                }
-            </style>
-            <div class="overlay ${pos.position}" style="top:${pos.top}px; left:${pos.left}px"></div>
+        // Legacy overlay styles (inline for this simple overlay)
+        const legacyStyles = `
+            .overlay {
+                position: absolute;
+                background: #1F2937;
+                color: #F9FAFB;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-family: system-ui, sans-serif;
+                font-size: 13px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: ${OVERLAY_Z_INDEX};
+                border-left: 3px solid ${borderColor};
+                white-space: nowrap;
+                pointer-events: none;
+            }
+            .overlay::after {
+                content: '';
+                position: absolute;
+                border-style: solid;
+            }
+            .overlay.below::after {
+                bottom: 100%;
+                left: 20px;
+                border-width: 0 6px 6px 6px;
+                border-color: transparent transparent #1F2937 transparent;
+            }
+            .overlay.above::after {
+                top: 100%;
+                left: 20px;
+                border-width: 6px 6px 0 6px;
+                border-color: #1F2937 transparent transparent transparent;
+            }
         `;
-        shadow.querySelector('.overlay').textContent = message;
 
+        // Style element (safe - static CSS with interpolated color)
+        shadow.appendChild(createStyleElement(legacyStyles));
+
+        // Overlay div
+        const overlay = createElement('div', {
+            className: `overlay ${pos.position}`
+        });
+        overlay.style.top = `${pos.top}px`;
+        overlay.style.left = `${pos.left}px`;
+        // XSS-safe: message set via textContent
+        overlay.textContent = message;
+
+        shadow.appendChild(overlay);
         document.body.appendChild(host);
 
         host._dismissTimer = setTimeout(() => {
@@ -716,6 +800,7 @@ if (!window.updateAletheiaOverlay) {
 
         const overlay = host.shadowRoot.querySelector('.overlay');
         if (overlay) {
+            // XSS-safe: message set via textContent
             overlay.textContent = message;
             overlay.style.borderLeftColor = borderColor;
         }
