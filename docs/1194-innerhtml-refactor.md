@@ -3,7 +3,7 @@
 ## 1. Context & Goal
 * **Issue:** #194
 * **Objective:** Eliminate `innerHTML` usage to pass Firefox Linter and strengthen XSS protection
-* **Status:** Draft
+* **Status:** Complete
 * **Related Issues:** #193 (Firefox submission), #51 (Store Compliance)
 
 ### Open Questions
