@@ -93,7 +93,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -104,6 +104,9 @@ jobs:
 
       - name: Lint Firefox extension
         run: npx eslint extensions/firefox/
+
+      - name: Lint Firefox extension (web-ext)
+        run: npx web-ext lint --source-dir extensions/firefox/
 
   # Infrastructure deployment - runs ONLY on push to main
   deploy-infra:

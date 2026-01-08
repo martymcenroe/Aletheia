@@ -1,14 +1,19 @@
-# 0809 - Audit: Security
+# 0809 - Audit: Application Security
+
+**Split per ADR 0213 - Adversarial Audit Philosophy**
+AI-specific security moved to 0825-audit-ai-safety.md
 
 ## 1. Purpose
 
-Comprehensive security audit covering web application, LLM, agentic AI, and browser extension security concerns. Based on industry frameworks including OWASP, NIST, and ISC2 best practices.
+Application security audit covering web application, browser extension, and AWS infrastructure security. Based on industry frameworks including OWASP, NIST, and ISC2 best practices.
+
+**Scope:** Infrastructure and application security (NOT AI safety - see 0825)
 
 **Aletheia Context:**
-- Browser extension (Chrome MV3 / Firefox MV2)
+- Browser extension (Chrome MV3 / Firefox MV3)
 - AWS Lambda backend (Python)
-- AWS Bedrock Claude LLM integration
-- Processes user-selected text from web pages
+- AWS CloudFront + WAF
+- DynamoDB persistence
 
 ---
 
@@ -81,71 +86,9 @@ This new category covers 24 CWEs related to error handling, edge cases, and unex
 
 ---
 
-## 3. OWASP Top 10 for LLM Applications (2025)
+## 3. Browser Extension Security (Manifest V3)
 
-### Checklist
-
-| Risk | Aletheia Applicability | Mitigation | Status |
-|------|------------------------|------------|--------|
-| **LLM01: Prompt Injection** | User-selected text sent to Claude | XML-wrapped in etymologist.py, prompt injection instruction | ✅ Pass |
-| **LLM02: Sensitive Info Disclosure** | Claude responses | No PII stored, in-memory only | ✅ Pass |
-| **LLM03: Supply Chain** | Bedrock/Claude dependency | AWS-managed, no custom models | ✅ Pass |
-| **LLM04: Data Poisoning** | N/A (no fine-tuning) | Not applicable | ✅ N/A |
-| **LLM05: Improper Output Handling** | Rendering Claude output | textContent used (not innerHTML) | ✅ Pass |
-| **LLM06: Excessive Agency** | Claude actions | Read-only analysis, no tool use | ✅ Pass |
-| **LLM07: System Prompt Leakage** | System prompt exposure | Hardcoded, "Prompt Injection Attempt" response | ✅ Pass |
-| **LLM08: Vector/Embedding Weaknesses** | N/A (no RAG) | Not applicable | ✅ N/A |
-| **LLM09: Misinformation** | Claude accuracy | Etymologist persona, neutral tone | ✅ Pass |
-| **LLM10: Unbounded Consumption** | Bedrock costs | 20k char limit, 500 token max | ✅ Pass |
-
-### Aletheia-Specific Checks
-
-| Check | Requirement | Status |
-|-------|-------------|--------|
-| System prompt not user-modifiable | Hardcoded in Lambda | ✅ Pass |
-| Output sanitized before display | textContent (not innerHTML) | ✅ Pass |
-| Rate limiting implemented | Input length limits | ✅ Pass |
-| Cost guardrails | Max tokens = 500 | ✅ Pass |
-
-### Finding: Semantic Guardrail Input Handling
-
-| Severity | Issue | Location | Recommendation |
-|----------|-------|----------|----------------|
-| ⚠️ Low | Semantic guardrail sends user text directly without XML wrapping | `src/guardrails/semantic.py:60` | Consider XML-wrapping like etymologist.py for consistency |
-
-**Note:** This is low severity because (1) the guardrail fails-closed on errors, (2) deterministic policy enforcement overrides LLM classification, and (3) even if bypassed, the etymologist has its own prompt injection defenses.
-
----
-
-## 4. OWASP Top 10 for Agentic Applications (2026)
-
-### Checklist
-
-| Risk | Aletheia Applicability | Mitigation | Status |
-|------|------------------------|------------|--------|
-| **AA01: Agent Goal Hijacking** | Low risk (single-purpose) | Fixed purpose, no goal modification | ✅ Pass |
-| **AA02: Rogue Agents** | N/A (no agent persistence) | Stateless Lambda | ✅ N/A |
-| **AA03: Memory Poisoning** | N/A (no memory) | No conversation history | ✅ N/A |
-| **AA04: Insecure Inter-Agent Comms** | N/A (single agent) | Not applicable | ✅ N/A |
-| **AA05: Tool Misuse** | N/A (no tools) | Read-only analysis | ✅ N/A |
-| **AA06: Excessive Autonomy** | Low (user-initiated) | Requires user context menu click | ✅ Pass |
-| **AA07: Trust Boundary Violations** | Extension ↔ Lambda | WAF header validation | ✅ Pass |
-| **AA08: Cascading Hallucinations** | N/A (single step) | Not applicable | ✅ N/A |
-| **AA09: Agent Impersonation** | N/A (no multi-agent) | Not applicable | ✅ N/A |
-| **AA10: Persistence Mechanisms** | N/A (stateless) | In-memory only, no state | ✅ N/A |
-
-### Least Agency Principle
-
-| Check | Requirement | Status |
-|-------|-------------|--------|
-| User initiates all actions | Context menu click required | ✅ Pass |
-| No proactive monitoring | On-demand only (ADR 0201) | ✅ Pass |
-| No autonomous decisions | Analysis only, no actions | ✅ Pass |
-| Bounded output | 500 token limit | ✅ Pass |
-
----
-
-## 5. Browser Extension Security (Manifest V3)
+> **AI Safety:** LLM and Agentic security moved to [0825-audit-ai-safety.md](0825-audit-ai-safety.md)
 
 ### Chrome Extension Checks
 
@@ -192,7 +135,7 @@ This new category covers 24 CWEs related to error handling, edge cases, and unex
 
 ---
 
-## 6. AWS Security
+## 4. AWS Security
 
 ### Lambda Security
 
@@ -224,43 +167,9 @@ This new category covers 24 CWEs related to error handling, edge cases, and unex
 
 ---
 
-## 7. NIST AI RMF Alignment
+## 5. Claude Code Agent Permissions (CRITICAL)
 
-### MAP Function (Context)
-
-| Requirement | Aletheia Implementation | Status |
-|-------------|------------------------|--------|
-| AI system documented | Architecture docs (0001, ADRs) | ✅ Pass |
-| Intended use defined | Etymology analysis, bias detection | ✅ Pass |
-| Stakeholders identified | End users, web publishers | ✅ Pass |
-
-### MEASURE Function (Assessment)
-
-| Requirement | Aletheia Implementation | Status |
-|-------------|------------------------|--------|
-| Accuracy measured | pytest test suite | ✅ Pass |
-| Bias evaluated | Denylist + semantic guardrail | ✅ Pass |
-| Security tested | This audit | ✅ Pass |
-
-### MANAGE Function (Controls)
-
-| Requirement | Aletheia Implementation | Status |
-|-------------|------------------------|--------|
-| Incident response plan | AWS CloudWatch alerts | ✅ Pass |
-| Monitoring active | CloudWatch Logs | ✅ Pass |
-| Human oversight | User initiates, reviews output | ✅ Pass |
-
-### GOVERN Function (Oversight)
-
-| Requirement | Aletheia Implementation | Status |
-|-------------|------------------------|--------|
-| Policies documented | ADRs, CLAUDE.md, audit docs | ✅ Pass |
-| Roles defined | Orchestrator protocol (0004) | ✅ Pass |
-| Continuous improvement | 9000-lessons-learned.md | ✅ Pass |
-
----
-
-## 7a. Claude Code Agent Permissions (CRITICAL)
+> **NIST AI RMF:** See [0825-audit-ai-safety.md](0825-audit-ai-safety.md) for AI governance alignment
 
 **The agent's permission model is a security boundary.** Overly permissive settings can bypass all other controls.
 
@@ -292,7 +201,7 @@ Grep `.claude/settings.local.json` for these forbidden patterns. If found in the
 
 ---
 
-## 8. Audit Procedure
+## 6. Audit Procedure
 
 ### Step 0: Prerequisites (MANDATORY)
 
@@ -319,7 +228,7 @@ This ensures:
 
 ---
 
-## 9. Audit Record
+## 7. Audit Record
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
@@ -348,30 +257,21 @@ This ensures:
 
 ---
 
-## 10. References
+## 8. References
 
 ### OWASP
 - [OWASP Top 10:2025](https://owasp.org/Top10/2025/) (Updated Jan 2026)
 - [OWASP Top 10:2021](https://owasp.org/Top10/2021/) (Historical reference)
-- [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
-- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+
+> **AI Security:** See [0825-audit-ai-safety.md](0825-audit-ai-safety.md) for LLM and Agentic OWASP Top 10
 
 ### Browser Extension
 - [Chrome Extension Security](https://developer.chrome.com/docs/extensions/develop/migrate/improve-security)
 - [Manifest V3 CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)
 
-### NIST
-- [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
-- [NIST Cyber AI Profile (Draft)](https://csrc.nist.gov/News/2025/nist-releases-prelim-draft-cyber-ai-profile)
-
-### ISC2
-- [CISSP-Inspired AI Security](https://www.isc2.org/Insights/2025/12/A-CISSP-Inspired-AI-Security-Approach)
-
-### IEEE
-- [IEEE 7001-2021 Transparency of Autonomous Systems](https://standards.ieee.org/ieee/7001/6929/)
-- [IEEE 7007-2021 Ontological Standard for Ethically Driven Robotics and Automation Systems](https://standards.ieee.org/ieee/7007/6926/)
-
 ### Internal
+- [0825-audit-ai-safety.md](0825-audit-ai-safety.md) - AI Safety audit (LLM, Agentic, NIST AI RMF)
 - ADR 0201 - Privacy-First Extension Permissions
 - ADR 0204 - Defense Funnel
+- ADR 0213 - Adversarial Audit Philosophy
 - docs/0012-devops-architecture.md §2.4 - Policy Compliance

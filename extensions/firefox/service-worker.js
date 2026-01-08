@@ -121,9 +121,18 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 
 // =============================================================================
 // MESSAGE HANDLERS (Issue #104 - Popup Communication)
+// Security: ADR 0213 - Validate sender.id to prevent message spoofing
 // =============================================================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Security: Validate message comes from our extension (not a hostile page/extension)
+    // sender.id is the extension ID for extension messages, undefined for content scripts
+    // We accept messages from our own extension (popup) or our own content scripts
+    if (sender.id && sender.id !== chrome.runtime.id) {
+        console.warn('[Aletheia] Rejected message from unknown sender:', sender.id);
+        return false;
+    }
+
     if (message.type === 'GET_TAB_STATE') {
         const state = getTabState(message.tabId);
         sendResponse({ state });
