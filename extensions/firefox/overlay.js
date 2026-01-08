@@ -434,13 +434,22 @@ function calculatePosition() {
 let currentOverlayState = null;
 let overlayData = null;
 
+// Security: ADR 0213 - Store direct reference to our overlay host element
+// This prevents DOM clobbering attacks where a hostile page creates an element
+// with id="aletheia-overlay-host" that could be returned by getElementById
+let overlayHostRef = null;
+
 /**
  * Remove existing overlay from DOM.
+ * Security: Uses stored reference instead of getElementById to prevent DOM clobbering
  */
 function removeOverlay() {
     stopTypewriter();
-    const existing = document.getElementById('aletheia-overlay-host');
-    if (existing) existing.remove();
+    // Use stored reference (safe from DOM clobbering)
+    if (overlayHostRef && overlayHostRef.isConnected) {
+        overlayHostRef.remove();
+    }
+    overlayHostRef = null;
     currentOverlayState = null;
     overlayData = null;
 }
@@ -491,6 +500,7 @@ function showLoadingOverlay() {
     shadow.appendChild(card);
 
     document.body.appendChild(host);
+    overlayHostRef = host;  // Security: Store reference to prevent DOM clobbering
 }
 
 /**
@@ -616,6 +626,7 @@ function showResultOverlay(response, httpStatus = 200) {
     document.addEventListener('keydown', handleKeydown);
 
     document.body.appendChild(host);
+    overlayHostRef = host;  // Security: Store reference to prevent DOM clobbering
 
     // Focus close button for accessibility
     closeBtn.focus();
@@ -772,17 +783,20 @@ if (!window.showAletheiaOverlay) {
 
         shadow.appendChild(overlay);
         document.body.appendChild(host);
+        overlayHostRef = host;  // Security: Store reference to prevent DOM clobbering
 
         host._dismissTimer = setTimeout(() => {
             if (host.isConnected) host.remove();
+            if (overlayHostRef === host) overlayHostRef = null;
         }, timeout);
     };
 }
 
 if (!window.updateAletheiaOverlay) {
     window.updateAletheiaOverlay = function(message, type, timeout = 4000) {
-        const host = document.getElementById('aletheia-overlay-host');
-        if (!host || !host.shadowRoot) {
+        // Security: Use stored reference instead of getElementById to prevent DOM clobbering
+        const host = overlayHostRef;
+        if (!host || !host.isConnected || !host.shadowRoot) {
             window.showAletheiaOverlay(message, type, timeout);
             return;
         }
@@ -807,6 +821,7 @@ if (!window.updateAletheiaOverlay) {
 
         host._dismissTimer = setTimeout(() => {
             if (host.isConnected) host.remove();
+            if (overlayHostRef === host) overlayHostRef = null;
         }, timeout);
     };
 }

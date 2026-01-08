@@ -44,6 +44,34 @@ markers = [
     "tools: tests for CLI tools",
 ]
 
+[tool.ruff]
+target-version = "py312"
+line-length = 120  # Match existing code style
+
+[tool.ruff.lint]
+# Security: "S" = flake8-bandit rules (per ADR 0213)
+# Added to catch Python security anti-patterns like:
+# - S101: assert used in production
+# - S105-S108: hardcoded passwords/secrets
+# - S301-S302: pickle usage
+# - S310-S312: suspicious imports
+# - S501-S509: request without SSL verification
+select = ["E", "F", "W", "S"]
+ignore = [
+    # S101: We use assert in tests intentionally
+    "S101",
+    # E501: Line length - existing code exceeds 88, defer to 120
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Allow assert in test files
+"tests/**/*.py" = ["S101"]
+# Allow subprocess in tool tests (we control the input - test harness pattern)
+"tests/tools/**/*.py" = ["S603"]
+# S105 false positive: URLs containing "Token" are flagged as passwords
+"src/lambda_auth_function.py" = ["S105"]
+
 [tool.mypy]
 python_version = "3.12"
 warn_unused_configs = true

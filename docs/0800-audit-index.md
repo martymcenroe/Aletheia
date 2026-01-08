@@ -38,9 +38,9 @@ Audits exist because:
 | Category | Count | Focus |
 |----------|-------|-------|
 | Core Development | 11 | Code quality, security, privacy, accessibility |
-| AI Governance | 6 | AI-specific controls and compliance |
+| AI Governance | 7 | AI-specific controls and compliance |
 | Meta | 2 | Audit system governance |
-| **Total** | **19** | |
+| **Total** | **20** | |
 
 ### 3.2 Quick Reference
 
@@ -48,7 +48,8 @@ Audits exist because:
 |-------|----------------------|
 | 0808 | Agent permission policy (deny dangerous commands) |
 | 0824 | Permission friction analysis (find missing allows) |
-| 0809 | Security (OWASP, ASVS, prompt injection) |
+| 0809 | Application Security (OWASP, ASVS, extension) |
+| 0825 | AI Safety (LLM, Agentic, NIST AI RMF) |
 | 0810 | Privacy (GDPR-aware, data handling) |
 | 0811 | Accessibility |
 | 0812 | Performance |
@@ -100,6 +101,7 @@ Audits specific to AI system governance, compliance, and responsible AI.
 | 0821 | Agentic AI Governance | Monthly | OWASP Agentic 2026 |
 | 0822 | Bias & Fairness | Quarterly | ISO 24027, NIST |
 | 0823 | AI Incident Post-Mortem | On incident | NIST AI RMF |
+| 0825 | AI Safety | Quarterly | OWASP LLM 2025, NIST AI RMF |
 
 ### 4.3 Meta Audits
 
@@ -235,6 +237,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 - [0821 - Agentic AI Governance](0821-audit-agentic-ai-governance.md)
 - [0822 - Bias & Fairness](0822-audit-bias-fairness.md)
 - [0823 - AI Incident Post-Mortem](0823-audit-ai-incident-post-mortem.md)
+- [0825 - AI Safety](0825-audit-ai-safety.md)
 - [0898 - Horizon Scanning Protocol](0898-horizon-scanning-protocol.md)
 - [0899 - Meta-Audit](0899-meta-audit.md)
 
@@ -287,5 +290,6 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 | Date | Change |
 |------|--------|
+| 2026-01-08 | Split 0809 per ADR 0213. Created 0825 (AI Safety) with LLM, Agentic, NIST AI RMF sections. 0809 now focused on app security. Total audits: 20. |
 | 2026-01-08 | Index consistency audit. Fixed broken links (0811-0814, 0815, 0817). Corrected audit names/descriptions to match actual files. Added 0817 Wiki Alignment. Total audits: 19. |
 | 2026-01-06 | Major update. Added AI Governance audits (0818-0823), split meta-audit into 0898 (horizon scanning) and 0899 (validation). Merged 0800-common-audits.md into this file (preserved Audit Philosophy section). Total audits: 17. |

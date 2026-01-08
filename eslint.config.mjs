@@ -1,8 +1,11 @@
 // ESLint Flat Config for Aletheia browser extensions
 // Migrated from .eslintrc.json per Issue #157 / LLD 1157
+// Security plugins added per ADR 0213 - Adversarial Audit Philosophy
 
 import js from "@eslint/js";
 import globals from "globals";
+import noUnsanitized from "eslint-plugin-no-unsanitized";
+import security from "eslint-plugin-security";
 
 export default [
   // Base recommended rules
@@ -11,6 +14,10 @@ export default [
   // Browser extension configuration
   {
     files: ["extensions/**/*.js"],
+    plugins: {
+      "no-unsanitized": noUnsanitized,
+      "security": security
+    },
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
@@ -34,7 +41,17 @@ export default [
         }
       ],
       "no-console": "off",
-      "prefer-const": "error"
+      "prefer-const": "error",
+
+      // Security: Detect unsafe innerHTML/outerHTML/document.write usage
+      "no-unsanitized/method": "error",
+      "no-unsanitized/property": "error",
+
+      // Security plugin rules (subset most relevant to browser extensions)
+      "security/detect-object-injection": "warn",
+      "security/detect-non-literal-regexp": "warn",
+      "security/detect-unsafe-regex": "error",
+      "security/detect-eval-with-expression": "error"
     }
   },
 
