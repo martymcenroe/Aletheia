@@ -26,6 +26,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 | [0208](0208-ADR-client-side-preference-storage.md) | Client-Side Preference Storage | Implemented | Privacy, UX, Data | 2025-12-29 |
 | [0209](0209-ADR-static-compliance-hosting.md) | Static Compliance Hosting | Implemented | Compliance, Cost, Infra | 2025-12-29 |
 | [0210](0210-ADR-git-worktree-isolation.md) | Git Worktree Isolation | Implemented | Process, Infra, UX | 2025-12-29 |
+| [0212](0212-ADR-unified-v3-secure-dom.md) | Unified Manifest V3 & Secure DOM | Accepted | Security, Architecture | 2026-01-08 |
 
 ---
 
@@ -47,6 +48,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 - [0202](0202-ADR-shadow-dom-isolation.md)
 - [0204](0204-ADR-defense-funnel.md)
 - [0207](0207-ADR-single-identity-orchestration.md)
+- [0212](0212-ADR-unified-v3-secure-dom.md)
 
 ### Privacy
 - [0201](0201-ADR-privacy-first-permissions.md)
@@ -80,6 +82,9 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 - [0208](0208-ADR-client-side-preference-storage.md)
 - [0210](0210-ADR-git-worktree-isolation.md)
 
+### Architecture
+- [0212](0212-ADR-unified-v3-secure-dom.md)
+
 ---
 
 ## Superseded ADRs
@@ -91,7 +96,7 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `docs/0104-TEMPLATE-adr.md`
-2. Use next available number (currently 0211)
+2. Use next available number (currently 0213)
 3. Name format: `02xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
