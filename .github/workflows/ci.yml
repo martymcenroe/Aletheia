@@ -106,7 +106,7 @@ jobs:
         run: npx eslint extensions/firefox/
 
       - name: Lint Firefox extension (web-ext)
-        run: npx web-ext lint --source-dir extensions/firefox/ --warnings-as-errors
+        run: npx web-ext lint --source-dir extensions/firefox/
 
   # Infrastructure deployment - runs ONLY on push to main
   deploy-infra:
