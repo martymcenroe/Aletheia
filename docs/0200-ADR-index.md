@@ -28,6 +28,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 | [0210](0210-ADR-git-worktree-isolation.md) | Git Worktree Isolation | Implemented | Process, Infra, UX | 2025-12-29 |
 | [0211](0211-ADR-naked-python-architecture.md) | Naked Python Architecture | Implemented | Architecture, Performance | 2026-01-05 |
 | [0212](0212-ADR-unified-v3-secure-dom.md) | Unified Manifest V3 & Secure DOM | Accepted | Security, Architecture | 2026-01-08 |
+| [0213](0213-ADR-adversarial-audit-philosophy.md) | Adversarial Audit Philosophy | Proposed | Process, Security, Compliance | 2026-01-08 |
 
 ---
 
@@ -40,9 +41,11 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 ### Process
 - [0207](0207-ADR-single-identity-orchestration.md)
 - [0210](0210-ADR-git-worktree-isolation.md)
+- [0213](0213-ADR-adversarial-audit-philosophy.md)
 
 ### Compliance
 - [0209](0209-ADR-static-compliance-hosting.md)
+- [0213](0213-ADR-adversarial-audit-philosophy.md)
 
 ### Security
 - [0201](0201-ADR-privacy-first-permissions.md)
@@ -50,6 +53,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 - [0204](0204-ADR-defense-funnel.md)
 - [0207](0207-ADR-single-identity-orchestration.md)
 - [0212](0212-ADR-unified-v3-secure-dom.md)
+- [0213](0213-ADR-adversarial-audit-philosophy.md)
 
 ### Privacy
 - [0201](0201-ADR-privacy-first-permissions.md)
@@ -99,7 +103,7 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `docs/0104-TEMPLATE-adr.md`
-2. Use next available number (currently 0213)
+2. Use next available number (currently 0214)
 3. Name format: `02xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
