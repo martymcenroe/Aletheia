@@ -357,12 +357,14 @@ Then filter Cost Explorer by `Project=Aletheia`.
 ### Cost Control Checklist
 
 - [ ] AWS Budget created with email alerts
-- [ ] Lambda OFF when not testing (`./tools/aws/lambda-off.sh`)
+- [ ] Lambda ON (production - Chrome Web Store live)
 - [ ] WAF rate limiting active (#95)
 - [ ] DynamoDB TTL enabled (#145)
 - [ ] CloudWatch alarms for anomalies
 - [ ] Resources tagged for Cost Explorer
 - [ ] Monthly cost review scheduled
+
+> **Note:** Lambda kill switch (`lambda-off.sh`) is reserved for emergencies only (security incidents, budget overruns). Do not disable for routine cost control.
 
 ---
 

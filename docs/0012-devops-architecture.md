@@ -197,11 +197,16 @@ Creates AWS resources:
 
 ```bash
 ./tools/aws/lambda-on.sh      # Enable Lambda (remove concurrency limit)
-./tools/aws/lambda-off.sh     # Disable Lambda (set concurrency=0)
+./tools/aws/lambda-off.sh     # Disable Lambda (set concurrency=0) - EMERGENCY USE ONLY
 ./tools/aws/lambda-status.sh  # Check current state
 ```
 
-**Rule:** Lambda should be OFF when not actively testing to prevent unexpected Bedrock costs.
+**Production Rule:** Lambda is always ON. The extension is live in the Chrome Web Store.
+
+**Emergency Only:** Use `lambda-off.sh` only for:
+- Active security incident
+- Cost runaway (see 0014-cost-architecture.md emergency procedures)
+- Maintenance requiring complete shutdown
 
 ### 4.3 Environment Variables
 

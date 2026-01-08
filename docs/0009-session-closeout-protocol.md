@@ -42,14 +42,14 @@ The `/cleanup` command delegates to **Sonnet** for cost efficiency (~80% cheaper
 ├─────────────────────────────────────────────────────────────────┤
 │ Quick:   status, branch --list, gh pr list                     │
 │ Normal:  + stash list, fetch --prune, gh issue list            │
-│ Full:    + worktree list, branch -vv, branch -r, lambda-status │
+│ Full:    + worktree list, branch -vv, branch -r                │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │ PHASE 2: CONDITIONAL FIXES (Sequential, only if needed)        │
 ├─────────────────────────────────────────────────────────────────┤
 │ Normal:  Regenerate 6000-open-issues.md                        │
-│ Full:    + Lambda off, stale branch/worktree cleanup           │
+│ Full:    + stale branch/worktree cleanup                       │
 │          + Inventory audit, Wiki check                         │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
@@ -158,7 +158,7 @@ gh pr list --state open --repo martymcenroe/Aletheia
 
 **When to use:** Feature complete, before breaks, environment feels messy.
 
-**Phase 1 - Parallel Reads (10 calls):**
+**Phase 1 - Parallel Reads (9 calls):**
 ```bash
 git -C /c/Users/mcwiz/Projects/Aletheia status
 git -C /c/Users/mcwiz/Projects/Aletheia branch --list
@@ -169,22 +169,17 @@ git -C /c/Users/mcwiz/Projects/Aletheia branch -vv
 git -C /c/Users/mcwiz/Projects/Aletheia branch -r
 gh pr list --state open --repo martymcenroe/Aletheia
 gh issue list --state open --repo martymcenroe/Aletheia
-/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
 ```
 
 **Phase 2 - Analysis & Fixes:**
 
 1. **Branch Check** - Flag any branch other than main
 2. **Worktree Check** - Remove stale worktrees
-3. **Lambda Check** - Turn off if ON:
-   ```bash
-   /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-off.sh
-   ```
-4. **Stash Check** - Document any stash entries
-5. **Doc Sync** - Regenerate 6000-open-issues.md
-6. **Inventory Audit** - Glob check against 0003-file-inventory.md
-7. **Plan Check** - Validate IMMEDIATE-PLAN issue references (see § IMMEDIATE-PLAN Staleness Detection)
-8. **Wiki Check** - If user-facing changes, check wiki alignment (0817)
+3. **Stash Check** - Document any stash entries
+4. **Doc Sync** - Regenerate 6000-open-issues.md
+5. **Inventory Audit** - Glob check against 0003-file-inventory.md
+6. **Plan Check** - Validate IMMEDIATE-PLAN issue references (see § IMMEDIATE-PLAN Staleness Detection)
+7. **Wiki Check** - If user-facing changes, check wiki alignment (0817)
 
 **Phase 3 - Session Log:**
 ```bash
@@ -207,13 +202,12 @@ git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: full cleanup YYYY-MM-DD
 git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
-**Phase 5 - Verify (5 parallel calls):**
+**Phase 5 - Verify (4 parallel calls):**
 ```bash
 git -C /c/Users/mcwiz/Projects/Aletheia status
 git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 git -C /c/Users/mcwiz/Projects/Aletheia branch -r
 gh pr list --state open --repo martymcenroe/Aletheia
-/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
 ```
 
 **Human Reminder:**
@@ -233,7 +227,6 @@ The cleanup returns a summary table:
 | Open Issues | {count} |
 | Branches | ✅ Only main / ⚠️ {list} |
 | Worktrees | ✅ Only main / ⚠️ {list} |
-| Lambda | ✅ OFF / ⚠️ ON |
 | Stashes | ✅ None / ⚠️ {count} |
 | Commit | ✅ Pushed / ❌ Failed |
 
@@ -247,7 +240,6 @@ Report to human if any of these occur:
 |-----------|---------|
 | Branch exists without worktree | `⚠️ UNEXPECTED: Branch {name} exists` |
 | Issue should be closed but isn't | `⚠️ UNEXPECTED: Issue #{N} appears done` |
-| Lambda still ON after off command | `⚠️ UNEXPECTED: Lambda still ON` |
 | Uncommitted work in worktree | `⚠️ UNEXPECTED: Uncommitted changes` |
 | File not in inventory | `⚠️ DRIFT: File {path} not in 0003` |
 | Closed issue in IMMEDIATE-PLAN | `⚠️ STALE: Issue #N is CLOSED but referenced in IMMEDIATE-PLAN` |

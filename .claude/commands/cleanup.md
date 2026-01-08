@@ -35,7 +35,6 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Stash list | | ✅ | ✅ |
 | Regenerate 6000 | | ✅ | ✅ |
 | Worktree list | | ✅ | ✅ |
-| Lambda status | | | ✅ |
 | Inventory audit | | | ✅ |
 | **Plan staleness** | | | ✅ |
 
@@ -85,10 +84,9 @@ Run these commands simultaneously in a single message with multiple Bash tool ca
 - git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 - gh issue list --state open --repo martymcenroe/Aletheia
 
-**Full mode adds (10 parallel calls total):**
+**Full mode adds (9 parallel calls total):**
 - git -C /c/Users/mcwiz/Projects/Aletheia branch -vv
 - git -C /c/Users/mcwiz/Projects/Aletheia branch -r
-- /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
 
 ## Phase 2: Conditional Fixes
 
@@ -104,12 +102,9 @@ Run these commands simultaneously in a single message with multiple Bash tool ca
 2. **Stale Worktrees** (Full only) - Flag if worktree path doesn't exist on disk:
    - Report and offer to remove with: git -C /c/Users/mcwiz/Projects/Aletheia worktree remove {path}
 
-3. **Lambda** (Full only) - If ON, turn off:
-   - /c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-off.sh
+3. **Open PRs** - Should be 0. Flag if any exist.
 
-4. **Open PRs** - Should be 0. Flag if any exist.
-
-5. **Stashes** - Document any stash entries found.
+4. **Stashes** - Document any stash entries found.
 
 **Normal and Full: Regenerate open issues**
 ```bash
@@ -196,7 +191,6 @@ For Full mode, add:
 ```bash
 git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 git -C /c/Users/mcwiz/Projects/Aletheia branch -r
-/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-status.sh
 ```
 
 ## Return Results
@@ -210,7 +204,6 @@ Return a summary table:
 | Open Issues | {count} |
 | Branches | ✅ Only main / ⚠️ {list} |
 | Worktrees | ✅ Only main / ⚠️ {list} |
-| Lambda | ✅ OFF / ⚠️ ON |
 | Stashes | ✅ None / ⚠️ {count} |
 | Commit | ✅ Pushed / ❌ Failed |
 
