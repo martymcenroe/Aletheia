@@ -51,6 +51,20 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | `--normal` | Normal | ~5 min | Standard session end (default) |
 | `--full` | Full | ~12 min | Feature complete, before breaks |
 
+### CACHE REFRESH (MANDATORY)
+
+**Before spawning the Task agent, you MUST read this file from disk:**
+
+```
+Read: C:\Users\mcwiz\Projects\Aletheia\.claude\commands\cleanup.md
+```
+
+**Why:** The skill expansion in system-reminder can be STALE (cached from earlier in conversation). The disk version is authoritative. Use the Task Prompt from the freshly-read file, NOT from the system-reminder content.
+
+**Incident 2026-01-08:** Stale cache had "Lambda - If ON, turn off" rule. Disk had this removed. Lambda was wrongly turned off in production.
+
+---
+
 **IMPORTANT:** Use the **Task tool** with `model: sonnet` to execute the cleanup. This saves budget while keeping your main session on Opus.
 
 Spawn a Task with `subagent_type: general-purpose` and `model: sonnet` with the following prompt (substitute MODE based on parsed arguments):
