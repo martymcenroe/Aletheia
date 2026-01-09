@@ -20,8 +20,8 @@ Options:
 | Flag | Effect |
 |------|--------|
 | `--help` | Show this help message and exit |
-| `--quick` | Read digest only (~$0.02, 30s) - for simple tasks |
-| `--full` | Full onboarding (~$0.35, 2min) - for complex work (default) |
+| `--quick` | Read digest only, report age (~$0.02, 30s) - for simple tasks |
+| `--full` | Regenerate digest + full onboarding (~$0.35, 2min) - for complex work (default) |
 
 Examples:
 - `/onboard --help` - show this help
@@ -32,23 +32,34 @@ Examples:
 
 ## Modes
 
-| Mode | Cost | Time | Use Case |
-|------|------|------|----------|
-| `--quick` | ~$0.02 | ~30s | Simple tasks, status checks, quick fixes |
-| `--full` (default) | ~$0.35 | ~2min | Complex features, architecture work, audits |
+| Mode | Cost | Time | Digest | Use Case |
+|------|------|------|--------|----------|
+| `--quick` | ~$0.02 | ~30s | Reports age only | Simple tasks, status checks |
+| `--full` (default) | ~$0.35 | ~2min | Regenerates first | Complex features, audits |
 
 ## Quick Mode (`--quick`)
 
 Read only the executive summary:
 1. Read `docs/0000b-ONBOARD-DIGEST.md`
-2. State the Bash command oath
-3. Acknowledge readiness
+2. Parse the `**Generated:**` timestamp and calculate age
+3. Report digest age prominently (e.g., "Digest is 3 days old - consider `/onboard --full` to refresh")
+4. State the Bash command oath
+5. Acknowledge readiness
 
 **Use when:** Task is simple, context is clear, or you're resuming recent work.
+
+**Note:** Quick mode does NOT regenerate the digest. If stale, use `--full` to refresh.
 
 ## Full Mode (`--full` or no argument)
 
 Complete onboarding per 0000-GUIDE.md:
+
+### Step 0: Regenerate Digest (MANDATORY)
+Before reading any documentation, regenerate the onboard digest to ensure fresh data:
+```bash
+poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/generate_onboard_digest.py
+```
+This ensures all agents get current sprint focus, open issues, and recent session activity.
 
 ### Step 1: Core Documentation (parallel reads)
 Read these files simultaneously:
@@ -84,7 +95,5 @@ The full onboarding reads ~93KB of documentation (~23K tokens). To minimize cost
 1. **Parallel reads** - Read independent files simultaneously
 2. **Scan, don't deep-read** - For 6000-open-issues.md, scan titles/labels, skip issue bodies unless relevant
 3. **Recent entries only** - For session logs, read last 3 entries, not the entire file
-4. **Regenerate digest** - If `0000b-ONBOARD-DIGEST.md` is stale (>24h), regenerate it:
-   ```bash
-   poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/generate_onboard_digest.py
-   ```
+
+**Digest regeneration:** Full mode always regenerates the digest (Step 0). Quick mode never regenerates - it only reports how old the digest is.
