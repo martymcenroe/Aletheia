@@ -116,53 +116,71 @@
 | `docs/0817-audit-wiki-alignment.md` | **Protocol** | 🟢 **Stable** | - | Wiki alignment audit. Part of 0009 Full Mode. |
 | `docs/0899-meta-audit.md` | **Protocol** | 🟢 **Stable** | - | Meta-audit (audit of audits). |
 
-### 10xx Feature Specifications
+### LLDs - Completed (docs/lld/done/)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/1005-graph-tests.md` | **Spec** | ⚫ **Legacy** | #5 | Obsolete (LangGraph removed per ADR 0211). |
-| `docs/1006-rag-vector.md` | **Spec** | ⚪ **Placeholder** | #6 | RAG Vector Store implementation. |
-| `docs/1007-observability.md` | **Spec** | ⚪ **Placeholder** | #7 | Observability and tracing. |
-| `docs/1010-semantic-guardrails.md` | **Spec** | 🟡 **Beta** | #10 | Semantic Guardrail (LLM-based). |
-| `docs/1011-local-guardrails.md` | **Spec** | 🟡 **Beta** | #11 | Selection Check (local validation). |
-| `docs/1014-compliance-engine.md` | **Spec** | 🟡 **Beta** | #14 | Compliance checking engine. |
+| `docs/lld/done/1041-security-audit.md` | **Spec** | 🟢 **Stable** | #41 | Security audit and permission culling. |
+| `docs/lld/done/1042-whitelist-mode.md` | **Spec** | 🟢 **Stable** | #42 | Whitelist mode and safety filters. |
+| `docs/lld/done/1043-privacy-compliance.md` | **Spec** | 🟢 **Stable** | #43 | Privacy policy compliance. |
+| `docs/lld/done/1045-deterministic-hate-filter.md` | **Spec** | 🟢 **Stable** | #45 | Denylist (deterministic hate filter). |
+| `docs/lld/done/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
+| `docs/lld/done/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
+| `docs/lld/done/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
+| `docs/lld/done/1084-signal-inspector.md` | **Spec** | 🟢 **Stable** | #84 | Signal Inspector CLI for compliance auditing. |
+| `docs/lld/done/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
+| `docs/lld/done/1100-firefox-compatibility.md` | **Spec** | 🟢 **Stable** | #100 | Firefox MV2 compatibility. |
+| `docs/lld/done/1104-age-restricted-blocking.md` | **Spec** | 🟢 **Stable** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
+| `docs/lld/done/1105-test-site-infrastructure.md` | **Spec** | 🟢 **Stable** | #105 | Scriptable test site infrastructure (GitHub Pages + Playwright). |
+| `docs/lld/done/1113-naked-python-architecture.md` | **Spec** | 🟢 **Stable** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
+| `docs/lld/done/1116-linkedin-oauth.md` | **Spec** | 🟢 **Stable** | #116 | LinkedIn OAuth authentication for user gating. |
+| `docs/lld/done/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
+| `docs/lld/done/1124-digital-etymologist.md` | **Spec** | 🟢 **Stable** | #124 | Digital Etymologist persona with structured JSON response. |
+| `docs/lld/done/1125-museum-label-ui.md` | **Spec** | 🟢 **Stable** | #125 | Museum Label progressive disclosure UI. |
+| `docs/lld/done/1137-lambda-latency-investigation.md` | **Spec** | 🟢 **Stable** | #137 | Lambda 5-second latency investigation. |
+| `docs/lld/done/1145-dynamodb-ttl.md` | **Spec** | 🟢 **Stable** | #145 | DynamoDB TTL for automatic data expiry. |
+| `docs/lld/done/1147-gdpr-data-erasure.md` | **Spec** | 🟢 **Stable** | #147 | GDPR Article 17 data erasure process. |
+| `docs/lld/done/1148-bedrock-no-training.md` | **Spec** | 🟢 **Stable** | #148 | Bedrock no-training compliance verification (compliance-as-code). |
+| `docs/lld/done/1162-noarchive-transform-layer.md` | **Spec** | 🟢 **Stable** | #162 | Transform layer (summarization) for noarchive. |
+| `docs/lld/done/1193-firefox-manifest-fix.md` | **Spec** | 🟢 **Stable** | #193 | Firefox manifest data collection permissions. |
+| `docs/lld/done/1194-innerhtml-refactor.md` | **Spec** | 🟢 **Stable** | #194 | Replace innerHTML with DOM methods. |
+
+### LLDs - Active (docs/lld/active/)
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/lld/active/1006-rag-vector.md` | **Spec** | ⚪ **Placeholder** | #6 | RAG Vector Store implementation. |
+| `docs/lld/active/1007-observability.md` | **Spec** | ⚪ **Placeholder** | #7 | Observability and tracing. |
+| `docs/lld/active/1010-semantic-guardrails.md` | **Spec** | 🟡 **Beta** | #10 | Semantic Guardrail (LLM-based). |
+| `docs/lld/active/1011-local-guardrails.md` | **Spec** | 🟡 **Beta** | #11 | Selection Check (local validation). |
+| `docs/lld/active/1014-compliance-engine.md` | **Spec** | 🟡 **Beta** | #14 | Compliance checking engine. |
+| `docs/lld/active/1051-store-compliance.md` | **Spec** | 🟡 **Beta** | #51 | Chrome Web Store compliance. |
+| `docs/lld/active/1053-store-assets.md` | **Spec** | ⚪ **Placeholder** | #53 | Store asset generation. |
+| `docs/lld/active/1081-landing-page-redesign.md` | **Spec** | 🟠 **In-Progress** | #81 | Landing page redesign for trust. |
+| `docs/lld/active/1102-repo-reorganization.md` | **Spec** | 🟠 **In-Progress** | #102 | Repository structure reorganization. |
+| `docs/lld/active/1106-full-article-context.md` | **Spec** | 🟠 **In-Progress** | #106 | Full article context retrieval. |
+| `docs/lld/active/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
+| `docs/lld/active/1132-support-email-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #132 | Cloudflare email routing setup. |
+| `docs/lld/active/1150-dynamodb-data-hygiene.md` | **Spec** | 🟠 **In-Progress** | #150 | AI-powered DynamoDB data cleanup tool. |
+| `docs/lld/active/1153-smoke-test-fixture-fix.md` | **Spec** | 🟠 **In-Progress** | #153 | Fix pytest fixture errors in smoke_test.py. |
+| `docs/lld/active/1154-aria-accessibility.md` | **Spec** | 🟠 **In-Progress** | #154 | ARIA attributes for screen reader accessibility. |
+| `docs/lld/active/1155-noarchive-skip-persistence.md` | **Spec** | 🟠 **In-Progress** | #155 | Skip DynamoDB persistence for noarchive signal. |
+| `docs/lld/active/1156-extension-latency-optimization.md` | **Spec** | 🟠 **In-Progress** | #156 | Extension click-to-glass latency optimization. |
+| `docs/lld/active/1157-eslint-flat-config.md` | **Spec** | 🟠 **In-Progress** | #157 | ESLint flat config migration. |
+| `docs/lld/active/1160-ci-accessibility-checks.md` | **Spec** | 🟠 **In-Progress** | #160 | Automated accessibility checks in CI. |
+| `docs/lld/active/1161-ci-performance-benchmarks.md` | **Spec** | 🟠 **In-Progress** | #161 | Automated performance benchmarks in CI. |
+| `docs/lld/active/1173-visual-regression-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #173 | Visual regression testing infrastructure. |
+| `docs/lld/active/1177-store-domcontext.md` | **Spec** | 🟠 **In-Progress** | #177 | Store surrounding paragraph in DynamoDB. |
+| `docs/lld/active/1178-store-ai-response.md` | **Spec** | 🟠 **In-Progress** | #178 | Store AI etymology response in DynamoDB. |
+| `docs/lld/active/1197-shadow-dom-hardening.md` | **Spec** | 🟠 **In-Progress** | #197 | Shadow DOM security hardening. |
+| `docs/lld/active/1206-firefox-oauth.md` | **Spec** | 🟠 **In-Progress** | #206 | Firefox LinkedIn OAuth authentication. |
+
+### Legacy LLDs (docs/legacy/)
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/legacy/1005-graph-tests.md` | **Spec** | ⚫ **Legacy** | #5 | Obsolete (LangGraph removed per ADR 0211). |
 | `docs/legacy/1025-linkedin-auth-gate.md` | **Spec** | ⚫ **Legacy** | #25 | LinkedIn auth (cookie heuristic). Superseded by #116 (OAuth). |
-| `docs/1041-security-audit.md` | **Spec** | 🟢 **Stable** | #41 | Security audit and permission culling. |
-| `docs/1042-whitelist-mode.md` | **Spec** | 🟢 **Stable** | #42 | Whitelist mode and safety filters. |
-| `docs/1043-privacy-compliance.md` | **Spec** | 🟢 **Stable** | #43 | Privacy policy compliance. |
-| `docs/1045-deterministic-hate-filter.md` | **Spec** | 🟢 **Stable** | #45 | Denylist (deterministic hate filter). |
-| `docs/1051-store-compliance.md` | **Spec** | 🟡 **Beta** | #51 | Chrome Web Store compliance. |
-| `docs/1053-store-assets.md` | **Spec** | ⚪ **Placeholder** | #53 | Store asset generation. |
-| `docs/1069-log-inspector.md` | **Spec** | 🟢 **Stable** | #69 | CLI Inspector for DynamoDB telemetry. |
-| `docs/1076-allowlist-popup.md` | **Spec** | 🟢 **Stable** | #76 | Domain allowlist popup LLD. |
-| `docs/1077-action-feedback.md` | **Spec** | 🟢 **Stable** | #77 | User action feedback overlay LLD. |
 | `docs/legacy/1080-wire-agent-logic-langgraph.md` | **Spec** | ⚫ **Legacy** | #80 | Wiring agent.py (LangGraph). Superseded by #113. |
-| `docs/1104-age-restricted-blocking.md` | **Spec** | 🟢 **Stable** | #104 | Age-restricted site blocking via RTA/adult rating detection. |
-| `docs/1105-test-site-infrastructure.md` | **Spec** | 🟢 **Stable** | #105 | Scriptable test site infrastructure (GitHub Pages + Playwright). |
-| `docs/1113-naked-python-architecture.md` | **Spec** | 🟢 **Stable** | #113 | Naked Python sequential pipeline (replaces LangGraph). |
-| `docs/1116-linkedin-oauth.md` | **Spec** | 🟢 **Stable** | #116 | LinkedIn OAuth authentication for user gating. |
 | `docs/legacy/1119-rsdb-download-utility.md` | **Spec** | ⚫ **Legacy** | #119 | RSDB download utility (superseded by #121). |
-| `docs/1121-wikipedia-denylist.md` | **Spec** | 🟢 **Stable** | #121 | Wikipedia denylist integration (replaces RSDB Gist source). |
-| `docs/1124-digital-etymologist.md` | **Spec** | 🟢 **Stable** | #124 | Digital Etymologist persona with structured JSON response. |
-| `docs/1125-museum-label-ui.md` | **Spec** | 🟢 **Stable** | #125 | Museum Label progressive disclosure UI. |
-| `docs/1095-security-hardening.md` | **Spec** | 🟢 **Stable** | #95 | Security hardening via CloudFront + WAF (rate limiting, header validation). |
-| `docs/1126-hard-soft-blocking.md` | **Spec** | 🟠 **In-Progress** | #126 | Hard vs. Soft blocking logic differentiation. |
-| `docs/1084-signal-inspector.md` | **Spec** | 🟢 **Stable** | #84 | Signal Inspector CLI for compliance auditing. |
-| `docs/1100-firefox-compatibility.md` | **Spec** | 🟢 **Stable** | #100 | Firefox MV2 compatibility. |
-| `docs/1102-repo-reorganization.md` | **Spec** | 🟠 **In-Progress** | #102 | Repository structure reorganization. |
-| `docs/1132-support-email-infrastructure.md` | **Spec** | 🟠 **In-Progress** | #132 | Cloudflare email routing setup. |
-| `docs/1137-lambda-latency-investigation.md` | **Spec** | 🟢 **Stable** | #137 | Lambda 5-second latency investigation. |
-| `docs/1145-dynamodb-ttl.md` | **Spec** | 🟢 **Stable** | #145 | DynamoDB TTL for automatic data expiry. |
-| `docs/1147-gdpr-data-erasure.md` | **Spec** | 🟢 **Stable** | #147 | GDPR Article 17 data erasure process. |
-| `docs/1148-bedrock-no-training.md` | **Spec** | 🟢 **Stable** | #148 | Bedrock no-training compliance verification (compliance-as-code). |
-| `docs/1150-dynamodb-data-hygiene.md` | **Spec** | 🟠 **In-Progress** | #150 | AI-powered DynamoDB data cleanup tool. |
-| `docs/1153-smoke-test-fixture-fix.md` | **Spec** | 🟠 **In-Progress** | #153 | Fix pytest fixture errors in smoke_test.py. |
-| `docs/1154-aria-accessibility.md` | **Spec** | 🟠 **In-Progress** | #154 | ARIA attributes for screen reader accessibility. |
-| `docs/1155-noarchive-skip-persistence.md` | **Spec** | 🟠 **In-Progress** | #155 | Skip DynamoDB persistence for noarchive signal. |
-| `docs/1156-extension-latency-optimization.md` | **Spec** | 🟠 **In-Progress** | #156 | Extension click-to-glass latency optimization. |
-| `docs/1157-eslint-flat-config.md` | **Spec** | 🟠 **In-Progress** | #157 | ESLint flat config migration. |
-| `docs/1160-ci-accessibility-checks.md` | **Spec** | 🟠 **In-Progress** | #160 | Automated accessibility checks in CI. |
-| `docs/1161-ci-performance-benchmarks.md` | **Spec** | 🟠 **In-Progress** | #161 | Automated performance benchmarks in CI. |
-| `docs/1162-noarchive-transform-layer.md` | **Spec** | 🟢 **Stable** | #162 | Transform layer (summarization) for noarchive. |
+| `docs/legacy/1162-noarchive-transform.md` | **Spec** | ⚫ **Legacy** | #162 | Duplicate of noarchive-transform-layer. |
 
 ### Prototypes & Design Artifacts
 | File | Role | Status | Linked Issue | Description |

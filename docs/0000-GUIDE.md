@@ -209,11 +209,13 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * `0816-audit-dependabot-prs.md` — Dependabot PR merge procedure.
     * `0817-audit-wiki-alignment.md` — Wiki-to-docs consistency.
     * `0899-meta-audit.md` — Audit of audits (meta-verification).
-* **`1xxx` (Features):** The work.
-    * Files map to GitHub Issues: `1000 + IssueID`.
-    * Example: Issue #25 is documented in `1025-linkedin-auth-gate.md`.
+* **`lld/` (Feature LLDs):** Low-Level Design documents, organized by status.
+    * **`lld/active/`** — In-progress, Beta, Placeholder, and Draft LLDs for open issues.
+    * **`lld/done/`** — Stable/completed LLDs for closed/implemented issues.
+    * Files map to GitHub Issues: `1000 + IssueID` (e.g., Issue #121 → `1121-wikipedia-denylist.md`).
     * **Template:** Use `0102-TEMPLATE-feature-lld.md` when creating new feature docs.
-    * Feature docs remain in `1xxx` even after the issue is closed (they document what was built).
+    * **Lifecycle:** New LLDs start in `active/`, move to `done/` after implementation complete.
+* **`legacy/`** — Superseded or obsolete documents (historical reference only).
 * **`6xxx` (Reports):** Generated reports.
     * `6000-open-issues.md` — **Current open GitHub issues.** Regenerate with `poetry run python tools/print/print_most_recent_open_issues.py`.
 * **`09xx` (Runbooks):** Operational procedures for the orchestrator.
@@ -283,7 +285,7 @@ Some documents are **immutable** (Write Once Read Many) — they capture histori
 | **Current Plan** | `docs/0000a-IMMEDIATE-PLAN.md` | Priorities shift |
 | **Open Issues** | `docs/6000-open-issues.md` | Regenerate from GitHub |
 | **File Inventory** | `docs/0003-file-inventory.md` | Files added/removed |
-| **Feature LLDs** | `docs/1xxx-*.md` (open issues) | Design evolves before implementation |
+| **Feature LLDs** | `docs/lld/active/` (open issues) | Design evolves before implementation |
 | **Lessons Learned** | `docs/9000-lessons-learned.md` | New knowledge gained |
 
 ### ADR Special Rules

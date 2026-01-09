@@ -19,7 +19,8 @@ Verify that implemented code matches the LLD specification, or that deviations a
 
 ```bash
 # For issue #121, find:
-LLD="docs/1121-wikipedia-denylist.md"
+# LLDs live in docs/lld/active/ (in-progress) or docs/lld/done/ (complete)
+LLD="docs/lld/done/1121-wikipedia-denylist.md"
 IMPL="tools/fetch_denylist.py"
 TESTS="tests/test_fetch_denylist.py"
 REPORT="docs/reports/121/implementation-report.md"
@@ -96,7 +97,7 @@ For each feature, verify:
 ## LLD-to-Code Alignment Audit - Issue #{ID}
 
 ### Files Compared
-- **LLD:** `docs/1{ID}-feature.md`
+- **LLD:** `docs/lld/{active|done}/1{ID}-feature.md`
 - **Implementation:** `path/to/impl.py`
 - **Tests:** `tests/test_feature.py`
 

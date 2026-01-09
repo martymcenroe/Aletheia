@@ -166,7 +166,7 @@ This rule exists because **multiple agents work on this project simultaneously**
 - ✅ Bug fixes, even "quick" ones
 
 **What can be committed directly to main:**
-- ✅ Documentation files (`docs/*.md`) - LLDs, standards, session logs
+- ✅ Documentation files (`docs/**/*.md`) - LLDs (in `docs/lld/`), standards, session logs
 - ✅ `CLAUDE.md` updates (meta-documentation)
 - ✅ `.gitignore` updates
 
@@ -199,7 +199,7 @@ See **`docs/0015-agent-prohibited-actions.md`** for the complete list with ratio
 - ❌ `/tmp` or system temp directories (use `{project}/tmp/`)
 
 ### Required Workflow:
-- **Docs before Code:** You MUST write the relevant `docs/` file (LLD or Standard) *before* writing a single line of code.
+- **Docs before Code:** You MUST write the relevant LLD (`docs/lld/active/`) or Standard *before* writing a single line of code.
 - **Review Gate (MANDATORY):** After writing the LLD:
   1. **STOP.** Do not create a worktree or write any code.
   2. Submit the LLD for orchestrator review.
