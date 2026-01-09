@@ -803,9 +803,9 @@ This is the "Warrior" standard: tests prove the code works, not just that it was
 
 | ID | Directive | Status |
 |----|-----------|--------|
-| G2.1 | **Infrastructure First:** Implement §6.7 (`tests/mocks/firefox-api.mock.js`) and `package.json` scripts BEFORE feature code | ⏳ IN PROGRESS |
-| G2.2 | **Red-Green-Refactor:** `npm run test:unit:firefox` must fail (Red) before code exists, then pass (Green) | ⏳ IN PROGRESS |
-| G2.3 | **Execute:** Proceed with implementation of Issue #206 / LLD 1206 | ⏳ IN PROGRESS |
+| G2.1 | **Infrastructure First:** Implement §6.7 (`tests/mocks/firefox-api.mock.js`) and `package.json` scripts BEFORE feature code | ✅ DONE - Created tests/mocks/firefox-api.mock.js, tests/unit/firefox/auth.test.js, tests/unit/firefox/popup.test.js, added package.json scripts |
+| G2.2 | **Red-Green-Refactor:** `npm run test:unit:firefox` must fail (Red) before code exists, then pass (Green) | ✅ DONE - Tests failed (8 failures) before code, then passed (34/34) after implementation |
+| G2.3 | **Execute:** Proceed with implementation of Issue #206 / LLD 1206 | ✅ DONE - Created auth.js, updated popup.html/popup.js |
 
 ---
 
@@ -817,4 +817,4 @@ This is the "Warrior" standard: tests prove the code works, not just that it was
 | Orchestrator | 2026-01-09 13:00 | FEEDBACK | Manual tests should be automated |
 | Gemini #2 | 2026-01-09 13:30 | APPROVED | Proceed with infrastructure-first |
 
-**Final Status:** ✅ APPROVED - Ready for implementation
+**Final Status:** ✅ IMPLEMENTED - All tests pass (34/34), PR ready for review
