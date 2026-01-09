@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-09 02:34 CT
-**Total Open Issues:** 15
+**Generated:** 2026-01-09 02:45 CT
+**Total Open Issues:** 16
 
 ---
 
@@ -837,5 +837,80 @@ After cleanup, root should contain only:
 ## Labels
 
 `chore`, `tech-debt`, `documentation`
+
+---
+
+## Issue #205: chore: Strengthen /cleanup to auto-delete orphaned branches
+
+**Created:** 2026-01-09
+**Updated:** 2026-01-09
+
+### Description
+
+## Incident Report
+
+**Date:** 2026-01-09
+**Symptom:** Branch `126-hard-soft-blocking` found orphaned during `/cleanup`
+**Root Cause:** POST-MERGE GATE did not exist; agent removed worktree but forgot to delete local branch
+
+### Timeline
+
+| Time | Event |
+|------|-------|
+| 08:11 UTC | PR #202 merged via `gh pr merge` |
+| 08:11 UTC | GitHub auto-deleted remote branch |
+| ~08:12 UTC | Agent removed worktree (assumed) |
+| **MISSING** | Agent did NOT delete local branch |
+| 10:15 UTC | `/cleanup` flagged orphan branch |
+
+## Immediate Fix (Completed)
+
+- [x] Added POST-MERGE GATE to CLAUDE.md with explicit 4-step checklist
+- [x] Added Step 12 Cleanup Checklist to 0004-orchestration-protocol.md
+- [x] Documented incident in both files as cautionary example
+- [x] Deleted orphan branch `126-hard-soft-blocking`
+
+## Proposed Enhancement
+
+The `/cleanup` skill currently **reports** orphaned branches but does not **delete** them.
+
+### Proposed: Auto-Delete Safe Orphans
+
+Add logic to `.claude/commands/cleanup.md`:
+
+```
+For each local branch != main:
+  1. Check if remote exists: git branch -vv | grep "origin/.*: gone"
+  2. Check if worktree exists: git worktree list | grep branch-name
+  3. If remote=gone AND worktree=none:
+     → Branch is safely deletable (completed work, merged, cleaned up remotely)
+     → Auto-delete: git branch -D {branch-name}
+     → Report: "Deleted orphan branch: {branch-name}"
+```
+
+### Safety Criteria
+
+Only auto-delete if ALL conditions are met:
+- [x] Branch is not `main`
+- [x] Remote tracking shows `gone` (was deleted on GitHub)
+- [x] No worktree exists for this branch
+- [x] Branch has no unpushed commits (implicit: remote existed and was deleted)
+
+### Implementation
+
+1. Update `.claude/commands/cleanup.md` Phase 2 to include auto-delete logic
+2. Add `--no-auto-delete` flag for conservative mode
+3. Report all deletions in cleanup summary
+
+## Acceptance Criteria
+
+- [ ] `/cleanup` auto-deletes branches where remote is `gone` and no worktree exists
+- [ ] Deletions are reported in summary table
+- [ ] `--no-auto-delete` flag available for manual control
+- [ ] POST-MERGE GATE in CLAUDE.md prevents future orphans
+
+## Labels
+
+`chore`, `process-improvement`, `cleanup`
 
 ---
