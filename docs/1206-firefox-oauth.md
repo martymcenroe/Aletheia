@@ -146,6 +146,7 @@ sequenceDiagram
 | `tests/mocks/firefox-api.mock.js` | **CREATE** | Mock `browser.identity`, `browser.storage`, `browser.runtime`, `browser.tabs` |
 | `tests/unit/firefox/auth.test.js` | **CREATE** | Unit tests for Firefox auth.js (mirrors Chrome auth tests) |
 | `tests/unit/firefox/popup.test.js` | **CREATE** | Unit tests for Firefox popup.js view switching |
+| `tests/e2e/firefox-auth.spec.js` | **CREATE** | E2E tests for Firefox auth flow (MOCK_MODE) |
 | `vitest.config.js` | **MODIFY** | Ensure Firefox tests are included in test suite |
 
 ### 6.2 auth.js Port Strategy
@@ -576,26 +577,85 @@ Same as Chrome (LLD 1116 §8), plus:
 | 120 | Token persists in session | Manual | N/A | Reopen popup, still logged in |
 | 130 | Browser close clears access | Manual | N/A | Access token gone, refresh needed |
 
-### 11.2 Manual Smoke Test
+### 11.2 E2E Test (Playwright - MOCK_MODE)
 
-1. Load Firefox extension via `about:debugging`
-2. Click extension icon - verify login view shown
-3. Click "Sign in with LinkedIn"
-4. Complete LinkedIn authentication
-5. Verify popup shows user name and main view
-6. Open DevTools → Storage Inspector - verify:
-   - Session Storage has accessToken
-   - Local Storage has refreshToken, userId, displayName
-7. Click logout - verify login view returns
-8. Close Firefox completely, reopen - verify must re-login
+Add `tests/e2e/firefox-auth.spec.js`:
 
-### 11.3 LinkedIn App Configuration Test
+```javascript
+// tests/e2e/firefox-auth.spec.js
+import { test, expect } from '@playwright/test';
 
-Before implementation:
-1. Get Firefox extension ID: `extension@aletheia.study`
-2. Add redirect URI to LinkedIn Developer Portal:
-   `https://extensions.allizom.org/extension@aletheia.study/`
-3. Test redirect URL in browser to confirm format
+test.describe('Firefox Auth E2E (MOCK_MODE)', () => {
+  test('010: Shows login view when unauthenticated', async ({ page, context }) => {
+    // Load extension popup
+    const popupPage = await context.newPage();
+    await popupPage.goto(`moz-extension://${extensionId}/popup.html`);
+
+    // Verify login view visible
+    await expect(popupPage.locator('#login-view')).toBeVisible();
+    await expect(popupPage.locator('#main-view')).not.toBeVisible();
+  });
+
+  test('020: Mock login flow works', async ({ page, context }) => {
+    // With MOCK_MODE=true, clicking login should immediately succeed
+    const popupPage = await context.newPage();
+    await popupPage.goto(`moz-extension://${extensionId}/popup.html`);
+
+    await popupPage.click('#login-button');
+
+    // Should show main view with user name
+    await expect(popupPage.locator('#main-view')).toBeVisible();
+    await expect(popupPage.locator('#user-name')).toHaveText('Test User');
+  });
+
+  test('030: Logout returns to login view', async ({ page, context }) => {
+    // Start authenticated
+    const popupPage = await context.newPage();
+    await popupPage.goto(`moz-extension://${extensionId}/popup.html`);
+    await popupPage.click('#login-button'); // Mock login
+
+    await popupPage.click('#logout-button');
+
+    await expect(popupPage.locator('#login-view')).toBeVisible();
+  });
+
+  test('040: Storage hierarchy verified', async ({ page, context }) => {
+    const popupPage = await context.newPage();
+    await popupPage.goto(`moz-extension://${extensionId}/popup.html`);
+    await popupPage.click('#login-button');
+
+    // Verify storage via extension API
+    const sessionData = await popupPage.evaluate(() => browser.storage.session.get());
+    const localData = await popupPage.evaluate(() => browser.storage.local.get());
+
+    expect(sessionData.accessToken).toBeDefined();
+    expect(localData.refreshToken).toBeDefined();
+    expect(localData.userId).toBeDefined();
+  });
+});
+```
+
+**Run with:** `npm run test:e2e:firefox`
+
+### 11.3 Manual Tests (ONLY for real LinkedIn OAuth)
+
+These tests require actual LinkedIn authentication and cannot be automated:
+
+| ID | Scenario | Why Manual |
+|----|----------|------------|
+| 110 | Real LinkedIn OAuth popup appears | Requires LinkedIn servers |
+| 120 | Real token exchange succeeds | Requires client_secret on Lambda |
+| 130 | Browser restart clears session storage | Can't simulate browser lifecycle |
+
+**When to run:** Before Firefox Add-ons submission, after all automated tests pass.
+
+### 11.4 LinkedIn App Configuration (DONE)
+
+~~Before implementation:~~
+1. ~~Get Firefox extension ID: `extension@aletheia.study`~~
+2. ~~Add redirect URI to LinkedIn Developer Portal~~
+
+**Status:** ✅ Completed 2026-01-09 - URI registered in LinkedIn Developer Portal.
 
 ## 12. Definition of Done
 
@@ -611,12 +671,13 @@ Before implementation:
 - [ ] `tests/mocks/firefox-api.mock.js` created with full browser.* mock
 - [ ] `tests/unit/firefox/auth.test.js` created and passing
 - [ ] `tests/unit/firefox/popup.test.js` created and passing
+- [ ] `tests/e2e/firefox-auth.spec.js` created and passing (MOCK_MODE)
 - [ ] `npm run test:unit` runs BOTH Chrome and Firefox tests
-- [ ] All automated tests pass (010-100 in §11.1)
+- [ ] `npm run test:e2e:firefox` passes
+- [ ] All automated tests pass (010-100 in §11.1 + E2E in §11.2)
 
-### Manual Verification
-- [ ] Manual OAuth flow works in Firefox (110-130 in §11.1)
-- [ ] Storage hierarchy verified via DevTools
+### Manual Verification (Pre-submission only)
+- [ ] Real LinkedIn OAuth flow works (110-130 in §11.3) - run once before Add-ons submission
 
 ### Documentation
 - [ ] Implementation report created
