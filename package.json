@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "AI-Powered Context Analysis Chrome Extension",
   "scripts": {
+    "lint": "eslint extensions/ --max-warnings 0",
+    "lint:fix": "eslint extensions/ --fix",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
