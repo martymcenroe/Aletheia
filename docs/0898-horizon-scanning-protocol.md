@@ -21,16 +21,18 @@ Track current versions of frameworks that inform our audit suite:
 
 | Framework | Current Version | Last Checked | Our Coverage | Status |
 |-----------|-----------------|--------------|--------------|--------|
-| **OWASP Top 10** | 2025 | 2026-01-06 | 0809 §2 | ✅ Updated |
-| **OWASP LLM Top 10** | 2025 | 2026-01-06 | 0809 §3 | ✅ Current |
-| **OWASP Agentic Top 10** | 2026 | 2026-01-06 | 0821 Agentic | ✅ Current |
-| **ISO/IEC 42001** | 2023 | 2026-01-06 | 0818 AIMS | ✅ Current |
-| **EU AI Act** | 2024 (GPAI: Aug 2025, High-risk: Aug 2026) | 2026-01-06 | 0809, 0820 | ⚠️ Monitor |
-| **NIST AI RMF** | 1.0 (2023) | 2026-01-06 | 0818, 0823 | ✅ Current |
-| **NIST Cyber AI Profile** | IR 8596 Draft (Dec 2025) | 2026-01-06 | None | 📋 Triage |
-| **ASVS** | 4.0.3 | 2026-01-06 | 0809 §4 | ✅ Current |
-| **CWE Top 25** | 2024 | 2026-01-06 | 0809 §2 | ✅ Current |
-| **SPDX AI Profile** | 3.0 | 2026-01-06 | 0819 AIBOM | 📋 Evaluate |
+| **OWASP Top 10** | 2025 | 2026-01-09 | 0809 §2 | ✅ Updated |
+| **OWASP LLM Top 10** | 2025 | 2026-01-09 | 0809 §3 | ✅ Current |
+| **OWASP Agentic Top 10** | 2026 (Dec 2025 release) | 2026-01-09 | 0821 Agentic | ✅ Current |
+| **ISO/IEC 42001** | 2023 | 2026-01-09 | 0818 AIMS | ✅ Current |
+| **EU AI Act** | 2024 (GPAI: Aug 2025 ✅, High-risk: Aug 2026†) | 2026-01-09 | 0809, 0820 | ⚠️ Monitor |
+| **NIST AI RMF** | 1.0 (2023, revision in progress) | 2026-01-09 | 0818, 0823 | ✅ Current |
+| **NIST Cyber AI Profile** | IR 8596 Draft (Dec 2025) | 2026-01-09 | None | 📋 Triage |
+| **ASVS** | 4.0.3 | 2026-01-09 | 0809 §4 | ✅ Current |
+| **CWE Top 25** | 2024 | 2026-01-09 | 0809 §2 | ✅ Current |
+| **SPDX AI Profile** | 3.0 | 2026-01-09 | 0819 AIBOM | 📋 Evaluate |
+
+† EU "Digital Omnibus on AI" (Nov 2025) proposes delaying high-risk to Dec 2027 (Annex III) / Aug 2028 (embedded)
 
 ### 2.1.1 Framework Triage Queue
 
@@ -115,6 +117,12 @@ Every quarter, systematically investigate:
 | 2026-01-06 | Claude Opus 4.5 | EU AI Act GPAI obligations effective Aug 2025 | Updated regulatory triggers |
 | 2026-01-06 | Claude Opus 4.5 | Chrome extension security incidents (ShadyPanda, 4.3M users) | Noted in 0809; Aletheia not affected |
 | 2026-01-08 | Claude Opus 4.5 | ChrisWiles/claude-code-showcase: Active Hooks architecture | ADOPT - See §4.3 |
+| 2026-01-09 | Claude Opus 4.5 | OWASP Agentic Top 10 released Dec 10, 2025 (100+ experts) | Verified 0821 coverage |
+| 2026-01-09 | Claude Opus 4.5 | OWASP GenAI promoted to Flagship status (March 2025) | No action required |
+| 2026-01-09 | Claude Opus 4.5 | NIST AI RMF revision in progress per AI Action Plan | Monitor for updates |
+| 2026-01-09 | Claude Opus 4.5 | EU Digital Omnibus on AI (Nov 2025) may delay high-risk dates | Updated registry note |
+| 2026-01-09 | Claude Opus 4.5 | AI Incident Database: 1116+ incidents, 140+ new in 2025 | Monitored; no new risk categories |
+| 2026-01-09 | Claude Opus 4.5 | ISO 42001: 76% organizations planning adoption (CSA 2025) | No version change; adoption growing |
 
 ---
 
@@ -381,6 +389,7 @@ Long-term goal: audits generate from CI/CD artifacts, not manual checklists.
 |------|----------|----------|---------|
 | 2026-01-06 | Initial creation | 6 new audits identified | Created 0818-0823 |
 | 2026-01-06 | Deep mode scan | OWASP 2025, NIST Cyber AI Profile, EU AI Act dates | Updated 0809 §2, added to triage queue |
+| 2026-01-09 | Quarterly scan | All frameworks current; OWASP Agentic Top 10 released Dec 10, 2025; EU Digital Omnibus may delay high-risk; AIID at 1116+ incidents | Updated registry, research log |
 
 ---
 
