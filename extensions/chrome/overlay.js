@@ -325,6 +325,7 @@ function typewriterRender(element, text, delayMs = TYPEWRITER_DELAY_MS) {
             return;
         }
 
+        // eslint-disable-next-line security/detect-object-injection -- index is internal loop counter, not user input
         element.textContent += text[index];
         index++;
 
@@ -745,6 +746,7 @@ if (!window.showAletheiaOverlay) {
             'success': '#22C55E',
             'error': '#EF4444'
         };
+        // eslint-disable-next-line security/detect-object-injection -- type is internal enum ('warning'|'success'|'error'), not user input
         const borderColor = colors[type] || colors['warning'];
 
         // Legacy overlay styles (inline for this simple overlay)
@@ -824,6 +826,7 @@ if (!window.updateAletheiaOverlay) {
             'success': '#22C55E',
             'error': '#EF4444'
         };
+        // eslint-disable-next-line security/detect-object-injection -- type is internal enum ('warning'|'success'|'error'), not user input
         const borderColor = colors[type] || colors['warning'];
 
         const overlay = activeShadowRoot.querySelector('.overlay');  // Issue #197: Use stored reference

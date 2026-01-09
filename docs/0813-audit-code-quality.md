@@ -101,17 +101,43 @@ Look for:
 
 ## 6. Audit Procedure
 
-### 6.1 Tool Execution Verification (CRITICAL)
+### 6.1 Tool Integrity Verification (CRITICAL)
 
-**Do NOT trust that tools work. Verify they actually execute.**
+**Absence of Evidence is NOT Evidence of Absence.**
+
+A tool that fails silently reports 0 errors. This is a FALSE NEGATIVE, not a pass.
+
+**Prime Directive:** Never trust a silent tool. If output is empty or generic, **the audit FAILS**.
+
+#### 6.1.1 Positive Confirmation of Coverage
+
+Every tool must PROVE it scanned the target files:
+
+| Tool | Command | PASS Criteria | FAIL Criteria |
+|------|---------|---------------|---------------|
+| ESLint | `npm run lint` | Output shows "X problems" OR lists files scanned | Empty output, crash, or "0 files" |
+| Pytest | `poetry run pytest` | Output shows "collected X items" where X > 0 | "collected 0 items" or crash |
+| Mypy | `poetry run mypy src/` | Output shows files checked or "Success" | Silent exit or config exclusion |
+| Coverage | `poetry run pytest --cov` | Shows percentage > 0% for target modules | 0% coverage (tool failed to attach) |
+
+**Rule:** If execution time < 0.1s or output is empty, assume tool malfunction, not clean code.
+
+#### 6.1.2 Dependency Verification
 
 | Step | Command | Success Criteria | Failure Action |
 |------|---------|------------------|----------------|
 | 1 | `npm ls --depth=0` | No UNMET DEPENDENCY errors | Run `npm install`, re-check |
 | 2 | `npx eslint --version` | Version prints (no MODULE_NOT_FOUND) | Fix dependency issue |
-| 3 | `npx eslint extensions/` | Runs and produces output (warnings OK) | If crashes, dependencies broken |
+| 3 | `npm run lint` | Produces file-specific output | If crashes, dependencies broken |
 
-**Why this matters:** On 2026-01-08, ESLint security plugins were declared in package.json but never installed. ESLint crashed on every run with `ERR_MODULE_NOT_FOUND`. This meant **zero security linting** was happening. The audit missed this because it only checked if ESLint config existed, not if ESLint ran.
+#### 6.1.3 The Warrior vs The Bureaucrat
+
+* **The Bureaucrat** sees empty output and stamps "Approved - 0 errors."
+* **The Warrior** sees empty output and panics: "Is the sensor broken?"
+
+**Be the Warrior.** If a tool doesn't prove it ran on target files, mark audit status as `❌ FAILED (Tool Malfunction)`.
+
+**History:** On 2026-01-08, ESLint security plugins were declared in package.json but never installed. ESLint crashed with `ERR_MODULE_NOT_FOUND`. The audit noted "NPM unmet dependencies" as MEDIUM priority without realizing this meant **zero security linting**. A crashed tool was treated as a pass because output was empty.
 
 ### 6.2 Full Procedure
 

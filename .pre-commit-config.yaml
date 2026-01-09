@@ -28,6 +28,17 @@ repos:
     hooks:
       - id: gitleaks
 
+  # ESLint for JavaScript (security plugins: no-unsanitized, security)
+  # See: docs/9000-lessons-learned.md (2026-01-08) - JS was second-class citizen
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint (JS Security)
+        entry: npx eslint --max-warnings 0
+        language: system
+        files: \.(js|mjs)$
+        types: [file]
+
   # Project Policy Compliance (ADRs, CLAUDE.md directives)
   # See: docs/9000-lessons-learned.md (2026-01-04)
   - repo: local
