@@ -29,7 +29,23 @@ Every feature or fix must strictly follow this 12-step execution loop to ensure 
 | **9. Push** | Team Visibility (REQUIRED) | `git push -u origin HEAD` |
 | **10. PR** | Review | `gh pr create --fill` |
 | **11. Reports** | Document (MANDATORY) | Create `docs/reports/{ID}/` with both reports |
-| **12. Cleanup** | Remove worktree + branches | After merge: `git worktree remove` + branch cleanup |
+| **12. Cleanup** | Remove worktree + branches | After merge: Execute POST-MERGE GATE (see below) |
+
+### Step 12 Cleanup Checklist (MANDATORY)
+
+After `gh pr merge` succeeds, execute this sequence **immediately**. Do not start new work until cleanup is verified complete.
+
+| # | Action | Command | Verify |
+|---|--------|---------|--------|
+| 1 | Verify merge | `gh pr view {PR} --json state` | Shows "MERGED" |
+| 2 | Remove worktree | `git worktree remove ../Aletheia-{ID}` | No error (use `--force` if needed) |
+| 3 | Delete local branch | `git branch -D {branch-name}` | Branch deleted |
+| 4 | Verify worktrees | `git worktree list` | Shows ONLY main |
+| 5 | Verify branches | `git branch --list` | Shows ONLY `* main` |
+
+**Why `-D` instead of `-d`?** GitHub squash-merges create a new commit SHA. Git sees the branch commits as "not merged" because the SHAs differ. Use `-D` (force) for squash-merged branches.
+
+**Incident 2026-01-09:** Branch `126-hard-soft-blocking` was orphaned because cleanup stopped after worktree removal. The local branch persisted for hours until `/cleanup` flagged it.
 
 **Step 2 Rationale:** LLDs are written on main before any worktree exists. This ensures the plan is reviewed before implementation begins.
 

@@ -371,6 +371,41 @@ Step 2: Stage and wait
 **State the gate explicitly:** Before any commit, say:
 > "Executing PRE-COMMIT GATE: verifying reports exist before staging for review."
 
+### POST-MERGE GATE (EXECUTE AFTER EVERY PR MERGE)
+
+**After `gh pr merge` completes, you MUST execute this cleanup sequence. No exceptions.**
+
+```
+Step 1: Verify merge succeeded
+├── gh pr view {PR-number} --repo martymcenroe/Aletheia --json state
+│   └── Should show "MERGED"
+```
+
+```
+Step 2: Remove worktree
+├── git -C /c/Users/mcwiz/Projects/Aletheia worktree remove ../Aletheia-{IssueID}
+│   └── If "not empty" error: git worktree remove --force ../Aletheia-{IssueID}
+```
+
+```
+Step 3: Delete local branch
+├── git -C /c/Users/mcwiz/Projects/Aletheia branch -d {branch-name}
+│   └── If "not fully merged" (squash merge): git branch -D {branch-name}
+```
+
+```
+Step 4: Verify cleanup complete
+├── git -C /c/Users/mcwiz/Projects/Aletheia worktree list
+│   └── Should show ONLY: /c/Users/mcwiz/Projects/Aletheia ... [main]
+├── git -C /c/Users/mcwiz/Projects/Aletheia branch --list
+│   └── Should show ONLY: * main
+```
+
+**State the gate explicitly:** After any merge, say:
+> "Executing POST-MERGE GATE: removing worktree and deleting local branch."
+
+**Why this gate exists:** GitHub auto-deletes remote branches after merge, but local branches and worktrees remain. Without explicit cleanup, orphaned branches accumulate. Incident 2026-01-09: Branch `126-hard-soft-blocking` was orphaned because this gate didn't exist.
+
 ### Document Mutability (WORM Policy):
 Some documents are **immutable** — NEVER modify after creation:
 - ❌ Session logs (`docs/session-logs/*.md`) - historical record
