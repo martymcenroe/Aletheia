@@ -49,3 +49,15 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+  # PRE-MERGE GATE: Require reports before committing implementation code
+  # See: docs/9000-lessons-learned.md (2026-01-09) - gate violations #53, #147, #126
+  # "Documentation doesn't change behavior. Technical enforcement required."
+  - repo: local
+    hooks:
+      - id: report-gate
+        name: PRE-MERGE GATE (Reports Required)
+        entry: bash tools/report_gate.sh
+        language: system
+        pass_filenames: false
+        always_run: true

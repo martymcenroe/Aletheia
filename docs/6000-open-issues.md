@@ -1,20 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-08 19:31 CT
-**Total Open Issues:** 20
-
----
-
-## Issue #6: feat: Implement RAG Vector Store
-
-**Labels:** feature
-
-**Created:** 2025-11-24
-**Updated:** 2025-12-24
-
-### Description
-
-Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
+**Generated:** 2026-01-09 02:31 CT
+**Total Open Issues:** 15
 
 ---
 
@@ -139,7 +126,7 @@ LaTeX wrapping (`fvextra`, `hyperref`) helps but doesn't fully solve the problem
 **Labels:** enhancement
 
 **Created:** 2025-12-29
-**Updated:** 2025-12-29
+**Updated:** 2026-01-09
 
 ### Description
 
@@ -396,149 +383,6 @@ This led to the realization that what we'd built wasn't just documentation—it 
 
 ---
 
-## Issue #126: feat: Implement Hard vs. Soft Blocking Logic
-
-**Labels:** feature, core-logic
-
-**Created:** 2025-12-31
-**Updated:** 2026-01-01
-
-### Description
-
-
-## Objective
-Differentiate between 'Forbidden' terms (Denylist) and 'Educational' terms (Semantic Analysis).
-
-## The Split
-1. **Hard Block (The Denylist):**
-   - **Source:** `src/guardrails/resources/denylist.json` (Wikipedia-sourced via Issue #121)
-   - **Action:** Immediate 403 Forbidden.
-   - **UX:** 'Blocked: Hate Speech detected.' (No further interaction allowed).
-   - **Target:** Well-known slurs, severe hate speech (e.g., words that a writer replaces with just one letter and -word e.g. Z-word).
-
-2. **Soft Block (The Semantic Warning):**
-   - **Source:** Bedrock Semantic Analysis.
-   - **Action:** 200 OK (with Warning payload).
-   - **UX:** Show 'Potential Issue' Amber Badge. User *can* read the 'Erudite' explanation and choose to dismiss/ignore.
-   - **Target:** Nuanced terms, archaic phrases, dogwhistles.
-
-## Implementation
-- Update `lambda_function.py` to ensure Denylist remains 'Fail Closed'.
-- Update Semantic layer to return a 'Warning' classification instead of a hard block, passing the context to the frontend.
-
-## Acceptance Criteria
-- [ ] Denylist terms trigger immediate blocking (Green tests).
-- [ ] Semantic 'gray area' terms allow the user to see the explanation.
-
----
-
-## Issue #127: process: Implement 'Active Plan' and 'Context Injection' Protocols
-
-**Labels:** process, workflow
-
-**Created:** 2025-12-31
-**Updated:** 2025-12-31
-
-### Description
-
-
-## Context (From Paper 2512.14012)
-Research indicates that expert developers do not 'vibe'; they control. Two specific techniques identified for maintaining control are **Plan Files** (externalizing state) and **Context Injection** (referencing specific domain objects/files).
-
-## Objective
-Update our Orchestration Protocols (0004/0008) to force agents to explicitly track state and reference context, rather than relying on implicit context window retention.
-
-## Requirements
-
-### 1. The 'Active Plan' File
-During a Mini-Sprint, the working Agent must maintain a temporary file in the worktree (e.g., `CURRENT_STATUS.md`).
-- **Content:** The specific steps from the LLD being executed.
-- **Update Frequency:** Must be updated *before* claiming a step is done.
-- **Goal:** Prevents the agent from 'claiming victory so soon' and provides a save point if the session crashes.
-
-### 2. 'Context Type' Injection in Prompts
-Update `docs/0008-orchestrator-instructions.md` to require **Plan-Referenced Prompting**.
-- **Forbidden:** 'Fix the validation function.'
-- **Required:** 'Implement **Step 3** of `docs/1113-naked-python.md`. Modify **only** `lambda_function.py`. The input is the **Event Object** defined in Section 6.2.'
-- **Key Context Types to Reference:**
-    - Reference to Step in Plan
-    - Reference to Output File (Target)
-    - Domain Object (Specific terminology)
-
-## Definition of Done
-- [ ] `docs/0004-orchestration-protocol.md` updated with 'Active Plan' requirement.
-- [ ] `docs/0008-orchestrator-instructions.md` updated with Prompting Templates.
-
----
-
-## Issue #128: process: Formalize 'Scaffolding vs. Logic' Task Splitting
-
-**Labels:** core-logic, process
-
-**Created:** 2025-12-31
-**Updated:** 2025-12-31
-
-### Description
-
-
-## Context (From Paper 2512.14012)
-The paper identifies a distinct split in Agent Suitability:
-- **Highly Suitable:** Scaffolding, Boilerplate, Writing Tests.
-- **Unsuitable/Risky:** Complex Business Logic, Core Decision Making.
-
-## Objective
-Update our Issue Template and LLD process to split complex features into two distinct passes. We should not ask the agent to do both simultaneously.
-
-## The Protocol Change
-Modify `docs/0102-TEMPLATE-feature-lld.md` or `docs/0004-orchestration-protocol.md` to define the **Two-Pass Implementation**:
-
-### Pass 1: The Skeleton (High Agent Autonomy)
-- Create directory structures.
-- Define function signatures (with type hints and docstrings).
-- Create **Failing Tests** (The Test Harness).
-- *Agent Mode:* Fast, high-autonomy.
-
-### Pass 2: The Brain (High Human Control)
-- Implement the specific business rules inside the signatures.
-- Connect the actual logic.
-- Verify against the Test Harness.
-- *Agent Mode:* Step-by-step, high-supervision.
-
-## Definition of Done
-- [ ] Documentation updated to reflect the Two-Pass workflow.
-- [ ] Example provided in `0004-orchestration-protocol.md`.
-
----
-
-## Issue #129: audit: Integrate 'Red Team' Architecture Challenge
-
-**Labels:** process, audit
-
-**Created:** 2025-12-31
-**Updated:** 2025-12-31
-
-### Description
-
-
-## Context (From Paper 2512.14012)
-Experts use agents not just for code, but to 'collaboratively talk out problems' and challenge assumptions. The current workflow moves from LLD to Code too quickly without a critique phase.
-
-## Objective
-Insert a **'Red Team Challenge'** step into the Feature Lifecycle (`docs/0004`) before the LLD is marked 'Approved'.
-
-## The Protocol
-Before coding begins, a separate Model (e.g., Gemini if Claude wrote the LLD) must perform a hostile critique of the plan.
-
-### The 'Critic' Persona
-- **Goal:** Find hallucinations, over-engineering, and security gaps.
-- **Prompt:** 'You are the Red Team. Attack this LLD. Find 3 ways it will fail in production. Find 1 dependency that doesn't exist.'
-
-## Definition of Done
-- [ ] `docs/0004-orchestration-protocol.md` updated with the Red Team step.
-- [ ] `docs/0109-gemini-lld-review-procedure.md` updated to include specific 'Red Team' attack vectors.
-
----
-
 ## Issue #132: Set up support email infrastructure (Cloudflare Email Routing)
 
 **Created:** 2026-01-01
@@ -585,89 +429,6 @@ We need email capability for:
 - [ ] `support@aletheia.study` forwards to Orchestrator's email
 - [ ] Test email received successfully
 - [ ] (Optional) Gmail "send as" configured for replies
-
----
-
-## Issue #149: Investigate and possibly remove lambda_harvester_function.py
-
-**Labels:** chore, audit
-
-**Created:** 2026-01-04
-**Updated:** 2026-01-04
-
-### Description
-
-## Context
-
-`src/lambda_harvester_function.py` may have been created for testing/data harvesting purposes and might no longer be needed.
-
-## Investigation Needed
-
-- [ ] Determine original purpose of this file
-- [ ] Check if it's deployed to AWS (separate Lambda?)
-- [ ] Check if anything references it
-- [ ] Verify it's not part of production flow
-
-## Current State
-
-- File: `src/lambda_harvester_function.py` (47 lines)
-- Coverage: 0% (not unit tested)
-- Listed in file inventory as "Data harvester Lambda handler"
-
-## Decision
-
-If no longer needed:
-- [ ] Remove file
-- [ ] Update `docs/0003-file-inventory.md`
-- [ ] Remove any AWS resources if deployed
-
-## References
-
-- Code Quality Audit 0813: Listed as 0% coverage file
-- File inventory: `docs/0003-file-inventory.md`
-
----
-
-## Issue #151: GitHub Security Settings: Policy and Private Reporting enabled
-
-**Labels:** documentation, security
-
-**Created:** 2026-01-04
-**Updated:** 2026-01-04
-
-### Description
-
-## Completed
-
-The following GitHub security settings have been configured:
-
-### 1. Security Policy ✅
-- Created `SECURITY.md` with:
-  - Responsible disclosure process
-  - Private reporting instructions
-  - Response timeline (48h ack, 1 week assessment, 30 day resolution)
-  - Scope definition
-  - Security measures documentation
-
-### 2. Private Vulnerability Reporting ✅
-- Enabled via `gh api repos/martymcenroe/Aletheia/private-vulnerability-reporting --method PUT`
-- Researchers can now report vulnerabilities privately through GitHub
-
-### Already Enabled
-- Security advisories
-- Dependabot alerts
-- Secret scanning alerts
-
-## Verification
-
-- [ ] Check Security tab shows "Security policy" as enabled
-- [ ] Check "Private vulnerability reporting" shows as enabled
-- [ ] Test private reporting flow (optional)
-
-## References
-
-- [GitHub Security Policy docs](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository)
-- [Private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability)
 
 ---
 
@@ -920,5 +681,161 @@ During the regression test suite audit (#189 task), the following gaps were iden
 
 ---
 *Found during test suite reorganization audit*
+
+---
+
+## Issue #203: Future: AgentOS Process Improvements (Research-Based)
+
+**Labels:** process, post-mvp
+
+**Created:** 2026-01-09
+**Updated:** 2026-01-09
+
+### Description
+
+## Summary
+
+Consolidated backlog item for process improvements derived from academic research (Paper 2512.14012) on expert LLM agent usage patterns.
+
+These ideas are **valid but not urgent** - the current AgentOS workflow successfully shipped Aletheia to the Chrome Web Store. Revisit if evidence of process failures emerges.
+
+---
+
+## Improvement Ideas
+
+### 1. Active Plan & Context Injection (was #127)
+- Agents maintain `CURRENT_STATUS.md` in worktrees
+- Prompts must reference specific LLD steps, target files, domain objects
+- **Goal:** Prevent context loss, provide crash recovery save points
+
+### 2. Scaffolding vs. Logic Split (was #128)
+- Two-pass implementation model:
+  - **Pass 1 (Skeleton):** Directory structure, function signatures, failing tests (high autonomy)
+  - **Pass 2 (Brain):** Business logic implementation (high supervision)
+- **Goal:** Match agent autonomy level to task suitability
+
+### 3. Red Team Architecture Challenge (was #129)
+- Insert critique phase before LLD approval
+- Different model attacks the plan: "Find 3 ways this fails in production"
+- **Goal:** Catch hallucinations, over-engineering, security gaps early
+
+---
+
+## Implementation Criteria
+
+Only implement these if:
+- [ ] Evidence of repeated process failures (lost context, bad LLDs, etc.)
+- [ ] Current review gates prove insufficient
+- [ ] Team bandwidth exists after MVP launch
+
+---
+
+## References
+- Paper 2512.14012 (arXiv - Expert LLM Agent Usage Patterns)
+- Supersedes: #127, #128, #129
+
+---
+*Consolidated during backlog cleanup, 2026-01-09*
+
+---
+
+## Issue #204: chore: Repository reorganization - move scripts and test data to proper directories
+
+**Created:** 2026-01-09
+**Updated:** 2026-01-09
+
+### Description
+
+## Summary
+
+The repository root has accumulated clutter that should be organized into proper directories. This is a housekeeping task to align with professional Python/JavaScript project standards.
+
+## Current Problems
+
+### Root Directory Clutter
+
+| Category | Count | Files |
+|----------|-------|-------|
+| Python scripts | 5 | `format-issues.py`, `harvest_test_data.py`, `run_guardrails.py`, `verify_bedrock.py`, `verify_holistic.py` |
+| Shell scripts | 6 | `aws-cleanup-old-resources.sh`, `aws-inventory-check.sh`, `batch-pdf.sh`, `print-*.sh`, `run-audit.bat` |
+| Test data | 2 | `test_ground_truth.json` (2KB), `test_holistic_data.json` (337KB) |
+| Orphan files | 2 | `index.html`, `.print-history.json` |
+
+### Directory Confusion
+
+- `scripts/` is empty (just `.gitkeep`) but `tools/` has all actual tools
+- `prompts/` contains stale files including "clean this out later" folder
+
+## Proposed Changes
+
+### 1. Move Python Scripts to `tools/`
+```
+format-issues.py      → tools/format_issues.py
+harvest_test_data.py  → tools/harvest_test_data.py
+run_guardrails.py     → tools/run_guardrails.py
+verify_bedrock.py     → tools/verify_bedrock.py
+verify_holistic.py    → tools/verify_holistic.py
+```
+
+### 2. Consolidate Shell Scripts to `tools/aws/`
+```
+aws-cleanup-old-resources.sh → tools/aws/cleanup_old_resources.sh
+aws-inventory-check.sh       → tools/aws/inventory_check.sh
+```
+
+### 3. Move Print Scripts to `tools/print/`
+```
+batch-pdf.sh       → tools/print/batch_pdf.sh
+print-all-pdfs.sh  → tools/print/print_all.sh
+print-docs.sh      → tools/print/print_docs.sh
+```
+
+### 4. Move Test Data to `tests/data/`
+```
+test_ground_truth.json  → tests/data/ground_truth.json
+test_holistic_data.json → tests/data/holistic_data.json
+```
+
+### 5. Create `web/` for Landing Page
+```
+index.html → web/index.html
+```
+
+### 6. Cleanup
+- [ ] Delete empty `scripts/` directory
+- [ ] Add to `.gitignore`: `.print-history.json`, `temp-pdfs/`
+- [ ] Move `run-audit.bat` to `tools/`
+- [ ] Move `CHATGPT.md`, `GEMINI.md` to `docs/llm-guides/` or delete
+- [ ] Clean up `prompts/` directory (archive stale content)
+
+## Post-Move Updates Required
+
+- [ ] Update any import statements referencing moved Python files
+- [ ] Update `.claude/settings.local.json` permission paths
+- [ ] Update `pyproject.toml` if script entry points exist
+- [ ] Update `CLAUDE.md` documentation references
+- [ ] Update `docs/0003-file-inventory.md`
+- [ ] Run full test suite to verify nothing broke
+
+## Target Structure (Root)
+
+After cleanup, root should contain only:
+- Config files: `.gitignore`, `.pre-commit-config.yaml`, `eslint.config.mjs`, `pyproject.toml`, `package.json`, `poetry.lock`, `package-lock.json`, `playwright.config.js`
+- Documentation: `README.md`, `LICENSE`, `NOTICE`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `CLAUDE.md`
+- Entry points: `deploy.sh`, `provision.sh` (convention to keep in root)
+- Directories: `.claude/`, `.github/`, `docs/`, `extensions/`, `src/`, `tests/`, `tools/`, `web/`
+
+## Acceptance Criteria
+
+- [ ] No `.py` files in repository root
+- [ ] No utility `.sh` files in repository root (except `deploy.sh`, `provision.sh`)
+- [ ] No test data JSON files in repository root
+- [ ] Empty `scripts/` directory removed
+- [ ] All tests pass after reorganization
+- [ ] File inventory updated
+
+## Labels
+
+`chore`, `tech-debt`, `documentation`
 
 ---

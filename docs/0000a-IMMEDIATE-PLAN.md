@@ -1,7 +1,32 @@
 # Immediate Plan: Store Review & Post-Launch
 
-**Updated:** 2026-01-08
+**Updated:** 2026-01-09
 **Status:** Submitted to stores, awaiting review
+
+---
+
+## Backlog Cleanup (2026-01-09)
+
+Reviewed all open issues. Closed/consolidated 6 issues:
+
+| Issue | Action |
+|-------|--------|
+| #6 | Closed - RAG Vector Store was resume fluff, no clear use case |
+| #127, #128, #129 | Consolidated into #203 (Future: AgentOS Process Improvements) |
+| #151 | Closed - GitHub Security Settings already complete |
+| #149 | Closed - lambda_harvester_function.py already removed |
+
+**Backlog reduced to 14 open issues.**
+
+### Ready to Implement (LLD + Gemini Review)
+- **#132** - Support email infrastructure (needs Cloudflare access)
+- **#161** - CI Performance benchmarks
+- **#160** - CI Accessibility checks
+
+### Updated /onboard Skill
+- `--full` now regenerates digest before reading docs
+- `--quick` reports digest age
+- Digest is now gitignored (auto-generated, local-only)
 
 ---
 
@@ -57,7 +82,9 @@ No open PRs. All feature work merged.
 
 | Issue | Feature | Status |
 |-------|---------|--------|
-| #126 | Hard vs. Soft blocking | Open |
+| #126 | Hard vs. Soft blocking | ✅ Closed |
+| #81 | Landing page redesign | post-mvp |
+| #117 | Unauthenticated users | post-mvp |
 
 ---
 
