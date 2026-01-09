@@ -77,6 +77,10 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 
 Session logs are stored in `docs/session-logs/` with daily files using ISO 8601 date format.
 
+**Current format:** Daily files (`YYYY-MM-DD.md`) - This is the standard.
+
+**Legacy format:** Weekly files (`Week-starting-YYYY-MM-DD.md`) exist from earlier sessions. Per WORM policy, these are not migrated. They remain as historical record.
+
 **Day boundary:** 3:00 AM CT to following day 2:59 AM CT (work at 2am goes in previous day's log)
 
 ### Getting Timestamps on Windows

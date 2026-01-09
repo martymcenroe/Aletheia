@@ -260,16 +260,61 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 ---
 
-## 10. Getting Started
+## 10. Model Recommendations
 
-### 10.1 For New Contributors
+Cost optimization: use the cheapest model that can reliably execute each audit.
+
+### 10.1 By Model Tier
+
+| Model | Cost | Audits | Rationale |
+|-------|------|--------|-----------|
+| **Haiku** | $ | 0808, 0812, 0814, 0816, 0817, 0819, 0899 | Simple checklist, metric aggregation, file parsing |
+| **Sonnet** | $$ | 0811, 0815, 0820, 0822, 0824, 0898 | Web research, framework analysis, moderate reasoning |
+| **Opus** | $$$ | 0809, 0810, 0818, 0821, 0823, 0825 | Complex reasoning, security analysis, incident review |
+
+### 10.2 Detailed Rationale
+
+| Audit | Recommended | Why |
+|-------|-------------|-----|
+| 0808 Permission Permissiveness | Haiku | Simple allow/deny list comparison |
+| 0809 Security | **Opus** | OWASP Top 10 requires nuanced security reasoning |
+| 0810 Privacy | **Opus** | GDPR/privacy analysis requires contextual judgment |
+| 0811 Accessibility | Sonnet | WCAG checklist with moderate reasoning |
+| 0812 Performance | Haiku | Metric collection and threshold comparison |
+| 0814 License Compliance | Haiku | SPDX string matching |
+| 0815 Claude Code Capabilities | Sonnet | Web research for new features |
+| 0816 Dependabot PRs | Haiku | GH API parsing, simple decisions |
+| 0817 Wiki Alignment | Haiku | Text diff comparison |
+| 0818 AI Management System | **Opus** | ISO 42001 requires comprehensive analysis |
+| 0819 AI Supply Chain | Haiku | Dependency scanning, manifest parsing |
+| 0820 Explainability | Sonnet | XAI evaluation with framework guidance |
+| 0821 Agentic AI Governance | **Opus** | Complex agent behavior analysis |
+| 0822 Bias & Fairness | Sonnet | Structured bias evaluation |
+| 0823 AI Incident Post-Mortem | **Opus** | Root cause analysis requires deep reasoning |
+| 0824 Permission Friction | Sonnet | Session log analysis, pattern recognition |
+| 0825 AI Safety | **Opus** | LLM safety requires nuanced reasoning |
+| 0898 Horizon Scanning | Sonnet | Framework research, moderate analysis |
+| 0899 Meta-Audit | Haiku | Execution tracking, checklist validation |
+
+### 10.3 Estimated Savings
+
+By using appropriate models instead of Opus for all audits:
+- **Haiku audits (7):** ~66% savings per audit
+- **Sonnet audits (6):** ~25% savings per audit
+- **Opus audits (6):** No change (required for complexity)
+
+---
+
+## 11. Getting Started
+
+### 11.1 For New Contributors
 
 1. Read this index to understand the audit landscape
 2. Review 0815 for Claude Code workflow rules
 3. Code quality audit (0813) runs automatically on PRs
 4. Security (0809) and Privacy (0810) are the most comprehensive
 
-### 10.2 For Audit Execution
+### 11.2 For Audit Execution
 
 1. Check 0899 for audit schedule and status
 2. Run audit per its documented procedure
@@ -277,7 +322,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 4. Create GitHub issues for failures
 5. Update 0899 with execution date
 
-### 10.3 For Gap Discovery
+### 11.3 For Gap Discovery
 
 1. Review 0898 Horizon Scanning Protocol
 2. Check Framework Registry for updates
@@ -286,7 +331,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 ---
 
-## 11. History
+## 12. History
 
 | Date | Change |
 |------|--------|

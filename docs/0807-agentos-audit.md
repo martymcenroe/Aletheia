@@ -178,10 +178,93 @@ done
 2. Align Y with Z
 ```
 
+## Extended Analysis (Ultrathink Mode)
+
+When invoked with extended thinking (ultrathink), perform deep analysis beyond the standard checks above. This mode is used for nightly audits and major system reviews.
+
+See `docs/0901-runbook-nightly-agentos-audit.md` for invocation instructions.
+
+### Conflict Detection
+
+Cross-reference all gate definitions across documents:
+- Compare gates in CLAUDE.md vs 0000-GUIDE.md vs 0002 vs 0004
+- Flag identical text blocks appearing in multiple files (redundancy)
+- Identify contradictory instructions (conflict)
+
+**What to look for:**
+- Same gate defined differently in two places
+- Rules that could never both be followed
+- "SSOT violations" where multiple docs claim authority on same topic
+
+### Redundancy Analysis
+
+Find duplicate content that should be consolidated:
+- >80% similar text blocks
+- Alias skills/commands that add no value
+- Stale staging directories with deployed content
+
+**Action:** Recommend consolidation to SSOT
+
+### Promotion Candidates
+
+Identify recommendations that should become gates or hooks:
+- Manual checklists that are frequently skipped
+- Documentation-only gates that could be automated
+- Rules in prose that could be enforced programmatically
+
+**Promotion criteria:**
+- Violation causes significant rework
+- Automation is technically feasible
+- Cost of enforcement < cost of violation
+
+### Model Cost Analysis
+
+Review model usage across audits:
+- Flag Opus usage where Haiku/Sonnet would suffice
+- Estimate savings from downgrades
+- Note tasks that genuinely require Opus
+
+**See:** `docs/0800-common-audits.md` for per-audit model recommendations
+
+### Stale Content Detection
+
+Find content that no longer reflects reality:
+- IMMEDIATE-PLAN references to closed issues
+- Index files out of sync with actual files
+- Dead links to legacy or deleted documents
+- Status indicators (🟢/🟡/🔴) that are outdated
+
+## Issue Generation Workflow
+
+After extended analysis, offer to batch-create GitHub issues for significant findings.
+
+**Prompt:**
+> "I found N significant findings. Would you like me to create GitHub issues for them?"
+
+**Issue creation rules:**
+
+| Finding Type | Requires Worktree | Branch to Main |
+|--------------|-------------------|----------------|
+| Code changes (.py, .js, .sh) | Yes | No |
+| Hook modifications | Yes | No |
+| Agent definition changes | Yes | No |
+| Documentation-only fixes | No | Yes |
+
+**Issue format:**
+- Title: `[AgentOS] {finding type}: {brief description}`
+- Label: `agentos`, `maintenance`
+- Body: Include finding details, affected files, recommended fix
+
+**Batch handling:**
+- Create issues sequentially (avoid rate limits)
+- Link related issues with "Related: #NNN"
+- For documentation fixes, may combine multiple small fixes into one issue
+
 ## Integration
 
 - Run as part of monthly maintenance
 - Run before onboarding new AI agents
+- **Nightly:** Run with ultrathink for deep analysis (see 0901)
 - Results feed into system improvement issues
 
 ## Common Findings

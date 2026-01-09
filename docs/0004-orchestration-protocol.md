@@ -70,7 +70,7 @@ If the session context is lost or the environment destabilizes, strict **Emergen
 
 ## 5. Session Logging
 
-At the end of each working session, AI agents MUST append a summary to `.session-log.md`:
+At the end of each working session, AI agents MUST append a summary to `docs/session-logs/YYYY-MM-DD.md`:
 
 1. **Timestamp & Model:** `## YYYY-MM-DD HH:MM CT | Model Name`
 2. **Summary:** 1-2 sentence overview
@@ -79,7 +79,9 @@ At the end of each working session, AI agents MUST append a summary to `.session
 5. **Open Questions:** Unresolved items for next session
 6. **State on Exit:** Branch, open PRs, last commit SHA
 
-This file is `.gitignored` and provides continuity across sessions.
+**Day boundary:** 3:00 AM CT to following day 2:59 AM CT (work at 2am goes in previous day's log).
+
+Session logs are **tracked in git** and provide continuity across sessions and agents. See `docs/0100-TEMPLATE-GUIDE.md` for the full entry template.
 
 ## 6. Mini-Sprint Protocol
 

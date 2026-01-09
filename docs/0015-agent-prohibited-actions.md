@@ -68,6 +68,18 @@ if [ ! -f "src/lambda_function.py" ]; then
 fi
 ```
 
+### 3.5 Environment-Specific Commands
+
+| Action | Why Prohibited | Safe Alternative |
+|--------|----------------|------------------|
+| `TZ='America/Chicago' date` | Returns UTC on Windows (Git Bash), not local time | `powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"` |
+
+### 3.6 Temporary Files
+
+| Action | Why Prohibited | Safe Alternative |
+|--------|----------------|------------------|
+| `/tmp` or `$TEMP` directories | System temp varies by OS, is shared, and may be cleaned unexpectedly | Use project-local `{project}/tmp/` (ensure `tmp/` is in `.gitignore`) |
+
 ---
 
 ## 4. Permitted Actions (No Approval Needed)

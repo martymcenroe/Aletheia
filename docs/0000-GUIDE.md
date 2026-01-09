@@ -94,27 +94,9 @@ git -C /c/Users/mcwiz/Projects/Aletheia-102 status
 
 ## PRE-MERGE REVIEW GATE (MANDATORY)
 
-**Before ANY commit/push/merge, you MUST complete these steps:**
+See **CLAUDE.md § "PRE-MERGE REVIEW GATE"** for the complete gate procedure.
 
-1. **Create reports locally** (do NOT commit yet):
-   - `docs/reports/{IssueID}/implementation-report.md`
-   - `docs/reports/{IssueID}/test-report.md`
-
-2. **Write lessons learned locally** (do NOT commit yet):
-   - Append entries to `docs/9000-lessons-learned.md`
-
-3. **Stage files but DO NOT COMMIT:**
-   - `git add .` to stage all changes
-   - **STOP HERE** - do not run `git commit`
-
-4. **Present for Gemini review:**
-   - Notify orchestrator that work is ready for review
-   - Wait for Gemini feedback
-   - Incorporate ALL feedback
-
-5. **Only after approval:** commit, push, and merge
-
-**Why this gate exists:** PRs merged without reports bypass the quality review process. Gemini cannot review work that has already been merged. This gate ensures every piece of work is reviewed BEFORE it becomes permanent.
+**Summary:** Before any commit/push/merge, create reports, write lessons learned, stage files, present for Gemini review, then commit only after approval.
 
 ---
 
@@ -234,12 +216,37 @@ We use a **4-Digit Namespace** to organize our collective memory:
     * Feature docs remain in `1xxx` even after the issue is closed (they document what was built).
 * **`6xxx` (Reports):** Generated reports.
     * `6000-open-issues.md` — **Current open GitHub issues.** Regenerate with `poetry run python tools/print/print_most_recent_open_issues.py`.
+* **`09xx` (Runbooks):** Operational procedures for the orchestrator.
+    * `0900-runbook-index.md` — Index of all runbooks.
+    * `0901-runbook-nightly-agentos-audit.md` — Nightly AgentOS audit procedure.
+    * Runbooks are "how to run X" documents, distinct from audits (what to check).
+    * Supersedes `0008-orchestrator-instructions.md`.
 * **`9xxx` (Knowledge):** The memory.
     * **9000:** Lessons Learned — **Aletheia-specific** gotchas and solutions (Chrome extension, Bedrock, this codebase).
     * **9001:** Open Investigations & Future Work (Spikes, Automation Triggers).
     * **9010:** Cheat Sheets (Git, AWS, Bash).
     * **99xx:** Archive (Project closure documents only — for when Aletheia is fully retired).
     * **Cross-project lessons** (Git workflow, AWS deployment, general engineering) live in the [Engineering Journal](https://github.com/martymcenroe/martymcenroe/blob/main/ENGINEERING-JOURNAL.md).
+
+## Single Source of Truth (SSOT) Matrix
+
+To prevent drift and conflicts, each topic has ONE authoritative document. Other docs reference but do not duplicate.
+
+| Topic | SSOT Document | Other Docs |
+|-------|---------------|------------|
+| **Forbidden Commands** | `0015-agent-prohibited-actions.md` | CLAUDE.md, 0002 link to it |
+| **Bash Rules** | `CLAUDE.md` | 0000-GUIDE.md references |
+| **Gates (all)** | `CLAUDE.md` | 0004 references |
+| **Filing System** | `0000-GUIDE.md` | CLAUDE.md summarizes |
+| **Workflow Steps** | `0004-orchestration-protocol.md` | CLAUDE.md summarizes |
+| **Audit Index** | `0800-audit-index.md` | N/A |
+| **Template Index** | `0100-TEMPLATE-GUIDE.md` | N/A |
+| **ADR Index** | `0200-ADR-index.md` | N/A |
+| **Runbook Index** | `0900-runbook-index.md` | N/A |
+| **Session Log Format** | `0100-TEMPLATE-GUIDE.md` | CLAUDE.md references |
+| **Worktree Protocol** | `0002-coding-standards.md` | CLAUDE.md mandates |
+
+**Rule:** When updating policies, update the SSOT document. Other docs link to it.
 
 ## Prime Directives for AI Agents
 1.  **Seek Ground Truth:** Do not hallucinate file paths. Check `ls -R` or `docs/0000-GUIDE.md`.

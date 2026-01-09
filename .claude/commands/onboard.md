@@ -39,6 +39,8 @@ Examples:
 
 ## Quick Mode (`--quick`)
 
+**Model hint:** Quick mode can use **Haiku** (~66% cost savings) since it only reads a pre-generated digest.
+
 Read only the executive summary:
 1. Read `docs/0000b-ONBOARD-DIGEST.md`
 2. Parse the `**Generated:**` timestamp and calculate age

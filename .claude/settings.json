@@ -9,6 +9,23 @@
             "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-check.sh",
             "timeout": 5,
             "description": "Branch Protection (ADR 0210)"
+          },
+          {
+            "type": "command",
+            "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-security-warn.sh",
+            "timeout": 10,
+            "description": "Security Pattern Warning (OWASP)"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-commit-report-check.sh",
+            "timeout": 5,
+            "description": "PRE-COMMIT GATE: Report Existence"
           }
         ]
       }

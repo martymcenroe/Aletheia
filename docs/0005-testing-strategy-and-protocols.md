@@ -56,6 +56,16 @@ These modules are the atomic units of verification.
 
 
 
+### Module E: Frontend Logic (Extension)
+
+**Goal:** Verify complex UI logic (Auth, State Management) in isolation.
+
+* **Scope:** `popup.js`, `content-safety.js`.
+
+* **Tool:** `npm run test:unit` (Vitest).
+
+* **Requirement:** Any JS logic file >50 lines must have >80% coverage.
+
 ## 4. Operational Sequences (SOPs)
 
 Combine modules to create training scripts or release checklists.

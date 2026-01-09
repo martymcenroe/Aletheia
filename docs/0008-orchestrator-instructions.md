@@ -1,5 +1,11 @@
 # 0008 - Orchestrator Instructions
 
+> **DEPRECATED (2026-01-09):** This document is superseded by the **09xx Operational Runbooks** namespace.
+> See `docs/0900-runbook-index.md` for the new structure.
+> This file is retained for historical reference per WORM policy.
+
+---
+
 Rules and guidance for the human orchestrator managing multi-agent AI sessions.
 
 ## 1. Session Continuity

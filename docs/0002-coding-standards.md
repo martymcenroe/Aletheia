@@ -8,6 +8,8 @@
 
 ## 2. Forbidden Commands (NEVER USE)
 
+**Full policy:** See `docs/0015-agent-prohibited-actions.md` for complete list, rationale, and safe alternatives.
+
 AI agents must NEVER use these commands under ANY circumstances:
 
 | Command | Why Forbidden | Use Instead |
@@ -257,6 +259,10 @@ The extension is maintained as **two separate codebases**:
 | `chrome.storage.local.get()` | `browser.storage.local.get()` |
 
 **Rationale:** Firefox MV3 support is immature. Maintaining separate codebases avoids cross-browser timing bugs that are nearly impossible to debug.
+
+### 9.4 Unit Testing
+
+All extension logic (excluding pure DOM manipulation) must be unit tested. Use mocks for `chrome.*` APIs. No "logic in view" — separate pure functions where possible to make testing easier.
 
 ## 10. Git Worktree Protocols
 

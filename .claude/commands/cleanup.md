@@ -1,9 +1,12 @@
 ---
 description: Session cleanup with quick/normal/full modes (project)
 argument-hint: "[--help] [--quick|--normal|--full]"
+aliases: ["/closeout", "/goodbye"]
 ---
 
 # Cleanup
+
+**Aliases:** `/closeout` (same as `/cleanup`), `/goodbye` (same as `/cleanup --quick`)
 
 **If `$ARGUMENTS` contains `--help`:** Display the Help section below and STOP.
 
@@ -35,6 +38,7 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Stash list | | ✅ | ✅ |
 | Regenerate 6000 | | ✅ | ✅ |
 | Worktree list | | ✅ | ✅ |
+| **POST-MERGE cleanup** | | ✅ | ✅ |
 | Inventory audit | | | ✅ |
 | **Index consistency** | | | ✅ |
 | **Plan staleness** | | | ✅ |
@@ -114,12 +118,39 @@ Run these commands simultaneously in a single message with multiple Bash tool ca
    - If branch has NO worktree: ⚠️ Report: "⚠️ ORPHAN: Branch {name} has no worktree"
    - **CRITICAL:** Branches WITH worktrees are EXPECTED. Only flag truly orphaned branches.
 
-2. **Stale Worktrees** (Full only) - Flag if worktree path doesn't exist on disk:
+2. **POST-MERGE GATE Auto-Execution** (Normal and Full) - For each orphaned branch found in step 1:
+   a. Extract issue ID from branch name (format: `{ID}-description`):
+      ```bash
+      echo "{branch-name}" | grep -oE '^[0-9]+'
+      ```
+   b. Check if PR was merged:
+      ```bash
+      gh pr list --state merged --head {branch-name} --repo martymcenroe/Aletheia --json number,mergedAt
+      ```
+   c. If PR was merged, execute POST-MERGE GATE cleanup:
+      - Check if worktree exists for this branch:
+        ```bash
+        git -C /c/Users/mcwiz/Projects/Aletheia worktree list
+        ```
+      - If worktree exists, remove it:
+        ```bash
+        git -C /c/Users/mcwiz/Projects/Aletheia worktree remove ../Aletheia-{IssueID}
+        ```
+        (Use `--force` if "not empty" error)
+      - Delete local branch:
+        ```bash
+        git -C /c/Users/mcwiz/Projects/Aletheia branch -d {branch-name}
+        ```
+        (Use `-D` if "not fully merged" due to squash merge)
+      - Report: "✅ POST-MERGE GATE: Cleaned up branch {branch-name} (PR #{number} merged {mergedAt})"
+   d. If PR was NOT merged, keep the orphan warning from step 1
+
+3. **Stale Worktrees** (Full only) - Flag if worktree path doesn't exist on disk:
    - Report and offer to remove with: git -C /c/Users/mcwiz/Projects/Aletheia worktree remove {path}
 
-3. **Open PRs** - Should be 0. Flag if any exist.
+4. **Open PRs** - Should be 0. Flag if any exist.
 
-4. **Stashes** - Document any stash entries found.
+5. **Stashes** - Document any stash entries found.
 
 **Normal and Full: Regenerate open issues**
 ```bash
@@ -244,6 +275,7 @@ Return a summary table:
 | Open Issues | {count} |
 | Branches | ✅ Only main / ⚠️ {list} |
 | Worktrees | ✅ Only main / ⚠️ {list} |
+| POST-MERGE Cleanup | ✅ {count} cleaned / ⚠️ {count} orphaned (no merged PR) |
 | Stashes | ✅ None / ⚠️ {count} |
 | Commit | ✅ Pushed / ❌ Failed |
 

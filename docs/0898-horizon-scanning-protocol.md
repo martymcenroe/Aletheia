@@ -123,6 +123,7 @@ Every quarter, systematically investigate:
 | 2026-01-09 | Claude Opus 4.5 | EU Digital Omnibus on AI (Nov 2025) may delay high-risk dates | Updated registry note |
 | 2026-01-09 | Claude Opus 4.5 | AI Incident Database: 1116+ incidents, 140+ new in 2025 | Monitored; no new risk categories |
 | 2026-01-09 | Claude Opus 4.5 | ISO 42001: 76% organizations planning adoption (CSA 2025) | No version change; adoption growing |
+| 2026-01-09 | Claude Opus 4.5 | anthropics/claude-code official plugins: code-review, security-guidance, pr-review-toolkit | ADOPT - See §4.3 |
 
 ---
 
@@ -233,6 +234,81 @@ Created staging files in `claude-staging/` for manual deployment:
 - `hooks/pre-edit-check.sh` - Branch protection (ADR 0210)
 - `hooks/post-edit-lint.sh` - Active ESLint/Ruff integration
 - `agents/security-reviewer.md` - Opus-based security reviewer
+
+See `claude-staging/README-DEPLOY.md` for deployment instructions.
+
+#### [2026-01-09] anthropics/claude-code - Official Plugin Architecture
+
+**Source:** https://github.com/anthropics/claude-code/blob/main/plugins/README.md
+**Topic:** Official Claude Code Plugin Patterns (code-review, security-guidance, pr-review-toolkit)
+**Researcher:** Claude Opus 4.5
+
+##### Relevance Assessment
+
+| Factor | Score | Notes |
+|--------|-------|-------|
+| Applies to our tech stack | 5 | Official `claude-code` integration patterns |
+| Applies to our risk profile | 5 | Security-guidance, code-review address audit gaps |
+| Industry adoption momentum | 5 | Official Anthropic patterns, 13 plugins |
+| Regulatory weight | 4 | Supports security audit trail, compliance |
+| **Total** | 19/20 | High relevance |
+
+##### Key Findings
+
+The official Claude Code repository contains 13 plugins demonstrating production patterns:
+
+1. **code-review Plugin**: Multi-agent parallel PR review
+   - 5 parallel Sonnet agents (CLAUDE.md compliance, bugs, history, PR context, comments)
+   - Confidence-based scoring to filter false positives
+   - Reduces review time from ~5min sequential to ~1min parallel
+
+2. **security-guidance Plugin**: Real-time security warning hook
+   - PreToolUse hook monitoring 9+ OWASP patterns
+   - Warns before editing files with: eval(), innerHTML, pickle, os.system, etc.
+   - Non-blocking (warns but doesn't stop work)
+
+3. **pr-review-toolkit Plugin**: Specialized review agents
+   - 6 focused agents: comment-analyzer, test-analyzer, silent-failure-hunter, type-design, code-reviewer, code-simplifier
+   - `--focus` flags for targeted reviews
+
+4. **Plugin Architecture Pattern**:
+   ```
+   plugin-name/
+   ├── .claude-plugin/plugin.json
+   ├── commands/
+   ├── agents/
+   ├── skills/
+   ├── hooks/
+   └── README.md
+   ```
+
+##### Gap Analysis
+
+| Plugin Feature | Current Coverage | Gap? |
+|----------------|------------------|------|
+| Real-time security warnings (PreToolUse) | Post-edit lint only | Yes |
+| Multi-agent parallel PR review | Single security-reviewer | Yes |
+| Confidence-based filtering | None | Yes |
+| Plugin structure standard | Ad-hoc | Minor |
+
+##### Decision
+
+**ADOPT** (Score: 19/20 - High relevance)
+
+##### Implementation
+
+Extended `claude-staging/` with official patterns:
+
+1. **pre-edit-security-warn.sh** - PreToolUse hook scanning 15+ OWASP patterns
+   - JS/TS: innerHTML, outerHTML, eval(), new Function(), onMessage without sender.id
+   - Python: eval(), exec(), os.system(), subprocess shell=True, pickle.load()
+   - Shell: eval, nested command substitution
+   - HTML: inline scripts, event handlers (CSP violations)
+
+2. **/code-review command** - Multi-agent parallel review
+   - 5 agents: security (Opus), CLAUDE.md compliance, bug detector, code quality, test coverage (Sonnet)
+   - Confidence-based filtering (excludes <0.5 findings)
+   - Focus modes: `--focus security`, `--focus quality`, `--focus all`
 
 See `claude-staging/README-DEPLOY.md` for deployment instructions.
 

@@ -191,18 +191,12 @@ git worktree list
 ---
 
 ### Forbidden Commands - NEVER USE:
-- ❌ `git reset` (any form) - Use `git revert` instead
-- ❌ `git push --force` - Destroys collaboration
-- ❌ `git clean -fd` - Permanent data loss
-- ❌ `pip install` - Use `poetry add` instead
-- ❌ `TZ='America/Chicago' date` - Returns UTC on Windows, not local time
-- ❌ `/tmp` or system temp directories - Use project-local `tmp/` instead
+See **`docs/0015-agent-prohibited-actions.md`** for the complete list with rationale.
 
-### Temporary Files Rule:
-- ❌ NEVER use `/tmp`, `$TEMP`, or system temp directories
-- ✅ Use `{project}/tmp/` for any temporary files
-- ✅ Ensure `tmp/` is in `.gitignore`
-- **Why:** System temp varies by OS, is shared, and may be cleaned unexpectedly. Project-local tmp is predictable and isolated.
+**Quick reference (not exhaustive):**
+- ❌ `git reset`, `git push --force`, `git clean -fd`
+- ❌ `pip install` (use `poetry add`)
+- ❌ `/tmp` or system temp directories (use `{project}/tmp/`)
 
 ### Required Workflow:
 - **Docs before Code:** You MUST write the relevant `docs/` file (LLD or Standard) *before* writing a single line of code.
@@ -278,7 +272,7 @@ git worktree list
 | If the issue involves... | Check this Audit... |
 |--------------------------|---------------------|
 | Dependency Updates / PRs | `0816-audit-dependabot-prs.md` |
-| Permissions / CLI Errors | `0808-audit-permission-permissiveness.md` |
+| Permissions / CLI Errors | `0808-audit-permission-permissiveness.md`, `0824-audit-permission-friction.md` |
 | Security / WAF / Auth | `0809-audit-security.md` |
 | Privacy / Data Storage | `0810-audit-privacy.md` |
 | Performance / Latency | `0812-audit-performance.md` |
@@ -336,18 +330,18 @@ Step 2: Create worktree FIRST
 └── ONLY THEN proceed to read LLDs and plan
 ```
 
+```
+Step 3: Pre-Code Verification (before writing ANY code file)
+├── [ ] LLD is written and committed to main
+├── [ ] You are in a worktree (git worktree list confirms)
+├── [ ] Branch name matches issue ID pattern (e.g., 45-denylist)
+└── If any check fails → STOP and fix before writing code
+```
+
 **Why this order matters:** If you read LLDs first, you enter "implementation mindset" and skip the worktree. Create the worktree BEFORE you start thinking about the code.
 
 **State the gate explicitly:** When you receive a coding task, your FIRST response must be:
 > "This task modifies code files. Executing CODING TASK GATE: creating worktree before proceeding."
-
-### Pre-Code Checklist (MANDATORY):
-Before writing ANY code file, verify:
-1. [ ] LLD is written and committed to main
-2. [ ] You are in a worktree (run `git worktree list` to check)
-3. [ ] Branch name matches issue ID pattern (e.g., `45-denylist`)
-
-If any check fails, STOP and fix before writing code.
 
 ### PRE-COMMIT GATE (EXECUTE BEFORE ANY COMMIT)
 
