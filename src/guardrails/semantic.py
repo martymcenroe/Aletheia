@@ -1,3 +1,14 @@
+"""
+Semantic Guardrail - LLM-based content classification.
+
+Issue #126: Implements Hard vs. Soft Blocking Logic.
+See: docs/1126-hard-soft-blocking.md
+
+Block Types:
+- "hard": Safety violations (Hate) - 403 Forbidden
+- "soft": Educational warnings (Archaic, Provocative) - 200 with warning
+- "none": Safe content (None, Neologism, Formal) - 200 OK
+"""
 import json
 import logging
 import time
@@ -6,6 +17,16 @@ from pathlib import Path
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
+
+# Issue #126: Block type constants
+BLOCK_TYPE_HARD = "hard"
+BLOCK_TYPE_SOFT = "soft"
+BLOCK_TYPE_NONE = "none"
+
+# Issue #126: Category to block type mapping (from LLD 1126 Section 2.1)
+HARD_BLOCK_CATEGORIES = {"Hate"}  # Safety violations - immediate 403
+SOFT_BLOCK_CATEGORIES = {"Archaic", "Provocative"}  # Educational warnings - 200 with warning
+# All other categories (None, Neologism, Formal Academic Term, etc.) = BLOCK_TYPE_NONE
 
 class SemanticGuardrail:
     """
@@ -64,7 +85,15 @@ class SemanticGuardrail:
     def check_safety(self, text: str) -> Dict[str, Any]:
         """
         Analyzes text for safety violations using AWS Bedrock.
-        Returns: {'is_safe': bool, 'reason': str, 'scores': dict}
+
+        Issue #126: Returns block_type instead of is_safe boolean.
+
+        Returns: {
+            'block_type': 'hard' | 'soft' | 'none',
+            'category': str,
+            'scores': dict,
+            'is_safe': bool  # Backwards compatibility
+        }
 
         Security: User text is wrapped in XML tags to prevent prompt injection.
         See: docs/0809-audit-security.md Finding F1
@@ -111,19 +140,45 @@ class SemanticGuardrail:
             # Issue #137: Log semantic guardrail timing breakdown
             logger.info(f"SEMANTIC_GUARDRAIL_TIMING: {json.dumps(timings)}")
 
-            # Deterministic Policy Enforcement (Code > LLM)
-            # "None" and "Neologism" are Safe. Others are Unsafe.
-            unsafe_categories = ["Archaic", "Provocative", "Hate"]
-            is_safe = category not in unsafe_categories
+            # Issue #126: Deterministic Policy Enforcement (Code > LLM)
+            # Map category to block type per LLD 1126 Section 2.1
+            block_type = self._get_block_type(category)
 
             return {
-                "is_safe": is_safe,
-                "reason": category,
-                "scores": scores
+                "block_type": block_type,
+                "category": category,
+                "scores": scores,
+                # Backwards compatibility: is_safe is True only for BLOCK_TYPE_NONE
+                "is_safe": block_type == BLOCK_TYPE_NONE,
+                "reason": category,  # Legacy field
             }
 
         except Exception as e:
             timings["total_ms"] = int((time.time() - start) * 1000)
             logger.info(f"SEMANTIC_GUARDRAIL_TIMING (error): {json.dumps(timings)}")
-            # Fail closed on infrastructure error
-            return {"is_safe": False, "reason": f"Guardrail Error: {str(e)}", "scores": {}}
+            # Fail closed on infrastructure error - treat as soft block with fallback
+            # (Per LLD 1126: semantic errors → soft block, not hard block)
+            return {
+                "block_type": BLOCK_TYPE_SOFT,
+                "category": "error",
+                "scores": {},
+                "is_safe": False,
+                "reason": f"Guardrail Error: {str(e)}",
+                "is_fallback": True,
+            }
+
+    def _get_block_type(self, category: str) -> str:
+        """
+        Map semantic category to block type.
+
+        Issue #126: Per LLD 1126 Category Mapping Matrix.
+
+        Returns:
+            BLOCK_TYPE_HARD, BLOCK_TYPE_SOFT, or BLOCK_TYPE_NONE
+        """
+        if category in HARD_BLOCK_CATEGORIES:
+            return BLOCK_TYPE_HARD
+        elif category in SOFT_BLOCK_CATEGORIES:
+            return BLOCK_TYPE_SOFT
+        else:
+            return BLOCK_TYPE_NONE

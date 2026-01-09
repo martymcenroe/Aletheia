@@ -24,7 +24,12 @@ from botocore.exceptions import ClientError
 
 from .etymologist import HAIKU_MODEL_ID, AnalysisResult, analyze_term
 from .guardrails.denylist import check_denylist, load_denylist
-from .guardrails.semantic import SemanticGuardrail
+from .guardrails.semantic import (
+    SemanticGuardrail,
+    BLOCK_TYPE_HARD,
+    BLOCK_TYPE_SOFT,
+    BLOCK_TYPE_NONE,
+)
 
 # Issue #7: Observability tracing (imported after boto3 so patch_all works)
 from .observability import create_subsegment, log_bedrock_metrics, trace_bedrock_call
@@ -222,10 +227,11 @@ def generate_etymology(word: str, context: str = "") -> AnalysisResult:
 
 def run_guardrails(
     text: str, denylist: set[str] | None = None
-) -> tuple[bool, str | None, dict]:
+) -> tuple[str, str | None, dict]:
     """
     Run guardrail pipeline: Denylist → Semantic.
 
+    Issue #126: Returns block_type instead of is_safe boolean.
     CRITICAL: Sequential execution is mandatory. See LLD Section 6.
 
     Args:
@@ -233,20 +239,27 @@ def run_guardrails(
         denylist: Optional denylist for testing (dependency injection).
 
     Returns:
-        (is_safe, block_reason, metadata)
+        (block_type, category, metadata)
+        - block_type: "hard", "soft", or "none"
+        - category: The semantic category (e.g., "Archaic", "None")
+        - metadata: Timing and scoring information
     """
     # Issue #137: Track individual guardrail timings
     guardrail_timings = {}
 
-    # Step 1: Denylist check (fast, deterministic)
+    # Step 1: Denylist check (fast, deterministic) → ALWAYS hard block
     t0 = time.time()
     denylist_result = check_denylist(text, denylist)
     guardrail_timings["denylist_ms"] = int((time.time() - t0) * 1000)
     if denylist_result["blocked"]:
-        return False, "Content blocked by safety filter", {"layer": "denylist", "timings": guardrail_timings}
+        return (
+            BLOCK_TYPE_HARD,
+            "denylist",
+            {"layer": "denylist", "timings": guardrail_timings},
+        )
 
     # Step 2: Semantic check (LLM-based, slower)
-    # MUST run after denylist, MUST block before generation
+    # MUST run after denylist, returns block_type for nuanced handling
     t0 = time.time()
     semantic = get_semantic_guardrail()
     guardrail_timings["semantic_init_ms"] = int((time.time() - t0) * 1000)
@@ -258,14 +271,20 @@ def run_guardrails(
     # Issue #137: Log guardrail breakdown
     logger.info(f"GUARDRAIL_BREAKDOWN: {json.dumps(guardrail_timings)}")
 
-    if not semantic_result["is_safe"]:
-        return (
-            False,
-            f"Content blocked: {semantic_result['reason']}",
-            {"layer": "semantic", "scores": semantic_result.get("scores", {}), "timings": guardrail_timings},
-        )
+    # Issue #126: Return block_type from semantic guardrail
+    block_type = semantic_result.get("block_type", BLOCK_TYPE_NONE)
+    category = semantic_result.get("category", "Unknown")
 
-    return True, None, {"layer": "passed", "scores": semantic_result.get("scores", {}), "timings": guardrail_timings}
+    return (
+        block_type,
+        category,
+        {
+            "layer": "semantic",
+            "scores": semantic_result.get("scores", {}),
+            "timings": guardrail_timings,
+            "is_fallback": semantic_result.get("is_fallback", False),
+        },
+    )
 
 
 def lambda_handler(
@@ -311,11 +330,22 @@ def lambda_handler(
         text = body["text"]
 
         # 2. Guardrails (MUST be sequential: Denylist → Semantic)
+        # Issue #126: Returns block_type for nuanced handling
         t0 = time.time()
-        is_safe, block_reason, metadata = run_guardrails(text, denylist)
+        block_type, category, metadata = run_guardrails(text, denylist)
         timings["guardrails_total_ms"] = int((time.time() - t0) * 1000)
-        if not is_safe:
-            return {"statusCode": 403, "body": json.dumps({"blocked": block_reason})}
+
+        # Issue #126: Hard block → 403 Forbidden (no etymology)
+        if block_type == BLOCK_TYPE_HARD:
+            return {
+                "statusCode": 403,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({
+                    "blocked": True,
+                    "reason": category,
+                    "message": "Blocked: Content not permitted",
+                }),
+            }
 
         # 3. Generate thread ID for persistence
         # TODO: Issue #116 - Use authenticated user ID
@@ -401,6 +431,15 @@ def lambda_handler(
             "gem": result["response"]["gem"],
             "context": result["response"]["context"],
         }
+
+        # Issue #126: Add warning flag for soft blocks
+        # Soft block = 200 OK but with warning for frontend to display
+        if block_type == BLOCK_TYPE_SOFT:
+            response_body["warning"] = True
+            response_body["warning_category"] = category
+            # Include fallback flag if semantic check had an error
+            if metadata.get("is_fallback"):
+                response_body["fallback"] = True
 
         # Include latency for monitoring
         if result.get("metadata", {}).get("latency_ms"):
