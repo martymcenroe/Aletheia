@@ -3,8 +3,9 @@
 ## 1. Context & Goal
 * **Issue:** #126
 * **Objective:** Differentiate between "Forbidden" terms (hard block via Denylist) and "Educational" terms (soft block via Semantic Analysis).
-* **Status:** Draft
-* **Related Issues:** #45 (Denylist implementation), #121 (Wikipedia denylist source), #124 (Digital Etymologist), #125 (Museum Label UI)
+* **Status:** Draft (Archaic classification logic implemented via #199)
+* **Updated:** 2026-01-09
+* **Related Issues:** #45 (Denylist implementation), #121 (Wikipedia denylist source), #124 (Digital Etymologist), #125 (Museum Label UI), #199 (Archaic vs Formal fix)
 
 ### Background
 
@@ -27,6 +28,47 @@ The current system treats all flagged content the same way. We need to split res
 | R8 | Denylist remains fail-closed | If denylist check fails, treat as hard block |
 | R9 | Semantic timeout → soft block | If semantic times out, show warning with fallback message |
 | R10 | No storage of dismissals | Never save dismissed terms to chrome.storage or globals |
+| R11 | Archaic classification is chronological | Only words dead before 1950 are Archaic; formal/academic words are Clean |
+| R12 | Soft block has override | User can click "Analyze Anyway" to proceed |
+
+### 2.1 Category Mapping Matrix (AUTHORITATIVE)
+
+This matrix defines the ONLY valid mappings between semantic categories and block types. **Code must enforce this exactly.**
+
+| Category | Block Type | HTTP Code | User Can Override | Rationale |
+|----------|------------|-----------|-------------------|-----------|
+| **Hate Speech** | Hard Block | 403 | No | Safety violation - slurs, epithets |
+| **Harassment** | Hard Block | 403 | No | Safety violation - targeted abuse |
+| **Dangerous Content** | Hard Block | 403 | No | Safety violation - harm instructions |
+| **PII** | Hard Block | 403 | No | Privacy violation |
+| **Self-Harm** | Hard Block | 403 | No | Safety violation |
+| **Sexual Violence** | Hard Block | 403 | No | Safety violation |
+| **Denylist Match** | Hard Block | 403 | No | Curated slurs/profanity |
+| **Archaic** | Soft Block | 200 | Yes | Educational - historical context |
+| **Provocative** | Soft Block | 200 | Yes | Educational - cultural sensitivity |
+| **Controversy** | Soft Block | 200 | Yes | Educational - disputed meaning |
+| **Polarity** | Soft Block | 200 | Yes | Educational - politically charged |
+| **Bias** | Soft Block | 200 | Yes | Educational - perspective indicator |
+| **Neologism** | Clean | 200 | N/A | Informational only |
+| **Formal Academic Term** | Clean | 200 | N/A | High-register, currently used |
+| **None/Standard** | Clean | 200 | N/A | Normal language |
+
+**Key Principle:** Hard Blocks are for **safety violations**. Soft Blocks are for **educational opportunities**. Clean is for **normal language**.
+
+### 2.2 Archaic Classification Definition (Issue #199)
+
+**Problem Solved:** The system was incorrectly flagging formal/academic words (e.g., "immiserate") as Archaic.
+
+**Strict Definition:**
+
+| Classification | Definition | Examples | Block Type |
+|----------------|------------|----------|------------|
+| **True Archaic** | Words that dropped out of common usage BEFORE 1950 | "Thou", "Forsooth", "Betwixt", "Prithee", "Zounds" | Soft Block |
+| **Formal Academic** | Rare but CURRENTLY USED in quality journalism/academia | "Immiserate", "Ameliorate", "Efficacious", "Perspicacious" | Clean |
+
+**The WSJ Rule:** If a word has appeared in the Wall Street Journal, The Economist, or The New York Times in the last 10 years, it is NOT Archaic. It is Formal Academic and should pass as Clean.
+
+**Implementation:** See `src/etymologist.py` SYSTEM_PROMPT and `src/guardrails/resources/taxonomy.json` for the enforced definitions.
 
 ## 3. Alternatives Considered
 
@@ -140,6 +182,33 @@ flowchart TD
 | Soft Block | 200 | `{"warning": true, "response": {...}}` | Amber badge, show context, can dismiss |
 | Soft Block (timeout) | 200 | `{"warning": true, "fallback": true, "response": {...}}` | Amber badge, fallback message |
 | Clean | 200 | `{"response": {...}}` | Blue badge, show context |
+
+### 6.1.1 UI Requirements by Block Type (MANDATORY)
+
+| Block Type | Badge Color | Status Message | Action Button | Behavior |
+|------------|-------------|----------------|---------------|----------|
+| **Hard Block** | Red (#EF4444) | "Content not permitted" | None | No interaction allowed. No etymology shown. |
+| **Soft Block** | Amber (#FBBF24) | "Context Warning" | "Analyze Anyway" or "View Context" | User can override to see etymology. |
+| **Clean** | Blue (#3B82F6) | (signal from response) | None needed | Normal etymology display. |
+
+**Hard Block UI:**
+- Red badge prominently displayed
+- Message: "Blocked: Content not permitted"
+- NO action buttons (user cannot proceed)
+- NO etymology response shown
+- User must select different text
+
+**Soft Block UI:**
+- Amber/Yellow badge prominently displayed
+- Message: "Context Warning: [category]"
+- Button: "Analyze Anyway" (primary action)
+- Button: "Dismiss" (secondary, closes overlay)
+- Etymology is available but requires explicit user action
+
+**Clean UI:**
+- Blue badge (informational)
+- Signal, gem, and context displayed normally
+- No warning, no override needed
 
 ### 6.2 Denylist Check (Hard Block)
 
@@ -432,7 +501,8 @@ FRONTEND HANDLER:
 | 010 | Hard block on slur | Auto | N-word (denylist) | 403 response | Status code 403 |
 | 011 | Hard block on profanity | Auto | F-word (denylist) | 403 response | Status code 403 |
 | 020 | Hard block UI | Manual | Denylist term | Red badge, no dismiss | Visual inspection |
-| 030 | Soft block on archaic term | Auto | "Shylock" | 200 with warning | warning=True |
+| 030 | Soft block on archaic term | Auto | "forsooth" | 200 with warning OR blocked | Archaic category |
+| 031 | True archaic triggers soft block | Auto | "thou", "prithee" | Soft block or blocked | Pre-1950 words flagged |
 | 040 | Soft block UI | Manual | Archaic term | Amber badge, dismiss works | Visual inspection |
 | 050 | Clean term passes | Auto | "hello" | 200 without warning | No warning field |
 | 060 | Clean term UI | Manual | Normal word | Blue badge | Visual inspection |
@@ -442,6 +512,46 @@ FRONTEND HANDLER:
 | 100 | Soft block has etymology | Auto | Archaic term | response field present | Etymology included |
 | 110 | Dismiss removes overlay only | Auto | Dismiss soft block | Overlay removed | No storage write |
 | 120 | Re-select shows warning again | Manual | Dismiss, re-select same term | Warning reappears | No memory |
+| **130** | **WSJ word passes as Clean** | **Auto** | **"immiserate"** | **200 Clean, signal="Formal Academic Term"** | **NOT Archaic, NOT blocked** |
+| **131** | **Academic word passes as Clean** | **Auto** | **"ameliorate"** | **200 Clean** | **NOT Archaic** |
+| **132** | **Formal word not soft-blocked** | **Auto** | **"efficacious"** | **200 Clean** | **No warning** |
+
+### 11.1.1 WSJ Rule Verification (Issue #199 - MANDATORY)
+
+These tests verify that formal/academic words used in quality journalism are NOT incorrectly classified as Archaic:
+
+| Test Word | Source Context | Expected Classification | Expected Block Type |
+|-----------|----------------|------------------------|---------------------|
+| immiserate | WSJ economics article | Formal Academic Term | Clean (200 OK) |
+| ameliorate | NYT opinion piece | Formal Academic Term | Clean (200 OK) |
+| efficacious | Economist health article | Formal Academic Term | Clean (200 OK) |
+| perspicacious | Academic journal | Formal Academic Term | Clean (200 OK) |
+| betoken | Literary criticism | Formal Academic Term | Clean (200 OK) |
+
+**Contrast with True Archaic (should Soft Block):**
+
+| Test Word | Last Common Usage | Expected Classification | Expected Block Type |
+|-----------|-------------------|------------------------|---------------------|
+| thou | Pre-1700 | Archaic | Soft Block or Blocked |
+| forsooth | Pre-1800 | Archaic | Soft Block or Blocked |
+| betwixt | Pre-1900 | Archaic | Soft Block or Blocked |
+| prithee | Pre-1700 | Archaic | Soft Block or Blocked |
+| zounds | Pre-1800 | Archaic | Soft Block or Blocked |
+
+**Live Verification (2026-01-09):**
+```bash
+# WSJ word - should pass as Clean
+curl -s -X POST https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/ \
+  -H "Content-Type: application/json" \
+  -d '{"text": "immiserate", "url": "https://wsj.com"}'
+# Expected: {"status": "success", "signal": "Formal Academic Term", ...}
+
+# True Archaic - should be blocked
+curl -s -X POST https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/ \
+  -H "Content-Type: application/json" \
+  -d '{"text": "forsooth", "url": "https://test.com"}'
+# Expected: {"blocked": "Content blocked: Archaic"}
+```
 
 ### 11.2 Test Modules (from 0005)
 
