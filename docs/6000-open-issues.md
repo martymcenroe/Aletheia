@@ -1,6 +1,6 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-08 19:11 CT
+**Generated:** 2026-01-08 19:31 CT
 **Total Open Issues:** 20
 
 ---
@@ -23,7 +23,7 @@ Integrate Pinecone/ChromaDB to enable long-term document recall for the agent.
 **Labels:** high-priority, chore
 
 **Created:** 2025-12-10
-**Updated:** 2026-01-05
+**Updated:** 2026-01-09
 
 ### Description
 

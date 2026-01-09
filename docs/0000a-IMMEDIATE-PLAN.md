@@ -1,7 +1,7 @@
-# Immediate Plan: MVP Path to Store Submission
+# Immediate Plan: Store Review & Post-Launch
 
-**Updated:** 2026-01-07 (Cleanup: Full Mode)
-**Status:** Store Compliance (#51) → Submit
+**Updated:** 2026-01-08
+**Status:** Submitted to stores, awaiting review
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Component | Status |
 |-----------|--------|
-| Extension - Chrome MV3 | ✅ Working (`extensions/chrome/`) |
-| Extension - Firefox MV2 | ✅ Working (`extensions/firefox/`) |
+| Extension - Chrome MV3 | ✅ Submitted to Chrome Web Store |
+| Extension - Firefox MV2 | ⏳ Resubmission pending (fixes merged) |
 | Lambda (Bedrock + DynamoDB) | ✅ Deployed |
 | Denylist (803 Wikipedia terms) | ✅ Integrated |
 | Semantic guardrails | ✅ Active |
@@ -26,22 +26,24 @@
 | Lambda Latency | ✅ Resolved |
 | Museum Label UI | ✅ Complete |
 | NoArchive Transform | ✅ Complete |
+| Security hardening (innerHTML) | ✅ Complete |
+| Firefox manifest compliance | ✅ Complete |
 
 ---
 
-## Critical Path to Store Submission
+## Store Submission Status
 
-### Step 1: Store Compliance (#51) ← CURRENT
-**LLD:** `docs/1051-store-compliance.md`
+### Chrome Web Store
+- **Status:** ✅ Submitted, awaiting review
+- **Expected:** 1-3 days for review
 
-- Review manifest.json for store requirements
-- Privacy policy (may need GitHub Pages)
-- Store listing description
-
-### Step 2: Submit to Chrome Web Store
-- Developer account ($5 one-time)
-- Upload zip and assets
-- Submit for review (takes 1-3 days)
+### Firefox Add-ons (AMO)
+- **Status:** ⏳ Resubmission pending
+- **History:** Initial submission rejected (2026-01-08)
+- **Fixes completed:**
+  - ✅ Added `data_collection_permissions` + `strict_min_version`
+  - ✅ Replaced `innerHTML` with safe DOM methods
+- **Next:** Resubmit when ready
 
 ---
 
@@ -51,9 +53,7 @@ No open PRs. All feature work merged.
 
 ---
 
-## Post-Submission Features
-
-Remaining work after store submission:
+## Post-Launch Features
 
 | Issue | Feature | Status |
 |-------|---------|--------|
@@ -63,4 +63,4 @@ Remaining work after store submission:
 
 ## Next Action
 
-**Store Compliance (#51):** Review manifest.json, finalize privacy policy, and prepare store listing description.
+**Monitor Chrome Web Store review.** Resubmit to Firefox Add-ons when ready.
