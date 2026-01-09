@@ -706,3 +706,65 @@ This session achieved **Code Completion** and **Release Certification** for Alet
 1.  **Upload:** Submit the `.zip` files to the Chrome Web Store and Mozilla Add-on Hub immediately.
 2.  **Monitor:** Watch the "Nightly Compliance" job on GitHub Actions to ensure the AWS environment remains stable.
 3.  **Celebrate:** You have successfully shipped a privacy-focused, AI-native browser extension with a sophisticated serverless backend.
+
+
+Session Summary: Security Pipeline Upgrade & Governance Shift
+Date: January 8, 2026 Topic: Security Posture & "Shift-Left" Governance Trigger: Firefox store rejection due to innerHTML usage (XSS risk).
+
+1. Diagnosis: The "Tunnel Vision" Failure
+We conducted a Post-Mortem on why our previous audits (docs/0809) missed the innerHTML vulnerability.
+
+Root Cause: "Tunnel Vision" on AI Safety (LLM Output) led to neglecting basic App Security (UI Scaffolding).
+
+Process Failure: We relied on "Security by Store Review" rather than internal automated gates.
+
+Tooling Gap: eslint was running only basic logic checks, missing security-specific rules.
+
+2. The Fix: PR #196 (Completed)
+We implemented a "Defense in Depth" upgrade to the pipeline and codebase.
+
+A. Tooling (The Automated Guardrails)
+
+JavaScript: Added eslint-plugin-no-unsanitized (CRITICAL) and eslint-plugin-security.
+
+Python: Enabled ruff / flake8-bandit rules ("S" select) for backend SAST.
+
+CI/CD: Added web-ext lint to the CI pipeline to simulate Store reviews automatically.
+
+B. Code Hardening (The Manual Fixes)
+
+DOM Clobbering: Replaced document.getElementById with a stored reference (overlayHostRef) in overlay.js to prevent hostile pages from hijacking the overlay.
+
+Message Spoofing: Added strict sender.id validation in service-worker.js to reject messages from unauthorized extensions.
+
+C. Audit Architecture
+
+Split of Concerns: Separated docs/0809 (App Security - Deterministic) from new docs/0825 (AI Safety - Probabilistic) to prevent future tunnel vision.
+
+3. The Strategy Shift: "Governance as Code"
+We analyzed the ChrisWiles/claude-code-showcase repo and decided to pivot from Passive Audits (checking after the fact) to Active Governance (checking during generation).
+
+Key Decisions:
+
+PostToolUse Hooks: We will configure Claude to run eslint immediately after writing a file, forcing the Agent to self-correct security errors instantly.
+
+PreToolUse Hooks: We will enforce "Worktree Isolation" by hard-blocking code edits on the main branch.
+
+Role-Based Agents: We will define a security-reviewer Agent with a specific checklist for Browser Extension risks.
+
+4. Plan for Next Session (Staged & Ready)
+When you return, we will execute the Active Security Hooks plan.
+
+Pending Tasks:
+
+Configure settings.json:
+
+Implement the PostToolUse hook for eslint (JS) and ruff (Python).
+
+Implement the PreToolUse hook for main branch protection (Hard Stop for code, Allowed for docs).
+
+Constraint Check: Ensure Bash permissions for these hooks are pre-authorized to prevent "Permission Fatigue."
+
+Deploy Agent: Create .claude/agents/security-reviewer.md using the Opus model.
+
+Documentation: Update docs/0898 with the Horizon Scanning analysis.

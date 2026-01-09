@@ -114,6 +114,7 @@ Every quarter, systematically investigate:
 | 2026-01-06 | Claude Opus 4.5 | NIST Cyber AI Profile (IR 8596) draft released Dec 2025 | Added to triage queue |
 | 2026-01-06 | Claude Opus 4.5 | EU AI Act GPAI obligations effective Aug 2025 | Updated regulatory triggers |
 | 2026-01-06 | Claude Opus 4.5 | Chrome extension security incidents (ShadyPanda, 4.3M users) | Noted in 0809; Aletheia not affected |
+| 2026-01-08 | Claude Opus 4.5 | ChrisWiles/claude-code-showcase: Active Hooks architecture | ADOPT - See §4.3 |
 
 ---
 
@@ -169,6 +170,63 @@ When a new framework, standard, or guidance is identified:
 | 11-15 | Medium relevance - plan adoption |
 | 6-10 | Low relevance - monitor only |
 | 1-5 | Not relevant - document decision and ignore |
+
+### 4.3 Completed Triages
+
+#### [2026-01-08] ChrisWiles/claude-code-showcase - Active Hooks Architecture
+
+**Source:** https://github.com/ChrisWiles/claude-code-showcase
+**Topic:** Automated Audit & Governance-as-Code
+**Researcher:** Claude Opus 4.5
+
+##### Relevance Assessment
+
+| Factor | Score | Notes |
+|--------|-------|-------|
+| Applies to our tech stack | 5 | Direct `claude-code` integration |
+| Applies to our risk profile | 5 | Addresses ADR 0210 (worktree isolation), ADR 0213 (adversarial audit) |
+| Industry adoption momentum | 3 | Emerging pattern, limited public examples |
+| Regulatory weight | 4 | Supports audit trail requirements |
+| **Total** | 17/20 | High relevance |
+
+##### Key Findings
+
+The repository demonstrates a "Shift Left" approach to AI safety using `claude-code` native features:
+
+1. **PostToolUse Hooks**: Run linters immediately after `Edit`/`Write` operations
+   - Catches security issues (innerHTML, missing sender.id) before AI moves to next file
+   - Tight feedback loop vs pre-commit hooks (fail after 1 file, not 5)
+
+2. **PreToolUse Hooks**: Block operations before they happen
+   - Enforce branch protection (ADR 0210) at edit-time, not commit-time
+   - Environment variable `$CLAUDE_TOOL_INPUT_FILE_PATH` provides context
+
+3. **Role-Based Agents**: Structured `.claude/agents/` definitions
+   - Explicit checklists vs generic "review this" prompts
+   - Model-specific assignments (Opus for security review)
+
+##### Gap Analysis
+
+| Framework Requirement | Current Coverage | Gap? |
+|-----------------------|------------------|------|
+| Real-time lint feedback | Pre-commit only | Yes |
+| Branch protection at edit-time | Manual enforcement | Yes |
+| Structured security reviewer | Ad-hoc prompts | Yes |
+| Agent specialization | None | Yes |
+
+##### Decision
+
+**ADOPT** (Score: 17/20 - High relevance)
+
+##### Implementation
+
+Created staging files in `claude-staging/` for manual deployment:
+- `settings.json` - Hook configuration
+- `hooks/pre-edit-check.sh` - Branch protection (ADR 0210)
+- `hooks/post-edit-lint.sh` - Active ESLint/Ruff integration
+- `agents/security-reviewer.md` - Opus-based security reviewer
+
+See `claude-staging/README-DEPLOY.md` for deployment instructions.
 
 ---
 

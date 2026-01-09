@@ -296,6 +296,27 @@ The documentation system exists so you don't need persistent memory. USE IT.
 - After approval: `git -C /c/Users/mcwiz/Projects/Aletheia add .claude/settings.local.json`
 - This prevents permission loss when branches are abandoned
 
+### Claude Code Configuration (ADR 0214):
+**Use `claude-staging/` for developing hooks and agent definitions.**
+
+The `.claude/` directory contains live configuration. A broken hook can block all file operations. Use staging to iterate safely:
+
+```
+claude-staging/           # Development area (gitignored)
+├── settings.json         # Draft hook configuration
+├── hooks/                # Draft hook scripts
+├── agents/               # Draft agent definitions
+└── README-DEPLOY.md      # Deployment instructions
+```
+
+**Workflow:**
+1. Create/edit files in `claude-staging/`
+2. Test manually per README-DEPLOY.md
+3. Copy to `.claude/` when ready: `cp claude-staging/* .claude/`
+4. Make scripts executable: `chmod +x .claude/hooks/*.sh`
+
+**Never edit `.claude/settings.json` or hooks directly** — a syntax error can break your session. See ADR 0214 for full rationale.
+
 ### CODING TASK GATE (EXECUTE IMMEDIATELY)
 
 **When you receive ANY task that involves modifying code files, STOP and execute this gate BEFORE reading LLDs or planning:**

@@ -105,3 +105,6 @@ run-audit.bat
 # Lambda build artifacts
 build/
 dependencies.zip
+
+# Claude Code staging directory (local development, not deployed)
+claude-staging/

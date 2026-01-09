@@ -29,6 +29,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 | [0211](0211-ADR-naked-python-architecture.md) | Naked Python Architecture | Implemented | Architecture, Performance | 2026-01-05 |
 | [0212](0212-ADR-unified-v3-secure-dom.md) | Unified Manifest V3 & Secure DOM | Accepted | Security, Architecture | 2026-01-08 |
 | [0213](0213-ADR-adversarial-audit-philosophy.md) | Adversarial Audit Philosophy | Proposed | Process, Security, Compliance | 2026-01-08 |
+| [0214](0214-ADR-claude-staging-pattern.md) | Claude-Staging Pattern | Implemented | Process, Governance, Security | 2026-01-08 |
 
 ---
 
@@ -42,6 +43,10 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 - [0207](0207-ADR-single-identity-orchestration.md)
 - [0210](0210-ADR-git-worktree-isolation.md)
 - [0213](0213-ADR-adversarial-audit-philosophy.md)
+- [0214](0214-ADR-claude-staging-pattern.md)
+
+### Governance
+- [0214](0214-ADR-claude-staging-pattern.md)
 
 ### Compliance
 - [0209](0209-ADR-static-compliance-hosting.md)
@@ -54,6 +59,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 - [0207](0207-ADR-single-identity-orchestration.md)
 - [0212](0212-ADR-unified-v3-secure-dom.md)
 - [0213](0213-ADR-adversarial-audit-philosophy.md)
+- [0214](0214-ADR-claude-staging-pattern.md)
 
 ### Privacy
 - [0201](0201-ADR-privacy-first-permissions.md)
@@ -103,7 +109,7 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `docs/0104-TEMPLATE-adr.md`
-2. Use next available number (currently 0214)
+2. Use next available number (currently 0215)
 3. Name format: `02xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
