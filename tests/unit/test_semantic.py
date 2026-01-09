@@ -1,7 +1,12 @@
 import json
 from pathlib import Path
 from unittest.mock import Mock, patch
-from src.guardrails.semantic import SemanticGuardrail
+from src.guardrails.semantic import (
+    SemanticGuardrail,
+    BLOCK_TYPE_HARD,
+    BLOCK_TYPE_SOFT,
+    BLOCK_TYPE_NONE,
+)
 
 TAXONOMY_PATH = Path(__file__).parent.parent.parent / "src" / "guardrails" / "resources" / "taxonomy.json"
 
@@ -138,3 +143,132 @@ def test_semantic_failure(mock_boto_client):
 
     assert result["is_safe"] is False
     assert "Guardrail Error" in result["reason"]
+
+
+class TestHardSoftBlockingLogic:
+    """Tests for Issue #126: Hard vs. Soft Blocking Logic."""
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_hate_category_returns_hard_block(self, mock_boto_client):
+        """Hate speech should return BLOCK_TYPE_HARD."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        llm_output = json.dumps({"scores": {"Hate": 0.95}, "category": "Hate"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("offensive content")
+
+        assert result["block_type"] == BLOCK_TYPE_HARD
+        assert result["category"] == "Hate"
+        assert result["is_safe"] is False
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_archaic_category_returns_soft_block(self, mock_boto_client):
+        """Archaic words should return BLOCK_TYPE_SOFT (educational warning)."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        llm_output = json.dumps({"scores": {"Archaic": 0.9}, "category": "Archaic"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("forsooth")
+
+        assert result["block_type"] == BLOCK_TYPE_SOFT
+        assert result["category"] == "Archaic"
+        assert result["is_safe"] is False  # Backwards compat: soft block is still "not safe"
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_provocative_category_returns_soft_block(self, mock_boto_client):
+        """Provocative content should return BLOCK_TYPE_SOFT."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        llm_output = json.dumps({"scores": {"Provocative": 0.85}, "category": "Provocative"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("provocative term")
+
+        assert result["block_type"] == BLOCK_TYPE_SOFT
+        assert result["category"] == "Provocative"
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_none_category_returns_no_block(self, mock_boto_client):
+        """Safe content should return BLOCK_TYPE_NONE."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        llm_output = json.dumps({"scores": {"None": 1.0}, "category": "None"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("hello world")
+
+        assert result["block_type"] == BLOCK_TYPE_NONE
+        assert result["category"] == "None"
+        assert result["is_safe"] is True
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_neologism_category_returns_no_block(self, mock_boto_client):
+        """Neologisms should return BLOCK_TYPE_NONE (informational only)."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        llm_output = json.dumps({"scores": {"Neologism": 0.9}, "category": "Neologism"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("skibidi")
+
+        assert result["block_type"] == BLOCK_TYPE_NONE
+        assert result["category"] == "Neologism"
+        assert result["is_safe"] is True
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_error_returns_soft_block_with_fallback(self, mock_boto_client):
+        """Errors should return BLOCK_TYPE_SOFT with fallback flag (fail safe)."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        # Simulate AWS Exception
+        mock_client_instance.invoke_model.side_effect = Exception("Network Error")
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("test input")
+
+        assert result["block_type"] == BLOCK_TYPE_SOFT
+        assert result["is_fallback"] is True
+        assert result["is_safe"] is False

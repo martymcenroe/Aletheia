@@ -70,50 +70,85 @@ class TestValidateInput:
 
 
 class TestRunGuardrails:
-    """Tests for run_guardrails function - guardrail pipeline."""
+    """Tests for run_guardrails function - guardrail pipeline.
+
+    Issue #126: Updated to expect block_type instead of is_safe.
+    """
 
     def test_020_blocked_text_denylist(self):
-        """Scenario 020: Blocked text returns 403 via denylist."""
-        is_safe, reason, metadata = run_guardrails(
+        """Scenario 020: Denylist term returns hard block."""
+        from src.guardrails.semantic import BLOCK_TYPE_HARD
+
+        block_type, category, metadata = run_guardrails(
             "test_block_term", denylist=MOCK_DENYLIST
         )
-        assert is_safe is False
-        assert "blocked" in reason.lower()
+        assert block_type == BLOCK_TYPE_HARD
+        assert category == "denylist"
         assert metadata["layer"] == "denylist"
 
     def test_safe_text_passes_denylist(self):
-        """Safe text passes denylist check."""
+        """Safe text passes denylist and semantic checks."""
+        from src.guardrails.semantic import BLOCK_TYPE_NONE
+
         # Mock semantic to also pass
         with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic:
             mock_guard = MagicMock()
             mock_guard.check_safety.return_value = {
+                "block_type": BLOCK_TYPE_NONE,
+                "category": "None",
                 "is_safe": True,
                 "reason": "None",
                 "scores": {},
             }
             mock_semantic.return_value = mock_guard
 
-            is_safe, reason, metadata = run_guardrails("apple", denylist=MOCK_DENYLIST)
-            assert is_safe is True
-            assert reason is None
-            assert metadata["layer"] == "passed"
+            block_type, category, metadata = run_guardrails("apple", denylist=MOCK_DENYLIST)
+            assert block_type == BLOCK_TYPE_NONE
+            assert category == "None"
+            assert metadata["layer"] == "semantic"
 
-    def test_blocked_by_semantic(self):
-        """Text blocked by semantic guardrail returns correct metadata."""
+    def test_blocked_by_semantic_hard(self):
+        """Hate speech returns hard block from semantic guardrail."""
+        from src.guardrails.semantic import BLOCK_TYPE_HARD
+
         with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic:
             mock_guard = MagicMock()
             mock_guard.check_safety.return_value = {
+                "block_type": BLOCK_TYPE_HARD,
+                "category": "Hate",
                 "is_safe": False,
                 "reason": "Hate",
                 "scores": {"Hate": 0.9},
             }
             mock_semantic.return_value = mock_guard
 
-            is_safe, reason, metadata = run_guardrails(
+            block_type, category, metadata = run_guardrails(
                 "safe_word", denylist=MOCK_DENYLIST
             )
-            assert is_safe is False
-            assert "Hate" in reason
+            assert block_type == BLOCK_TYPE_HARD
+            assert category == "Hate"
+            assert metadata["layer"] == "semantic"
+
+    def test_archaic_returns_soft_block(self):
+        """Archaic words return soft block (Issue #126)."""
+        from src.guardrails.semantic import BLOCK_TYPE_SOFT
+
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic:
+            mock_guard = MagicMock()
+            mock_guard.check_safety.return_value = {
+                "block_type": BLOCK_TYPE_SOFT,
+                "category": "Archaic",
+                "is_safe": False,
+                "reason": "Archaic",
+                "scores": {"Archaic": 0.9},
+            }
+            mock_semantic.return_value = mock_guard
+
+            block_type, category, metadata = run_guardrails(
+                "forsooth", denylist=MOCK_DENYLIST
+            )
+            assert block_type == BLOCK_TYPE_SOFT
+            assert category == "Archaic"
             assert metadata["layer"] == "semantic"
 
 
@@ -147,14 +182,18 @@ class TestLambdaHandler:
 
     def test_010_valid_input_safe_text(self):
         """Scenario 010: Valid input with safe text returns 200 with structured output."""
+        from src.guardrails.semantic import BLOCK_TYPE_NONE
+
         event = {"text": "apple"}
 
         with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic, patch(
             "src.lambda_function.get_dynamodb_client"
         ) as mock_dynamo, patch("src.lambda_function.get_bedrock_client") as mock_bedrock:
-            # Mock semantic to pass
+            # Mock semantic to pass (Issue #126: include block_type)
             mock_guard = MagicMock()
             mock_guard.check_safety.return_value = {
+                "block_type": BLOCK_TYPE_NONE,
+                "category": "None",
                 "is_safe": True,
                 "reason": "None",
                 "scores": {},
@@ -238,15 +277,18 @@ class TestLambdaHandler:
     def test_070_boto3_exception(self):
         """Scenario 070: boto3 exception returns 500, no LLM output."""
         from botocore.exceptions import ClientError
+        from src.guardrails.semantic import BLOCK_TYPE_NONE
 
         event = {"text": "apple"}
 
         with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic, patch(
             "src.lambda_function.get_dynamodb_client"
         ) as mock_dynamo:
-            # Mock semantic to pass
+            # Mock semantic to pass (Issue #126: include block_type)
             mock_guard = MagicMock()
             mock_guard.check_safety.return_value = {
+                "block_type": BLOCK_TYPE_NONE,
+                "category": "None",
                 "is_safe": True,
                 "reason": "None",
                 "scores": {},
