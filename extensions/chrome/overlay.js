@@ -26,6 +26,15 @@ const OverlayState = {
 };
 
 // =============================================================================
+// SHADOW DOM STATE (Issue #197 - ADR 0202 Compliance)
+// =============================================================================
+// Closed Shadow DOM returns null for element.shadowRoot, even to our own code.
+// We capture the reference at creation time to maintain internal access.
+// See: docs/1197-shadow-dom-hardening.md
+
+let activeShadowRoot = null;
+
+// =============================================================================
 // STYLES (Inline for Shadow DOM isolation)
 // =============================================================================
 
@@ -450,6 +459,7 @@ function removeOverlay() {
         overlayHostRef.remove();
     }
     overlayHostRef = null;
+    activeShadowRoot = null;  // Issue #197: Clear closed shadow reference
     currentOverlayState = null;
     overlayData = null;
 }
@@ -475,7 +485,8 @@ function showLoadingOverlay() {
 
     const host = document.createElement('div');
     host.id = 'aletheia-overlay-host';
-    const shadow = host.attachShadow({ mode: 'open' });
+    const shadow = host.attachShadow({ mode: 'closed' });  // Issue #197: ADR 0202
+    activeShadowRoot = shadow;  // Capture reference for internal access
 
     // Style element (safe - static CSS)
     shadow.appendChild(createStyleElement(OVERLAY_STYLES));
@@ -524,7 +535,8 @@ function showResultOverlay(response, httpStatus = 200) {
     // Create host and shadow DOM
     const host = document.createElement('div');
     host.id = 'aletheia-overlay-host';
-    const shadow = host.attachShadow({ mode: 'open' });
+    const shadow = host.attachShadow({ mode: 'closed' });  // Issue #197: ADR 0202
+    activeShadowRoot = shadow;  // Capture reference for internal access
 
     // Style element (safe - static CSS)
     shadow.appendChild(createStyleElement(OVERLAY_STYLES));
@@ -725,7 +737,8 @@ if (!window.showAletheiaOverlay) {
 
         const host = document.createElement('div');
         host.id = 'aletheia-overlay-host';
-        const shadow = host.attachShadow({ mode: 'open' });
+        const shadow = host.attachShadow({ mode: 'closed' });  // Issue #197: ADR 0202
+        activeShadowRoot = shadow;  // Capture reference for internal access
 
         const colors = {
             'warning': '#FBBF24',
@@ -796,7 +809,8 @@ if (!window.updateAletheiaOverlay) {
     window.updateAletheiaOverlay = function(message, type, timeout = 4000) {
         // Security: Use stored reference instead of getElementById to prevent DOM clobbering
         const host = overlayHostRef;
-        if (!host || !host.isConnected || !host.shadowRoot) {
+        // Issue #197: Use activeShadowRoot (closed mode returns null for host.shadowRoot)
+        if (!host || !host.isConnected || !activeShadowRoot) {
             window.showAletheiaOverlay(message, type, timeout);
             return;
         }
@@ -812,7 +826,7 @@ if (!window.updateAletheiaOverlay) {
         };
         const borderColor = colors[type] || colors['warning'];
 
-        const overlay = host.shadowRoot.querySelector('.overlay');
+        const overlay = activeShadowRoot.querySelector('.overlay');  // Issue #197: Use stored reference
         if (overlay) {
             // XSS-safe: message set via textContent
             overlay.textContent = message;
