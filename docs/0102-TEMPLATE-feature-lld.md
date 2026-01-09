@@ -195,3 +195,32 @@ poetry run pytest tests/test_{module}.py -v -m live
 ### Review
 - [ ] Code review completed
 - [ ] User approval before closing issue
+
+---
+
+## Appendix: Review Log
+
+*Track all review feedback with timestamps and implementation status.*
+
+### {Reviewer} Review #{N} ({VERDICT})
+
+**Timestamp:** {YYYY-MM-DD HH:MM} CT
+**Reviewer:** {Gemini / Orchestrator / Other}
+**Verdict:** {APPROVED / REJECTED / FEEDBACK}
+
+#### Comments
+
+| ID | Comment | Implemented? |
+|----|---------|--------------|
+| {R}{N}.1 | "{Quote or summary of comment}" | ✅ YES - {where addressed} / ⏳ PENDING / ❌ NO - {reason} |
+| {R}{N}.2 | "{Comment}" | {status} |
+
+*Repeat section for each review round. Use IDs like G1.1 (Gemini Review 1, Comment 1), O2.3 (Orchestrator Review 2, Comment 3).*
+
+### Review Summary
+
+| Review | Date | Verdict | Key Issue |
+|--------|------|---------|-----------|
+| {Reviewer} #{N} | {date} | {verdict} | {one-line summary} |
+
+**Final Status:** {APPROVED / PENDING / BLOCKED}

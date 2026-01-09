@@ -4,7 +4,7 @@
 
 * **Issue:** #206
 * **Objective:** Port LinkedIn OAuth authentication from Chrome to Firefox extension, achieving feature parity.
-* **Status:** LLD Draft (Revised per Gemini Review)
+* **Status:** ✅ APPROVED (2026-01-09)
 * **Related Issues:** #116 (Chrome OAuth implementation), #214 (Firefox test parity)
 * **Parent LLD:** `docs/1116-linkedin-oauth.md` (Chrome implementation)
 
@@ -754,41 +754,67 @@ This is the "Warrior" standard: tests prove the code works, not just that it was
 
 ---
 
-## Appendix D: Gemini Review Response
+## Appendix D: Review Log
 
-**Review Date:** 2026-01-09
+### D.1 Gemini Review #1 (REJECTED)
+
+**Timestamp:** 2026-01-09 ~12:30 CT
 **Reviewer:** Gemini (Security Architect / Strategist)
-**Initial Verdict:** REJECTED
+**Verdict:** REJECTED - Missing Test Infrastructure
 
-### Issue Identified
+#### Comments
 
-> "The LLD completely ignores Module E: Frontend Logic Testing. It proposes writing critical authentication code (`auth.js`) without a single line of automated verification."
+| ID | Comment | Implemented? |
+|----|---------|--------------|
+| G1.1 | "The LLD completely ignores Module E: Frontend Logic Testing. It proposes writing critical authentication code (`auth.js`) without a single line of automated verification." | ✅ YES - Added §6.7, R11, R12 |
+| G1.2 | "If `auth.js` has a typo in the `browser.*` namespace (e.g., `browser.storage.local` vs `browser.storage.session`), it will crash silently in production." | ✅ YES - Added namespace verification tests |
+| G1.3 | Need `tests/mocks/firefox-api.mock.js` | ✅ YES - Added to §6.1 and §6.7.1 |
+| G1.4 | Need `tests/unit/firefox/auth.test.js` | ✅ YES - Added to §6.1 and §6.7.2 |
+| G1.5 | Need `tests/unit/firefox/popup.test.js` | ✅ YES - Added to §6.1 and §6.7.3 |
+| G1.6 | `npm run test:unit` must run BOTH Chrome and Firefox | ✅ YES - Added to §6.7.4 and §12 |
 
-### Risk Called Out
+---
 
-> "If `auth.js` has a typo in the `browser.*` namespace (e.g., `browser.storage.local` vs `browser.storage.session`), it will crash silently in production."
+### D.2 Orchestrator Comments
 
-### Fix Applied
+**Timestamp:** 2026-01-09 ~13:00 CT
+**Reviewer:** Orchestrator (Human)
 
-1. Added R11 (Unit test coverage) and R12 (Test parity) to Requirements
-2. Added §6.7 Test Infrastructure section with:
-   - Firefox API mock specification
-   - auth.test.js structure with namespace verification tests
-   - popup.test.js structure
-   - package.json script requirements
-3. Updated §11.1 Test Scenarios: 10 automated tests, 3 manual
-4. Updated §12 Definition of Done with mandatory test infrastructure checklist
-5. Updated Appendix C with test file effort estimates
+#### Comments
 
-### Key Addition: Namespace Verification Tests
+| ID | Comment | Implemented? |
+|----|---------|--------------|
+| O1.1 | "Why is there a manual smoke test section? Verify that everything in the smoke test is fully automated." | ✅ YES - Converted to E2E tests in §11.2 |
+| O1.2 | LinkedIn redirect URI configuration needs to be done | ✅ YES - Marked DONE in §11.4 |
+| O1.3 | Review comments should be timestamped in LLD appendices | ✅ YES - This appendix |
+| O1.4 | Add Orchestrator comments appendix | ✅ YES - This section (D.2) |
+| O1.5 | Explicitly state if comments are implemented | ✅ YES - Added "Implemented?" column |
+| O1.6 | Update LLD template (0102) | ⏳ PENDING - Will update after this commit |
 
-```javascript
-describe('Namespace Verification', () => {
-  it('uses browser.identity not chrome.identity', () => {
-    // CRITICAL: Verify we call browser.*, not chrome.*
-    // This catches the exact bug Gemini warned about
-  });
-});
-```
+---
 
-**Revised Status:** Ready for re-review
+### D.3 Gemini Review #2 (APPROVED)
+
+**Timestamp:** 2026-01-09 ~13:30 CT
+**Reviewer:** Gemini (Security Architect / Strategist)
+**Verdict:** APPROVED
+
+#### Directives
+
+| ID | Directive | Status |
+|----|-----------|--------|
+| G2.1 | **Infrastructure First:** Implement §6.7 (`tests/mocks/firefox-api.mock.js`) and `package.json` scripts BEFORE feature code | ⏳ IN PROGRESS |
+| G2.2 | **Red-Green-Refactor:** `npm run test:unit:firefox` must fail (Red) before code exists, then pass (Green) | ⏳ IN PROGRESS |
+| G2.3 | **Execute:** Proceed with implementation of Issue #206 / LLD 1206 | ⏳ IN PROGRESS |
+
+---
+
+### D.4 Review Summary
+
+| Review | Date | Verdict | Key Issue |
+|--------|------|---------|-----------|
+| Gemini #1 | 2026-01-09 12:30 | REJECTED | Missing test infrastructure |
+| Orchestrator | 2026-01-09 13:00 | FEEDBACK | Manual tests should be automated |
+| Gemini #2 | 2026-01-09 13:30 | APPROVED | Proceed with infrastructure-first |
+
+**Final Status:** ✅ APPROVED - Ready for implementation
