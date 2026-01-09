@@ -4,7 +4,7 @@
 
 * **Issue:** #206
 * **Objective:** Port LinkedIn OAuth authentication from Chrome to Firefox extension, achieving feature parity.
-* **Status:** LLD Draft
+* **Status:** LLD Draft (Revised per Gemini Review)
 * **Related Issues:** #116 (Chrome OAuth implementation), #214 (Firefox test parity)
 * **Parent LLD:** `docs/1116-linkedin-oauth.md` (Chrome implementation)
 
@@ -41,6 +41,8 @@ The Firefox extension is **Manifest V3** (like Chrome), which means:
 | R8 | CSRF protection | Cryptographically random state parameter |
 | R9 | Mock mode for testing | `MOCK_MODE` flag for deterministic fake tokens |
 | R10 | Feature parity with Chrome | Firefox popup matches Chrome popup behavior |
+| R11 | **Unit test coverage (Module E)** | `tests/unit/firefox/auth.test.js` and `tests/unit/firefox/popup.test.js` pass |
+| R12 | **Test parity with Chrome** | `npm run test:unit` runs BOTH Chrome and Firefox test suites |
 
 ## 3. Alternatives Considered
 
@@ -127,6 +129,8 @@ sequenceDiagram
 
 ### 6.1 Files to Create/Modify
 
+#### Extension Files
+
 | File | Action | Description |
 |------|--------|-------------|
 | `extensions/firefox/auth.js` | **CREATE** | Port from Chrome with `browser.*` namespace |
@@ -134,6 +138,15 @@ sequenceDiagram
 | `extensions/firefox/popup.js` | **MODIFY** | Add auth integration, age gate logic |
 | `extensions/firefox/popup.css` | **MODIFY** | Add auth-related styles (if not present) |
 | `extensions/firefox/manifest.json` | **MODIFY** | Add `identity` permission |
+
+#### Test Infrastructure Files (MANDATORY per ADR 0215 Module E)
+
+| File | Action | Description |
+|------|--------|-------------|
+| `tests/mocks/firefox-api.mock.js` | **CREATE** | Mock `browser.identity`, `browser.storage`, `browser.runtime`, `browser.tabs` |
+| `tests/unit/firefox/auth.test.js` | **CREATE** | Unit tests for Firefox auth.js (mirrors Chrome auth tests) |
+| `tests/unit/firefox/popup.test.js` | **CREATE** | Unit tests for Firefox popup.js view switching |
+| `vitest.config.js` | **MODIFY** | Ensure Firefox tests are included in test suite |
 
 ### 6.2 auth.js Port Strategy
 
@@ -265,6 +278,228 @@ async function checkAgeGate() {
 | `storage.local` | ✅ | ✅ | Same API |
 | `tabs.query` | ✅ | ✅ | Same API |
 
+### 6.7 Test Infrastructure (MANDATORY)
+
+**Per ADR 0215 Module E:** All extension logic must be unit tested via Vitest.
+
+#### 6.7.1 Firefox API Mock (`tests/mocks/firefox-api.mock.js`)
+
+```javascript
+// tests/mocks/firefox-api.mock.js
+// Mock Firefox browser.* APIs for Vitest
+
+import { vi } from 'vitest';
+
+export function createFirefoxMock(options = {}) {
+  const { allowlist = [], tabUrl = 'https://example.com', authenticated = false } = options;
+
+  let storageData = {
+    allowlist: [...allowlist],
+    ...(authenticated ? {
+      refreshToken: 'mock-refresh-token',
+      userId: 'mock-user-123',
+      displayName: 'Test User'
+    } : {})
+  };
+
+  let sessionData = authenticated ? {
+    accessToken: 'mock-access-token',
+    expiresAt: Date.now() + 3600000
+  } : {};
+
+  return {
+    identity: {
+      launchWebAuthFlow: vi.fn().mockImplementation(({ url }) => {
+        // Extract state from URL for CSRF testing
+        const urlObj = new URL(url);
+        const state = urlObj.searchParams.get('state');
+        return Promise.resolve(`https://redirect.url/?code=mock-code&state=${state}`);
+      }),
+      getRedirectURL: vi.fn().mockReturnValue('https://mock-extension-id.extensions.allizom.org/')
+    },
+    storage: {
+      local: {
+        get: vi.fn().mockImplementation((keys) => {
+          if (typeof keys === 'string') {
+            return Promise.resolve({ [keys]: storageData[keys] });
+          }
+          return Promise.resolve({ ...storageData });
+        }),
+        set: vi.fn().mockImplementation((items) => {
+          Object.assign(storageData, items);
+          return Promise.resolve();
+        }),
+        remove: vi.fn().mockImplementation((keys) => {
+          const keysArray = Array.isArray(keys) ? keys : [keys];
+          keysArray.forEach(k => delete storageData[k]);
+          return Promise.resolve();
+        })
+      },
+      session: {
+        get: vi.fn().mockImplementation((keys) => {
+          if (typeof keys === 'string') {
+            return Promise.resolve({ [keys]: sessionData[keys] });
+          }
+          return Promise.resolve({ ...sessionData });
+        }),
+        set: vi.fn().mockImplementation((items) => {
+          Object.assign(sessionData, items);
+          return Promise.resolve();
+        }),
+        remove: vi.fn().mockImplementation((keys) => {
+          const keysArray = Array.isArray(keys) ? keys : [keys];
+          keysArray.forEach(k => delete sessionData[k]);
+          return Promise.resolve();
+        })
+      }
+    },
+    tabs: {
+      query: vi.fn().mockResolvedValue([{ id: 1, url: tabUrl, active: true }])
+    },
+    runtime: {
+      id: 'mock-firefox-extension-id',
+      sendMessage: vi.fn().mockResolvedValue({ state: 'allowed' })
+    },
+    // Test helpers (not part of real API)
+    __setStorageData: (data) => { storageData = data; },
+    __setSessionData: (data) => { sessionData = data; },
+    __getStorageData: () => storageData,
+    __getSessionData: () => sessionData
+  };
+}
+```
+
+#### 6.7.2 Firefox auth.test.js Structure
+
+```javascript
+// tests/unit/firefox/auth.test.js
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { createFirefoxMock } from '../../mocks/firefox-api.mock.js';
+
+describe('Firefox Auth Module', () => {
+  let browserMock;
+
+  beforeEach(() => {
+    browserMock = createFirefoxMock();
+    global.browser = browserMock;
+    global.crypto = {
+      getRandomValues: (arr) => {
+        for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256);
+        return arr;
+      }
+    };
+    global.fetch = vi.fn();
+  });
+
+  describe('generateState', () => {
+    it('generates 64-character hex string', () => {
+      // Test CSRF state generation
+    });
+
+    it('generates unique values', () => {
+      // Test uniqueness
+    });
+  });
+
+  describe('CSRF Protection', () => {
+    it('rejects mismatched state parameter', async () => {
+      // Test that CSRF mismatch throws error
+    });
+
+    it('accepts matching state parameter', async () => {
+      // Test valid state flow
+    });
+  });
+
+  describe('Token Storage', () => {
+    it('stores access token in session storage', async () => {
+      // Verify browser.storage.session used for access token
+    });
+
+    it('stores refresh token in local storage', async () => {
+      // Verify browser.storage.local used for refresh token
+    });
+
+    it('clears all tokens on logout', async () => {
+      // Verify clearTokens() removes from both storages
+    });
+  });
+
+  describe('Mock Mode', () => {
+    it('returns deterministic mock user when MOCK_MODE=true', async () => {
+      // Test mock login
+    });
+  });
+
+  describe('Namespace Verification', () => {
+    it('uses browser.identity not chrome.identity', () => {
+      // CRITICAL: Verify we call browser.*, not chrome.*
+      // This catches the exact bug Gemini warned about
+    });
+
+    it('uses browser.storage.session not chrome.storage.session', () => {
+      // Verify correct namespace
+    });
+  });
+});
+```
+
+#### 6.7.3 Firefox popup.test.js Structure
+
+```javascript
+// tests/unit/firefox/popup.test.js
+import { describe, it, expect, beforeEach } from 'vitest';
+import { JSDOM } from 'jsdom';
+import { createFirefoxMock } from '../../mocks/firefox-api.mock.js';
+
+describe('Firefox Popup', () => {
+  describe('View Switching', () => {
+    it('shows login view when not authenticated', async () => {
+      // Test unauthenticated state
+    });
+
+    it('shows main view when authenticated', async () => {
+      // Test authenticated state
+    });
+
+    it('shows checking view during age gate check', async () => {
+      // Test intermediate state
+    });
+  });
+
+  describe('Auth Integration', () => {
+    it('calls AletheiaAuth.initiateLogin on button click', async () => {
+      // Test login button handler
+    });
+
+    it('shows error on login failure', async () => {
+      // Test error handling
+    });
+
+    it('updates user bar after successful login', async () => {
+      // Test user bar display
+    });
+  });
+});
+```
+
+#### 6.7.4 Test Parity Requirement
+
+Update `package.json` to run both Chrome and Firefox tests:
+
+```json
+{
+  "scripts": {
+    "test:unit": "vitest run tests/unit/",
+    "test:unit:chrome": "vitest run tests/unit/popup.test.js tests/unit/auth.test.js",
+    "test:unit:firefox": "vitest run tests/unit/firefox/",
+    "test:unit:all": "vitest run tests/unit/"
+  }
+}
+```
+
+**Requirement:** `npm run test:unit` MUST run both Chrome and Firefox tests. A failure in either blocks the PR.
+
 ## 7. Interface Specification
 
 ### 7.1 Firefox auth.js Exports
@@ -325,16 +560,21 @@ Same as Chrome (LLD 1116 §8), plus:
 
 ### 11.1 Test Scenarios
 
-| ID | Scenario | Type | Expected Output |
-|----|----------|------|-----------------|
-| 010 | Mock mode login | Auto | Mock tokens stored in browser.storage |
-| 020 | CSRF state validation | Auto | Mismatched state rejected |
-| 030 | Token storage hierarchy | Auto | Access in session, refresh in local |
-| 040 | Fresh login | Manual | LinkedIn popup, user bar shows name |
-| 050 | Logout clears data | Manual | Login view shown, storage cleared |
-| 060 | Token persists in session | Manual | Reopen popup, still logged in |
-| 070 | Browser close clears access | Manual | Access token gone, refresh needed |
-| 080 | Popup shows login when unauthenticated | Manual | Login view displayed first |
+| ID | Scenario | Type | Test File | Expected Output |
+|----|----------|------|-----------|-----------------|
+| 010 | Mock mode login | **Auto** | `firefox/auth.test.js` | Mock tokens stored in browser.storage |
+| 020 | CSRF state generation | **Auto** | `firefox/auth.test.js` | 64-char hex, unique values |
+| 030 | CSRF state validation | **Auto** | `firefox/auth.test.js` | Mismatched state rejected with error |
+| 040 | Token storage hierarchy | **Auto** | `firefox/auth.test.js` | Access in session, refresh in local |
+| 050 | Logout clears all tokens | **Auto** | `firefox/auth.test.js` | Both storages cleared |
+| 060 | Namespace verification | **Auto** | `firefox/auth.test.js` | `browser.*` called, not `chrome.*` |
+| 070 | Login view on unauthenticated | **Auto** | `firefox/popup.test.js` | Login view displayed |
+| 080 | Main view on authenticated | **Auto** | `firefox/popup.test.js` | Main view with user bar |
+| 090 | Login button handler | **Auto** | `firefox/popup.test.js` | Calls AletheiaAuth.initiateLogin |
+| 100 | Error display on login failure | **Auto** | `firefox/popup.test.js` | Error message shown |
+| 110 | Fresh login E2E | Manual | N/A | LinkedIn popup, user bar shows name |
+| 120 | Token persists in session | Manual | N/A | Reopen popup, still logged in |
+| 130 | Browser close clears access | Manual | N/A | Access token gone, refresh needed |
 
 ### 11.2 Manual Smoke Test
 
@@ -367,11 +607,16 @@ Before implementation:
 - [ ] `extensions/firefox/manifest.json` has `identity` permission
 - [ ] LinkedIn app has Firefox redirect URI registered
 
-### Tests
-- [ ] Manual OAuth flow works in Firefox
-- [ ] Mock mode works for automated tests
-- [ ] Storage hierarchy verified (session vs local)
-- [ ] Logout clears all data
+### Test Infrastructure (MANDATORY - Blocks PR)
+- [ ] `tests/mocks/firefox-api.mock.js` created with full browser.* mock
+- [ ] `tests/unit/firefox/auth.test.js` created and passing
+- [ ] `tests/unit/firefox/popup.test.js` created and passing
+- [ ] `npm run test:unit` runs BOTH Chrome and Firefox tests
+- [ ] All automated tests pass (010-100 in §11.1)
+
+### Manual Verification
+- [ ] Manual OAuth flow works in Firefox (110-130 in §11.1)
+- [ ] Storage hierarchy verified via DevTools
 
 ### Documentation
 - [ ] Implementation report created
@@ -382,6 +627,7 @@ Before implementation:
 - [ ] Code review completed
 - [ ] Pre-merge gate passed
 - [ ] Firefox Add-ons compatibility verified
+- [ ] **Gemini sign-off on test coverage**
 
 ---
 
@@ -416,6 +662,8 @@ Firefox extension is already MV3, so `browser.storage.session` is available. No 
 
 ## Appendix C: File Sizes (Effort Estimate)
 
+### Extension Files
+
 | File | Chrome Lines | Firefox Changes |
 |------|--------------|-----------------|
 | auth.js | 350 | ~10 lines changed (namespace) |
@@ -423,4 +671,63 @@ Firefox extension is already MV3, so `browser.storage.session` is available. No 
 | popup.js | 494 → 317 (Firefox simpler) | ~100 lines added (auth) |
 | popup.css | Same | ~20 lines added (auth styles) |
 
-**Total Effort:** ~180 lines of changes/additions
+### Test Files (NEW)
+
+| File | Estimated Lines | Description |
+|------|-----------------|-------------|
+| `tests/mocks/firefox-api.mock.js` | ~80 | Full browser.* mock |
+| `tests/unit/firefox/auth.test.js` | ~200 | Auth module tests |
+| `tests/unit/firefox/popup.test.js` | ~150 | Popup view tests |
+
+**Total Effort:** ~180 lines (extension) + ~430 lines (tests) = **~610 lines**
+
+### Why Tests Add 2.4x Effort
+
+The test infrastructure is essential:
+1. **Namespace verification tests** catch the exact bug Gemini warned about (using `chrome.*` instead of `browser.*`)
+2. **CSRF tests** verify security-critical state handling
+3. **Storage tests** ensure token hierarchy is correct
+4. **Mock infrastructure** enables future Firefox tests without duplication
+
+This is the "Warrior" standard: tests prove the code works, not just that it was written.
+
+---
+
+## Appendix D: Gemini Review Response
+
+**Review Date:** 2026-01-09
+**Reviewer:** Gemini (Security Architect / Strategist)
+**Initial Verdict:** REJECTED
+
+### Issue Identified
+
+> "The LLD completely ignores Module E: Frontend Logic Testing. It proposes writing critical authentication code (`auth.js`) without a single line of automated verification."
+
+### Risk Called Out
+
+> "If `auth.js` has a typo in the `browser.*` namespace (e.g., `browser.storage.local` vs `browser.storage.session`), it will crash silently in production."
+
+### Fix Applied
+
+1. Added R11 (Unit test coverage) and R12 (Test parity) to Requirements
+2. Added §6.7 Test Infrastructure section with:
+   - Firefox API mock specification
+   - auth.test.js structure with namespace verification tests
+   - popup.test.js structure
+   - package.json script requirements
+3. Updated §11.1 Test Scenarios: 10 automated tests, 3 manual
+4. Updated §12 Definition of Done with mandatory test infrastructure checklist
+5. Updated Appendix C with test file effort estimates
+
+### Key Addition: Namespace Verification Tests
+
+```javascript
+describe('Namespace Verification', () => {
+  it('uses browser.identity not chrome.identity', () => {
+    // CRITICAL: Verify we call browser.*, not chrome.*
+    // This catches the exact bug Gemini warned about
+  });
+});
+```
+
+**Revised Status:** Ready for re-review
