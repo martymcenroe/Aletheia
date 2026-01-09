@@ -393,3 +393,45 @@ class TestPromptInjectionProtection:
         user_content = prompt["messages"][0]["content"][0]["text"]
         assert "HACKED" in user_content  # Present but as user input
         assert "Digital Etymologist" in prompt["system"]  # System prompt unchanged
+
+
+class TestArchaicVsFormalClassification:
+    """Tests for Issue #199: Archaic vs Formal classification guidance in system prompt."""
+
+    def test_system_prompt_contains_1950_cutoff(self):
+        """Verify the SYSTEM_PROMPT specifies the 1950 chronological cutoff."""
+        from src.etymologist import SYSTEM_PROMPT
+        assert "1950" in SYSTEM_PROMPT
+        assert "BEFORE 1950" in SYSTEM_PROMPT
+
+    def test_system_prompt_contains_wsj_rule(self):
+        """Verify the SYSTEM_PROMPT includes the WSJ Rule."""
+        from src.etymologist import SYSTEM_PROMPT
+        assert "WSJ" in SYSTEM_PROMPT or "Wall Street Journal" in SYSTEM_PROMPT
+
+    def test_system_prompt_distinguishes_archaic_from_formal(self):
+        """Verify the SYSTEM_PROMPT distinguishes Archaic from Formal Academic terms."""
+        from src.etymologist import SYSTEM_PROMPT
+        assert "Archaic" in SYSTEM_PROMPT
+        assert "Formal" in SYSTEM_PROMPT
+
+    def test_system_prompt_lists_true_archaic_examples(self):
+        """Verify the SYSTEM_PROMPT includes true archaic word examples."""
+        from src.etymologist import SYSTEM_PROMPT
+        # Should include words that dropped out of use before 1950
+        archaic_examples = ["Thou", "Forsooth", "Betwixt", "Prithee"]
+        for word in archaic_examples:
+            assert word in SYSTEM_PROMPT, f"Missing archaic example: {word}"
+
+    def test_system_prompt_lists_formal_not_archaic_examples(self):
+        """Verify the SYSTEM_PROMPT includes formal words that are NOT archaic."""
+        from src.etymologist import SYSTEM_PROMPT
+        # Should include formal words still used in quality journalism
+        formal_examples = ["Immiserate", "Ameliorate"]
+        for word in formal_examples:
+            assert word in SYSTEM_PROMPT, f"Missing formal example: {word}"
+
+    def test_system_prompt_includes_formal_academic_term_signal(self):
+        """Verify the SYSTEM_PROMPT includes 'Formal Academic Term' as a valid signal."""
+        from src.etymologist import SYSTEM_PROMPT
+        assert "Formal Academic Term" in SYSTEM_PROMPT
