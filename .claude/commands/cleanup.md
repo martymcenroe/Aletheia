@@ -19,7 +19,7 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Argument | Description |
 |----------|-------------|
 | `--help` | Show this help message and exit |
-| `--quick` | Minimal cleanup (~2 min) - end of chat, nothing changed |
+| `--quick` | Minimal cleanup (~2 min) - commit session work, don't touch other workstreams |
 | `--normal` | Standard cleanup (~5 min) - typical session end (default) |
 | `--full` | Comprehensive cleanup (~12 min) - after features, before breaks |
 
@@ -35,6 +35,8 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Git status | ✅ | ✅ | ✅ |
 | Branch list | ✅ | ✅ | ✅ |
 | Open PRs | ✅ | ✅ | ✅ |
+| **Session log append** | ✅ | ✅ | ✅ |
+| **Commit & push** | ✅ | ✅ | ✅ |
 | Stash list | | ✅ | ✅ |
 | Regenerate 6000 | | ✅ | ✅ |
 | Worktree list | | ✅ | ✅ |
@@ -42,6 +44,8 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Inventory audit | | | ✅ |
 | **Index consistency** | | | ✅ |
 | **Plan staleness** | | | ✅ |
+
+**Quick mode philosophy:** Ensure YOUR session's work is saved. Don't touch other branches/worktrees (other agents may be using them).
 
 ---
 
