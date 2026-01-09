@@ -101,13 +101,28 @@ Look for:
 
 ## 6. Audit Procedure
 
-1. Run `ruff check src/ tests/` - verify 0 errors
-2. Run `mypy src/` - verify 0 errors
-3. Run `npx eslint extension-*/ --ext .js` - verify 0 errors
-4. Check coverage report - verify > 70%
-5. Review §3 manual checks
-6. Scan for TODO/FIXME comments
-7. Document findings
+### 6.1 Tool Execution Verification (CRITICAL)
+
+**Do NOT trust that tools work. Verify they actually execute.**
+
+| Step | Command | Success Criteria | Failure Action |
+|------|---------|------------------|----------------|
+| 1 | `npm ls --depth=0` | No UNMET DEPENDENCY errors | Run `npm install`, re-check |
+| 2 | `npx eslint --version` | Version prints (no MODULE_NOT_FOUND) | Fix dependency issue |
+| 3 | `npx eslint extensions/` | Runs and produces output (warnings OK) | If crashes, dependencies broken |
+
+**Why this matters:** On 2026-01-08, ESLint security plugins were declared in package.json but never installed. ESLint crashed on every run with `ERR_MODULE_NOT_FOUND`. This meant **zero security linting** was happening. The audit missed this because it only checked if ESLint config existed, not if ESLint ran.
+
+### 6.2 Full Procedure
+
+1. **Verify tools execute** (§6.1) - STOP if any fail
+2. Run `ruff check src/ tests/` - verify 0 errors
+3. Run `mypy src/` - verify 0 errors
+4. Run `npx eslint extensions/` - verify runs (warnings acceptable if reviewed)
+5. Check coverage report - verify > 70%
+6. Review §3 manual checks
+7. Scan for TODO/FIXME comments
+8. Document findings including any skipped checks or warnings
 
 ---
 

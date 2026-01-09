@@ -232,6 +232,7 @@
 | `src/signal_inspector/models.py` | **Logic** | 🟢 **Stable** | #84 | Data models (SignalResult, FetchStatus, etc.). |
 | `src/signal_inspector/parser.py` | **Logic** | 🟢 **Stable** | #84 | Signal extraction (meta, headers, robots.txt). |
 | `src/signal_inspector/reporter.py` | **Logic** | 🟢 **Stable** | #84 | Console and JSONL output reporting. |
+| `src/lambda_auth_function.py` | **Entry** | 🟢 **Stable** | #116 | LinkedIn OAuth Lambda handler (token exchange, user info). |
 
 ### Browser Extensions
 | File | Role | Status | Linked Issue | Description |
@@ -244,6 +245,7 @@
 | `extensions/chrome/popup.js` | **Logic** | 🟡 **Beta** | #76 | Popup logic and storage interaction. |
 | `extensions/chrome/content-safety.js` | **Logic** | 🟢 **Stable** | #104 | Content script for age-gate detection (RTA meta tags). |
 | `extensions/chrome/content-check.js` | **Logic** | 🟢 **Stable** | #104 | Content script for adult site detection (multiple signals). |
+| `extensions/chrome/auth.js` | **Logic** | 🟢 **Stable** | #116 | LinkedIn OAuth helper (launchWebAuthFlow wrapper). |
 | `extensions/chrome/icons/*` | **Asset** | 🟢 **Stable** | #82 | Chrome extension icons (16/32/48/128px). |
 | `extensions/firefox/manifest.json` | **Config** | 🟢 **Stable** | #100 | Firefox Manifest V2 (browser_specific_settings). |
 | `extensions/firefox/overlay.js` | **Logic** | 🟢 **Stable** | #100 | Firefox overlay UI with stateful timer management. |
@@ -293,26 +295,41 @@
 | `tools/aws/waf-setup.sh` | **Utility** | 🟢 **Stable** | #95 | CloudFront + WAF setup with rate limiting (--env dev/prod). |
 | `tools/policy_check.sh` | **Utility** | 🟢 **Stable** | - | Pre-commit/CI policy compliance check (ADR 0201, CLAUDE.md directives). |
 | `tools/deploy_test_sites.sh` | **Utility** | 🟢 **Stable** | #105 | Deploy test site fixtures to GitHub Pages. |
+| `tools/data_hygiene.py` | **Utility** | 🟢 **Stable** | #150 | AI-powered DynamoDB data cleanup tool. |
+| `tools/generate_store_images.py` | **Utility** | 🟢 **Stable** | #53 | Store screenshot generator for Chrome Web Store. |
+| `tools/generate_promo_tiles.py` | **Utility** | 🟢 **Stable** | #53 | Promotional tile generator for store listings. |
 
 ### Testing & Verification
+
+**Note:** Test suite reorganized per Issue #190 into `unit/`, `compliance/`, `tools/`, and `e2e/` directories.
+
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `run_guardrails.py` | **Test** | ⚪ **Placeholder** | - | Guardrail runner. |
 | `test_ground_truth.json` | **Data** | 🟢 **Stable** | - | Gold standard test dataset. |
 | `test_holistic_data.json` | **Data** | 🟡 **Beta** | - | Raw harvested test data. |
 | `tests/__init__.py` | **Test** | 🟢 **Stable** | - | Test package init. |
-| `tests/test_denylist.py` | **Test** | 🟢 **Stable** | #45 | Unit tests for denylist guardrail. |
-| `tests/test_fetch_denylist.py` | **Test** | 🟢 **Stable** | #121 | Unit tests for Wikipedia denylist fetcher (26 tests). |
-| `tests/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
-| `tests/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113, #124 | Unit tests for Lambda handler. |
-| `tests/test_etymologist.py` | **Test** | 🟢 **Stable** | #124 | Unit tests for Digital Etymologist (51 tests). |
-| `tests/test_noarchive.py` | **Test** | 🟢 **Stable** | #162 | Unit tests for NoArchive Transform layer (25 tests). |
-| `tests/test_signal_inspector.py` | **Test** | 🟢 **Stable** | #84 | Unit + live tests for Signal Inspector (31 tests). |
+| `tests/unit/__init__.py` | **Test** | 🟢 **Stable** | #190 | Unit tests package init. |
+| `tests/unit/test_denylist.py` | **Test** | 🟢 **Stable** | #45 | Unit tests for denylist guardrail. |
+| `tests/unit/test_fetch_denylist.py` | **Test** | 🟢 **Stable** | #121 | Unit tests for Wikipedia denylist fetcher (26 tests). |
+| `tests/unit/test_guardrails.py` | **Test** | 🟡 **Beta** | #11 | Unit tests for guardrails. |
+| `tests/unit/test_lambda_handler.py` | **Test** | 🟢 **Stable** | #113, #124 | Unit tests for Lambda handler. |
+| `tests/unit/test_etymologist.py` | **Test** | 🟢 **Stable** | #124 | Unit tests for Digital Etymologist (51 tests). |
+| `tests/unit/test_noarchive.py` | **Test** | 🟢 **Stable** | #162 | Unit tests for NoArchive Transform layer. |
+| `tests/unit/test_signal_inspector.py` | **Test** | 🟢 **Stable** | #84 | Unit + live tests for Signal Inspector (31 tests). |
+| `tests/unit/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
+| `tests/unit/test_persistence.py` | **Test** | 🟢 **Stable** | #177, #178 | Unit tests for DynamoDB persistence (domContext, response). |
+| `tests/compliance/__init__.py` | **Test** | 🟢 **Stable** | #190 | Compliance tests package init. |
+| `tests/compliance/test_static_compliance.py` | **Test** | 🟢 **Stable** | #148 | Static compliance checks (no Bedrock training APIs). |
+| `tests/compliance/test_live_audit.py` | **Test** | 🟢 **Stable** | #148 | Live Bedrock compliance audit (no logging, no custom models). |
+| `tests/compliance/test_index_consistency.py` | **Test** | 🟢 **Stable** | #190 | ADR/Audit/Template index consistency verification. |
+| `tests/tools/__init__.py` | **Test** | 🟢 **Stable** | #190 | Tools tests package init. |
+| `tests/tools/test_tools_smoke.py` | **Test** | 🟢 **Stable** | #153 | Smoke tests for CLI tools (log_viewer, data_hygiene). |
+| `tests/tools/test_tools_regression.py` | **Test** | 🟢 **Stable** | #190 | Regression tests for tools imports and help flags. |
 | `tests/fixtures/signal_inspector/` | **Data** | 🟢 **Stable** | #84 | HTML/txt test fixtures for signal parsing. |
-| `tests/test_semantic.py` | **Test** | 🟡 **Beta** | #10 | Unit tests for semantic layer. |
 | `tests/manual_overlay_math.html` | **Test** | 🟢 **Stable** | #98 | Manual viewport positioning test page. |
 | `tests/data/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | Test data directory placeholder. |
-| `tests/data/etymology_golden_set.json` | **Data** | 🟢 **Stable** | #124 | Golden set for Digital Etymologist (20 terms, 8 extraction tests, 6 validation tests). |
+| `tests/data/etymology_golden_set.json` | **Data** | 🟢 **Stable** | #124 | Golden set for Digital Etymologist (20 terms). |
 | `tests/infra/verify_waf.sh` | **Test** | 🟢 **Stable** | #95 | Automated WAF verification (no vibes testing). |
 | `tests/e2e/waf-integration.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for WAF integration. |
 | `tests/e2e/age-gate.spec.js` | **Test** | 🟢 **Stable** | #104 | Playwright E2E tests for age-restricted site blocking. |
