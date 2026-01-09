@@ -183,8 +183,10 @@ async function renderManagementView() {
     emptyState.style.display = 'none';
     allowlistEl.classList.add('has-items');
 
-    // Render list items
-    allowlistEl.innerHTML = '';
+    // Render list items - clear safely without innerHTML (XSS hardening)
+    while (allowlistEl.firstChild) {
+      allowlistEl.removeChild(allowlistEl.firstChild);
+    }
     allowlist.forEach(domain => {
       const item = createAllowlistItem(domain);
       allowlistEl.appendChild(item);
@@ -414,7 +416,16 @@ async function handleLoginClick() {
     loginError.textContent = error.message || 'Login failed. Please try again.';
     loginError.style.display = 'block';
     loginButton.disabled = false;
-    loginButton.innerHTML = '<span class="linkedin-icon">in</span> Sign in with LinkedIn';
+    // Reset button content safely without innerHTML (XSS hardening)
+    // Matches popup.html structure: <span class="linkedin-icon">in</span> Sign in with LinkedIn
+    while (loginButton.firstChild) {
+      loginButton.removeChild(loginButton.firstChild);
+    }
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'linkedin-icon';
+    iconSpan.textContent = 'in';
+    loginButton.appendChild(iconSpan);
+    loginButton.appendChild(document.createTextNode(' Sign in with LinkedIn'));
   }
 }
 

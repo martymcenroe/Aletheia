@@ -158,8 +158,10 @@ async function renderManagementView() {
     emptyState.style.display = 'none';
     allowlistEl.classList.add('has-items');
 
-    // Render list items
-    allowlistEl.innerHTML = '';
+    // Render list items - clear safely without innerHTML (XSS hardening)
+    while (allowlistEl.firstChild) {
+      allowlistEl.removeChild(allowlistEl.firstChild);
+    }
     allowlist.forEach(domain => {
       const item = createAllowlistItem(domain);
       allowlistEl.appendChild(item);
