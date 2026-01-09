@@ -30,6 +30,7 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 | [0212](0212-ADR-unified-v3-secure-dom.md) | Unified Manifest V3 & Secure DOM | Accepted | Security, Architecture | 2026-01-08 |
 | [0213](0213-ADR-adversarial-audit-philosophy.md) | Adversarial Audit Philosophy | Proposed | Process, Security, Compliance | 2026-01-08 |
 | [0214](0214-ADR-claude-staging-pattern.md) | Claude-Staging Pattern | Implemented | Process, Governance, Security | 2026-01-08 |
+| [0215](0215-ADR-test-first-philosophy.md) | Test-First Philosophy | Accepted | Process, Testing, Quality | 2026-01-09 |
 
 ---
 
@@ -44,6 +45,13 @@ Use `docs/0104-TEMPLATE-adr.md` when creating new ADRs.
 - [0210](0210-ADR-git-worktree-isolation.md)
 - [0213](0213-ADR-adversarial-audit-philosophy.md)
 - [0214](0214-ADR-claude-staging-pattern.md)
+- [0215](0215-ADR-test-first-philosophy.md)
+
+### Testing
+- [0215](0215-ADR-test-first-philosophy.md)
+
+### Quality
+- [0215](0215-ADR-test-first-philosophy.md)
 
 ### Governance
 - [0214](0214-ADR-claude-staging-pattern.md)
@@ -109,7 +117,7 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `docs/0104-TEMPLATE-adr.md`
-2. Use next available number (currently 0215)
+2. Use next available number (currently 0216)
 3. Name format: `02xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
