@@ -67,6 +67,48 @@ export default [
     // Firefox MV2 specific rules can be added here
   },
 
+  // Test file configuration (Vitest + jsdom)
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+        // Vitest globals
+        describe: "readonly",
+        it: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        vi: "readonly",
+        // Node/Browser shared globals
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        console: "readonly",
+        window: "readonly",
+        document: "readonly",
+        globalThis: "readonly"
+      }
+    },
+    rules: {
+      // Relaxed rules for tests
+      "no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_|^env$",
+          caughtErrorsIgnorePattern: "^_"
+        }
+      ]
+    }
+  },
+
   // Ignore patterns
   {
     ignores: [
