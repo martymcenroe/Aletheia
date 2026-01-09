@@ -1,14 +1,25 @@
 // extensions/firefox/popup.js
 // Firefox MV2 - uses browser.* API
+// See: docs/1206-firefox-oauth.md
 
 // State management
 let currentDomain = null;
 const selectedDomains = new Set();
 
-// DOM Elements
+// DOM Elements - Views
+const loginView = document.getElementById('login-view');
 const mainView = document.getElementById('main-view');
 const manageView = document.getElementById('manage-view');
 const confirmView = document.getElementById('confirm-view');
+const restrictedView = document.getElementById('restricted-view');
+const checkingView = document.getElementById('checking-view');
+
+// Auth Elements (Issue #206)
+const loginButton = document.getElementById('login-button');
+const loginError = document.getElementById('login-error');
+const userBar = document.getElementById('user-bar');
+const userName = document.getElementById('user-name');
+const logoutButton = document.getElementById('logout-button');
 
 const currentDomainEl = document.getElementById('current-domain');
 const statusLabel = document.getElementById('status-label');
@@ -105,16 +116,27 @@ async function clearAllData() {
 // ============================================================================
 
 function showView(viewName) {
-  mainView.style.display = 'none';
-  manageView.style.display = 'none';
-  confirmView.style.display = 'none';
+  // Hide all views
+  if (loginView) loginView.style.display = 'none';
+  if (mainView) mainView.style.display = 'none';
+  if (manageView) manageView.style.display = 'none';
+  if (confirmView) confirmView.style.display = 'none';
+  if (restrictedView) restrictedView.style.display = 'none';
+  if (checkingView) checkingView.style.display = 'none';
 
-  if (viewName === 'main') {
+  // Show requested view
+  if (viewName === 'login' && loginView) {
+    loginView.style.display = 'block';
+  } else if (viewName === 'main' && mainView) {
     mainView.style.display = 'block';
-  } else if (viewName === 'manage') {
+  } else if (viewName === 'manage' && manageView) {
     manageView.style.display = 'block';
-  } else if (viewName === 'confirm') {
+  } else if (viewName === 'confirm' && confirmView) {
     confirmView.style.display = 'block';
+  } else if (viewName === 'restricted' && restrictedView) {
+    restrictedView.style.display = 'block';
+  } else if (viewName === 'checking' && checkingView) {
+    checkingView.style.display = 'block';
   }
 }
 
@@ -291,10 +313,67 @@ function handleConfirmClearClick() {
 }
 
 // ============================================================================
+// AUTH HANDLERS (Issue #206)
+// ============================================================================
+
+async function handleLoginClick() {
+  try {
+    loginButton.disabled = true;
+    loginButton.textContent = 'Signing in...';
+    loginError.style.display = 'none';
+
+    const user = await window.AletheiaAuth.initiateLogin();
+
+    // Update user bar and proceed to main view
+    userName.textContent = user.name;
+    showView('main');
+    await renderMainView();
+
+  } catch (error) {
+    console.error('[Aletheia] Login failed:', error);
+    loginError.textContent = error.message || 'Login failed. Please try again.';
+    loginError.style.display = 'block';
+    loginButton.disabled = false;
+    // Reset button content safely without innerHTML (XSS hardening)
+    while (loginButton.firstChild) {
+      loginButton.removeChild(loginButton.firstChild);
+    }
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'linkedin-icon';
+    iconSpan.textContent = 'in';
+    loginButton.appendChild(iconSpan);
+    loginButton.appendChild(document.createTextNode(' Sign in with LinkedIn'));
+  }
+}
+
+async function handleLogoutClick() {
+  await window.AletheiaAuth.logout();
+  showView('login');
+}
+
+async function updateUserBar() {
+  const authState = await window.AletheiaAuth.getAuthState();
+  if (authState) {
+    userName.textContent = authState.displayName;
+    userBar.style.display = 'flex';
+  } else {
+    userBar.style.display = 'none';
+  }
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
-function init() {
+async function init() {
+  // Auth event listeners (Issue #206)
+  if (loginButton) {
+    loginButton.addEventListener('click', handleLoginClick);
+  }
+  if (logoutButton) {
+    logoutButton.addEventListener('click', handleLogoutClick);
+  }
+
   // Main view event listeners
   powerButton.addEventListener('click', handlePowerToggle);
   manageButton.addEventListener('click', handleManageClick);
@@ -308,8 +387,29 @@ function init() {
   cancelButton.addEventListener('click', handleCancelClick);
   confirmClearButton.addEventListener('click', handleConfirmClearClick);
 
-  // Initial render
-  renderMainView();
+  // Check auth state first (Issue #206)
+  let isAuthed = false;
+  try {
+    isAuthed = await window.AletheiaAuth.isAuthenticated();
+    console.log('[Aletheia] Auth check result:', isAuthed);
+  } catch (e) {
+    console.error('[Aletheia] Auth check failed:', e);
+  }
+
+  if (!isAuthed) {
+    // Not logged in - show login view
+    console.log('[Aletheia] Showing login view');
+    showView('login');
+    return;
+  }
+
+  // Update user bar with name
+  console.log('[Aletheia] User authenticated, updating user bar');
+  await updateUserBar();
+
+  // Show main view and render
+  showView('main');
+  await renderMainView();
 }
 
 // Start the popup
