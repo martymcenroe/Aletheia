@@ -119,7 +119,8 @@
       "Bash(MSYS_NO_PATHCONV=1 aws:*)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia-137/provision.sh)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/provision.sh)",
-      "Skill(onboard)"
+      "Skill(onboard)",
+      "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-on.sh:*)"
     ],
     "deny": [
       "Read(.env)",

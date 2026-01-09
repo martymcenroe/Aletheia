@@ -30,18 +30,23 @@ Claude Code uses `.claude/` directory for configuration:
 Structure:
 ```
 Aletheia/
-├── .claude/                    # LIVE - Active configuration
-│   ├── settings.json           # Hook configuration
-│   ├── settings.local.json     # Permissions (gitignored)
-│   ├── hooks/                  # Executable scripts
-│   └── agents/                 # Agent definitions
+├── .claude/                    # LIVE - Active configuration (TRACKED in git)
+│   ├── settings.json           # Hook configuration (tracked)
+│   ├── settings.local.json     # Permissions (tracked per CLAUDE.md)
+│   ├── hooks/                  # Executable scripts (tracked)
+│   ├── agents/                 # Agent definitions (tracked)
+│   └── commands/               # Skill definitions (tracked)
 │
-├── claude-staging/             # STAGING - Development area (gitignored)
+├── claude-staging/             # STAGING - Development area (GITIGNORED)
 │   ├── settings.json           # Draft configuration
 │   ├── hooks/                  # Draft scripts
 │   ├── agents/                 # Draft agent definitions
 │   └── README-DEPLOY.md        # Deployment instructions
 ```
+
+**Critical Distinction:**
+- `.claude/` = **TRACKED** - Live governance-as-code, version controlled
+- `claude-staging/` = **GITIGNORED** - Development sandbox, disposable
 
 **Workflow:**
 1. Create/edit files in `claude-staging/`
@@ -95,7 +100,13 @@ The `claude-staging/` pattern provides:
 1. **Safe iteration** - Test before deploy
 2. **Documentation** - README explains what each file does
 3. **Reversibility** - Just delete staging if it doesn't work
-4. **Visibility** - Changes are in a visible directory, not hidden in `.claude/`
+4. **Visibility** - Changes are in a visible directory during development
+
+**Why `.claude/` MUST be tracked:**
+- Governance-as-code requires version control
+- Hook changes affect all agents - need audit trail
+- Rollback capability if hooks break
+- Multi-agent environments need consistent configuration
 
 ---
 
