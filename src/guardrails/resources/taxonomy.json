@@ -1,15 +1,20 @@
 {
   "taxonomy": {
-    "Archaic": "Outdated or pejorative terms (e.g., 'dropsy', 'blackguard').",
+    "Archaic": "Words that dropped out of common usage BEFORE 1950 (e.g., 'thou', 'forsooth', 'betwixt', 'prithee'). NOT formal/academic words still used in quality journalism—those are safe.",
     "Provocative": "Sexual slang or double entendres (e.g., 'swiving', 'tupping').",
     "Hate": "Slurs or discriminatory language, even in compounds.",
     "Neologism": "Newly coined words from the last 2 years (e.g., 'skibidi', 'fanum tax').",
-    "None": "Standard, safe language."
+    "None": "Standard, safe language. Includes rare but currently-used formal/academic terms (e.g., 'immiserate', 'ameliorate', 'efficacious')."
   },
   "few_shot_examples": [
     {
       "text": "He is a blackguard and a knave",
       "scores": {"Archaic": 0.95, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 0.05},
+      "category": "Archaic"
+    },
+    {
+      "text": "Thou art most vexing, forsooth",
+      "scores": {"Archaic": 0.98, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 0.02},
       "category": "Archaic"
     },
     {
@@ -19,6 +24,16 @@
     },
     {
       "text": "The integration tests passed successfully",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
+    },
+    {
+      "text": "These policies immiserate the working class",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
+    },
+    {
+      "text": "The treatment will ameliorate symptoms",
       "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
       "category": "None"
     },
