@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-09 02:45 CT
-**Total Open Issues:** 16
+**Generated:** 2026-01-09 12:10 CT
+**Total Open Issues:** 17
 
 ---
 
@@ -912,5 +912,54 @@ Only auto-delete if ALL conditions are met:
 ## Labels
 
 `chore`, `process-improvement`, `cleanup`
+
+---
+
+## Issue #206: feat(firefox): Add LinkedIn OAuth authentication to Firefox extension
+
+**Created:** 2026-01-09
+**Updated:** 2026-01-09
+
+### Description
+
+## Summary
+
+Firefox extension is missing LinkedIn OAuth authentication that was added to Chrome in Issue #116. This creates feature parity gap between the two extensions.
+
+## Current State
+
+| Feature | Chrome | Firefox |
+|---------|--------|---------|
+| LinkedIn OAuth | ✅ Yes (Issue #116) | ❌ Missing |
+| Login view | ✅ Yes | ❌ No |
+| User bar | ✅ Yes | ❌ No |
+| Age gate | ✅ Yes | ❌ No |
+
+## Files to Port
+
+From Chrome to Firefox:
+- `extensions/chrome/auth.js` → `extensions/firefox/auth.js`
+- `extensions/chrome/popup.js` (auth sections) → `extensions/firefox/popup.js`
+- `extensions/chrome/popup.html` (login view, user bar) → `extensions/firefox/popup.html`
+- `extensions/chrome/popup.css` (auth styles) → `extensions/firefox/popup.css`
+
+## Considerations
+
+1. **API differences**: Firefox uses `browser.*` APIs vs Chrome's `chrome.*` (mostly compatible via polyfill or direct use)
+2. **Identity API**: Firefox's `browser.identity` may have different OAuth flow - needs investigation
+3. **Manifest V2**: Firefox extension is MV2, Chrome is MV3 - may affect how auth tokens are handled
+
+## Acceptance Criteria
+
+- [ ] Firefox extension has login view matching Chrome
+- [ ] LinkedIn OAuth flow works in Firefox
+- [ ] User bar displays after authentication
+- [ ] Age gate check works post-authentication
+- [ ] Logout functionality works
+
+## References
+
+- Issue #116 - Original Chrome LinkedIn OAuth implementation
+- `docs/0002-coding-standards.md` §9.3 - Dual extension parity requirement
 
 ---
