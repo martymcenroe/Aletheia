@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: Shadow DOM Access (Issue #197)</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+        .test-section { background: #f5f5f5; padding: 1rem; border-radius: 4px; margin: 1rem 0; }
+        .pass { background: #d4edda; border: 2px solid #28a745; }
+        .fail { background: #f8d7da; border: 2px solid #dc3545; }
+        #test-result { font-weight: bold; font-size: 1.2rem; padding: 1rem; margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <h1 style="background:yellow;color:red;padding:10px;">
+        QA SANDBOX - Security Research Only - Do Not Use
+    </h1>
+
+    <h1>Shadow DOM Security Test (Issue #197)</h1>
+
+    <p>This page tests that the Aletheia overlay's Shadow DOM is properly closed per ADR 0202.</p>
+
+    <div class="test-section">
+        <h2>Test: Host Page Cannot Access Shadow Root</h2>
+        <p data-testid="selectable-text">Select this text to trigger the Aletheia overlay. After the overlay appears, this page will attempt to access its shadowRoot. With <code>mode: 'closed'</code>, this should return <code>null</code>.</p>
+    </div>
+
+    <div id="test-result">
+        Test not run yet. Trigger the Aletheia overlay first.
+    </div>
+
+    <div class="test-section">
+        <h3>How this test works:</h3>
+        <ol>
+            <li>User (or automation) selects text to trigger Aletheia</li>
+            <li>The page's JavaScript polls for the overlay host element</li>
+            <li>Once found, it attempts to access <code>element.shadowRoot</code></li>
+            <li>With <code>mode: 'closed'</code>, this returns <code>null</code> (PASS)</li>
+            <li>With <code>mode: 'open'</code>, this would return the ShadowRoot (FAIL)</li>
+        </ol>
+    </div>
+
+    <p><a href="index.html">Back to test index</a></p>
+
+    <script>
+        // Security test: Attempt to access the shadow root from host page context
+        // This simulates a malicious page trying to read/manipulate the overlay
+
+        let pollCount = 0;
+        const maxPolls = 50; // 5 seconds at 100ms intervals
+
+        function testShadowAccess() {
+            const host = document.getElementById('aletheia-overlay-host');
+            const resultDiv = document.getElementById('test-result');
+
+            if (!host) {
+                pollCount++;
+                if (pollCount < maxPolls) {
+                    setTimeout(testShadowAccess, 100);
+                    resultDiv.textContent = `Waiting for overlay... (${pollCount}/${maxPolls})`;
+                } else {
+                    resultDiv.textContent = 'Overlay not found - trigger it by selecting text';
+                    resultDiv.className = '';
+                }
+                return;
+            }
+
+            // SECURITY TEST: Attempt to access shadowRoot
+            const shadowRoot = host.shadowRoot;
+
+            if (shadowRoot === null) {
+                // PASS: Closed shadow DOM correctly returns null
+                resultDiv.textContent = 'PASS: shadowRoot is null (closed mode working correctly)';
+                resultDiv.className = 'pass';
+                // Expose result for Playwright to check
+                window.shadowDomTestResult = { passed: true, shadowRoot: null };
+            } else {
+                // FAIL: Shadow DOM is open, security vulnerability!
+                resultDiv.textContent = 'FAIL: shadowRoot is accessible (SECURITY VULNERABILITY!)';
+                resultDiv.className = 'fail';
+                window.shadowDomTestResult = { passed: false, shadowRoot: 'accessible' };
+            }
+        }
+
+        // Start polling when page loads
+        // Playwright tests will trigger the overlay, then check window.shadowDomTestResult
+        setTimeout(testShadowAccess, 500);
+    </script>
+</body>
+</html>
