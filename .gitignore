@@ -60,6 +60,7 @@ test_data.json
 # LLM specific
 prompts/
 *.bak
+docs/0000b-ONBOARD-DIGEST.md
 
 # Context Dumps (Gemini)
 _all_issues.json
