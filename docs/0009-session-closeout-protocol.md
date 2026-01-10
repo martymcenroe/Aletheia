@@ -103,8 +103,14 @@ git -C /c/Users/mcwiz/Projects/Aletheia push
 
 **Phase 5 - Verify:**
 ```bash
+# MANDATORY: Show what was actually committed
+git -C /c/Users/mcwiz/Projects/Aletheia log -1 --stat
+
+# Verify clean state
 git -C /c/Users/mcwiz/Projects/Aletheia status
 ```
+
+**CRITICAL REQUIREMENT:** Before reporting cleanup status, verify that what you claim to have done matches what was actually committed. Compare your claimed actions against the `git log -1 --stat` output.
 
 ---
 
@@ -146,11 +152,17 @@ git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: normal cleanup YYYY-MM-
 git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
-**Phase 5 - Verify (2 parallel calls):**
+**Phase 5 - Verify:**
 ```bash
+# MANDATORY: Show what was actually committed
+git -C /c/Users/mcwiz/Projects/Aletheia log -1 --stat
+
+# Verify clean state
 git -C /c/Users/mcwiz/Projects/Aletheia status
 gh pr list --state open --repo martymcenroe/Aletheia
 ```
+
+**CRITICAL REQUIREMENT:** Before reporting cleanup status, you MUST verify that what you claim to have done matches what was actually committed. Compare your claimed actions against the `git log -1 --stat` output. If you claimed "regenerated 6000-open-issues.md" but it's not in the commit, you MUST investigate and fix the discrepancy - NEVER skip steps or misreport status.
 
 ---
 
@@ -203,13 +215,19 @@ git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: full cleanup YYYY-MM-DD
 git -C /c/Users/mcwiz/Projects/Aletheia push
 ```
 
-**Phase 5 - Verify (4 parallel calls):**
+**Phase 5 - Verify:**
 ```bash
+# MANDATORY: Show what was actually committed
+git -C /c/Users/mcwiz/Projects/Aletheia log -1 --stat
+
+# Verify clean state (parallel)
 git -C /c/Users/mcwiz/Projects/Aletheia status
 git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 git -C /c/Users/mcwiz/Projects/Aletheia branch -r
 gh pr list --state open --repo martymcenroe/Aletheia
 ```
+
+**CRITICAL REQUIREMENT:** Before reporting cleanup status, you MUST verify that what you claim to have done matches what was actually committed. Compare your claimed actions against the `git log -1 --stat` output. If you claimed "regenerated 6000-open-issues.md" but it's not in the commit, you MUST investigate and fix the discrepancy - NEVER skip steps or misreport status.
 
 **Human Reminder:**
 - Chrome: `chrome://extensions/` → Reload extension
