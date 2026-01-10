@@ -92,6 +92,9 @@ def dynamodb_client(dynamodb_endpoint: str):
     Create boto3 DynamoDB client pointing to local instance.
 
     Sets env vars so Lambda code uses local instance.
+    Also sets table name env vars so Lambda code uses fixture tables:
+    - DYNAMODB_TABLE: used by lambda_function.py save_state()
+    - AGENT_STATE_TABLE: used by lambda_auth_function.py delete_user_data()
     """
     # Only set DYNAMODB_ENDPOINT if not already set (local mode)
     endpoint_was_set = "DYNAMODB_ENDPOINT" in os.environ
@@ -101,6 +104,13 @@ def dynamodb_client(dynamodb_endpoint: str):
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"  # noqa: S105
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"  # noqa: S105
     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
+    # Set table name env vars to match fixture table names
+    # lambda_function.py uses DYNAMODB_TABLE (default: aletheia-state)
+    # lambda_auth_function.py uses AGENT_STATE_TABLE (default: AletheiaAgentState)
+    table_name: str = AGENT_STATE_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
+    os.environ["DYNAMODB_TABLE"] = table_name
+    os.environ["AGENT_STATE_TABLE"] = table_name
 
     client = boto3.client(
         "dynamodb",
@@ -115,6 +125,8 @@ def dynamodb_client(dynamodb_endpoint: str):
     # Cleanup env vars only if we set them
     if not endpoint_was_set:
         del os.environ["DYNAMODB_ENDPOINT"]
+    del os.environ["DYNAMODB_TABLE"]
+    del os.environ["AGENT_STATE_TABLE"]
 
 
 @pytest.fixture(scope="session")
