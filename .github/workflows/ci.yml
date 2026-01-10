@@ -65,6 +65,48 @@ jobs:
         with:
           scandir: './tools'
 
+  # DynamoDB integration tests - runs with DynamoDB Local service container
+  # Issue #264: DynamoDB integration test infrastructure
+  integration-tests:
+    needs: policy-check
+    runs-on: ubuntu-latest
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:latest
+        ports:
+          - 8000:8000
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --with dev
+
+      - name: Run DynamoDB integration tests
+        env:
+          DYNAMODB_ENDPOINT: http://localhost:8000
+          AWS_ACCESS_KEY_ID: testing
+          AWS_SECRET_ACCESS_KEY: testing
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          echo "=== DynamoDB Integration Tests ==="
+          poetry run pytest tests/integration/ -v 2>&1 | tee integration_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if grep -qE "collected [0-9]+ item" integration_output.txt; then
+            COLLECTED=$(grep -oE "collected [0-9]+ item" integration_output.txt | grep -oE "[0-9]+")
+            echo "✓ Collected $COLLECTED integration tests"
+          fi
+          exit $EXIT_CODE
+
   test:
     needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest

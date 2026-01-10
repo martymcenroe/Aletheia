@@ -32,6 +32,10 @@ pre-commit = ">=4.5.1,<5.0.0"
 types-requests = ">=2.32.4.20250913,<3.0.0.0"
 types-colorama = "^0.4.15.20250801"
 
+
+[tool.poetry.group.test.dependencies]
+testcontainers = "^4.14.0"
+
 [tool.pytest.ini_options]
 testpaths = [
     "tests/unit",

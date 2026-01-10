@@ -40,10 +40,20 @@ _linkedin_credentials = None
 
 
 def get_dynamodb_client():
-    """Lazy-initialize DynamoDB client."""
+    """Lazy-initialize DynamoDB client.
+
+    Supports DYNAMODB_ENDPOINT env var for local testing with DynamoDB Local.
+    Issue #264: DynamoDB integration test fixtures.
+    """
     global _dynamodb_client
     if _dynamodb_client is None:
-        _dynamodb_client = boto3.client("dynamodb", region_name=AWS_REGION)
+        endpoint = os.environ.get("DYNAMODB_ENDPOINT")
+        if endpoint:
+            _dynamodb_client = boto3.client(
+                "dynamodb", endpoint_url=endpoint, region_name=AWS_REGION
+            )
+        else:
+            _dynamodb_client = boto3.client("dynamodb", region_name=AWS_REGION)
     return _dynamodb_client
 
 
