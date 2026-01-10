@@ -196,6 +196,45 @@ To keep the `docs/` folder focused on *active* truth, we aggressively archive ou
     * **Path:** Update to `docs/legacy/...`.
 3.  **Link Rot:** Do NOT worry about breaking links in other legacy files. Active files should never link to legacy files except as historical footnotes.
 
+### 7.4 Log File Formatting (Print-Safe Standards)
+
+Log files (`9xxx-*.md`, `session-logs/*.md`, `ENGINEERING-JOURNAL.md`) must be print-safe.
+
+**Line Length Limit:** 100 characters maximum per line.
+
+**URL Formatting:** Use markdown link syntax, never bare URLs.
+```markdown
+# WRONG - causes print overflow
+See https://github.com/anthropics/claude-code/issues/12345 for details
+
+# CORRECT - wraps properly
+See [claude-code#12345](https://github.com/anthropics/claude-code/issues/12345)
+```
+
+**Table Width:** Maximum 5-6 columns. Use abbreviations for headers.
+```markdown
+# WRONG - too wide
+| Date | Agent Model | Summary | Files Created | Issues Opened | Issues Closed |
+
+# CORRECT - abbreviated
+| Date | Model | Summary | Created | Opened | Closed |
+```
+
+**Code Blocks:** Add manual line breaks for commands over 80 chars.
+```markdown
+# WRONG - single long line
+poetry run python tools/print/print_most_recent_open_issues.py --format=markdown
+
+# CORRECT - broken with backslash
+poetry run python \
+    tools/print/print_most_recent_open_issues.py \
+    --format=markdown
+```
+
+**Enforcement:** Pre-commit hooks may warn on lines >100 chars in `docs/9*.md`.
+
+**Legacy Files:** Existing files with overflow are grandfathered. Fix on edit.
+
 ## 8. File Editing Patterns
 
 ### 8.1 Appending to Sectioned Files
