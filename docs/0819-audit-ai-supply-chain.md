@@ -303,7 +303,7 @@ data_flows:
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-01-10 | Claude Opus 4.5 | PASS: Model ID pinned (HAIKU_MODEL_ID in etymologist.py, env override available), provenance chain documented (Anthropic→Bedrock→Lambda→User), dependencies locked in poetry.lock, denylist sourced from Wikipedia, AWS manages model signing | None |
 
 ---
 
