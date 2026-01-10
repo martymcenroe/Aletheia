@@ -17,11 +17,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "extension@aletheia.study",
-      "strict_min_version": "109.0",
-      "data_collection_permissions": {
-        "required": ["websiteContent", "personallyIdentifyingInfo"],
-        "optional": []
-      }
+      "strict_min_version": "115.0"
     },
     "gecko_android": {
       "strict_min_version": "120.0"
