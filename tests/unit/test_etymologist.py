@@ -171,6 +171,51 @@ class TestExtractJSON:
             else:
                 assert result is None, f"Should not extract: {case['id']}"
 
+    def test_curly_quotes_in_string_values(self):
+        """Issue #259: Bedrock returns curly quotes inside string values."""
+        # Using Unicode escapes to ensure we test the actual characters
+        raw = '{"signal": "Test", "gem": "The term \u201cultimate\u201d is used.", "context": "Context."}'
+        result = extract_json(raw)
+        assert result is not None
+        assert result["signal"] == "Test"
+        assert "ultimate" in result["gem"]
+
+    def test_curly_quotes_as_json_delimiters(self):
+        """Issue #259: Bedrock may use curly quotes as JSON string delimiters."""
+        # Full response with curly quotes as delimiters
+        raw = '\u201c{"signal": "Test", "gem": "A gem.", "context": "Context."}\u201d'
+        result = extract_json(raw)
+        # Should still extract the JSON even with surrounding curly quotes
+        assert result is not None
+        assert result["signal"] == "Test"
+
+    def test_mixed_curly_and_straight_quotes(self):
+        """Issue #259: Response may have mix of curly and straight quotes."""
+        raw = '{"signal": "Formal Academic Term", "gem": "The word \u201cmendacious\u201d means lying.", "context": "Normal context."}'
+        result = extract_json(raw)
+        assert result is not None
+        assert result["signal"] == "Formal Academic Term"
+        assert "mendacious" in result["gem"]
+
+    def test_curly_single_quotes_normalized(self):
+        """Issue #259: Curly single quotes should be normalized."""
+        raw = '{"signal": "Test", "gem": "It\u2019s a test.", "context": "Context."}'
+        result = extract_json(raw)
+        assert result is not None
+        assert result["gem"] == "It's a test."
+
+    def test_all_unicode_quote_variants(self):
+        """Issue #259: Test all Unicode quote variants that Bedrock might emit."""
+        # U+201C LEFT DOUBLE QUOTATION MARK
+        # U+201D RIGHT DOUBLE QUOTATION MARK
+        # U+2018 LEFT SINGLE QUOTATION MARK
+        # U+2019 RIGHT SINGLE QUOTATION MARK
+        raw = '{"signal": "Test", "gem": "\u201cQuoted\u201d and \u2018single\u2019.", "context": "Context."}'
+        result = extract_json(raw)
+        assert result is not None
+        assert '"Quoted"' in result["gem"] or "Quoted" in result["gem"]
+        assert "'single'" in result["gem"] or "single" in result["gem"]
+
 
 class TestCountWords:
     """Tests for word counting utility."""
