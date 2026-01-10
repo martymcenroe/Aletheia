@@ -191,7 +191,7 @@ describe('CSRF State Generation', () => {
 
 // SKIPPED: These tests require browser.identity API which doesn't exist in Firefox MV3.
 // Firefox OAuth must be reimplemented using a tabs-based flow.
-// See: docs/0825-audit-cross-browser-testing.md
+// See: docs/0826-audit-cross-browser-testing.md
 describe.skip('CSRF State Validation', () => {
   let env;
 

@@ -10,7 +10,7 @@
  *
  * NOTE: browser.identity is NOT available in Firefox MV3.
  * Firefox OAuth requires a different approach (tabs-based flow).
- * See: docs/0825-audit-cross-browser-testing.md
+ * See: docs/0826-audit-cross-browser-testing.md
  * - browser.runtime.onMessage
  * - browser.runtime.onInstalled
  * - browser.runtime.id
@@ -112,7 +112,7 @@ export function createFirefoxMock(options = {}) {
 
     // REMOVED: browser.identity API
     // Firefox MV3 does NOT have browser.identity - it's Chrome-only.
-    // See: docs/0825-audit-cross-browser-testing.md
+    // See: docs/0826-audit-cross-browser-testing.md
     // Firefox OAuth must use a tabs-based flow instead.
     // The identity property is intentionally undefined to catch code that incorrectly uses it.
 

@@ -21,7 +21,7 @@ All unit tests passed because they tested against a mock that lied about Firefox
 ## Changes Made
 
 ### 1. Audit Document Created
-**File:** `docs/0825-audit-cross-browser-testing.md`
+**File:** `docs/0826-audit-cross-browser-testing.md`
 
 Comprehensive audit documenting:
 - Root cause analysis (mock fidelity lie, zero E2E, no parity checks)
@@ -71,7 +71,7 @@ Marked CSRF State Validation tests as `describe.skip` since they require `browse
 
 | File | Change |
 |------|--------|
-| `docs/0825-audit-cross-browser-testing.md` | Created |
+| `docs/0826-audit-cross-browser-testing.md` | Created |
 | `tests/unit/parity/extension-files.test.js` | Created |
 | `tests/mocks/firefox-api.mock.js` | Removed fake identity API |
 | `tests/unit/firefox/auth.test.js` | Skipped identity-dependent tests |
@@ -83,5 +83,5 @@ Marked CSRF State Validation tests as `describe.skip` since they require `browse
 
 ## References
 
-- Audit: `docs/0825-audit-cross-browser-testing.md`
+- Audit: `docs/0826-audit-cross-browser-testing.md`
 - Related issues: #206, #216 (introduced the Firefox OAuth bug)

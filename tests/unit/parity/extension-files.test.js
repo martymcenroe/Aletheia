@@ -7,7 +7,7 @@
  * - content-check.js (entire file)
  * - content-safety.js (entire file)
  *
- * See: docs/0825-audit-cross-browser-testing.md
+ * See: docs/0826-audit-cross-browser-testing.md
  */
 
 import { describe, test, expect } from 'vitest';

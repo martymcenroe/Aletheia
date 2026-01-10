@@ -116,4 +116,4 @@ If anyone removes a shared file from Firefox, tests will fail:
 2. **Firefox E2E Tests** - Need to load extension in actual Firefox browser
 3. **Visual Regression Tests** - Need screenshot comparison for popup UI
 
-These are tracked in `docs/0825-audit-cross-browser-testing.md` as P0/P1 action items.
+These are tracked in `docs/0826-audit-cross-browser-testing.md` as P0/P1 action items.
