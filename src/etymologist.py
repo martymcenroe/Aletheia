@@ -14,6 +14,7 @@ import json
 import logging
 import re
 import time
+import unicodedata
 from typing import Literal, TypedDict
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,41 @@ logger = logging.getLogger(__name__)
 # Constants
 HAIKU_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
 MAX_TOKENS = 500
+
+# Comprehensive Unicode quote normalization map (Issue #288)
+# Key insight: Double quote variants -> single quote (to avoid breaking JSON structure)
+# Single quote variants -> straight single quote
+QUOTE_NORMALIZATION_MAP = {
+    # Double quote variants -> single quote (avoid breaking JSON structure)
+    '\u201C': "'",  # LEFT DOUBLE QUOTATION MARK "
+    '\u201D': "'",  # RIGHT DOUBLE QUOTATION MARK "
+    '\u201E': "'",  # DOUBLE LOW-9 QUOTATION MARK „
+    '\u201F': "'",  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK ‟
+    '\u2033': "'",  # DOUBLE PRIME ″
+    '\u2036': "'",  # REVERSED DOUBLE PRIME ‶
+    '\u00AB': "'",  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK «
+    '\u00BB': "'",  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK »
+
+    # Single quote variants -> straight single quote
+    '\u2018': "'",  # LEFT SINGLE QUOTATION MARK '
+    '\u2019': "'",  # RIGHT SINGLE QUOTATION MARK '
+    '\u201A': "'",  # SINGLE LOW-9 QUOTATION MARK ‚
+    '\u201B': "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK ‛
+    '\u2032': "'",  # PRIME ′
+    '\u2035': "'",  # REVERSED PRIME ‵
+    '\u2039': "'",  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK ‹
+    '\u203A': "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK ›
+
+    # Fullwidth variants -> ASCII equivalents
+    '\uFF02': '"',  # FULLWIDTH QUOTATION MARK ＂
+    '\uFF07': "'",  # FULLWIDTH APOSTROPHE ＇
+
+    # CJK brackets (rare but possible from multilingual models)
+    '\u300C': "'",  # LEFT CORNER BRACKET 「
+    '\u300D': "'",  # RIGHT CORNER BRACKET 」
+    '\u300E': "'",  # LEFT WHITE CORNER BRACKET 『
+    '\u300F': "'",  # RIGHT WHITE CORNER BRACKET 』
+}
 
 SYSTEM_PROMPT = """You are the Digital Etymologist, a neutral scholarly voice that explains the origins and cultural weight of words and phrases.
 
@@ -120,6 +156,55 @@ def build_etymologist_prompt(word: str, page_context: str = "") -> dict:
     }
 
 
+def normalize_unicode_quotes(text: str) -> str:
+    """Normalize all Unicode quotation marks to ASCII equivalents.
+
+    Critical for JSON parsing: Bedrock may return curly quotes inside
+    string values (e.g., 'the term "waypoint" originated...').
+
+    Strategy:
+    - Double quote variants -> single quote (to avoid breaking JSON)
+    - Single quote variants -> straight single quote
+    - Fullwidth variants -> ASCII equivalents
+
+    See Issue #288 for comprehensive handling.
+    """
+    for unicode_char, replacement in QUOTE_NORMALIZATION_MAP.items():
+        text = text.replace(unicode_char, replacement)
+    return text
+
+
+def _log_unicode_diagnostics(text: str, context: str) -> None:
+    """Log Unicode codepoints for debugging JSON parse failures.
+
+    Only logs non-ASCII characters that might be causing issues.
+    Limited to first 500 chars and first 10 problematic characters.
+    """
+    non_ascii_chars = []
+    for i, char in enumerate(text[:500]):
+        codepoint = ord(char)
+        if codepoint > 127:
+            try:
+                name = unicodedata.name(char)
+            except ValueError:
+                name = "UNKNOWN"
+            non_ascii_chars.append({
+                "pos": i,
+                "char": char,
+                "codepoint": f"U+{codepoint:04X}",
+                "name": name
+            })
+
+    if non_ascii_chars:
+        logger.warning(f"UNICODE_DIAGNOSTIC [{context}]: Found {len(non_ascii_chars)} non-ASCII chars")
+        for entry in non_ascii_chars[:10]:
+            logger.warning(
+                f"  Position {entry['pos']}: {entry['codepoint']} ({entry['name']}) = '{entry['char']}'"
+            )
+    else:
+        logger.warning(f"UNICODE_DIAGNOSTIC [{context}]: No non-ASCII characters found in first 500 chars")
+
+
 def extract_json(raw_response: str) -> dict | None:
     """
     Robustly extract JSON from LLM response.
@@ -129,7 +214,7 @@ def extract_json(raw_response: str) -> dict | None:
     - Markdown code fences (```json ... ```)
     - Preamble text ("Here is the analysis: {...}")
     - Trailing text after JSON
-    - Curly/smart quotes from LLM output (Issue #259)
+    - Curly/smart quotes from LLM output (Issue #259, #288)
 
     Returns parsed dict or None if extraction fails.
 
@@ -140,12 +225,9 @@ def extract_json(raw_response: str) -> dict | None:
 
     text = raw_response.strip()
 
-    # Step 0: Normalize curly/smart quotes (Issue #259)
-    # LLMs emit curly quotes INSIDE string values for emphasis (e.g., "the term "waypoint" originated")
-    # Replacing with straight double quotes would break JSON (creates unescaped quotes in strings)
-    # Solution: Replace curly double quotes with single quotes to preserve readability
-    text = text.replace('\u201c', "'").replace('\u201d', "'")  # Curly double quotes to single
-    text = text.replace('\u2018', "'").replace('\u2019', "'")  # Curly single quotes to straight
+    # Step 0: Comprehensive quote normalization (Issue #288)
+    # Uses QUOTE_NORMALIZATION_MAP to handle 22+ Unicode quote variants
+    text = normalize_unicode_quotes(text)
 
     # Step 1: Strip markdown code fences
     # Handle ```json and ``` variants
@@ -170,6 +252,8 @@ def extract_json(raw_response: str) -> dict | None:
     except json.JSONDecodeError as e:
         logger.warning(f"JSON decode failed: {e}")
         logger.warning(f"JSON string (first 200 chars): {json_str[:200]}")
+        # Issue #288: Log Unicode diagnostics for debugging
+        _log_unicode_diagnostics(json_str, f"JSONDecodeError at position {e.pos}")
         return None
 
 
