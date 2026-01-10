@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-09 18:15 CT
-**Total Open Issues:** 21
+**Generated:** 2026-01-09 18:54 CT
+**Total Open Issues:** 19
 
 ---
 
@@ -153,38 +153,6 @@ This is a **future enhancement** - not required for MVP or store submission.
 ## Related
 - 0007-legal-compliance-strategy.md (copyright/fair use)
 - Summarizer/Transform layer (would process full article)
-
----
-
-## Issue #107: Debug VSCode Mermaid diagram preview
-
-**Labels:** documentation, chore
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Summary
-VSCode is not rendering Mermaid diagrams in markdown preview. Need to debug and fix.
-
-## Current State
-- Mermaid diagrams render correctly on GitHub
-- VSCode markdown preview shows raw mermaid code blocks
-- Workaround: Copy/paste to mermaid.live (tedious)
-
-## Potential Solutions
-1. Install "Markdown Preview Mermaid Support" extension
-2. Install "Mermaid Preview" extension
-3. Check VSCode settings for markdown preview extensions
-4. Verify mermaid code block syntax (triple backticks + mermaid)
-
-## Priority
-**Low** - GitHub works as fallback. Defer until after store submission.
-
-## Acceptance Criteria
-- [ ] Mermaid diagrams render in VSCode markdown preview
-- [ ] Document working configuration in README or dev setup guide
 
 ---
 
@@ -872,131 +840,6 @@ Only auto-delete if ALL conditions are met:
 
 ---
 
-## Issue #211: test(unit): Add tests for auth.js OAuth flow
-
-**Labels:** testing
-
-**Created:** 2026-01-09
-**Updated:** 2026-01-09
-
-### Description
-
-## Summary
-
-`extensions/chrome/auth.js` has 350 lines of code with **zero unit tests**. This is the OAuth authentication module handling LinkedIn login, token refresh, and CSRF protection.
-
-## Current State
-
-- **File:** `extensions/chrome/auth.js`
-- **Lines:** 350
-- **Test coverage:** 0%
-- **Source:** Test Gap Analysis 2026-01-09, Report #116
-
-## Why Untested
-
-Report #116 states: "Unit tests for auth module not implemented due to OAuth complexity. Integration and manual testing provide coverage."
-
-## Gap Analysis
-
-The following functions have no automated tests:
-- `initiateLogin()` - OAuth flow initiation with CSRF state
-- `handleAuthCallback()` - Token exchange
-- `refreshAccessToken()` - Token refresh logic
-- `validateCsrfState()` - CSRF protection
-- Token storage hierarchy (session vs local)
-
-## Proposed Solution
-
-Extract pure functions that can be tested without Chrome API mocks:
-
-1. **CSRF state generation/validation** - Pure crypto functions
-2. **Token expiry checking** - Date comparison logic
-3. **Storage key management** - Constants and helpers
-4. **Error response parsing** - LinkedIn API error handling
-
-Create `tests/unit/auth.test.js` using Vitest (same as popup.test.js).
-
-## Acceptance Criteria
-
-- [ ] Extract testable pure functions from auth.js
-- [ ] Create `tests/unit/auth.test.js`
-- [ ] Test CSRF state generation (cryptographically random, correct length)
-- [ ] Test CSRF state validation (match/mismatch scenarios)
-- [ ] Test token expiry logic
-- [ ] Test error handling for common OAuth failures
-- [ ] Minimum 50% line coverage for auth.js
-
-## References
-
-- Report #116: `docs/reports/116/test-report.md`
-- LLD: `docs/1116-linkedin-oauth.md`
-- Existing JS test pattern: `tests/unit/popup.test.js`
-
----
-
-## Issue #212: test(unit): Add tests for service-worker.js
-
-**Labels:** testing
-
-**Created:** 2026-01-09
-**Updated:** 2026-01-09
-
-### Description
-
-## Summary
-
-`extensions/chrome/service-worker.js` has 395 lines of code with **zero unit tests**. This is the extension's background script handling context menus, tab state management, and message routing.
-
-## Current State
-
-- **File:** `extensions/chrome/service-worker.js`
-- **Lines:** 395
-- **Test coverage:** 0%
-- **Source:** Test Gap Analysis 2026-01-09
-
-## Gap Analysis
-
-The following functionality has no automated tests:
-
-### Context Menu Management
-- `chrome.contextMenus.create()` - Menu item creation
-- `handleContextMenuClick()` - Click handler routing
-- Menu item enable/disable based on allowlist
-
-### Tab State Management
-- `tabStates` Map - Age gate state tracking
-- `GET_TAB_STATE` message handler
-- Tab state transitions (checking → allowed/restricted)
-
-### Message Routing
-- `chrome.runtime.onMessage` handler
-- Response formatting
-- Error handling
-
-## Proposed Solution
-
-1. Create `tests/unit/service-worker.test.js` using Vitest
-2. Mock Chrome APIs (contextMenus, tabs, runtime, storage)
-3. Test each message type handler independently
-4. Test tab state transitions
-
-## Acceptance Criteria
-
-- [ ] Create `tests/unit/service-worker.test.js`
-- [ ] Test context menu creation on install
-- [ ] Test context menu click handling
-- [ ] Test tab state management (GET_TAB_STATE)
-- [ ] Test message routing for all message types
-- [ ] Test error handling for invalid messages
-- [ ] Minimum 50% line coverage
-
-## References
-
-- Chrome mocks pattern: `tests/mocks/chrome-api.mock.js`
-- Existing JS test pattern: `tests/unit/popup.test.js`
-
----
-
 ## Issue #214: test(unit): Port popup.test.js and overlay tests to Firefox extension
 
 **Labels:** testing
@@ -1087,26 +930,6 @@ extensions.forEach(browser => {
 
 ---
 
-## Issue #218: test(firefox): Add unit tests for Service Worker (Parity)
-
-**Labels:** testing, technical-debt
-
-**Created:** 2026-01-10
-**Updated:** 2026-01-10
-
-### Description
-
-## Context
-  We implemented Chrome Service Worker tests in #212. We must achieve parity for Firefox.
-
-  ## Requirements
-  1. Create `tests/unit/firefox/service-worker.test.js`
-  2. Port logic from `tests/unit/chrome/service-worker.test.js`
-  3. Use `browser.*` mocks via `firefox-api.mock.js`
-  4. Ensure `npm run test:unit` runs both suites.
-
----
-
 ## Issue #220: fix: ShellCheck failures in provision.sh blocking CI
 
 **Created:** 2026-01-10
@@ -1137,5 +960,142 @@ The `infra-lint` CI check is failing due to ShellCheck violations in `provision.
 
 - [ ] `shellcheck provision.sh` exits with code 0
 - [ ] `infra-lint` CI job passes on main branch
+
+---
+
+## Issue #222: Implement Claude-Gemini Dual Review Automation System
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+**Objective:**
+Automate the coordination between Claude Code (Sonnet 4.5) and Gemini CLI (3 Pro) to create a dual-AI review system for LLD design, implementation review, and issue filing.
+
+**UX Flow:**
+
+**Happy Path:**
+1. User writes LLD → Claude auto-invokes Gemini for review → Feedback incorporated → User approves implementation
+2. User implements feature → Claude auto-invokes Gemini for code review → Dual approval (Gemini + User) → Merge
+3. User drafts issue → Claude auto-invokes Gemini for completeness check → User files issue
+
+**Error/Edge Cases:**
+- Gemini quota exhausted → Abort review, notify user with reset time, log event
+- Model downgrade detected → Abort review, prevent wrong model usage
+- Network timeout → Retry once, then abort if fails
+- Invalid Gemini response → Parse best-effort, flag to user
+
+**Requirements:**
+1. **Model Detection:** JSON output parsing detects Gemini 3 Pro vs downgrade to Flash
+2. **Automatic Triggers:** LLD save, implementation complete, issue draft → auto-invoke Gemini
+3. **Prompt Library:** Versioned prompts in `gemini-prompts/` directory
+4. **Dual Approval Gate:** Implementation merge requires both Gemini + User approval
+5. **Session Logging:** Gemini writes directly to session logs (Claude validates)
+6. **Quota Handling:** Abort on exhaustion, log events, notify user
+7. **Feedback Parsing:** Extract [BLOCKING], [HIGH], [SUGGESTION] markers, ignore implementation offers
+
+**Technical Approach:**
+
+**Module:** AI Workflow Coordination
+**Dependencies:**
+- Gemini CLI v0.23.0+
+- jq (JSON parsing)
+- Existing Aletheia workflow (0004-orchestration-protocol.md)
+
+**Design Pattern:** Event-driven automation with model verification
+
+**Components:**
+1. `tools/gemini-model-check.sh` - Bash wrapper for model detection
+2. `gemini-prompts/*.txt` - Prompt library (lld-review, implementation-review, issue-review, session-log)
+3. `.claude/workflow-state.json` - Track current workflow phase
+4. `tmp/gemini-quota-events.jsonl` - Quota event logging
+5. `docs/0602-skill-gemini-dual-review.md` - Master skill documentation
+
+**Security Considerations:**
+- Gemini session log writes validated by Claude before commit
+- Model detection prevents using wrong model tier
+- Quota logs stored locally (no PII)
+- Prompt library versioned in git for audit trail
+
+**Files to Create:**
+- `gemini-prompts/README.md`
+- `gemini-prompts/lld-review.txt`
+- `gemini-prompts/implementation-review.txt`
+- `gemini-prompts/issue-review.txt`
+- `gemini-prompts/session-log.txt`
+- `tools/gemini-model-check.sh`
+- `.claude/workflow-state.json`
+- `tmp/gemini-quota-events.jsonl`
+- `docs/0602-skill-gemini-dual-review.md` ← Master skill doc
+
+**Files to Modify:**
+- `CLAUDE.md` - Add "Gemini Dual-Review Integration" section
+- `docs/0004-orchestration-protocol.md` - Update review gates
+- `docs/0600-skill-instructions-index.md` - Add 0602 reference
+- `.claude/settings.local.json` - Add Gemini CLI permissions
+
+**Acceptance Criteria:**
+- [ ] LLD save auto-triggers Gemini review
+- [ ] Model downgrade detected 100% of the time (unit tests pass)
+- [ ] Implementation review requires dual approval (Gemini + User)
+- [ ] Quota exhaustion aborts gracefully with user notification
+- [ ] Session logs written by Gemini validated by Claude
+- [ ] All 7 integration tests pass
+- [ ] Prompt library versioned and documented
+
+**Definition of Done:**
+- [ ] All files created per "Files to Create" section
+- [ ] All files modified per "Files to Modify" section
+- [ ] Implementation report: `docs/reports/{IssueID}/implementation-report.md`
+- [ ] Test report: `docs/reports/{IssueID}/test-report.md`
+- [ ] Unit tests for model detection pass
+- [ ] Integration tests for all 3 phases pass
+- [ ] Documentation: `docs/0602-skill-gemini-dual-review.md` complete
+- [ ] CLAUDE.md updated with dual-review section
+- [ ] 0600 index updated to reference 0602
+- [ ] Pre-commit hooks pass
+- [ ] Gemini reviewed and approved
+- [ ] User tested and approved
+- [ ] Session log entry written
+
+---
+
+## Issue #223: refactor: Standardize Firefox namespace to browser.*
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Priority: Low
+
+## Context
+
+During Issue #218 (Firefox Service Worker Tests), we noted that Firefox's `service-worker.js` uses `chrome.*` namespace instead of the canonical `browser.*` namespace.
+
+Firefox MV3 provides a compatibility layer that makes `chrome.*` work, but this is not the canonical Firefox approach.
+
+## Current State
+
+- `extensions/firefox/service-worker.js` - uses `chrome.*` APIs
+- Tests work correctly using Chrome mock
+
+## Proposed Refactor
+
+1. Update `extensions/firefox/service-worker.js` to use `browser.*` namespace
+2. Update tests to use Firefox mock (`createFirefoxMock`)
+3. Verify all tests pass
+
+## Impact
+
+- Low priority - current implementation works correctly
+- Improves code consistency and follows Firefox best practices
+- Makes Firefox extension more "Firefox-native"
+
+## Files Affected
+
+- `extensions/firefox/service-worker.js`
+- `tests/unit/firefox/service-worker.test.js`
 
 ---

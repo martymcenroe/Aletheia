@@ -69,6 +69,8 @@ ignore = [
 "tests/**/*.py" = ["S101"]
 # Allow subprocess in tool tests (we control the input - test harness pattern)
 "tests/tools/**/*.py" = ["S603"]
+# Allow subprocess in print tools (internal developer tools, hardcoded commands)
+"tools/print/**/*.py" = ["S603"]
 # S105 false positive: URLs containing "Token" are flagged as passwords
 "src/lambda_auth_function.py" = ["S105"]
 

@@ -25,6 +25,7 @@ This document indexes all skill instructions in the `06xx` namespace. Skill inst
 |:-----|:--------|:-------------|:-------|
 | [0600-skill-instructions-index.md](0600-skill-instructions-index.md) | This file. Index of all skills. | Any | Active |
 | [0601-skill-gemini-lld-review.md](0601-skill-gemini-lld-review.md) | LLD review procedure with priority tiers | Gemini | Active |
+| [0602-skill-gemini-dual-review.md](0602-skill-gemini-dual-review.md) | Claude-Gemini dual review automation for LLD, implementation, and issue filing with model verification | Claude + Gemini | Planned |
 
 ### 061x: Audit Skills
 
@@ -71,3 +72,4 @@ Skill instructions may be invoked via slash commands in `.claude/commands/`. The
 | Date | Change |
 |------|--------|
 | 2026-01-08 | Created. Moved 0109-gemini-lld-review-procedure.md to 0601. |
+| 2026-01-09 | Added 0602-skill-gemini-dual-review.md (Claude-Gemini dual review automation). Issue #222. |
