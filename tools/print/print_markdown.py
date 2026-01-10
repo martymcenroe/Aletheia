@@ -9,6 +9,7 @@ Usage:
     # Single file
     python tools/print_markdown.py <file.md>              # Double-sided (default)
     python tools/print_markdown.py <file.md> -ss          # Single-sided
+    python tools/print_markdown.py <file.md> --no-print   # Generate PDF only
 
     # Directory batch printing
     python tools/print_markdown.py docs/                  # New files only (default)
@@ -20,8 +21,12 @@ Usage:
 
 import argparse
 import json
+import os
+import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -42,6 +47,96 @@ PANDOC_HEADER = "tools/print/pandoc-header.tex"
 PRINT_HISTORY_FILE = ".print-history.json"
 PRINT_OUTPUT_DIR = "temp-pdfs"
 JOB_TIMEOUT_SECONDS = 300  # 5 minutes
+
+# Mermaid CLI path (installed via npm)
+MMDC_PATH = Path(__file__).parent.parent.parent / "node_modules" / ".bin" / "mmdc.cmd"
+
+# Regex to match mermaid code blocks
+MERMAID_PATTERN = re.compile(r'```mermaid\s*\n(.*?)```', re.DOTALL)
+
+
+def extract_mermaid_blocks(markdown: str) -> list[tuple[str, str]]:
+    """Extract mermaid code blocks from markdown.
+
+    Returns list of (full_match, diagram_code) tuples.
+    """
+    matches = []
+    for match in MERMAID_PATTERN.finditer(markdown):
+        full_match = match.group(0)
+        diagram_code = match.group(1).strip()
+        matches.append((full_match, diagram_code))
+    return matches
+
+
+def render_mermaid_to_png(diagram_code: str, output_path: Path) -> bool:
+    """Render mermaid diagram to PNG using mmdc.
+
+    Returns True on success, False on failure.
+    """
+    if not MMDC_PATH.exists():
+        print(f"Warning: mermaid-cli not found at {MMDC_PATH}")
+        print("Run: npm install --save-dev @mermaid-js/mermaid-cli")
+        return False
+
+    # Write diagram to temp file (mmdc requires file input)
+    temp_input = output_path.with_suffix('.mmd')
+    try:
+        temp_input.write_text(diagram_code, encoding='utf-8')
+
+        cmd = [
+            str(MMDC_PATH),
+            "-i", str(temp_input),
+            "-o", str(output_path),
+            "-b", "white",  # White background for printing
+            "-s", "2",  # Scale 2x for better quality
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Warning: mermaid render failed: {result.stderr}")
+            return False
+
+        return output_path.exists()
+
+    except Exception as e:
+        print(f"Warning: mermaid render error: {e}")
+        return False
+    finally:
+        if temp_input.exists():
+            temp_input.unlink()
+
+
+def preprocess_mermaid(markdown: str, temp_dir: Path) -> str:
+    """Replace mermaid code blocks with rendered PNG images.
+
+    Args:
+        markdown: Raw markdown content
+        temp_dir: Directory to store rendered PNG files
+
+    Returns:
+        Modified markdown with mermaid blocks replaced by image references
+    """
+    blocks = extract_mermaid_blocks(markdown)
+    if not blocks:
+        return markdown
+
+    print(f"Found {len(blocks)} mermaid diagram(s) to render...")
+
+    result = markdown
+    for i, (full_match, diagram_code) in enumerate(blocks):
+        png_path = temp_dir / f"mermaid_{i}.png"
+
+        if render_mermaid_to_png(diagram_code, png_path):
+            # Replace code block with image reference
+            # Use absolute path for pandoc
+            image_ref = f"![Diagram {i + 1}]({png_path.absolute()})"
+            result = result.replace(full_match, image_ref)
+            print(f"  Rendered diagram {i + 1}/{len(blocks)}")
+        else:
+            # Keep original code block if rendering fails
+            print(f"  Diagram {i + 1}/{len(blocks)} failed - keeping code block")
+
+    return result
 
 
 def load_print_history():
@@ -116,7 +211,7 @@ def filter_markdown_files(directory, new=False, modified=False, all_files=False)
 
 
 def generate_pdf(markdown_path):
-    """Generate PDF using pandoc with fancy headers."""
+    """Generate PDF using pandoc with fancy headers and mermaid rendering."""
     # Ensure output directory exists
     output_dir = Path(PRINT_OUTPUT_DIR)
     output_dir.mkdir(exist_ok=True)
@@ -127,45 +222,73 @@ def generate_pdf(markdown_path):
 
     print(f"Generating PDF from {markdown_path}...")
 
-    # Create custom header with actual filepath and timestamp
-    header_template = Path(PANDOC_HEADER).read_text(encoding='utf-8')
+    # Read markdown content
+    markdown_content = markdown_path.read_text(encoding='utf-8')
 
-    # Get markdown file's last modification time
-    mtime = markdown_path.stat().st_mtime
-    mod_datetime = datetime.fromtimestamp(mtime)
-    timestamp = mod_datetime.strftime('%Y-%m-%d %H:%M')
-
-    # Replace placeholders with actual values
-    filepath_display = str(markdown_path).replace('\\', '/')
-    custom_header = header_template.replace('FILEPATH', filepath_display)
-    custom_header = custom_header.replace('MODTIME', f'Modified: {timestamp} CT')
-
-    # Write to temporary header file
-    temp_header = Path('.pandoc-header-temp.tex')
-    temp_header.write_text(custom_header, encoding='utf-8')
-
-    # Pandoc command with XeLaTeX engine and custom header
-    cmd = [
-        PANDOC_PATH,
-        "-f", "gfm",  # GitHub-flavored markdown
-        str(markdown_path),
-        "-o", str(pdf_path),
-        "--pdf-engine=xelatex",
-        "-H", str(temp_header),
-        "-V", "geometry:margin=1in"
-    ]
+    # Create temp directory for mermaid PNGs
+    mermaid_temp_dir = Path(tempfile.mkdtemp(prefix="mermaid_"))
+    temp_markdown = None
 
     try:
+        # Pre-process mermaid diagrams
+        processed_content = preprocess_mermaid(markdown_content, mermaid_temp_dir)
+
+        # Write processed markdown to temp file if modified
+        if processed_content != markdown_content:
+            fd, temp_path = tempfile.mkstemp(suffix='.md', prefix='processed_')
+            os.close(fd)  # Close file descriptor, we'll write via Path
+            temp_markdown = Path(temp_path)
+            temp_markdown.write_text(processed_content, encoding='utf-8')
+            source_path = temp_markdown
+        else:
+            source_path = markdown_path
+
+        # Create custom header with actual filepath and timestamp
+        header_template = Path(PANDOC_HEADER).read_text(encoding='utf-8')
+
+        # Get markdown file's last modification time
+        mtime = markdown_path.stat().st_mtime
+        mod_datetime = datetime.fromtimestamp(mtime)
+        timestamp = mod_datetime.strftime('%Y-%m-%d %H:%M')
+
+        # Replace placeholders with actual values (use original path for display)
+        filepath_display = str(markdown_path).replace('\\', '/')
+        custom_header = header_template.replace('FILEPATH', filepath_display)
+        custom_header = custom_header.replace('MODTIME', f'Modified: {timestamp} CT')
+
+        # Write to temporary header file
+        temp_header = Path('.pandoc-header-temp.tex')
+        temp_header.write_text(custom_header, encoding='utf-8')
+
+        # Pandoc command with XeLaTeX engine and custom header
+        cmd = [
+            PANDOC_PATH,
+            "-f", "gfm",  # GitHub-flavored markdown
+            str(source_path),
+            "-o", str(pdf_path),
+            "--pdf-engine=xelatex",
+            "-H", str(temp_header),
+            "-V", "geometry:margin=1in"
+        ]
+
         subprocess.run(cmd, capture_output=True, text=True, check=True)
         print(f"Generated {pdf_path}")
         return pdf_path
+
     except subprocess.CalledProcessError as e:
         print(f"Pandoc error: {e.stderr}")
         raise
+
     finally:
         # Clean up temp header
-        if temp_header.exists():
-            temp_header.unlink()
+        if Path('.pandoc-header-temp.tex').exists():
+            Path('.pandoc-header-temp.tex').unlink()
+        # Clean up temp markdown
+        if temp_markdown and temp_markdown.exists():
+            temp_markdown.unlink()
+        # Clean up mermaid temp directory
+        if mermaid_temp_dir.exists():
+            shutil.rmtree(mermaid_temp_dir)
 
 
 def send_to_printer(pdf_path, duplex=False):
@@ -382,6 +505,8 @@ def main():
                              help='Print double-sided (default)')
     print_group.add_argument('-wait', type=int, default=0, metavar='N',
                             help='Minutes to wait after print completes before sending next job (default: 0 - immediate)')
+    print_group.add_argument('--no-print', action='store_true',
+                            help='Generate PDF only, do not send to printer (for testing)')
 
     args = parser.parse_args()
 
@@ -398,7 +523,8 @@ def main():
     if args.path.is_dir():
         # Directory mode - batch printing
         print(f"Directory mode: {args.path}")
-        print(f"Print mode: {mode_str}")
+        if not args.no_print:
+            print(f"Print mode: {mode_str}")
         if args.wait > 0:
             print(f"Wait time: {args.wait} minute(s) after each job completes")
         else:
@@ -412,12 +538,12 @@ def main():
             print("No files to print based on filter criteria")
             sys.exit(0)
 
-        print(f"Found {len(files)} file(s) to print:")
+        print(f"Found {len(files)} file(s) to process:")
         for f in files:
             print(f"  - {f.name}")
         print("")
 
-        # Batch print
+        # Batch process
         successful = 0
         skipped = 0
 
@@ -429,27 +555,32 @@ def main():
                 # Generate PDF
                 pdf_path = generate_pdf(md_file)
 
-                # Print with monitoring
-                success, error = print_with_monitoring(pdf_path, duplex)
-
-                if success:
-                    update_print_history(md_file)
+                if args.no_print:
+                    # Skip printing, keep PDF
                     successful += 1
-                    print(f"Success: {md_file.name}")
-
-                    # Clean up PDF after successful print
-                    if pdf_path.exists():
-                        pdf_path.unlink()
-
-                    # Wait before next file (unless last file)
-                    if i < len(files) - 1 and args.wait > 0:
-                        countdown_wait(args.wait)
-                    elif i < len(files) - 1:
-                        print("Sending next job immediately...")
+                    print(f"Generated: {pdf_path}")
                 else:
-                    skipped += 1
-                    print(f"Skipped: {md_file.name} - {error}")
-                    # Keep PDF for inspection on failure
+                    # Print with monitoring
+                    success, error = print_with_monitoring(pdf_path, duplex)
+
+                    if success:
+                        update_print_history(md_file)
+                        successful += 1
+                        print(f"Success: {md_file.name}")
+
+                        # Clean up PDF after successful print
+                        if pdf_path.exists():
+                            pdf_path.unlink()
+
+                        # Wait before next file (unless last file)
+                        if i < len(files) - 1 and args.wait > 0:
+                            countdown_wait(args.wait)
+                        elif i < len(files) - 1:
+                            print("Sending next job immediately...")
+                    else:
+                        skipped += 1
+                        print(f"Skipped: {md_file.name} - {error}")
+                        # Keep PDF for inspection on failure
 
             except Exception as e:
                 print(f"Error processing {md_file.name}: {e}")
@@ -460,7 +591,7 @@ def main():
 
         # Summary
         print("=" * 60)
-        print("Batch printing complete!")
+        print("Batch processing complete!")
         print(f"  Successful: {successful}")
         print(f"  Skipped: {skipped}")
         print(f"  Total: {len(files)}")
@@ -472,29 +603,39 @@ def main():
             sys.exit(1)
 
         print(f"Single file mode: {args.path}")
-        print(f"Print mode: {mode_str}")
+        if not args.no_print:
+            print(f"Print mode: {mode_str}")
         print("")
 
-        # Generate and print
+        # Generate PDF
         pdf_path = generate_pdf(args.path)
-        success, error = print_with_monitoring(pdf_path, duplex)
 
-        if success:
-            update_print_history(args.path)
-
-            # Clean up PDF after successful print
-            if pdf_path.exists():
-                pdf_path.unlink()
-
+        if args.no_print:
+            # Skip printing, keep PDF
             print("")
-            print("Complete!")
+            print("Complete! (no-print mode)")
             print(f"   Markdown: {args.path}")
-            print(f"   PDF: {pdf_path} (deleted after print)")
-            print(f"   Printed to: {PRINTER_NAME} ({mode_str})")
+            print(f"   PDF: {pdf_path}")
         else:
-            print(f"Print failed: {error}")
-            print(f"   PDF kept for inspection: {pdf_path}")
-            sys.exit(1)
+            # Print with monitoring
+            success, error = print_with_monitoring(pdf_path, duplex)
+
+            if success:
+                update_print_history(args.path)
+
+                # Clean up PDF after successful print
+                if pdf_path.exists():
+                    pdf_path.unlink()
+
+                print("")
+                print("Complete!")
+                print(f"   Markdown: {args.path}")
+                print(f"   PDF: {pdf_path} (deleted after print)")
+                print(f"   Printed to: {PRINTER_NAME} ({mode_str})")
+            else:
+                print(f"Print failed: {error}")
+                print(f"   PDF kept for inspection: {pdf_path}")
+                sys.exit(1)
 
 
 if __name__ == "__main__":
