@@ -76,6 +76,8 @@ ignore = [
 "tools/print/**/*.py" = ["S603"]
 # S105 false positive: URLs containing "Token" are flagged as passwords
 "src/lambda_auth_function.py" = ["S105"]
+# Smoke test intentionally uses subprocess for AWS CLI and opens URLs from CLI args
+"tools/smoke_test.py" = ["S603", "S607", "S310"]
 
 [tool.mypy]
 python_version = "3.12"

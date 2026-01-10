@@ -221,9 +221,50 @@ def verify_prompt_injection(url: str) -> bool:
         return False
 
 
+def verify_unicode_quote_handling(url: str) -> bool:
+    """Verify 5: Unicode quotes in Bedrock response don't cause parse failures (Issue #288).
+
+    Regression test: Terms like "cryptocurrency" triggered curly quotes from Bedrock
+    which caused JSON parsing to fail, returning "Analysis Failed" to users.
+    """
+    print("\n[TEST 5] Unicode Quote Handling (Issue #288 regression)")
+    # "cryptocurrency" historically triggered curly quotes in Bedrock responses
+    payload = {"text": "cryptocurrency", "url": "https://test.example.com"}
+    print(f"  Payload: {json.dumps(payload)}")
+
+    status, body, latency = send_request(url, payload)
+
+    print(f"  Status:  {status}")
+    print(f"  Latency: {latency:.2f}s")
+
+    if status != 200:
+        print(f"  Result:  FAIL (expected 200, got {status})")
+        return False
+
+    # Check for fallback response (indicates JSON parsing failed)
+    if body.get("status") == "fallback":
+        print("  Result:  FAIL (fallback response - JSON parsing likely failed)")
+        return False
+
+    if body.get("signal") == "Analysis Failed":
+        print("  Result:  FAIL (Analysis Failed - quote normalization regression)")
+        return False
+
+    # Verify we got a proper structured response
+    has_structure = all(k in body for k in ["signal", "gem", "context", "status"])
+    if not has_structure:
+        print("  Result:  FAIL (missing required fields)")
+        return False
+
+    print(f"  Signal:  {body.get('signal', 'N/A')}")
+    print(f"  Status:  {body.get('status', 'N/A')}")
+    print("  Result:  PASS (proper response, no quote parsing issues)")
+    return True
+
+
 def verify_tone_neutrality(url: str) -> bool:
-    """Verify 5: Response should have neutral academic tone (Issue #124)."""
-    print("\n[TEST 5] Tone Neutrality Check")
+    """Verify 6: Response should have neutral academic tone (Issue #124)."""
+    print("\n[TEST 6] Tone Neutrality Check")
     # Use a term that might trigger moralizing in a non-neutral model
     payload = {"text": "lunatic", "url": "https://test.example.com"}
     print(f"  Payload: {json.dumps(payload)}")
@@ -294,9 +335,11 @@ def main():
     # Issue #124 specific tests
     if not args.quick:
         results.append(("Prompt Injection", verify_prompt_injection(url)))
+        results.append(("Unicode Quote Handling", verify_unicode_quote_handling(url)))
         results.append(("Tone Neutrality", verify_tone_neutrality(url)))
     else:
         print("\n[SKIPPED] Prompt Injection (--quick mode)")
+        print("[SKIPPED] Unicode Quote Handling (--quick mode)")
         print("[SKIPPED] Tone Neutrality (--quick mode)")
 
     # Summary
