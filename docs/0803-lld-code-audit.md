@@ -13,6 +13,8 @@ Verify that implemented code matches the LLD specification, or that deviations a
 - After major refactoring of existing features
 - When updating an LLD for a new phase
 
+**Note:** This audit applies to **Feature LLDs** (`0102-TEMPLATE-feature-lld.md`) that produce code. **Implementation Plans** (`0105-TEMPLATE-implementation-plan.md`) for process/config changes are self-contained and do not require code alignment audits.
+
 ## Procedure
 
 ### Step 1: Identify LLD and Implementation

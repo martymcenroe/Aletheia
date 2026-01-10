@@ -65,6 +65,7 @@
 | `docs/0102-TEMPLATE-feature-lld.md` | **Template** | 🟢 **Stable** | - | Low-Level Design doc template for features. |
 | `docs/0103-TEMPLATE-implementation-report.md` | **Template** | 🟢 **Stable** | #77 | Implementation report template for completed features. |
 | `docs/0104-TEMPLATE-adr.md` | **Template** | 🟢 **Stable** | #111 | Architecture Decision Record template. |
+| `docs/0105-TEMPLATE-implementation-plan.md` | **Template** | 🟢 **Stable** | #275 | Implementation plan template for process/config changes. |
 | `docs/0108-lld-pre-implementation-review.md` | **Protocol** | 🟢 **Stable** | - | LLD pre-implementation review checklist. |
 | `docs/0111-TEMPLATE-test-script.md` | **Template** | 🟢 **Stable** | - | Manual test script template (generic). |
 | `docs/0112-TEMPLATE-browser-extension-test-script.md` | **Template** | 🟢 **Stable** | #77 | Browser extension test script template for non-technical users. |
@@ -116,6 +117,11 @@
 | `docs/0817-audit-wiki-alignment.md` | **Protocol** | 🟢 **Stable** | - | Wiki alignment audit. Part of 0009 Full Mode. |
 | `docs/0899-meta-audit.md` | **Protocol** | 🟢 **Stable** | - | Meta-audit (audit of audits). |
 
+### Audit State (docs/audit-state/)
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `docs/audit-state/0808-checkpoint.json` | **State** | 🟢 **Stable** | #276 | Permission mining checkpoint (processed logs, violations). |
+
 ### LLDs - Completed (docs/lld/done/)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -164,6 +170,7 @@
 | `docs/lld/done/1194-innerhtml-refactor.md` | **Spec** | 🟢 **Stable** | #194 | Replace innerHTML with DOM methods. |
 | `docs/lld/done/1197-shadow-dom-hardening.md` | **Spec** | 🟢 **Stable** | #197 | Shadow DOM security hardening. |
 | `docs/lld/done/1206-firefox-oauth.md` | **Spec** | 🟢 **Stable** | #206 | Firefox LinkedIn OAuth authentication. |
+| `docs/lld/done/1275-implementation-plan.md` | **Plan** | 🟢 **Stable** | #275 | Permission friction prevention (process/config change). |
 
 ### LLDs - Active (docs/lld/active/)
 | File | Role | Status | Linked Issue | Description |
@@ -318,6 +325,7 @@
 | `tools/data_hygiene.py` | **Utility** | 🟢 **Stable** | #150 | AI-powered DynamoDB data cleanup tool. |
 | `tools/generate_store_images.py` | **Utility** | 🟢 **Stable** | #53 | Store screenshot generator for Chrome Web Store. |
 | `tools/generate_promo_tiles.py` | **Utility** | 🟢 **Stable** | #53 | Promotional tile generator for store listings. |
+| `tools/archive_transcripts.py` | **Utility** | 🟢 **Stable** | #276 | Archive verbatim transcripts older than 7 days to monthly directories. |
 
 ### Testing & Verification
 

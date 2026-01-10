@@ -107,5 +107,8 @@ run-audit.bat
 build/
 dependencies.zip
 
+# Browser extension build artifacts
+web-ext-artifacts/
+
 # Claude Code staging directory (local development, not deployed)
 claude-staging/

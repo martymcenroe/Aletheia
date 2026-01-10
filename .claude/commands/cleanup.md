@@ -19,7 +19,7 @@ Usage: `/cleanup [--help] [--quick|--normal|--full] [--no-auto-delete]`
 | Argument | Description |
 |----------|-------------|
 | `--help` | Show this help message and exit |
-| `--quick` | Minimal cleanup (~2 min) - commit session work, don't touch other workstreams |
+| `--quick` | Minimal cleanup (~2 min) - appends session log, does NOT commit |
 | `--normal` | Standard cleanup (~5 min) - typical session end (default) |
 | `--full` | Comprehensive cleanup (~12 min) - after features, before breaks |
 | `--no-auto-delete` | Skip automatic deletion of orphaned branches |
@@ -37,7 +37,7 @@ Usage: `/cleanup [--help] [--quick|--normal|--full] [--no-auto-delete]`
 | Branch list | ✅ | ✅ | ✅ |
 | Open PRs | ✅ | ✅ | ✅ |
 | **Session log append** | ✅ | ✅ | ✅ |
-| **Commit & push** | ✅ | ✅ | ✅ |
+| **Commit & push** | | ✅ | ✅ |
 | Stash list | | ✅ | ✅ |
 | Regenerate 6000 | | ✅ | ✅ |
 | Worktree list | | ✅ | ✅ |
@@ -47,13 +47,20 @@ Usage: `/cleanup [--help] [--quick|--normal|--full] [--no-auto-delete]`
 | **Index consistency** | | | ✅ |
 | **Plan staleness** | | | ✅ |
 
-**Quick mode philosophy:** Ensure YOUR session's work is saved. Don't touch other branches/worktrees (other agents may be using them).
+**Quick mode philosophy:** Record what happened (session log), but don't commit. Changes accumulate until a normal/full cleanup commits them. Protects contribution graph from trivial commits.
 
 ---
 
 ## Execution
 
 **Mode:** Parse `$ARGUMENTS` for flags. Default is `--normal` if no flag provided.
+
+**Session Name:** Determine the session identifier to include in the session log:
+1. If `/rename` was used in this conversation, extract the name from the output (e.g., "Session renamed to: my-session-name")
+2. If no rename, look for the session ID in any visible transcript path (UUID like `00893aaf-19fa-41d2-8238-13269b9b3ca0`)
+3. If neither available, use "unnamed"
+
+Pass this as `SESSION_NAME` in the Task prompt below.
 
 | Flag | Mode | Time | Use Case |
 |------|------|------|----------|
@@ -86,6 +93,7 @@ Spawn a Task with `subagent_type: general-purpose` and `model: sonnet` with the 
 ```
 You are executing a cleanup procedure for the Aletheia project.
 Mode: [MODE: quick|normal|full]
+Session: [SESSION_NAME]
 
 ## Rules
 - Use absolute paths with git -C /c/Users/mcwiz/Projects/Aletheia
@@ -218,19 +226,21 @@ Archives verbatim transcripts older than 7 days to monthly archive directories (
 
 ## Phase 3: Session Log
 
-Append session log entry:
+Append session log entry. Include the session name in the summary:
 ```bash
 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
     --model "Claude Sonnet 4" \
-    --summary "Cleanup ([MODE] mode)" \
+    --summary "Cleanup ([MODE] mode) | Session: [SESSION_NAME]" \
     --created "None" \
     --closed "None" \
     --next "Per user direction"
 ```
 
-If the script fails, manually append to the current day's session log file.
+If the script fails, manually append to the current day's session log file. Include the session name in the header or summary.
 
-## Phase 4: Single Commit & Push
+## Phase 4: Single Commit & Push (SKIP FOR QUICK MODE)
+
+**If mode is `quick`: SKIP this entire phase. Go directly to Phase 5.**
 
 Stage all documentation changes:
 ```bash

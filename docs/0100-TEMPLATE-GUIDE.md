@@ -22,6 +22,7 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 | `0102-TEMPLATE-feature-lld.md` | Low-Level Design doc for features | Active |
 | `0103-TEMPLATE-implementation-report.md` | Post-implementation report for completed features | Active |
 | `0104-TEMPLATE-adr.md` | Architecture Decision Record | Active |
+| `0105-TEMPLATE-implementation-plan.md` | Implementation plan for process/config changes (not code) | Active |
 | `0108-lld-pre-implementation-review.md` | LLD review checklist (run BEFORE coding) | Active |
 
 **Note:** Gemini LLD review procedure moved to `docs/0601-skill-gemini-lld-review.md` (skill instructions series).

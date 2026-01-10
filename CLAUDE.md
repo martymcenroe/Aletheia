@@ -31,13 +31,27 @@ Before EVERY Bash tool call, output this block:
 ```
 **Bash Check:** `[the command]`
 **Scan:** [&&, |, ;, cd at start?] → [CLEAN or VIOLATION]
-**Action:** [Execute or Rewrite to: X]
+**Friction Risk:** [HIGH/LOW - see table below]
+**Action:** [Execute, Rewrite, or Use Read/Grep/Glob instead]
 ```
 
 If violation found:
 1. Show the rewrite
 2. Execute the rewritten version
 3. NEVER execute the original
+
+**Friction Risk Assessment:**
+
+| Command Pattern | Risk | Alternative |
+|-----------------|------|-------------|
+| `head -* /.claude/**` or `head -* /c/Users/mcwiz/.claude/**` | HIGH | Use Read tool with `limit` parameter |
+| `tail -* /.claude/**` | HIGH | Use Read tool with `offset` parameter |
+| `grep /.claude/**` | HIGH | Use Grep tool |
+| `cat /.claude/**` | HIGH | Use Read tool |
+| `head /path` (no flags) | LOW | OK |
+| `git -C /path command` | LOW | OK |
+
+**If friction risk is HIGH, use the alternative tool instead of Bash.**
 
 Example - Violation Caught:
 ```
@@ -50,7 +64,16 @@ Example - Clean:
 ```
 **Bash Check:** `git -C /c/Users/mcwiz/Projects/Aletheia status`
 **Scan:** No &&, no |, no ;, no cd at start → CLEAN
+**Friction Risk:** LOW
 **Action:** Execute
+```
+
+Example - High Friction Risk:
+```
+**Bash Check:** `head -660 /c/Users/mcwiz/.claude/projects/session.jsonl`
+**Scan:** No &&, no |, no ;, no cd at start → CLEAN
+**Friction Risk:** HIGH - flags with .claude path
+**Action:** Use Read tool with limit=660 instead
 ```
 
 #### Gate Compliance - Pre-Action Check
@@ -116,11 +139,73 @@ When spawning to other models (Sonnet, Haiku), ALWAYS include in the prompt:
 
 > "CRITICAL BASH RULES: NEVER use &&, |, or ; in Bash commands. Use single commands with absolute paths. One command per Bash call. If you need to run multiple commands, make parallel Bash tool calls."
 
+#### PERMISSION FRICTION PREVENTION (SPAWNED AGENTS)
+
+**Every permission prompt a spawned agent triggers interrupts the user's workflow. This is unacceptable.**
+
+When spawning to Sonnet/Haiku, ALWAYS include these additional instructions in the prompt:
+
+> **PERMISSION-SAFE EXECUTION RULES:**
+>
+> 1. **Prefer dedicated tools over Bash:**
+>    - Use `Read` instead of `head`, `tail`, `cat`
+>    - Use `Grep` instead of `grep`, `rg`
+>    - Use `Glob` instead of `find`, `ls`
+>    - These tools are ALWAYS auto-approved
+>
+> 2. **For .claude/ paths (session logs, transcripts):**
+>    - NEVER use `head -n X /path` (flags break pattern matching)
+>    - USE `Read` tool with `limit` parameter instead
+>    - If you MUST use Bash: `head /path` (no flags)
+>
+> 3. **Pattern matching is LITERAL:**
+>    - `Bash(head:*)` matches `head file.txt`
+>    - But `head -660 file.txt` may NOT match due to flags
+>    - The allowlist pattern expects specific command structure
+>
+> 4. **Safe Bash patterns (known to work):**
+>    - `git -C /absolute/path status` ✓
+>    - `git -C /absolute/path push -u origin` ✓
+>    - `poetry run python /path/script.py` ✓
+>    - `npm install --prefix /path` ✓
+>
+> 5. **When unsure, use alternatives:**
+>    - Reading file contents? Use `Read` tool
+>    - Searching file contents? Use `Grep` tool
+>    - Listing files? Use `Glob` tool
+>    - Only use Bash for commands that MUST be Bash (git, npm, poetry, etc.)
+
+**Include this VERBATIM in every agent spawn prompt.**
+
+---
+
+### COMMIT DISCIPLINE (CONTRIBUTION GRAPH PROTECTION)
+
+**Agents do NOT commit documentation changes on main. Ever.**
+
+Documentation edits accumulate as unstaged changes until the user runs `/cleanup` (normal or full mode). This protects the user's GitHub contribution graph from being polluted with trivial agent commits.
+
+**Rules:**
+- ✅ EDIT docs on main freely (session logs, LLDs, standards, CLAUDE.md)
+- ❌ NEVER run `git commit` for doc changes on main
+- ❌ NEVER run `git add` followed by `git commit` for docs
+- ✅ Let changes accumulate - `/cleanup` will batch-commit them
+- ✅ `/cleanup --quick` does NOT commit (just verifies state)
+- ✅ `/cleanup` (normal) and `/cleanup --full` commit accumulated changes
+
+**What this means in practice:**
+1. You edit `docs/session-logs/2026-01-10.md` → DO NOT COMMIT
+2. You edit `CLAUDE.md` → DO NOT COMMIT
+3. You edit `docs/9000-lessons-learned.md` → DO NOT COMMIT
+4. User says `/cleanup` → NOW the cleanup skill commits everything
+
+**Exception:** Code changes in worktrees follow normal PR workflow (commit, push, PR, merge).
+
+**Why:** The user's contribution graph represents THEIR work, not agent busywork. A single "docs: session cleanup 2026-01-10" commit is meaningful. Fifty "docs: update session log" commits are noise.
+
 ---
 
 ### STOP - READ THIS FIRST (Bash Command Rules)
-
-**At session start, you MUST state:** *"I have read the Bash command rules. I will not use pipes or && in Bash commands. I will use single commands with absolute paths."*
 
 **BANNED IN BASH COMMANDS:**
 - ❌ `&&` - Chain operator triggers approval dialogs

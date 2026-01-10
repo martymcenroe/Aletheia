@@ -56,6 +56,7 @@ For each missing report:
 |------------|-------------------|-------|
 | Feature implementation | Yes | Both reports required |
 | Bug fix | Yes | Both reports required |
+| Implementation plan (process/config) | No | Plan is self-contained (see `0105-TEMPLATE-implementation-plan.md`) |
 | Documentation only | No | No code = no test report |
 | Chore (deps, formatting) | No | Minor changes exempt |
 | Superseded/Deprecated | No | Closed without implementation |

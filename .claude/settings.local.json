@@ -3,12 +3,17 @@
     "allow": [
       "Read(//c/Users/mcwiz/Projects/Aletheia/**)",
       "Read(//c/Users/mcwiz/Projects/Aletheia-*/**)",
+      "Read(//c/Users/mcwiz/Projects/*)",
       "Write(//c/Users/mcwiz/Projects/Aletheia/**)",
       "Write(//c/Users/mcwiz/Projects/Aletheia-*/**)",
       "Edit(//c/Users/mcwiz/Projects/Aletheia/**)",
       "Edit(//c/Users/mcwiz/Projects/Aletheia-*/**)",
       "Bash(cat:*)",
       "Bash(ls:*)",
+      "Bash(ls /c/Users/mcwiz/Projects:*)",
+      "Bash(ls /c/Users/mcwiz/Projects/:*)",
+      "Bash(ls -la /c/Users/mcwiz/Projects:*)",
+      "Bash(ls -la /c/Users/mcwiz/Projects/:*)",
       "Bash(mkdir:*)",
       "Bash(rm:*)",
       "Bash(cp:*)",
@@ -103,6 +108,7 @@
       "Bash(cmd:*)",
       "Bash(./tools/**:*)",
       "Bash(./tests/**:*)",
+      "Bash(/c/Users/mcwiz/Projects/:*)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/**:*)",
       "Bash(for:*)",
       "WebSearch",
@@ -118,7 +124,6 @@
       "Skill(exit)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/policy_check.sh:*)",
       "Bash(MSYS_NO_PATHCONV=1 aws:*)",
-      "Bash(/c/Users/mcwiz/Projects/Aletheia-137/provision.sh)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/provision.sh)",
       "Skill(onboard)",
       "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-on.sh:*)",
@@ -126,7 +131,7 @@
       "Bash(CLAUDE_TOOL_INPUT_FILE_PATH=* bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-security-warn.sh)",
       "Skill(code-review)",
       "Bash(shellcheck:*)",
-      "Bash(/c/Users/mcwiz/Projects/Aletheia-265/node_modules/.bin/playwright test:*)"
+      "Read(//c/Users/mcwiz/.claude/**)"
     ],
     "deny": [
       "Read(.env)",
