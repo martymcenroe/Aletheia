@@ -46,9 +46,11 @@ python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"
 
 | Scenario | Output | Detection | Result |
 |----------|--------|-----------|--------|
-| Clean run | "✔ 0 problems" | Matches "0 problems" | PASS |
+| Clean run | (empty) + exit 0 | Exit code 0 = success | PASS |
 | Warnings | "popup.js\n⚠ 2 problems" | Matches file + problems | PASS |
-| Crash/no output | "" | Fails verification | PASS |
+| Crash/no output | "" + exit non-zero | No pattern match + error | PASS |
+
+**Note:** ESLint stylish format outputs nothing on clean runs (exit 0). Verification checks exit code first.
 
 ### 6. web-ext Verification Pattern
 

@@ -158,9 +158,14 @@ jobs:
           # Run ESLint and capture output
           npx eslint extensions/chrome/ --format stylish 2>&1 | tee eslint_chrome.txt
           EXIT_CODE=${PIPESTATUS[0]}
-          # Verify ESLint actually processed files (look for file paths or "problems" summary)
-          if grep -qE "\.js|\.mjs|0 problems|[0-9]+ problems" eslint_chrome.txt; then
-            echo "✓ ESLint processed Chrome extension files"
+          # Verify ESLint actually ran:
+          # - Exit code 0 with empty output = clean (stylish format is silent on success)
+          # - Exit code 0/1 with file paths or problem count = ran with results
+          # - Exit code non-zero with no recognizable output = possible crash
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "✓ ESLint processed Chrome extension files (clean)"
+          elif grep -qE "\.js|\.mjs|[0-9]+ problems?" eslint_chrome.txt; then
+            echo "✓ ESLint processed Chrome extension files (found issues)"
           else
             echo "✗ ERROR: ESLint produced no recognizable output - possible silent failure"
             cat eslint_chrome.txt
@@ -173,8 +178,11 @@ jobs:
           echo "=== ESLint Firefox Extension ==="
           npx eslint extensions/firefox/ --format stylish 2>&1 | tee eslint_firefox.txt
           EXIT_CODE=${PIPESTATUS[0]}
-          if grep -qE "\.js|\.mjs|0 problems|[0-9]+ problems" eslint_firefox.txt; then
-            echo "✓ ESLint processed Firefox extension files"
+          # Verify ESLint actually ran (same logic as Chrome)
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "✓ ESLint processed Firefox extension files (clean)"
+          elif grep -qE "\.js|\.mjs|[0-9]+ problems?" eslint_firefox.txt; then
+            echo "✓ ESLint processed Firefox extension files (found issues)"
           else
             echo "✗ ERROR: ESLint produced no recognizable output - possible silent failure"
             cat eslint_firefox.txt
