@@ -70,13 +70,55 @@ jobs:
         run: poetry install --no-interaction --with dev
 
       - name: Run linting
-        run: poetry run ruff check src/ tests/
+        run: |
+          echo "=== Ruff Linting ==="
+          OUTPUT=$(poetry run ruff check src/ tests/ 2>&1) || true
+          echo "$OUTPUT"
+          # Verify ruff actually processed files (look for file count or "All checks passed")
+          if echo "$OUTPUT" | grep -qE "(All checks passed|[0-9]+ files? checked)"; then
+            echo "✓ Ruff processed files successfully"
+          elif echo "$OUTPUT" | grep -qE "^(src/|tests/)"; then
+            echo "✓ Ruff found issues in files (will fail if errors)"
+            poetry run ruff check src/ tests/
+          else
+            echo "✗ ERROR: Ruff produced no recognizable output - possible silent failure"
+            echo "Output was: $OUTPUT"
+            exit 1
+          fi
+          # Re-run to get actual exit code
+          poetry run ruff check src/ tests/
 
       - name: Run type checking
-        run: poetry run mypy src/ --ignore-missing-imports
+        run: |
+          echo "=== Mypy Type Checking ==="
+          OUTPUT=$(poetry run mypy src/ --ignore-missing-imports 2>&1)
+          echo "$OUTPUT"
+          # Verify mypy actually checked files
+          if echo "$OUTPUT" | grep -qE "Success|Found [0-9]+ error|no issues found"; then
+            echo "✓ Mypy processed files successfully"
+          else
+            echo "✗ ERROR: Mypy produced no recognizable output - possible silent failure"
+            exit 1
+          fi
 
       - name: Run tests with coverage (excluding audit tests)
-        run: poetry run pytest tests/ -v -m "not audit" --cov=src --cov-report=xml --cov-report=term-missing
+        run: |
+          echo "=== Pytest ==="
+          # Capture output to verify tests were collected
+          poetry run pytest tests/ -v -m "not audit" --cov=src --cov-report=xml --cov-report=term-missing 2>&1 | tee pytest_output.txt
+          # Verify tests were actually collected and run
+          if grep -qE "collected [0-9]+ item" pytest_output.txt; then
+            COLLECTED=$(grep -oE "collected [0-9]+ item" pytest_output.txt | grep -oE "[0-9]+")
+            if [ "$COLLECTED" -gt 0 ]; then
+              echo "✓ Pytest collected $COLLECTED tests"
+            else
+              echo "✗ ERROR: Pytest collected 0 tests - test discovery may be broken"
+              exit 1
+            fi
+          else
+            echo "✗ ERROR: Pytest output missing 'collected X items' - possible silent failure"
+            exit 1
+          fi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -111,13 +153,49 @@ jobs:
           npx eslint --print-config extensions/chrome/popup.js | head -20
 
       - name: Lint Chrome extension
-        run: npx eslint extensions/chrome/
+        run: |
+          echo "=== ESLint Chrome Extension ==="
+          # Run ESLint and capture output
+          npx eslint extensions/chrome/ --format stylish 2>&1 | tee eslint_chrome.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          # Verify ESLint actually processed files (look for file paths or "problems" summary)
+          if grep -qE "\.js|\.mjs|0 problems|[0-9]+ problems" eslint_chrome.txt; then
+            echo "✓ ESLint processed Chrome extension files"
+          else
+            echo "✗ ERROR: ESLint produced no recognizable output - possible silent failure"
+            cat eslint_chrome.txt
+            exit 1
+          fi
+          exit $EXIT_CODE
 
       - name: Lint Firefox extension
-        run: npx eslint extensions/firefox/
+        run: |
+          echo "=== ESLint Firefox Extension ==="
+          npx eslint extensions/firefox/ --format stylish 2>&1 | tee eslint_firefox.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if grep -qE "\.js|\.mjs|0 problems|[0-9]+ problems" eslint_firefox.txt; then
+            echo "✓ ESLint processed Firefox extension files"
+          else
+            echo "✗ ERROR: ESLint produced no recognizable output - possible silent failure"
+            cat eslint_firefox.txt
+            exit 1
+          fi
+          exit $EXIT_CODE
 
       - name: Lint Firefox extension (web-ext)
-        run: npx web-ext lint --source-dir extensions/firefox/
+        run: |
+          echo "=== web-ext Lint ==="
+          npx web-ext lint --source-dir extensions/firefox/ 2>&1 | tee webext_lint.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          # Verify web-ext actually ran (look for validation output)
+          if grep -qE "Validation|linting|warnings?|errors?" webext_lint.txt; then
+            echo "✓ web-ext lint processed extension"
+          else
+            echo "✗ ERROR: web-ext lint produced no recognizable output"
+            cat webext_lint.txt
+            exit 1
+          fi
+          exit $EXIT_CODE
 
   # Accessibility testing with pa11y (WCAG 2.0 AA)
   accessibility:
