@@ -1,0 +1,33 @@
+You are reviewing a Low-Level Design document for the Aletheia project.
+
+**Context:** This is a ONE-SHOT REVIEW request via gemini-model-check.sh wrapper. You are running as gemini-3-pro-preview model. This is NOT an interactive session - no handshake required. Provide your review feedback immediately.
+
+CRITICAL INSTRUCTIONS:
+1. Follow the review process in docs/0601-skill-gemini-lld-review.md
+2. Use the three-tier priority system:
+   - [BLOCKING] - Must fix before implementation (security, correctness, fail-safe gates)
+   - [HIGH] - Should fix before implementation (testing, mocking, data pipeline)
+   - [SUGGESTION] - Nice to have (performance, maintainability)
+3. Do NOT offer to implement code or provide code snippets
+4. Focus on design review only
+
+LLD TO REVIEW:
+File: {{LLD_PATH}}
+
+{{LLD_CONTENT}}
+
+OUTPUT FORMAT:
+Provide feedback using the priority markers:
+
+## [BLOCKING] Issues
+- Issue 1...
+- Issue 2...
+
+## [HIGH] Priority Issues
+- Issue 1...
+
+## [SUGGESTION] Improvements
+- Suggestion 1...
+
+## Summary
+Overall assessment and next steps recommendation.

@@ -202,13 +202,12 @@ See **`docs/0015-agent-prohibited-actions.md`** for the complete list with ratio
 - **Docs before Code:** You MUST write the relevant LLD (`docs/lld/active/`) or Standard *before* writing a single line of code.
 - **Review Gate (MANDATORY):** After writing the LLD:
   1. **STOP.** Do not create a worktree or write any code.
-  2. Submit the LLD for orchestrator review.
-  3. Orchestrator routes to senior LLM architect for feedback.
-  4. Incorporate all feedback into the LLD.
-  5. Discuss until there are no remaining questions.
-  6. Make explicit statement: *"All feedback has been incorporated. I am ready to code."*
-  7. **ASK PERMISSION:** *"May I proceed with implementation?"*
-  8. Only after orchestrator approval: create worktree and code.
+  2. **Automatically invoke Gemini 3 Pro for review** (see "Gemini Dual-Review Integration" below).
+  3. Incorporate all [BLOCKING] and [HIGH] priority feedback into the LLD.
+  4. Discuss [SUGGESTION] items with user if relevant.
+  5. Make explicit statement: *"All feedback has been incorporated. LLD review complete."*
+  6. **ASK PERMISSION:** *"May I proceed with implementation?"*
+  7. Only after user approval: create worktree and code.
 - **Worktree before code:** Create isolated worktree for each feature:
   ```bash
   git worktree add ../Aletheia-{IssueID} -b {IssueID}-short-desc
@@ -245,14 +244,184 @@ See **`docs/0015-agent-prohibited-actions.md`** for the complete list with ratio
    - `git add .` to stage all changes
    - **STOP HERE** - do not run `git commit`
 
-4. **Present for Gemini review:**
-   - Notify orchestrator that work is ready for review
-   - Wait for Gemini feedback
-   - Incorporate ALL feedback
+4. **Invoke Gemini for implementation review:**
+   - Use `tools/gemini-model-check.sh` with `implementation-review.txt` prompt
+   - Provide: implementation report, test report, and file diffs
+   - Wait for Gemini decision: [APPROVE] or [BLOCK]
+   - If [BLOCK]: address concerns and re-submit
+   - If [APPROVE]: proceed to step 5
 
 5. **Only after approval:** commit, push, and merge
 
 **Why this gate exists:** PRs merged without reports bypass the quality review process. Gemini cannot review work that has already been merged. This gate ensures every piece of work is reviewed BEFORE it becomes permanent.
+
+---
+
+## Gemini Dual-Review Integration
+
+**Claude Code and Gemini CLI collaborate as a dual-AI review system.** This section documents the automatic Gemini review process for LLDs, implementations, and issues.
+
+### Overview
+
+Gemini 3 Pro acts as a senior architect, providing review gates at three critical workflow stages:
+1. **LLD Design Review** - After LLD is written, before implementation
+2. **Implementation Review** - After code is written, before merge
+3. **Issue Filing Review** - After issue is drafted, before filing
+
+**Critical Requirement:** All Gemini invocations use `gemini-3-pro-preview` and include model downgrade detection to ensure reviews are performed by the correct model tier.
+
+### Phase 1: LLD Review Automation
+
+**Trigger:** After writing any LLD to `docs/lld/active/*.md`
+
+**Automatic Process:**
+1. Load LLD content
+2. Load prompt template from `gemini-prompts/lld-review.txt`
+3. Replace placeholders: `{{LLD_PATH}}`, `{{LLD_CONTENT}}`
+4. Invoke Gemini using `tools/gemini-model-check.sh`
+5. Parse feedback using three-tier priority system:
+   - **[BLOCKING]** - Must fix before implementation (security, correctness, fail-safe gates)
+   - **[HIGH]** - Should fix before implementation (testing, mocking, data pipeline)
+   - **[SUGGESTION]** - Nice to have (performance, maintainability)
+6. Update LLD with all [BLOCKING] and [HIGH] feedback
+7. Discuss [SUGGESTION] items with user if relevant
+8. Wait for user to say "implement"
+
+**Implementation Example:**
+```bash
+# Invoke Gemini with model check wrapper
+/c/Users/mcwiz/Projects/Aletheia/tools/gemini-model-check.sh \
+  "$(cat gemini-prompts/lld-review.txt | sed 's/{{LLD_PATH}}/docs\/lld\/active\/222-feature.md/g' | sed 's/{{LLD_CONTENT}}/'"$(cat docs/lld/active/222-feature.md)"'/g')" \
+  "gemini-3-pro-preview"
+
+# Exit codes:
+# 0 - Success (correct model used)
+# 1 - Gemini CLI failed
+# 2 - Quota exhausted (429 error)
+# 3 - Model downgrade detected
+```
+
+**Error Handling:**
+- **Model Downgrade (exit code 3):** ABORT review, notify user: "Gemini downgraded to Flash due to quota exhaustion. Review aborted. Retry after quota reset."
+- **Quota Exhausted (exit code 2):** ABORT review, display reset time, log event to `tmp/gemini-quota-events.jsonl`
+- **CLI Failure (exit code 1):** Retry once, then ABORT if fails again
+
+**Filtering Gemini's "Eagerness":**
+- Gemini may offer to implement code or provide code snippets
+- **Ignore these offers** - extract only [BLOCKING]/[HIGH]/[SUGGESTION] markers
+- Focus on design feedback, not implementation details
+
+### Phase 2: Implementation Review Automation
+
+**Trigger:** After implementation complete, reports generated, before commit
+
+**Automatic Process:**
+1. Load implementation report, test report, and file diffs
+2. Load prompt template from `gemini-prompts/implementation-review.txt`
+3. Replace placeholders: `{{ISSUE_ID}}`, `{{IMPL_REPORT}}`, `{{TEST_REPORT}}`, `{{FILE_DIFFS}}`
+4. Invoke Gemini using model detection wrapper
+5. Parse decision: `[APPROVE]` or `[BLOCK]`
+6. Parse concerns using priority system
+7. **Dual Approval Gate:** Require BOTH Gemini + User approval before merge
+   - If Gemini BLOCKS: address concerns, re-submit for review
+   - If Gemini APPROVES: ask user for final approval
+   - Only merge after dual approval
+
+**Workflow State Tracking:**
+The file `.claude/workflow-state.json` tracks review status:
+```json
+{
+  "active_issue": 222,
+  "lld_reviewed": true,
+  "gemini_approved": true,
+  "user_approved": false,
+  "current_phase": "implementation"
+}
+```
+
+### Phase 3: Issue Filing Review
+
+**Trigger:** When drafting a GitHub issue
+
+**Automatic Process:**
+1. Draft issue using template `docs/0101-TEMPLATE-issue.md`
+2. Load prompt template from `gemini-prompts/issue-review.txt`
+3. Replace placeholder: `{{ISSUE_DRAFT}}`
+4. Invoke Gemini for completeness check
+5. Incorporate [BLOCKING] and [HIGH] feedback
+6. Wait for user approval to file
+
+**Test Results:**
+Issue filing review successfully validated:
+- ✓ Identified missing required sections ([BLOCKING])
+- ✓ Flagged template deviations ([HIGH])
+- ✓ Provided actionable suggestions
+- ✓ Clear decision: "Ready to file? No" with rationale
+
+### Phase 4: Session Logging
+
+**Trigger:** `/cleanup` command or end of major milestone
+
+**Process:**
+1. Collect session context (git status, recent commits, open PRs)
+2. Load prompt template from `gemini-prompts/session-log.txt`
+3. Replace placeholders: `{{GIT_STATUS}}`, `{{RECENT_COMMITS}}`, `{{OPEN_PRS}}`, `{{CLEANUP_MODE}}`, `{{TODAY}}`, `{{TIMESTAMP}}`
+4. Invoke Gemini to generate formatted session log entry
+5. **Claude validates format** against template (docs/0100-TEMPLATE-GUIDE.md)
+6. Append to `docs/session-logs/YYYY-MM-DD.md`
+7. Commit with message: `docs: session log YYYY-MM-DD`
+
+**Format Validation:**
+Claude checks that Gemini's entry includes:
+- Header: `## YYYY-MM-DD HH:MM CT | Gemini 3 Pro`
+- Required sections: Summary, Feature Work, Tooling, Issues, State on Exit
+- No preamble or wrapper text (entry only)
+
+**Fallback:**
+If Gemini's format is invalid:
+- Claude rewrites the entry using standard template
+- Logs warning: "Gemini session log had format issues - Claude rewrote"
+
+### Model Downgrade Detection
+
+**Critical Feature:** Every Gemini invocation validates the model tier used.
+
+**Detection Method:**
+- Request JSON output: `gemini --output-format json`
+- Parse `.stats.models` to verify which model(s) were used
+- Expected: `gemini-3-pro-preview` or `gemini-3-pro` (when stable)
+- Downgrade detected if: `gemini-2.5-flash`, `gemini-2.0-flash-exp`, or any other model appears
+
+**Quota Event Logging:**
+When quota exhaustion is detected, log to `tmp/gemini-quota-events.jsonl`:
+```jsonl
+{"timestamp":"2026-01-10T03:00:00Z","event":"quota_exhausted","models_used":["gemini-3-pro-preview","gemini-2.5-flash"],"phase":"lld_review","issue":222}
+```
+
+### Prompt Library
+
+All prompts are versioned in `gemini-prompts/`:
+- `lld-review.txt` - LLD design review
+- `implementation-review.txt` - Implementation code review
+- `issue-review.txt` - Issue completeness check
+- `session-log.txt` - Session summary generation
+
+See `gemini-prompts/README.md` for usage and maintenance.
+
+### Troubleshooting
+
+**Issue:** "Loaded cached credentials" breaks JSON parsing
+**Solution:** Model detection script uses `sed -n '/{/,$p'` to extract JSON portion
+
+**Issue:** Model comparison fails due to trailing whitespace
+**Solution:** Script uses `tr -d '\r\n'` to trim model strings before comparison
+
+**Issue:** Gemini tries to implement code during review
+**Solution:** Extract only priority markers, ignore implementation offers
+
+For complete specifications, see `docs/0602-skill-gemini-dual-review.md`.
+
+---
 
 ### Decision-Making Protocol
 

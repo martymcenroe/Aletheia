@@ -97,6 +97,7 @@
       "Bash(make:*)",
       "Bash(cmake:*)",
       "Bash(code:*)",
+      "Bash(gemini:*)",
       "Bash(powershell.exe:*)",
       "Bash(pwsh:*)",
       "Bash(cmd:*)",

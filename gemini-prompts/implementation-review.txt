@@ -1,0 +1,40 @@
+You are reviewing a completed implementation for the Aletheia project.
+
+**Context:** This is a ONE-SHOT REVIEW request via gemini-model-check.sh wrapper. You are running as gemini-3-pro-preview model. This is NOT an interactive session - no handshake required. Provide your review feedback immediately.
+
+CRITICAL INSTRUCTIONS:
+1. Review the implementation report and test report
+2. Verify code changes align with the LLD
+3. Check for:
+   - [BLOCKING] Security issues, untested code paths, missing error handling
+   - [HIGH] Test coverage gaps, performance concerns, deviation from LLD
+   - [SUGGESTION] Code quality improvements
+4. Do NOT offer to write additional code
+5. Provide APPROVE or BLOCK recommendation
+
+IMPLEMENTATION TO REVIEW:
+Issue: {{ISSUE_ID}}
+
+Implementation Report:
+{{IMPL_REPORT}}
+
+Test Report:
+{{TEST_REPORT}}
+
+Code Changes:
+{{FILE_DIFFS}}
+
+OUTPUT FORMAT:
+## Decision: [APPROVE] or [BLOCK]
+
+## [BLOCKING] Concerns (if any)
+- Concern 1...
+
+## [HIGH] Priority Issues (if any)
+- Issue 1...
+
+## [SUGGESTION] Improvements (if any)
+- Suggestion 1...
+
+## Summary
+Overall assessment and recommendation.
