@@ -123,7 +123,8 @@
       "Bash(/c/Users/mcwiz/Projects/Aletheia/tools/aws/lambda-on.sh:*)",
       "Bash(MSYS_NO_PATHCONV=1 bash:*)",
       "Bash(CLAUDE_TOOL_INPUT_FILE_PATH=* bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-security-warn.sh)",
-      "Skill(code-review)"
+      "Skill(code-review)",
+      "Bash(shellcheck:*)"
     ],
     "deny": [
       "Read(.env)",

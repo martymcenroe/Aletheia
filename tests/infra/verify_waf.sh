@@ -53,6 +53,7 @@ if [ -z "$CLOUDFRONT_URL" ]; then
     # Try to load from config file (portable temp directory)
     SCRIPT_TMPDIR="$HOME/tmp/aletheia-waf"
     if [ -f "$SCRIPT_TMPDIR/aletheia-waf-config.env" ]; then
+        # shellcheck disable=SC1091 # Config file is generated at runtime
         source "$SCRIPT_TMPDIR/aletheia-waf-config.env"
     fi
 fi

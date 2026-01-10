@@ -44,7 +44,7 @@ echo ""
 echo "=== Cost & Billing ==="
 echo "Current month charges (approximate):"
 aws ce get-cost-and-usage \
-  --time-period Start=$(date -u -d 'month start' +%Y-%m-%d),End=$(date -u +%Y-%m-%d) \
+  --time-period "Start=$(date -u -d 'month start' +%Y-%m-%d),End=$(date -u +%Y-%m-%d)" \
   --granularity MONTHLY \
   --metrics BlendedCost \
   --query 'ResultsByTime[0].Total.BlendedCost.Amount' \

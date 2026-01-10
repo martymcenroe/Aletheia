@@ -14,7 +14,7 @@ aliases: ["/closeout", "/goodbye"]
 
 ## Help
 
-Usage: `/cleanup [--help] [--quick|--normal|--full]`
+Usage: `/cleanup [--help] [--quick|--normal|--full] [--no-auto-delete]`
 
 | Argument | Description |
 |----------|-------------|
@@ -22,6 +22,7 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | `--quick` | Minimal cleanup (~2 min) - commit session work, don't touch other workstreams |
 | `--normal` | Standard cleanup (~5 min) - typical session end (default) |
 | `--full` | Comprehensive cleanup (~12 min) - after features, before breaks |
+| `--no-auto-delete` | Skip automatic deletion of orphaned branches |
 
 **Examples:**
 - `/cleanup --help` - show this help
@@ -41,6 +42,7 @@ Usage: `/cleanup [--help] [--quick|--normal|--full]`
 | Regenerate 6000 | | ✅ | ✅ |
 | Worktree list | | ✅ | ✅ |
 | **POST-MERGE cleanup** | | ✅ | ✅ |
+| **Auto-delete orphans** | | ✅ | ✅ |
 | Inventory audit | | | ✅ |
 | **Index consistency** | | | ✅ |
 | **Plan staleness** | | | ✅ |
@@ -119,35 +121,33 @@ Run these commands simultaneously in a single message with multiple Bash tool ca
    - Parse worktree output: each line shows `path  commit [branch-name]`
    - For each branch OTHER than main, check if it appears in the worktree list
    - If branch HAS a worktree: ✅ OK (active multi-agent work - do NOT flag)
-   - If branch has NO worktree: ⚠️ Report: "⚠️ ORPHAN: Branch {name} has no worktree"
-   - **CRITICAL:** Branches WITH worktrees are EXPECTED. Only flag truly orphaned branches.
+   - If branch has NO worktree: Flag as potential orphan for step 2
+   - **CRITICAL:** Branches WITH worktrees are EXPECTED. Only process truly orphaned branches.
 
-2. **POST-MERGE GATE Auto-Execution** (Normal and Full) - For each orphaned branch found in step 1:
-   a. Extract issue ID from branch name (format: `{ID}-description`):
-      ```bash
-      echo "{branch-name}" | grep -oE '^[0-9]+'
-      ```
-   b. Check if PR was merged:
-      ```bash
-      gh pr list --state merged --head {branch-name} --repo martymcenroe/Aletheia --json number,mergedAt
-      ```
-   c. If PR was merged, execute POST-MERGE GATE cleanup:
-      - Check if worktree exists for this branch:
-        ```bash
-        git -C /c/Users/mcwiz/Projects/Aletheia worktree list
-        ```
-      - If worktree exists, remove it:
-        ```bash
-        git -C /c/Users/mcwiz/Projects/Aletheia worktree remove ../Aletheia-{IssueID}
-        ```
-        (Use `--force` if "not empty" error)
-      - Delete local branch:
-        ```bash
-        git -C /c/Users/mcwiz/Projects/Aletheia branch -d {branch-name}
-        ```
-        (Use `-D` if "not fully merged" due to squash merge)
-      - Report: "✅ POST-MERGE GATE: Cleaned up branch {branch-name} (PR #{number} merged {mergedAt})"
-   d. If PR was NOT merged, keep the orphan warning from step 1
+2. **Auto-Delete Orphaned Branches** (Normal and Full) - For each orphaned branch found in step 1:
+
+   **Safety Criteria (ALL must be met to auto-delete):**
+   - Branch is not `main`
+   - Remote tracking shows `gone` (was deleted on GitHub)
+   - No worktree exists for this branch
+
+   **Detection:** Parse `git branch -vv` output for `[origin/...: gone]` marker:
+   ```bash
+   git -C /c/Users/mcwiz/Projects/Aletheia branch -vv
+   ```
+   Look for lines containing `: gone]` - these are branches whose remote was deleted.
+
+   **Action based on `--no-auto-delete` flag:**
+
+   a. If remote shows `gone` AND no worktree AND `--no-auto-delete` NOT set:
+      - Auto-delete: `git -C /c/Users/mcwiz/Projects/Aletheia branch -D {branch-name}`
+      - Report: "✅ AUTO-DELETE: Removed orphan branch {name} (remote gone)"
+
+   b. If remote shows `gone` AND no worktree AND `--no-auto-delete` IS set:
+      - Report: "⚠️ ORPHAN: Branch {name} has no remote (--no-auto-delete set, skipping)"
+
+   c. If remote does NOT show `gone` (branch has no tracking or remote exists) AND no worktree:
+      - Report: "⚠️ ORPHAN: Branch {name} has no worktree (manual review needed)"
 
 3. **Stale Worktrees** (Full only) - Flag if worktree path doesn't exist on disk:
    - Report and offer to remove with: git -C /c/Users/mcwiz/Projects/Aletheia worktree remove {path}
@@ -279,7 +279,7 @@ Return a summary table:
 | Open Issues | {count} |
 | Branches | ✅ Only main / ⚠️ {list} |
 | Worktrees | ✅ Only main / ⚠️ {list} |
-| POST-MERGE Cleanup | ✅ {count} cleaned / ⚠️ {count} orphaned (no merged PR) |
+| Auto-Deleted | ✅ {count} branches / ⏭️ Skipped (--no-auto-delete) / ⚠️ {count} orphaned (no gone remote) |
 | Stashes | ✅ None / ⚠️ {count} |
 | Commit | ✅ Pushed / ❌ Failed |
 
