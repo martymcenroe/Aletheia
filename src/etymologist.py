@@ -174,6 +174,74 @@ def normalize_unicode_quotes(text: str) -> str:
     return text
 
 
+def fix_unescaped_inner_quotes(text: str) -> str:
+    """Fix unescaped ASCII double quotes inside JSON string values.
+
+    Bedrock sometimes returns ASCII double quotes (U+0022) inside JSON
+    string values without proper escaping. For example:
+        {"context": "The word "glamour" is nice."}
+
+    This is invalid JSON. This function converts inner quotes to single quotes:
+        {"context": "The word 'glamour' is nice."}
+
+    Algorithm:
+    - Walk through string tracking whether we're inside a JSON string value
+    - When inside a string, replace unescaped " with '
+    - Properly handle escaped characters (\\")
+
+    See Issue #288 for context.
+    """
+    if not text:
+        return text
+
+    result = []
+    i = 0
+    in_string = False
+
+    while i < len(text):
+        char = text[i]
+
+        if char == '\\' and i + 1 < len(text):
+            # Escape sequence - copy both characters
+            result.append(char)
+            result.append(text[i + 1])
+            i += 2
+            continue
+
+        if char == '"':
+            if not in_string:
+                # Starting a string
+                in_string = True
+                result.append(char)
+            else:
+                # Could be end of string or unescaped inner quote
+                # Heuristic: If next non-whitespace is : , } ] or end, it's a delimiter
+                next_meaningful = _peek_next_meaningful_char(text, i + 1)
+                if next_meaningful in (':', ',', '}', ']', None):
+                    # This is a string delimiter
+                    in_string = False
+                    result.append(char)
+                else:
+                    # This is an unescaped inner quote - replace with single quote
+                    result.append("'")
+            i += 1
+        else:
+            result.append(char)
+            i += 1
+
+    return ''.join(result)
+
+
+def _peek_next_meaningful_char(text: str, start: int) -> str | None:
+    """Look ahead to find the next non-whitespace character."""
+    i = start
+    while i < len(text):
+        if not text[i].isspace():
+            return text[i]
+        i += 1
+    return None
+
+
 def _log_unicode_diagnostics(text: str, context: str) -> None:
     """Log Unicode codepoints for debugging JSON parse failures.
 
@@ -225,9 +293,13 @@ def extract_json(raw_response: str) -> dict | None:
 
     text = raw_response.strip()
 
-    # Step 0: Comprehensive quote normalization (Issue #288)
+    # Step 0a: Comprehensive Unicode quote normalization (Issue #288)
     # Uses QUOTE_NORMALIZATION_MAP to handle 22+ Unicode quote variants
     text = normalize_unicode_quotes(text)
+
+    # Step 0b: Fix unescaped ASCII double quotes inside string values (Issue #288)
+    # Bedrock sometimes returns invalid JSON with unescaped " inside strings
+    text = fix_unescaped_inner_quotes(text)
 
     # Step 1: Strip markdown code fences
     # Handle ```json and ``` variants

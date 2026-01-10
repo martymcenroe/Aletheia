@@ -301,6 +301,67 @@ class TestComprehensiveQuoteNormalization:
         assert result == '"test"'
 
 
+class TestFixUnescapedInnerQuotes:
+    """Tests for ASCII double quote fixing inside JSON strings (Issue #288)."""
+
+    def test_basic_inner_quotes(self):
+        """Basic case: unescaped double quotes around a word."""
+        from src.etymologist import fix_unescaped_inner_quotes
+
+        input_json = '{"context":"The word "glamour" is nice."}'
+        expected = """{"context":"The word 'glamour' is nice."}"""
+        result = fix_unescaped_inner_quotes(input_json)
+        assert result == expected
+
+    def test_multiple_inner_quotes(self):
+        """Multiple pairs of inner quotes."""
+        from src.etymologist import fix_unescaped_inner_quotes
+
+        input_json = '{"context":"From "glamour" to "glamorous" in usage."}'
+        expected = """{"context":"From 'glamour' to 'glamorous' in usage."}"""
+        result = fix_unescaped_inner_quotes(input_json)
+        assert result == expected
+
+    def test_no_inner_quotes(self):
+        """Valid JSON without inner quotes should be unchanged."""
+        from src.etymologist import fix_unescaped_inner_quotes
+
+        input_json = '{"signal": "Test","context":"No inner quotes here."}'
+        result = fix_unescaped_inner_quotes(input_json)
+        assert result == input_json
+
+    def test_properly_escaped_quotes(self):
+        """Properly escaped quotes should be preserved."""
+        from src.etymologist import fix_unescaped_inner_quotes
+
+        input_json = '{"context":"The word \\"glamour\\" is nice."}'
+        result = fix_unescaped_inner_quotes(input_json)
+        assert result == input_json
+
+    def test_real_world_bedrock_response(self):
+        """Real-world example from Bedrock that caused failures."""
+        input_json = '{"signal": "Formal Academic Term","gem":"A term denoting high-class appeal.","context":"Derived from the word "glamour" in the 19th century."}'
+        result = extract_json(input_json)
+        assert result is not None
+        assert result["signal"] == "Formal Academic Term"
+        assert "'glamour'" in result["context"]
+
+    def test_empty_string(self):
+        """Empty string should return empty."""
+        from src.etymologist import fix_unescaped_inner_quotes
+
+        assert fix_unescaped_inner_quotes("") == ""
+
+    def test_nested_json_objects(self):
+        """Should handle nested structures correctly."""
+        from src.etymologist import fix_unescaped_inner_quotes
+
+        input_json = '{"outer":{"inner":"The "word" here."}}'
+        expected = """{"outer":{"inner":"The 'word' here."}}"""
+        result = fix_unescaped_inner_quotes(input_json)
+        assert result == expected
+
+
 class TestCountWords:
     """Tests for word counting utility."""
 
