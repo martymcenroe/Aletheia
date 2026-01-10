@@ -98,11 +98,11 @@ Audits for code quality, security, and development practices.
 | 0824 | Permission Friction | On friction | Manual (/friction) |
 | 0809 | Security | Quarterly | Manual |
 | 0810 | Privacy | Quarterly | Manual |
-| 0811 | Accessibility | As needed | Manual |
+| 0811 | Accessibility | Monthly + on change | Manual |
 | 0812 | Performance | Quarterly | Manual |
 | 0813 | Code Quality | Per PR | CI |
 | 0814 | License Compliance | Quarterly | Manual |
-| 0817 | Wiki Alignment | On user-facing changes | Manual |
+| 0817 | Wiki Alignment | Monthly + on change | Manual |
 | 0815 | Claude Code Workflow | Monthly | Manual |
 | 0816 | Dependabot PRs | Weekly | Semi-auto |
 | 0826 | Cross-Browser Testing | On extension changes | CI |
@@ -139,7 +139,7 @@ Audits that govern the audit system itself.
 | Frequency | Audits |
 |-----------|--------|
 | **Per PR** | 0813 |
-| **As needed** | 0811, 0817 |
+| **Monthly + on change** | 0811, 0817 |
 | **Weekly** | 0816 |
 | **Monthly** | 0815, 0821 |
 | **Quarterly** | 0809, 0810, 0812, 0814, 0818, 0819, 0820, 0822, 0898, 0899 |
