@@ -53,10 +53,10 @@ Audits exist because:
 
 | Category | Count | Focus |
 |----------|-------|-------|
-| Core Development | 12 | Code quality, security, privacy, accessibility |
+| Core Development | 13 | Code quality, security, privacy, accessibility |
 | AI Governance | 7 | AI-specific controls and compliance |
 | Meta | 2 | Audit system governance |
-| **Total** | **21** | |
+| **Total** | **22** | |
 
 ### 3.2 Quick Reference
 
@@ -81,6 +81,7 @@ Audits exist because:
 | 0822 | Bias & Fairness |
 | 0823 | AI Incident Post-Mortem |
 | 0826 | Cross-Browser Testing (Firefox/Chrome parity) |
+| 0827 | Infrastructure Integration (Lambda, DynamoDB, API Gateway) |
 | 0898 | Horizon Scanning Protocol |
 | 0899 | Meta-Audit (validation & execution) |
 
@@ -106,6 +107,7 @@ Audits for code quality, security, and development practices.
 | 0815 | Claude Code Workflow | Monthly | Manual |
 | 0816 | Dependabot PRs | Weekly | Semi-auto |
 | 0826 | Cross-Browser Testing | On extension changes | CI |
+| 0827 | Infrastructure Integration | Quarterly | Manual |
 
 ### 4.2 AI Governance Audits
 
@@ -142,7 +144,7 @@ Audits that govern the audit system itself.
 | **Monthly + on change** | 0811, 0817 |
 | **Weekly** | 0816 |
 | **Monthly** | 0815, 0821 |
-| **Quarterly** | 0809, 0810, 0812, 0814, 0818, 0819, 0820, 0822, 0898, 0899 |
+| **Quarterly** | 0809, 0810, 0812, 0814, 0818, 0819, 0820, 0822, 0825, 0827, 0898, 0899 |
 | **On Event** | 0808 (policy), 0824 (friction analysis), 0823 (incident) |
 
 ### 5.2 Calendar View
@@ -314,6 +316,7 @@ Standard format for all audits:
 - [0823 - AI Incident Post-Mortem](0823-audit-ai-incident-post-mortem.md)
 - [0825 - AI Safety](0825-audit-ai-safety.md)
 - [0826 - Cross-Browser Testing](0826-audit-cross-browser-testing.md)
+- [0827 - Infrastructure Integration](0827-audit-infrastructure-integration.md)
 - [0898 - Horizon Scanning Protocol](0898-horizon-scanning-protocol.md)
 - [0899 - Meta-Audit](0899-meta-audit.md)
 
@@ -325,14 +328,15 @@ Standard format for all audits:
 | AI safety | 0809, 0818, 0821, 0822 |
 | Accessibility | 0811 |
 | Code quality | 0813 |
-| Performance | 0812 |
-| License | 0814 |
-| Wiki/Docs | 0817 |
 | Compliance | 0818, 0820, 0898 |
 | Dependencies | 0816, 0819 |
 | Incidents | 0823 |
+| Infrastructure | 0827 |
+| License | 0814 |
+| Performance | 0812 |
 | Privacy | 0810 |
 | Security | 0809, 0819 |
+| Wiki/Docs | 0817 |
 
 ---
 
@@ -344,7 +348,7 @@ Cost optimization: use the cheapest model that can reliably execute each audit.
 
 | Model | Cost | Audits | Rationale |
 |-------|------|--------|-----------|
-| **Haiku** | $ | 0808, 0812, 0814, 0816, 0817, 0819, 0899 | Simple checklist, metric aggregation, file parsing |
+| **Haiku** | $ | 0808, 0812, 0814, 0816, 0817, 0819, 0827, 0899 | Simple checklist, metric aggregation, file parsing |
 | **Sonnet** | $$ | 0811, 0815, 0820, 0822, 0824, 0898 | Web research, framework analysis, moderate reasoning |
 | **Opus** | $$$ | 0809, 0810, 0818, 0821, 0823, 0825 | Complex reasoning, security analysis, incident review |
 
@@ -369,13 +373,14 @@ Cost optimization: use the cheapest model that can reliably execute each audit.
 | 0823 AI Incident Post-Mortem | **Opus** | Root cause analysis requires deep reasoning |
 | 0824 Permission Friction | Sonnet | Session log analysis, pattern recognition |
 | 0825 AI Safety | **Opus** | LLM safety requires nuanced reasoning |
+| 0827 Infrastructure Integration | Haiku | Config verification, AWS CLI parsing |
 | 0898 Horizon Scanning | Sonnet | Framework research, moderate analysis |
 | 0899 Meta-Audit | Haiku | Execution tracking, checklist validation |
 
 ### 11.3 Estimated Savings
 
 By using appropriate models instead of Opus for all audits:
-- **Haiku audits (7):** ~66% savings per audit
+- **Haiku audits (8):** ~66% savings per audit
 - **Sonnet audits (6):** ~25% savings per audit
 - **Opus audits (6):** No change (required for complexity)
 
@@ -411,6 +416,7 @@ By using appropriate models instead of Opus for all audits:
 
 | Date | Change |
 |------|--------|
+| 2026-01-10 | Created 0827 (Infrastructure Integration) for Lambda, DynamoDB, API Gateway verification. Total audits: 22. |
 | 2026-01-09 | Created 0826 (Cross-Browser Testing) after Firefox incident. Enforces file parity and mock fidelity. Total audits: 21. |
 | 2026-01-08 | Split 0809 per ADR 0213. Created 0825 (AI Safety) with LLM, Agentic, NIST AI RMF sections. 0809 now focused on app security. Total audits: 20. |
 | 2026-01-08 | Index consistency audit. Fixed broken links (0811-0814, 0815, 0817). Corrected audit names/descriptions to match actual files. Added 0817 Wiki Alignment. Total audits: 19. |
