@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2001 # sed is appropriate for line-by-line prefixing of multiline output
 # tools/policy_check.sh - Project Policy Compliance Check
 #
 # Enforces PRIMARY DIRECTIVES that are too important for manual review.
@@ -41,7 +42,7 @@ fi
 echo -n "Checking for 'pip install' in scripts... "
 
 # Find pip install, exclude policy_check.sh, exclude 'pip install ... -t' (Lambda layer builds)
-PIP_VIOLATIONS=$(grep -rn "pip install" *.sh scripts/ tools/*.sh 2>/dev/null | grep -v "policy_check.sh" | grep -v "pip install .* -t" | grep -v "pip3 install .* -t" || true)
+PIP_VIOLATIONS=$(grep -rn "pip install" ./*.sh scripts/ tools/*.sh 2>/dev/null | grep -v "policy_check.sh" | grep -v "pip install .* -t" | grep -v "pip3 install .* -t" || true)
 if [ -n "$PIP_VIOLATIONS" ]; then
     echo "FAIL"
     echo "  ERROR: Found 'pip install' in scripts (use 'poetry add' instead):"
@@ -57,7 +58,7 @@ fi
 # -----------------------------------------------------------------------------
 echo -n "Checking for 'git reset' in scripts... "
 
-RESET_VIOLATIONS=$(grep -rn "git reset" *.sh scripts/ tools/*.sh .github/ 2>/dev/null | grep -v "policy_check.sh" || true)
+RESET_VIOLATIONS=$(grep -rn "git reset" ./*.sh scripts/ tools/*.sh .github/ 2>/dev/null | grep -v "policy_check.sh" || true)
 if [ -n "$RESET_VIOLATIONS" ]; then
     echo "FAIL"
     echo "  ERROR: Found 'git reset' in scripts (use 'git revert' instead):"
@@ -72,7 +73,7 @@ fi
 # -----------------------------------------------------------------------------
 echo -n "Checking for 'git push --force' in scripts... "
 
-FORCE_VIOLATIONS=$(grep -rn "git push.*--force\|git push.*-f" *.sh scripts/ tools/*.sh .github/ 2>/dev/null | grep -v "policy_check.sh" || true)
+FORCE_VIOLATIONS=$(grep -rn "git push.*--force\|git push.*-f" ./*.sh scripts/ tools/*.sh .github/ 2>/dev/null | grep -v "policy_check.sh" || true)
 if [ -n "$FORCE_VIOLATIONS" ]; then
     echo "FAIL"
     echo "  ERROR: Found 'git push --force' in scripts:"
@@ -87,7 +88,7 @@ fi
 # -----------------------------------------------------------------------------
 echo -n "Checking for 'git clean -fd' in scripts... "
 
-CLEAN_VIOLATIONS=$(grep -rn "git clean.*-fd\|git clean.*-f" *.sh scripts/ tools/*.sh .github/ 2>/dev/null | grep -v "policy_check.sh" || true)
+CLEAN_VIOLATIONS=$(grep -rn "git clean.*-fd\|git clean.*-f" ./*.sh scripts/ tools/*.sh .github/ 2>/dev/null | grep -v "policy_check.sh" || true)
 if [ -n "$CLEAN_VIOLATIONS" ]; then
     echo "FAIL"
     echo "  ERROR: Found 'git clean -fd' in scripts:"

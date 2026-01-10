@@ -50,7 +50,9 @@ safety_check() {
     # Check if Aletheia resources exist
     echo "Checking Aletheia production resources..."
 
+    # shellcheck disable=SC2016 # Backticks are JMESPath syntax, not shell expansion
     ALETHEIA_TABLE=$(aws dynamodb list-tables --region us-east-1 --query 'TableNames[?contains(@, `AletheiaAgentState`)]' --output text)
+    # shellcheck disable=SC2016 # Backticks are JMESPath syntax, not shell expansion
     ALETHEIA_LAMBDA=$(aws lambda list-functions --region us-east-1 --query 'Functions[?FunctionName==`AletheiaAgent`].FunctionName' --output text)
 
     if [[ -z "$ALETHEIA_TABLE" ]] || [[ -z "$ALETHEIA_LAMBDA" ]]; then
@@ -58,7 +60,7 @@ safety_check() {
         echo "   DynamoDB: $ALETHEIA_TABLE"
         echo "   Lambda: $ALETHEIA_LAMBDA"
         echo ""
-        read -p "Continue anyway? (yes/no): " CONTINUE
+        read -rp "Continue anyway? (yes/no): " CONTINUE
         if [[ "$CONTINUE" != "yes" ]]; then
             echo "Aborted."
             exit 1
@@ -73,7 +75,7 @@ safety_check() {
 # Confirm deletion
 confirm_deletion() {
     echo "=========================================="
-    read -p "Type 'DELETE' to proceed with deletion: " CONFIRM
+    read -rp "Type 'DELETE' to proceed with deletion: " CONFIRM
     echo "=========================================="
     if [[ "$CONFIRM" != "DELETE" ]]; then
         echo "Aborted. No resources were deleted."
@@ -211,7 +213,7 @@ check_kms_key() {
         echo "   To schedule deletion:"
         echo "   aws kms schedule-key-deletion --key-id $KEY_ID --region us-east-2 --pending-window-in-days 7"
         echo ""
-        read -p "Schedule this KMS key for deletion in 7 days? (yes/no): " DELETE_KMS
+        read -rp "Schedule this KMS key for deletion in 7 days? (yes/no): " DELETE_KMS
         if [[ "$DELETE_KMS" == "yes" ]]; then
             aws kms schedule-key-deletion \
                 --key-id "$KEY_ID" \
