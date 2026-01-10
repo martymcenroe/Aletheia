@@ -51,16 +51,25 @@ USERS_TABLE_SCHEMA = {
 
 
 @pytest.fixture(scope="session")
-def dynamodb_container() -> Generator[DockerContainer, None, None]:
+def dynamodb_endpoint() -> Generator[str, None, None]:
     """
-    Start DynamoDB Local container for the test session.
+    Get DynamoDB endpoint - uses existing if set (CI), otherwise starts container (local).
 
-    Uses amazon/dynamodb-local:latest image.
-    Session-scoped to avoid container restart overhead between tests.
+    Dual-mode behavior (per Gemini implementation review):
+    - CI mode: DYNAMODB_ENDPOINT already set by GitHub Actions service container
+    - Local mode: Start container via testcontainers-python
+
+    This avoids running two DynamoDB instances in CI (wasteful).
     """
+    existing_endpoint = os.environ.get("DYNAMODB_ENDPOINT")
+    if existing_endpoint:
+        # CI mode: use existing service container, no cleanup needed
+        yield existing_endpoint
+        return
+
+    # Local mode: start container via testcontainers
     container = DockerContainer("amazon/dynamodb-local:latest")
     container.with_exposed_ports(8000)
-
     container.start()
 
     # Wait for DynamoDB Local to be ready
@@ -68,17 +77,13 @@ def dynamodb_container() -> Generator[DockerContainer, None, None]:
     # Give it a moment to fully initialize
     time.sleep(1)
 
-    yield container
+    host = container.get_container_host_ip()
+    port = container.get_exposed_port(8000)
+    endpoint = f"http://{host}:{port}"
+
+    yield endpoint
 
     container.stop()
-
-
-@pytest.fixture(scope="session")
-def dynamodb_endpoint(dynamodb_container: DockerContainer) -> str:
-    """Get the endpoint URL for DynamoDB Local."""
-    host = dynamodb_container.get_container_host_ip()
-    port = dynamodb_container.get_exposed_port(8000)
-    return f"http://{host}:{port}"
 
 
 @pytest.fixture(scope="session")
@@ -86,9 +91,13 @@ def dynamodb_client(dynamodb_endpoint: str):
     """
     Create boto3 DynamoDB client pointing to local instance.
 
-    Also sets DYNAMODB_ENDPOINT env var so Lambda code uses local instance.
+    Sets env vars so Lambda code uses local instance.
     """
-    os.environ["DYNAMODB_ENDPOINT"] = dynamodb_endpoint
+    # Only set DYNAMODB_ENDPOINT if not already set (local mode)
+    endpoint_was_set = "DYNAMODB_ENDPOINT" in os.environ
+    if not endpoint_was_set:
+        os.environ["DYNAMODB_ENDPOINT"] = dynamodb_endpoint
+
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"  # noqa: S105
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"  # noqa: S105
     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
@@ -103,8 +112,9 @@ def dynamodb_client(dynamodb_endpoint: str):
 
     yield client
 
-    # Cleanup env vars
-    del os.environ["DYNAMODB_ENDPOINT"]
+    # Cleanup env vars only if we set them
+    if not endpoint_was_set:
+        del os.environ["DYNAMODB_ENDPOINT"]
 
 
 @pytest.fixture(scope="session")

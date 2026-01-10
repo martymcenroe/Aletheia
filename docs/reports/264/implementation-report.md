@@ -46,13 +46,18 @@ Key capabilities:
 
 | Deviation | Reason | Impact |
 |-----------|--------|--------|
-| None | Implementation matches LLD exactly | N/A |
+| Dual-mode container startup | Gemini [HIGH] feedback: avoid redundant containers | LLD updated with §6.2 |
+
+**Gemini Implementation Review Feedback:**
+The original implementation always started a testcontainers instance, even when CI already provided a DynamoDB service container. This was wasteful. The fix checks if `DYNAMODB_ENDPOINT` is already set:
+- **CI mode:** Use existing endpoint, skip container creation
+- **Local mode:** Start container via testcontainers
 
 ## 6. Test Harness
 
 - **Test file:** `tests/integration/test_dynamodb_ops.py`
 - **Fixtures:**
-  - `dynamodb_container` - Session-scoped Docker container
+  - `dynamodb_endpoint` - Dual-mode: uses existing endpoint (CI) or starts container (local)
   - `dynamodb_client` - boto3 client pointing to local instance
   - `agent_state_table` - Creates AletheiaAgentState with GSI
   - `users_table` - Creates aletheia-users table
