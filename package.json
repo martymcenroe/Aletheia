@@ -7,7 +7,7 @@
     "lint:fix": "eslint extensions/ --fix",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "test:unit:chrome": "vitest run tests/unit/popup.test.js",
+    "test:unit:chrome": "vitest run tests/unit/chrome/",
     "test:unit:firefox": "vitest run tests/unit/firefox/",
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",

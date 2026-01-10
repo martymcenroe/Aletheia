@@ -24,9 +24,13 @@ if (typeof window !== 'undefined') {
 beforeEach(() => {
   vi.clearAllMocks();
 
-  // Reset Chrome storage state
-  globalThis.chrome.__resetStorage();
+  // Reset Chrome storage state (defensive - some tests manage their own chrome mock)
+  if (globalThis.chrome?.__resetStorage) {
+    globalThis.chrome.__resetStorage();
+  }
 
-  // Reset auth state
-  globalThis.AletheiaAuth.__reset();
+  // Reset auth state (defensive - some tests manage their own auth mock)
+  if (globalThis.AletheiaAuth?.__reset) {
+    globalThis.AletheiaAuth.__reset();
+  }
 });
