@@ -61,3 +61,15 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+  # Audit Record Compliance: Auditor identity and FAIL→issue requirements
+  # See: docs/0800-audit-index.md Section 8 - Audit Record Requirements
+  # Issues: #249 (auditor identity), #253 (FAIL→issue)
+  - repo: local
+    hooks:
+      - id: audit-record-check
+        name: Audit Record Compliance
+        entry: python tools/audit_record_check.py
+        language: system
+        pass_filenames: false
+        files: ^docs/08.*-audit-.*\.md$
