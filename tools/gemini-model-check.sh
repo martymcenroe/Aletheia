@@ -74,7 +74,14 @@ if [ "$downgrade" = true ]; then
   exit 3
 fi
 
-# Success - extract and output response only (no JSON wrapper)
+# Success - output positive model verification to stderr (for capture/logging)
+echo "---GEMINI-MODEL-VERIFIED---" >&2
+echo "Model: ${models_used[*]}" >&2
+echo "Stats.models:" >&2
+echo "$models_json" | jq -c '.' >&2
+echo "---END-VERIFICATION---" >&2
+
+# Extract and output response only (no JSON wrapper) to stdout
 response=$(echo "$json_output" | jq -r '.response')
 echo "$response"
 
