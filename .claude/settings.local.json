@@ -125,7 +125,8 @@
       "Bash(MSYS_NO_PATHCONV=1 bash:*)",
       "Bash(CLAUDE_TOOL_INPUT_FILE_PATH=* bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-security-warn.sh)",
       "Skill(code-review)",
-      "Bash(shellcheck:*)"
+      "Bash(shellcheck:*)",
+      "Bash(/c/Users/mcwiz/Projects/Aletheia-265/node_modules/.bin/playwright test:*)"
     ],
     "deny": [
       "Read(.env)",
