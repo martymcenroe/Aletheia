@@ -99,6 +99,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify ESLint security plugins installed
+        run: |
+          echo "=== ESLint Version ==="
+          npx eslint --version
+          echo ""
+          echo "=== Installed ESLint Plugins ==="
+          npm ls eslint-plugin-security eslint-plugin-no-unsanitized --depth=0
+          echo ""
+          echo "=== ESLint Config Validation ==="
+          npx eslint --print-config extensions/chrome/popup.js | head -20
+
       - name: Lint Chrome extension
         run: npx eslint extensions/chrome/
 
