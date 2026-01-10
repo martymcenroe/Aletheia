@@ -1,0 +1,15 @@
+{
+  "session_id": "",
+  "current_phase": "none",
+  "active_issue": null,
+  "lld_path": null,
+  "lld_reviewed": false,
+  "lld_review_timestamp": null,
+  "gemini_approved": false,
+  "user_approved": false,
+  "repo_context_loaded": false,
+  "repo_context_timestamp": null,
+  "_schema_version": "1.0",
+  "_description": "Tracks current workflow phase and review status for dual-review automation",
+  "_phases": "lld_review|implementation|issue_filing|none"
+}

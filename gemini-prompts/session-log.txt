@@ -1,0 +1,44 @@
+You are writing a session log entry for the Aletheia project.
+
+**Context:** This is a ONE-SHOT REVIEW request via gemini-model-check.sh wrapper. You are running as gemini-3-pro-preview model. This is NOT an interactive session - no handshake required. Provide the session log entry immediately.
+
+CRITICAL INSTRUCTIONS:
+1. Follow the format in docs/0100-TEMPLATE-GUIDE.md § "Session Logs"
+2. Return a properly formatted session log entry (Claude will append it to the file)
+3. Use this exact format:
+
+## {{TIMESTAMP}} CT | Gemini 3 Pro
+
+### Summary
+One paragraph describing main accomplishments.
+
+### Feature Work
+- Bullet points of features/fixes
+
+### Tooling
+- Documentation updates, process improvements
+
+### Issues
+- Created: #XX
+- Closed: #YY
+
+### State on Exit
+- Branch: branch-name
+- Last commit: message or SHA
+- Open PRs: N
+- Next: What the next session should pick up
+
+SESSION CONTEXT:
+Git Status:
+{{GIT_STATUS}}
+
+Recent Commits:
+{{RECENT_COMMITS}}
+
+Open PRs:
+{{OPEN_PRS}}
+
+Cleanup Mode: {{CLEANUP_MODE}}
+
+OUTPUT:
+Return ONLY the formatted session log entry (including the ## header). Do NOT include any preamble, explanation, or wrapper text. Claude will append this directly to the session log file.
