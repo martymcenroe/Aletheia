@@ -1,10 +1,13 @@
 // extensions/firefox/popup.js
-// Firefox MV2 - uses browser.* API
+// Firefox MV3 - uses browser.* API
 // See: docs/1206-firefox-oauth.md
 
-// State management
-let currentDomain = null;
+// State management - use window.currentDomain as source of truth (Issue #214)
+window.currentDomain = null;
 const selectedDomains = new Set();
+
+// Expose selectedDomains for testing (Issue #214)
+window.selectedDomains = selectedDomains;
 
 // DOM Elements - Views
 const loginView = document.getElementById('login-view');
@@ -142,7 +145,7 @@ function showView(viewName) {
 
 async function renderMainView() {
   const domain = await getCurrentDomain();
-  currentDomain = domain;
+  window.currentDomain = domain;
 
   if (!domain) {
     currentDomainEl.textContent = 'Unknown';
@@ -212,7 +215,7 @@ function createAllowlistItem(domain) {
   label.appendChild(domainSpan);
 
   // Add "current" badge if this is the current domain
-  if (domain === currentDomain) {
+  if (domain === window.currentDomain) {
     const badge = document.createElement('span');
     badge.className = 'current-badge';
     badge.textContent = 'current';
@@ -237,14 +240,14 @@ function updateRemoveButton() {
 // ============================================================================
 
 async function handlePowerToggle() {
-  if (!currentDomain) return;
+  if (!window.currentDomain) return;
 
-  const isActive = await isAllowlisted(currentDomain);
+  const isActive = await isAllowlisted(window.currentDomain);
 
   if (isActive) {
-    await removeFromAllowlist(currentDomain);
+    await removeFromAllowlist(window.currentDomain);
   } else {
-    await addToAllowlist(currentDomain);
+    await addToAllowlist(window.currentDomain);
   }
 
   await renderMainView();
@@ -278,7 +281,7 @@ async function handleRemoveSelected() {
   await renderManagementView();
 
   // If current domain was removed, update main view
-  if (domainsToRemove.includes(currentDomain)) {
+  if (domainsToRemove.includes(window.currentDomain)) {
     await renderMainView();
   }
 }

@@ -428,3 +428,368 @@ describe('Domain Parsing', () => {
     env.dom.window.close();
   });
 });
+
+// ============================================================================
+// EVENT HANDLERS TESTS (Issue #214 - Parity with Chrome)
+// ============================================================================
+
+describe('Event Handlers', () => {
+  let env;
+
+  beforeEach(() => {
+    env = createPopupEnvironment({ authenticated: true });
+  });
+
+  afterEach(() => {
+    if (env.dom) {
+      env.dom.window.close();
+    }
+  });
+
+  describe('handleCheckboxChange', () => {
+    it('should add domain to selectedDomains when checked', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.handleCheckboxChange) {
+        const mockCheckbox = window.document.createElement('input');
+        mockCheckbox.type = 'checkbox';
+        mockCheckbox.dataset.domain = 'test.com';
+        mockCheckbox.checked = true;
+
+        const mockLabel = window.document.createElement('label');
+        mockLabel.className = 'allowlist-item';
+        mockLabel.appendChild(mockCheckbox);
+
+        const mockEvent = { target: mockCheckbox };
+        window.handleCheckboxChange(mockEvent);
+
+        expect(window.selectedDomains.has('test.com')).toBe(true);
+      }
+    });
+
+    it('should remove domain from selectedDomains when unchecked', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.handleCheckboxChange && window.selectedDomains) {
+        window.selectedDomains.add('test.com');
+
+        const mockCheckbox = window.document.createElement('input');
+        mockCheckbox.type = 'checkbox';
+        mockCheckbox.dataset.domain = 'test.com';
+        mockCheckbox.checked = false;
+
+        const mockLabel = window.document.createElement('label');
+        mockLabel.className = 'allowlist-item';
+        mockLabel.appendChild(mockCheckbox);
+
+        const mockEvent = { target: mockCheckbox };
+        window.handleCheckboxChange(mockEvent);
+
+        expect(window.selectedDomains.has('test.com')).toBe(false);
+      }
+    });
+  });
+
+  describe('updateRemoveButton', () => {
+    it('should disable button when no domains selected', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+      const { document } = window;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.updateRemoveButton && window.selectedDomains) {
+        window.selectedDomains.clear();
+        window.updateRemoveButton();
+
+        const removeButton = document.getElementById('remove-button');
+        if (removeButton) {
+          expect(removeButton.disabled).toBe(true);
+          expect(removeButton.textContent).toBe('Remove Selected');
+        }
+      }
+    });
+
+    it('should enable button and show count when domains selected', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+      const { document } = window;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.updateRemoveButton && window.selectedDomains) {
+        window.selectedDomains.add('a.com');
+        window.selectedDomains.add('b.com');
+        window.updateRemoveButton();
+
+        const removeButton = document.getElementById('remove-button');
+        if (removeButton) {
+          expect(removeButton.disabled).toBe(false);
+          expect(removeButton.textContent).toBe('Remove Selected (2)');
+        }
+      }
+    });
+  });
+});
+
+// ============================================================================
+// VIEW RENDERING TESTS (Issue #214 - Parity with Chrome)
+// ============================================================================
+
+describe('View Rendering', () => {
+  let env;
+
+  beforeEach(() => {
+    env = createPopupEnvironment({ authenticated: true });
+  });
+
+  afterEach(() => {
+    if (env.dom) {
+      env.dom.window.close();
+    }
+  });
+
+  describe('renderMainView', () => {
+    it('should display current domain', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+      const { document } = window;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.renderMainView) {
+        await window.renderMainView();
+
+        const domainEl = document.getElementById('current-domain');
+        if (domainEl) {
+          expect(domainEl.textContent).toBe('example.com');
+        }
+      }
+    });
+
+    it('should show ACTIVE status when domain is allowlisted', async () => {
+      if (!env.hasContent) return;
+      const { window, browserMock } = env;
+      const { document } = window;
+
+      browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.renderMainView) {
+        await window.renderMainView();
+
+        const statusLabel = document.getElementById('status-label');
+        if (statusLabel) {
+          expect(statusLabel.textContent).toBe('ACTIVE');
+        }
+      }
+    });
+
+    it('should show INACTIVE status when domain is not allowlisted', async () => {
+      if (!env.hasContent) return;
+      const { window, browserMock } = env;
+      const { document } = window;
+
+      browserMock.__setLocalStorageData({ allowlist: [] });
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.renderMainView) {
+        await window.renderMainView();
+
+        const statusLabel = document.getElementById('status-label');
+        if (statusLabel) {
+          expect(statusLabel.textContent).toBe('INACTIVE');
+        }
+      }
+    });
+  });
+
+  describe('renderManagementView', () => {
+    it('should show empty state when allowlist is empty', async () => {
+      if (!env.hasContent) return;
+      const { window, browserMock } = env;
+      const { document } = window;
+
+      browserMock.__setLocalStorageData({ allowlist: [] });
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.renderManagementView) {
+        await window.renderManagementView();
+
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState) {
+          expect(emptyState.style.display).toBe('block');
+        }
+      }
+    });
+
+    it('should display site count correctly', async () => {
+      if (!env.hasContent) return;
+      const { window, browserMock } = env;
+      const { document } = window;
+
+      browserMock.__setLocalStorageData({ allowlist: ['a.com', 'b.com', 'c.com'] });
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.renderManagementView) {
+        await window.renderManagementView();
+
+        const siteCount = document.getElementById('site-count');
+        if (siteCount) {
+          expect(siteCount.textContent).toBe('3 sites');
+        }
+      }
+    });
+
+    it('should use singular "site" for count of 1', async () => {
+      if (!env.hasContent) return;
+      const { window, browserMock } = env;
+      const { document } = window;
+
+      browserMock.__setLocalStorageData({ allowlist: ['single.com'] });
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.renderManagementView) {
+        await window.renderManagementView();
+
+        const siteCount = document.getElementById('site-count');
+        if (siteCount) {
+          expect(siteCount.textContent).toBe('1 site');
+        }
+      }
+    });
+
+    it('should render allowlist items', async () => {
+      if (!env.hasContent) return;
+      const { window, browserMock } = env;
+      const { document } = window;
+
+      browserMock.__setLocalStorageData({ allowlist: ['site1.com', 'site2.com'] });
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.renderManagementView) {
+        await window.renderManagementView();
+
+        const allowlistEl = document.getElementById('allowlist');
+        if (allowlistEl) {
+          expect(allowlistEl.children.length).toBe(2);
+        }
+      }
+    });
+  });
+
+  describe('createAllowlistItem', () => {
+    it('should create label element with checkbox', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.createAllowlistItem) {
+        const item = window.createAllowlistItem('test.com');
+
+        expect(item.tagName).toBe('LABEL');
+        expect(item.className).toBe('allowlist-item');
+
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        expect(checkbox).not.toBeNull();
+        expect(checkbox.dataset.domain).toBe('test.com');
+      }
+    });
+
+    it('should display domain name in span', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.createAllowlistItem) {
+        const item = window.createAllowlistItem('example.com');
+
+        const domainSpan = item.querySelector('.allowlist-item-domain');
+        expect(domainSpan.textContent).toBe('example.com');
+      }
+    });
+
+    it('should add current badge when domain matches currentDomain', async () => {
+      if (!env.hasContent) return;
+      const { window } = env;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.createAllowlistItem) {
+        window.currentDomain = 'current.com';
+
+        const item = window.createAllowlistItem('current.com');
+
+        const badge = item.querySelector('.current-badge');
+        expect(badge).not.toBeNull();
+        expect(badge.textContent).toBe('current');
+      }
+    });
+  });
+});
+
+// ============================================================================
+// ADDITIONAL STORAGE TESTS (Issue #214 - Parity with Chrome)
+// ============================================================================
+
+describe('Additional Storage Functions', () => {
+  let env;
+
+  beforeEach(() => {
+    env = createPopupEnvironment({ authenticated: true, allowlist: [] });
+  });
+
+  afterEach(() => {
+    if (env.dom) {
+      env.dom.window.close();
+    }
+  });
+
+  it('removeManyFromAllowlist removes multiple domains at once', async () => {
+    if (!env.hasContent) return;
+    const { window, browserMock } = env;
+
+    browserMock.__setLocalStorageData({ allowlist: ['a.com', 'b.com', 'c.com'] });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    if (window.removeManyFromAllowlist) {
+      await window.removeManyFromAllowlist(['a.com', 'c.com']);
+
+      expect(browserMock.storage.local.set).toHaveBeenCalledWith({
+        allowlist: ['b.com']
+      });
+    }
+  });
+
+  it('clearAllData clears the allowlist', async () => {
+    if (!env.hasContent) return;
+    const { window, browserMock } = env;
+
+    browserMock.__setLocalStorageData({ allowlist: ['site.com'] });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    if (window.clearAllData) {
+      await window.clearAllData();
+
+      expect(browserMock.storage.local.set).toHaveBeenCalledWith({
+        allowlist: []
+      });
+    }
+  });
+});
