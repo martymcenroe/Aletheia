@@ -50,8 +50,8 @@
       </div>
 
       <div class="power-section">
-        <button id="power-button" class="power-button">
-          <span class="power-icon">⏻</span>
+        <button id="power-button" class="power-button" aria-label="Toggle Aletheia on this domain">
+          <span class="power-icon" aria-hidden="true">⏻</span>
         </button>
         <div class="status-text">
           Aletheia is <strong id="status-label">INACTIVE</strong>
@@ -59,16 +59,16 @@
         <div class="status-subtext">on this domain</div>
       </div>
 
-      <button id="manage-button" class="manage-button">
+      <button id="manage-button" class="manage-button" aria-label="Manage Allowlist">
         <span>Manage Allowlist</span>
-        <span class="arrow">→</span>
+        <span class="arrow" aria-hidden="true">→</span>
       </button>
     </div>
 
     <!-- MANAGEMENT VIEW -->
     <div id="manage-view" class="view" style="display: none;">
       <div class="header">
-        <button id="back-button" class="back-button">←</button>
+        <button id="back-button" class="back-button" aria-label="Back to main view">←</button>
         <span class="header-title">Allowlist</span>
         <span id="site-count" class="site-count">0 sites</span>
       </div>
@@ -84,8 +84,8 @@
         <button id="remove-button" class="remove-button" disabled>
           Remove Selected
         </button>
-        <button id="clear-all-button" class="clear-all-button">
-          <span>⚠</span> Clear All Data
+        <button id="clear-all-button" class="clear-all-button" aria-label="Clear All Data">
+          <span aria-hidden="true">⚠</span> Clear All Data
         </button>
       </div>
     </div>
