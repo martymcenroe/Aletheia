@@ -1,6 +1,6 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-09 21:39 CT
+**Generated:** 2026-01-10 00:05 CT
 **Total Open Issues:** 35
 
 ---
@@ -686,36 +686,6 @@ Automate the coordination between Claude Code (Sonnet 4.5) and Gemini CLI (3 Pro
 
 ---
 
-## Issue #231: Fix Firefox testing gaps - mock fidelity, file parity
-
-**Created:** 2026-01-10
-**Updated:** 2026-01-10
-
-### Description
-
-## Problem
-
-Firefox extension shipped completely broken because:
-1. Mock included `browser.identity` which doesn't exist in Firefox MV3
-2. No file parity enforcement - Firefox was missing 178 lines of CSS, content-check.js, content-safety.js
-3. Zero Firefox E2E tests
-
-See: docs/0825-audit-cross-browser-testing.md
-
-## Changes Required
-
-- [x] Create audit document (0825-audit-cross-browser-testing.md)
-- [x] Remove fake browser.identity from Firefox mock
-- [x] Sync missing files from Chrome to Firefox
-- [x] Add file parity test
-
-## References
-
-- Incident: 2026-01-09
-- Related: #206, #216
-
----
-
 ## Issue #232: audit: Create 0899 Meta-Audit Validation (CRITICAL)
 
 **Created:** 2026-01-10
@@ -1358,5 +1328,35 @@ Critical infrastructure configurations are unverified.
 
 ## Priority
 MEDIUM - Coverage gaps
+
+---
+
+## Issue #256: Fix Firefox OAuth - implement tabs-based flow
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+
+Firefox MV3 does not have `browser.identity` API. The current `auth.js` uses:
+- `browser.identity.getRedirectURL()`
+- `browser.identity.launchWebAuthFlow()`
+
+These don't exist in Firefox, causing: `can't access property "getRedirectURL", browser.identity is undefined`
+
+## Solution
+
+Implement tabs-based OAuth flow for Firefox:
+1. Use `browser.tabs.create()` to open LinkedIn auth page
+2. Monitor for OAuth callback redirect
+3. Extract auth code from callback URL
+4. Complete token exchange
+
+## References
+
+- Audit: docs/0826-audit-cross-browser-testing.md
+- Related: #206, #216, #231
 
 ---
