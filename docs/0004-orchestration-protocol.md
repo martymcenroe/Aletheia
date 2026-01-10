@@ -19,10 +19,10 @@ Every feature or fix must strictly follow this 12-step execution loop to ensure 
 | Step | Action | Command Pattern |
 | :--- | :--- | :--- |
 | **1. Issue** | Discovery & Claim | `gh issue create` or `gh issue list` |
-| **2. Docs** | Write LLD (on main) | Create/edit `docs/1xxx-feature.md` |
-| **3. Review** | Submit for feedback | Orchestrator routes to senior LLM architect |
-| **4. Iterate** | Incorporate feedback | Edit LLD until all questions resolved |
-| **5. Gate** | Request permission | State: "All feedback incorporated. May I proceed?" |
+| **2. Docs** | Write LLD (on main) | Create/edit `docs/lld/active/{ID}-feature.md` |
+| **3. Review** | Auto-invoke Gemini 3 Pro | `tools/gemini-model-check.sh` with `lld-review.txt` |
+| **4. Iterate** | Incorporate feedback | Address [BLOCKING] and [HIGH] issues in LLD |
+| **5. Gate** | Request permission | State: "LLD review complete. May I proceed?" |
 | **6. Worktree** | Isolation (after approval) | `git worktree add ../Aletheia-ID -b ID-desc` |
 | **7. Code** | Implementation | Edit source files |
 | **8. Commit** | Save | `git commit -m "type: desc (ref #ID)"` |
@@ -58,6 +58,83 @@ After `gh pr merge` succeeds, execute this sequence **immediately**. Do not star
 **Step 11 Rationale (CRITICAL):** Reports capture institutional knowledge. Without them, the "why" behind implementation decisions is lost forever. See §8.6 for requirements.
 
 **Step 12 Rationale:** Zombie worktrees and remote branches clutter the system. ALWAYS clean up completely after merge.
+
+### 3.1 Gemini Dual-Review Integration
+
+**Step 3 (Review) is now automated using Gemini 3 Pro.** This section documents the dual-AI review system where Claude Code and Gemini CLI collaborate.
+
+#### Overview
+
+Gemini 3 Pro (via `gemini CLI`) acts as a senior architect providing automated reviews at two critical gates:
+1. **LLD Review (Step 3)** - Design review before implementation
+2. **Implementation Review (Step 11)** - Code review before merge
+
+Both reviews use model downgrade detection to ensure Gemini 3 Pro is used (not downgraded to Flash due to quota exhaustion).
+
+#### LLD Review Automation (Step 3)
+
+**Trigger:** After LLD saved to `docs/lld/active/{ID}-feature.md`
+
+**Process:**
+1. Load LLD content
+2. Load prompt from `gemini-prompts/lld-review.txt`
+3. Invoke `tools/gemini-model-check.sh` with populated prompt
+4. Parse feedback using three-tier priority system:
+   - **[BLOCKING]** - Must fix (security, correctness, fail-safe gates)
+   - **[HIGH]** - Should fix (testing, mocking, data pipeline)
+   - **[SUGGESTION]** - Nice to have (performance, maintainability)
+5. Update LLD with [BLOCKING] and [HIGH] feedback
+6. Proceed to Step 4 (Iterate) if needed, or Step 5 (Gate) if complete
+
+**Exit Codes:**
+- `0` - Success (review received, correct model used)
+- `1` - Gemini CLI failed (retry once, then abort)
+- `2` - Quota exhausted (abort, notify user, log event)
+- `3` - Model downgrade detected (abort, notify user)
+
+#### Implementation Review Automation (Step 11)
+
+**Trigger:** After reports created in `docs/reports/{ID}/`
+
+**Process:**
+1. Load implementation report + test report
+2. Collect file diffs from worktree
+3. Load prompt from `gemini-prompts/implementation-review.txt`
+4. Invoke `tools/gemini-model-check.sh`
+5. Parse decision: **[APPROVE]** or **[BLOCK]**
+6. **Dual Approval Gate:** Require BOTH Gemini + User approval
+   - If [BLOCK]: Address concerns, re-submit for review
+   - If [APPROVE]: Ask user for final approval
+   - Only commit/push/merge after dual approval
+
+**Workflow State Tracking:**
+File `.claude/workflow-state.json` tracks:
+```json
+{
+  "active_issue": 222,
+  "lld_reviewed": true,
+  "gemini_approved": true,
+  "user_approved": false
+}
+```
+
+#### Error Handling
+
+| Error | Detection | Response |
+|-------|-----------|----------|
+| Model downgrade | JSON shows unexpected model | ABORT + notify + log to tmp/gemini-quota-events.jsonl |
+| Quota exhausted | 429 error or "Resource exhausted" | ABORT + display reset time + log event |
+| Network timeout | Exit code 1 | Retry once, then ABORT |
+
+#### Prompt Library
+
+All prompts versioned in `gemini-prompts/`:
+- `lld-review.txt` - LLD design review
+- `implementation-review.txt` - Implementation code review
+- `issue-review.txt` - Issue completeness check (future use)
+- `session-log.txt` - Session summary (future use)
+
+See `CLAUDE.md` § "Gemini Dual-Review Integration" and `docs/0602-skill-gemini-dual-review.md` for complete specifications.
 
 ## 4. Emergency Recovery
 If the session context is lost or the environment destabilizes, strict **Emergency Recovery Mode** is active.

@@ -65,6 +65,44 @@ Before EVERY tool call (any tool), output this block:
 
 If not permitted: STOP. Do not execute. State why blocked.
 
+#### Code Edit Gate - Pre-Edit/Write Check
+
+Before EVERY Edit or Write tool call to a **code file**, output this block:
+
+```
+**Code Edit Gate:** `[file path]`
+**Extension:** [.py/.js/.ts/.sh/.json/.yaml/.html/.css = CODE, .md = DOC]
+**In worktree?:** [YES if path contains Aletheia-{number}, NO if path is Aletheia/]
+**Permitted:** [YES if DOC or in worktree, NO if CODE on main]
+```
+
+If CODE on main → **STOP. Create worktree first. Do not edit.**
+
+Example - Violation Caught:
+```
+**Code Edit Gate:** `C:\Users\mcwiz\Projects\Aletheia\src\foo.py`
+**Extension:** .py = CODE
+**In worktree?:** NO (path is Aletheia/, not Aletheia-{number})
+**Permitted:** NO - CODE file on main
+**Action:** STOP. Must create worktree first.
+```
+
+Example - Permitted (worktree):
+```
+**Code Edit Gate:** `C:\Users\mcwiz\Projects\Aletheia-256\src\foo.py`
+**Extension:** .py = CODE
+**In worktree?:** YES (Aletheia-256)
+**Permitted:** YES
+```
+
+Example - Permitted (doc on main):
+```
+**Code Edit Gate:** `C:\Users\mcwiz\Projects\Aletheia\docs\foo.md`
+**Extension:** .md = DOC
+**In worktree?:** NO
+**Permitted:** YES - docs can be edited on main
+```
+
 #### Why Visible?
 
 - Silent checking has no accountability
