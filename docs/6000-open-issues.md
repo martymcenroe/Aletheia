@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-09 18:54 CT
-**Total Open Issues:** 19
+**Generated:** 2026-01-09 21:39 CT
+**Total Open Issues:** 35
 
 ---
 
@@ -69,58 +69,6 @@ Replace the cyberpunk/retro landing page with a modern, professional design that
 
 ---
 
-## Issue #103: Establish standards for log documents to prevent print overflow
-
-**Labels:** documentation, enhancement
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Problem
-
-Log documents (9000-lessons-learned.md, 9001-open-investigations.md, ENGINEERING-JOURNAL.md) have formatting issues that cause print overflow - lines running off the right edge when printed.
-
-## Audit Findings
-
-Ran audit on all 40 docs/*.md files - **32 have line overflow issues**:
-
-**Worst offenders:**
-- 6000-open-issues-2025-12-28.md: 554 chars max (31 long lines)
-- 9000-lessons-learned.md: 499 chars max (9 long lines)
-- ENGINEERING-JOURNAL.md: 370 chars max (28 long lines)
-- 9001-open-investigations.md: 318 chars max (4 long lines)
-
-**Root causes:**
-- Long URLs without line breaks
-- Wide tables
-- Code blocks with long lines
-- Lack of markdown line wrapping
-
-## Proposed Solution
-
-Create documentation standards for log files (9xxx and session logs):
-
-1. **Line Length Limit**: Max 100 characters per line
-2. **URL Formatting**: Use markdown link syntax `[text](url)` instead of bare URLs
-3. **Table Width**: Limit tables to 5-6 columns max, use abbreviations
-4. **Code Blocks**: Add manual line breaks in long command examples
-5. **Enforcement**: Add to 0002-coding-standards.md Section on Log Files
-
-## Acceptance Criteria
-
-- [ ] Standards documented in 0002-coding-standards.md
-- [ ] Template created for log entries (if needed)
-- [ ] Existing log files updated to meet standards (or noted as legacy)
-- [ ] Print audit passes with <10 files having overflow
-
-## Notes
-
-LaTeX wrapping (`fvextra`, `hyperref`) helps but doesn't fully solve the problem for poorly formatted logs. Prevention is better than fixing during print generation.
-
----
-
 ## Issue #106: Future: Full article context retrieval
 
 **Labels:** enhancement
@@ -153,53 +101,6 @@ This is a **future enhancement** - not required for MVP or store submission.
 ## Related
 - 0007-legal-compliance-strategy.md (copyright/fair use)
 - Summarizer/Transform layer (would process full article)
-
----
-
-## Issue #108: Printing pipeline: Render Mermaid diagrams to PDF
-
-**Labels:** documentation, chore
-
-**Created:** 2025-12-29
-**Updated:** 2025-12-29
-
-### Description
-
-## Summary
-The markdown-to-PDF printing pipeline (tools/print/print_markdown.py) does not render Mermaid diagrams. They appear as raw code blocks in printed output.
-
-## Current State
-- Pandoc + XeLaTeX converts markdown to PDF
-- Mermaid code blocks pass through as-is (not rendered)
-- GitHub renders them correctly (web only)
-
-## Potential Solutions
-
-### Option A: Pre-process with mermaid-cli
-1. Install `@mermaid-js/mermaid-cli` (mmdc)
-2. Before pandoc, extract mermaid blocks and render to PNG/SVG
-3. Replace code blocks with image references
-4. Run pandoc on modified markdown
-
-### Option B: Pandoc filter
-1. Use a Lua filter or pandoc-mermaid-filter
-2. Automatically converts mermaid blocks during PDF generation
-
-### Option C: Export from mermaid.live manually
-1. When updating docs, export diagrams as images
-2. Embed images instead of mermaid code
-3. Keep mermaid source in comments for future edits
-
-## Recommendation
-**Option A** - cleanest integration with existing pipeline.
-
-## Priority
-**Low** - defer until after store submission. GitHub works for viewing.
-
-## Acceptance Criteria
-- [ ] Mermaid diagrams render as images in printed PDFs
-- [ ] Automated (no manual export step)
-- [ ] Update print_markdown.py or create wrapper
 
 ---
 
@@ -397,155 +298,6 @@ We need email capability for:
 - [ ] `support@aletheia.study` forwards to Orchestrator's email
 - [ ] Test email received successfully
 - [ ] (Optional) Gmail "send as" configured for replies
-
----
-
-## Issue #152: Evaluate GitHub Code Scanning (CodeQL) setup
-
-**Labels:** security, chore, post-mvp
-
-**Created:** 2026-01-04
-**Updated:** 2026-01-04
-
-### Description
-
-## Context
-
-GitHub offers Code Scanning via CodeQL for static security analysis. Currently shows "Needs setup" in Security tab.
-
-## Evaluation Needed
-
-### Potential Benefits
-- Finds security vulnerabilities in Python and JavaScript
-- Integrated with GitHub (alerts in Security tab)
-- Free for public repositories
-
-### Potential Conflicts
-- **Existing linting:** We already have ruff, mypy, ESLint
-- **SonarQube:** If we add SonarQube later, may have overlapping coverage
-- **CI time:** Adds ~2-5 minutes to workflow runs
-- **False positives:** May flag patterns that are intentional
-
-### Languages to Scan
-- Python (Lambda, tools)
-- JavaScript (browser extensions)
-
-## Decision Points
-
-1. **Do we need CodeQL given existing tooling?**
-   - ruff: Python linting + some security rules
-   - mypy: Type checking (catches some bugs)
-   - ESLint: JavaScript linting
-   - gitleaks: Secret scanning (pre-commit)
-
-2. **CodeQL vs SonarQube?**
-   - CodeQL: GitHub-native, simpler setup
-   - SonarQube: More comprehensive, separate service
-
-3. **When to add?**
-   - Now: Get baseline before more code
-   - Post-MVP: When we have more complex code
-
-## Setup (If Approved)
-
-```yaml
-# .github/workflows/codeql.yml
-name: "CodeQL"
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: '0 0 * * 1'  # Weekly Monday
-
-jobs:
-  analyze:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
-        with:
-          languages: python, javascript
-      - uses: github/codeql-action/analyze@v3
-```
-
-## Acceptance Criteria
-
-- [ ] Decision made: Enable CodeQL or defer
-- [ ] If enabled: Workflow added and passing
-- [ ] If enabled: Initial scan reviewed, false positives triaged
-- [ ] Document decision in ADR if significant
-
-## References
-
-- [GitHub CodeQL docs](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql)
-- [CodeQL for Python](https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/)
-
----
-
-## Issue #160: chore: Automate accessibility checks in CI (pa11y/axe-core)
-
-**Labels:** testing, chore
-
-**Created:** 2026-01-05
-**Updated:** 2026-01-05
-
-### Description
-
-## Context
-
-0899 Meta-Audit identified that 0811 (Accessibility) is currently a manual procedure with high toil, likely to be skipped during crunch times.
-
-## Proposal
-
-Add automated accessibility scanning to CI pipeline using:
-- **pa11y** - CLI accessibility testing
-- **axe-core** - Accessibility testing engine (used by Playwright)
-
-## Implementation Options
-
-### Option A: pa11y in CI
-\
-added 128 packages in 40s
-
-8 packages are looking for funding
-  run aletheia@1.0.0
-├─┬ https://eslint.org/donate
-│ │ └── eslint@9.39.2, @eslint/js@9.39.2
-│ ├── https://opencollective.com/eslint
-│ │   └── @eslint-community/eslint-utils@4.9.1, eslint-visitor-keys@3.4.3, @eslint/eslintrc@3.3.3, eslint-scope@8.4.0, eslint-visitor-keys@4.2.1, espree@10.4.0
-│ ├── https://github.com/sponsors/nzakas
-│ │   └── @humanwhocodes/module-importer@1.0.1, @humanwhocodes/retry@0.4.3
-│ ├── https://github.com/sponsors/epoberezkin
-│ │   └── ajv@6.12.6, ajv@8.12.0
-│ └─┬ https://github.com/chalk/chalk?sponsor=1
-│   │ └── chalk@4.1.2, chalk@5.0.1
-│   └── https://github.com/chalk/ansi-styles?sponsor=1
-│       └── ansi-styles@4.3.0, ansi-styles@6.2.3
-├── https://github.com/chalk/chalk-template?sponsor=1
-│   └── chalk-template@0.4.0
-└── https://github.com/sponsors/ljharb
-    └── minimist@1.2.8 for details
-
-Welcome to Pa11y
-
- > Running Pa11y on URL http://localhost:8080/popup.html
-### Option B: axe-core with Playwright
-\
-## Acceptance Criteria
-
-- [ ] CI fails on WCAG Level A violations
-- [ ] CI warns on WCAG Level AA violations
-- [ ] Popup.html and overlay tested
-- [ ] Results logged for audit record
-
-## References
-
-- 0811 Accessibility Audit: - 0899 Meta-Audit recommendation #1
-- Issue #154 (ARIA attributes) - manual fixes needed first
 
 ---
 
@@ -765,81 +517,6 @@ After cleanup, root should contain only:
 
 ---
 
-## Issue #205: chore: Strengthen /cleanup to auto-delete orphaned branches
-
-**Created:** 2026-01-09
-**Updated:** 2026-01-09
-
-### Description
-
-## Incident Report
-
-**Date:** 2026-01-09
-**Symptom:** Branch `126-hard-soft-blocking` found orphaned during `/cleanup`
-**Root Cause:** POST-MERGE GATE did not exist; agent removed worktree but forgot to delete local branch
-
-### Timeline
-
-| Time | Event |
-|------|-------|
-| 08:11 UTC | PR #202 merged via `gh pr merge` |
-| 08:11 UTC | GitHub auto-deleted remote branch |
-| ~08:12 UTC | Agent removed worktree (assumed) |
-| **MISSING** | Agent did NOT delete local branch |
-| 10:15 UTC | `/cleanup` flagged orphan branch |
-
-## Immediate Fix (Completed)
-
-- [x] Added POST-MERGE GATE to CLAUDE.md with explicit 4-step checklist
-- [x] Added Step 12 Cleanup Checklist to 0004-orchestration-protocol.md
-- [x] Documented incident in both files as cautionary example
-- [x] Deleted orphan branch `126-hard-soft-blocking`
-
-## Proposed Enhancement
-
-The `/cleanup` skill currently **reports** orphaned branches but does not **delete** them.
-
-### Proposed: Auto-Delete Safe Orphans
-
-Add logic to `.claude/commands/cleanup.md`:
-
-```
-For each local branch != main:
-  1. Check if remote exists: git branch -vv | grep "origin/.*: gone"
-  2. Check if worktree exists: git worktree list | grep branch-name
-  3. If remote=gone AND worktree=none:
-     → Branch is safely deletable (completed work, merged, cleaned up remotely)
-     → Auto-delete: git branch -D {branch-name}
-     → Report: "Deleted orphan branch: {branch-name}"
-```
-
-### Safety Criteria
-
-Only auto-delete if ALL conditions are met:
-- [x] Branch is not `main`
-- [x] Remote tracking shows `gone` (was deleted on GitHub)
-- [x] No worktree exists for this branch
-- [x] Branch has no unpushed commits (implicit: remote existed and was deleted)
-
-### Implementation
-
-1. Update `.claude/commands/cleanup.md` Phase 2 to include auto-delete logic
-2. Add `--no-auto-delete` flag for conservative mode
-3. Report all deletions in cleanup summary
-
-## Acceptance Criteria
-
-- [ ] `/cleanup` auto-deletes branches where remote is `gone` and no worktree exists
-- [ ] Deletions are reported in summary table
-- [ ] `--no-auto-delete` flag available for manual control
-- [ ] POST-MERGE GATE in CLAUDE.md prevents future orphans
-
-## Labels
-
-`chore`, `process-improvement`, `cleanup`
-
----
-
 ## Issue #214: test(unit): Port popup.test.js and overlay tests to Firefox extension
 
 **Labels:** testing
@@ -908,58 +585,6 @@ extensions.forEach(browser => {
 - Chrome popup tests: `tests/unit/popup.test.js`
 - Firefox auth gap: Issue #206
 - Coding standards: Dual extension parity requirement
-
----
-
-## Issue #217: test(fix): Repair legacy popup.test.js failures
-
-**Labels:** technical-debt
-
-**Created:** 2026-01-10
-**Updated:** 2026-01-10
-
-### Description
-
-## Context
-  We skipped 6 tests in `popup.test.js` during the Chrome Fortification (Issue #211) to get the build Green. These tests fail due to window scope/global variable issues in the legacy codebase.
-
-  ## Scope
-  1. Unskip the tests in `tests/unit/chrome/popup.test.js`.
-  2. Refactor `popup.js` or the test harness to properly mock global variables (e.g., `selectedDomains`).
-  3. Ensure `npm run test:unit` passes with these tests active.
-
----
-
-## Issue #220: fix: ShellCheck failures in provision.sh blocking CI
-
-**Created:** 2026-01-10
-**Updated:** 2026-01-10
-
-### Description
-
-## Problem
-
-The `infra-lint` CI check is failing due to ShellCheck violations in `provision.sh`. This is blocking PRs that don't touch infrastructure code.
-
-**Evidence:** PR #219 (Chrome test coverage) failed infra-lint despite only modifying test files.
-
-**CI Job:** https://github.com/martymcenroe/Aletheia/actions/runs/20869197592/job/59967188800
-
-## Impact
-
-- Blocks unrelated PRs from merging
-- Creates false negatives in CI pipeline
-
-## Proposed Fix
-
-1. Run `shellcheck provision.sh` locally to identify violations
-2. Fix all ShellCheck warnings/errors
-3. Verify infra-lint passes
-
-## Acceptance Criteria
-
-- [ ] `shellcheck provision.sh` exits with code 0
-- [ ] `infra-lint` CI job passes on main branch
 
 ---
 
@@ -1061,41 +686,677 @@ Automate the coordination between Claude Code (Sonnet 4.5) and Gemini CLI (3 Pro
 
 ---
 
-## Issue #223: refactor: Standardize Firefox namespace to browser.*
+## Issue #231: Fix Firefox testing gaps - mock fidelity, file parity
 
 **Created:** 2026-01-10
 **Updated:** 2026-01-10
 
 ### Description
 
-## Priority: Low
+## Problem
 
-## Context
+Firefox extension shipped completely broken because:
+1. Mock included `browser.identity` which doesn't exist in Firefox MV3
+2. No file parity enforcement - Firefox was missing 178 lines of CSS, content-check.js, content-safety.js
+3. Zero Firefox E2E tests
 
-During Issue #218 (Firefox Service Worker Tests), we noted that Firefox's `service-worker.js` uses `chrome.*` namespace instead of the canonical `browser.*` namespace.
+See: docs/0825-audit-cross-browser-testing.md
 
-Firefox MV3 provides a compatibility layer that makes `chrome.*` work, but this is not the canonical Firefox approach.
+## Changes Required
 
-## Current State
+- [x] Create audit document (0825-audit-cross-browser-testing.md)
+- [x] Remove fake browser.identity from Firefox mock
+- [x] Sync missing files from Chrome to Firefox
+- [x] Add file parity test
 
-- `extensions/firefox/service-worker.js` - uses `chrome.*` APIs
-- Tests work correctly using Chrome mock
+## References
 
-## Proposed Refactor
+- Incident: 2026-01-09
+- Related: #206, #216
 
-1. Update `extensions/firefox/service-worker.js` to use `browser.*` namespace
-2. Update tests to use Firefox mock (`createFirefoxMock`)
-3. Verify all tests pass
+---
+
+## Issue #232: audit: Create 0899 Meta-Audit Validation (CRITICAL)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+The meta-audit (0899) is referenced in the audit index but **does not exist**. This audit is supposed to verify that other audits were actually executed.
+
+## Evidence
+From 0800-audit-index.md: '0899 Meta-Audit Validation' is listed but no file exists at docs/0899-*.md
 
 ## Impact
+Without this, agents can claim to execute audits with no verification. The entire audit system lacks a validation layer.
 
-- Low priority - current implementation works correctly
-- Improves code consistency and follows Firefox best practices
-- Makes Firefox extension more "Firefox-native"
+## Acceptance Criteria
+- [ ] Create docs/0899-meta-audit-validation.md
+- [ ] Scan all audit records for execution history
+- [ ] List missing/overdue audits
+- [ ] Add CI job that blocks if any quarterly audit is overdue
+- [ ] Add CI job that verifies audit records were filled when claimed
 
-## Files Affected
+## Priority
+CRITICAL - This is the audit-of-audits. Everything else depends on it.
 
-- `extensions/firefox/service-worker.js`
-- `tests/unit/firefox/service-worker.test.js`
+---
+
+## Issue #233: audit: Create 0898 Horizon Scanning Protocol
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+The horizon scanning audit (0898) is referenced in the audit index but **does not exist**. This audit is supposed to detect when referenced frameworks/standards are updated.
+
+## Evidence
+From 0800-audit-index.md: '0898 Horizon Scanning Protocol' is listed but no file exists at docs/0898-*.md
+
+## Impact
+Audits reference external standards (OWASP Top 10:2025, ISO 42001:2023, EU AI Act). When these standards update, we have no process to detect the change. Audits become stale.
+
+## Acceptance Criteria
+- [ ] Create docs/0898-horizon-scanning-protocol.md
+- [ ] Track all external framework references
+- [ ] Quarterly check if frameworks have new versions
+- [ ] Update audits when frameworks change
+
+## Priority
+HIGH - Framework drift undermines audit validity
+
+---
+
+## Issue #234: audit: Remove Exception Registry self-excuse mechanism (0825)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0825 AI Safety audit contains an 'Exception Registry' (§7) that allows agents to formally excuse audit failures with a 'budget of 2'.
+
+## Evidence
+From 0825-audit-ai-safety.md:
+```
+## 7. Exception Registry (ADR 0213)
+**Exception Budget:** 2 (exceeding budget = automatic FAIL)
+```
+
+## Impact
+This is **institutionalized self-excuse**. An agent can:
+1. Fail an audit item
+2. Add 'Justification' text they write themselves
+3. Move on with work
+
+No human approval required. No escalation.
+
+## Acceptance Criteria
+- [ ] Remove Exception Registry section from 0825
+- [ ] Convert to 'Known Limitations' (advisory, not excusable)
+- [ ] Require human (orchestrator) approval for any excused failure
+- [ ] Create GitHub issue for ANY audit failure (no internal exceptions)
+
+## Priority
+CRITICAL - This undermines the entire audit system
+
+---
+
+## Issue #235: audit: Remove 'Justified Miss' self-excuse language (0812)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0812 Performance audit contains 'Justified Miss' classification that allows agents to excuse any failure as an 'architectural trade-off'.
+
+## Evidence
+From 0812-audit-performance.md:
+\
+Actual audit record shows:
+> **Status:** FAIL (500-1000ms vs 100ms target)
+> **Excuse:** 'This is a Justified Miss because ADR 0201 prohibits \ permission'
+
+## Impact
+Agent writes justification AND accepts it. No oversight.
+
+## Acceptance Criteria
+- [ ] Remove 'Justified Miss' classification
+- [ ] FAIL = FAIL (open issue)
+- [ ] Trade-offs documented in ADR, not in audit
+- [ ] Audit reflects reality, not excuses
+
+## Priority
+HIGH - This pattern appears in multiple audits
+
+---
+
+## Issue #236: audit: Enforce calendar schedule for 'as needed' audits (0811, 0817)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Audits marked 'as needed' have no enforcement mechanism. Agents can defer indefinitely by claiming 'not needed now'.
+
+## Evidence
+0811 Accessibility - marked 'as needed' - **NEVER EXECUTED** (audit record completely empty)
+0817 Wiki Alignment - marked 'on user-facing changes' - no calendar enforcement
+
+## Impact
+0811 has literally never been run. The entire audit exists but has zero execution history.
+
+## Acceptance Criteria
+- [ ] Replace 'as needed' with monthly minimum
+- [ ] Replace 'on change' with monthly minimum + on change
+- [ ] Add CI check: block if any audit > 30 days since last execution
+- [ ] Run 0811 Accessibility immediately (it's never been run)
+
+## Priority
+HIGH - 0811 has NEVER been executed
+
+---
+
+## Issue #237: audit: Execute 0811 Accessibility audit (NEVER RUN)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0811 Accessibility audit has **never been executed**. The audit record section is completely empty.
+
+## Evidence
+From 0811-audit-accessibility.md audit record:
+```
+| Date | Auditor | Findings Summary |
+|------|---------|------------------|
+| | | |
+```
+
+## Impact
+We have accessibility requirements but no verification they are met. pa11y runs in CI but the formal audit has never been conducted.
+
+## Acceptance Criteria
+- [ ] Execute 0811 audit manually
+- [ ] Fill in audit record with findings
+- [ ] Create issues for any failures found
+- [ ] Schedule recurring execution
+
+## Priority
+MEDIUM - Audit exists but has never been run
+
+---
+
+## Issue #238: audit: Execute 0818 AI Management/ISO 42001 audit (NEVER RUN)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0818 AI Management System audit has **never been executed**. Audit record is empty.
+
+## Evidence
+Audit file exists with comprehensive checklist but no execution history.
+
+## Acceptance Criteria
+- [ ] Execute 0818 audit
+- [ ] Fill in audit record
+- [ ] Create issues for any failures
+
+## Priority
+MEDIUM - AI governance audit never run
+
+---
+
+## Issue #239: audit: Execute 0819 AI Supply Chain audit (NEVER RUN)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0819 AI Supply Chain / OWASP LLM03 audit has **never been executed**. Audit record is empty.
+
+## Evidence
+Audit file exists with comprehensive checklist but no execution history.
+
+## Acceptance Criteria
+- [ ] Execute 0819 audit
+- [ ] Fill in audit record
+- [ ] Create issues for any failures
+
+## Priority
+MEDIUM - Supply chain security audit never run
+
+---
+
+## Issue #240: audit: Execute 0820 Explainability/XAI audit (NEVER RUN)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0820 Explainability / XAI audit has **never been executed**. Audit record is empty.
+
+## Evidence
+Audit file exists with comprehensive checklist but no execution history.
+
+## Acceptance Criteria
+- [ ] Execute 0820 audit
+- [ ] Fill in audit record
+- [ ] Create issues for any failures
+
+## Priority
+MEDIUM - Explainability audit never run
+
+---
+
+## Issue #241: audit: Execute 0821 Agentic AI Governance audit (NEVER RUN)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0821 Agentic AI Governance / OWASP Agentic 2026 audit has **never been executed**. Audit record is empty.
+
+## Evidence
+Audit file exists with comprehensive checklist but no execution history.
+
+## Acceptance Criteria
+- [ ] Execute 0821 audit
+- [ ] Fill in audit record
+- [ ] Create issues for any failures
+
+## Priority
+HIGH - This governs our agent behavior, never verified
+
+---
+
+## Issue #242: audit: Execute 0822 Bias and Fairness audit (NEVER RUN)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0822 Bias and Fairness / ISO 24027 audit has **never been executed**. Audit record is empty.
+
+## Evidence
+Audit file exists with comprehensive checklist but no execution history.
+
+## Acceptance Criteria
+- [ ] Execute 0822 audit
+- [ ] Fill in audit record
+- [ ] Create issues for any failures
+
+## Priority
+MEDIUM - Bias audit never run
+
+---
+
+## Issue #243: audit: Execute 0823 AI Incident Post-Mortem (NEVER RUN)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0823 AI Incident Post-Mortem audit framework exists but has **never been triggered**. No incident records.
+
+## Evidence
+Audit file exists with comprehensive framework but incident log is empty.
+
+## Acceptance Criteria
+- [ ] Review if any past incidents should have triggered 0823
+- [ ] Document the incident history (even if retroactive)
+- [ ] Ensure incident classification is not agent-discretionary
+
+## Priority
+MEDIUM - Incident audit framework never used
+
+---
+
+## Issue #244: audit: Remove N/A bypass mechanism from all audits
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Multiple audits allow entire sections to be skipped with 'N/A (not applicable)' without verification that the condition still holds.
+
+## Evidence
+From 0825 AI Safety:
+- LLM04: Data Poisoning - N/A (no fine-tuning)
+- LLM08: Vector/Embedding - N/A (no RAG)
+- AA02: Rogue Agents - N/A (no agent persistence)
+- AA03: Memory Poisoning - N/A (no memory)
+
+## Impact
+If code changes (e.g., fine-tuning added), agent could fail to notice the N/A is now wrong.
+
+## Acceptance Criteria
+- [ ] Replace N/A with explicit verification check
+- [ ] 'N/A because X' must verify X is still true
+- [ ] Add re-verification dates to N/A items
+- [ ] Quarterly review of all N/A items
+
+## Priority
+HIGH - N/A is a stealth bypass
+
+---
+
+## Issue #245: audit: Add tool integrity verification to CI
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Silent tool failures are treated as passes. If ESLint crashes, agent sees '0 errors' and moves on.
+
+## Evidence
+From 0813 Code Quality Audit:
+> On 2026-01-08, ESLint security plugins were declared in package.json but never installed. ESLint crashed with ERR_MODULE_NOT_FOUND. The audit noted 'NPM unmet dependencies' as MEDIUM priority without realizing this meant zero security linting.
+
+## Impact
+A crashed tool produces no output. No output looks like 'passed'. This is invisible failure.
+
+## Acceptance Criteria
+- [ ] CI job verifies ESLint actually ran (check for expected output pattern)
+- [ ] CI job verifies pytest collected > 0 test items
+- [ ] CI job verifies ruff processed files (not empty run)
+- [ ] Fail-loud if any tool appears broken
+- [ ] No silent failures treated as pass
+
+## Priority
+CRITICAL - Silent failures undermine all tooling
+
+---
+
+## Issue #246: audit: Add adversarial test logging to 0825 AI Safety
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0825 AI Safety requires adversarial testing but provides no evidence logging. Agent can claim tests passed without running them.
+
+## Evidence
+From 0825 Section 2 Checklist:
+- Execute adversarial test cases
+- Test prompt injection, jailbreaks, output manipulation
+
+But NO logging mechanism. No evidence of what was attempted.
+
+## Impact
+Agent writes 'adversarial tests PASS' with no proof.
+
+## Acceptance Criteria
+- [ ] Add CloudWatch logging for adversarial test attempts
+- [ ] Log: prompt sent, response received, blocked/passed
+- [ ] Audit record must include test case IDs executed
+- [ ] Verifiable evidence required, not self-attestation
+
+## Priority
+HIGH - AI safety claims are unverifiable
+
+---
+
+## Issue #247: audit: Add severity classification verification to 0823
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0823 Incident Post-Mortem allows agent to self-classify incident severity. An agent could classify a security breach as SEV-4 (minor) to reduce urgency.
+
+## Evidence
+From 0823:
+- SEV-1: Critical - safety/security breach - Immediate
+- SEV-4: Low - minor issues - < 1 week
+
+Classification is entirely discretionary.
+
+## Impact
+Incident severity determines response time. Self-classification enables downgrading.
+
+## Acceptance Criteria
+- [ ] Add automated severity indicators
+- [ ] Security keywords auto-classify as SEV-1
+- [ ] User data exposure auto-classifies as SEV-1
+- [ ] Agent classification is suggestion, human confirms
+
+## Priority
+HIGH - Self-classification is a loophole
+
+---
+
+## Issue #248: audit: Add CI job to verify audit execution claims
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Agents can claim to execute audits with no verification. Session logs may say 'ran 0809 Security - PASS' but nothing validates this.
+
+## Evidence
+90% of audits are manual-only. No CI verification that claimed audits were actually run.
+
+## Impact
+Audit claims are unverifiable. Trust-based system enables self-excuse.
+
+## Acceptance Criteria
+- [ ] CI job scans session logs for audit claims
+- [ ] Cross-references against audit record updates
+- [ ] Blocks if audit claimed but no record updated
+- [ ] Weekly report: audits claimed vs audits evidenced
+
+## Priority
+CRITICAL - This is the enforcement gap
+
+---
+
+## Issue #249: audit: Require auditor identity in all audit records
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Audit records do not consistently require auditor identity. Agent could fill in record anonymously.
+
+## Evidence
+Multiple audit records have 'Auditor' column but many entries are blank or generic.
+
+## Impact
+No accountability for audit quality. Can not trace who approved what.
+
+## Acceptance Criteria
+- [ ] All audit records require Auditor name
+- [ ] Auditor must be commit author
+- [ ] No anonymous audit entries
+- [ ] Audit record validation in pre-commit
+
+## Priority
+MEDIUM - Accountability gap
+
+---
+
+## Issue #250: audit: Create audit overdue blocking in CI
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+No CI mechanism blocks work when audits are overdue. Quarterly audits can be indefinitely deferred.
+
+## Evidence
+- 0818 ISO 42001: marked quarterly, never run
+- 0819 Supply Chain: marked quarterly, never run
+- No CI enforcement
+
+## Impact
+Scheduled audits are suggestions, not requirements.
+
+## Acceptance Criteria
+- [ ] CI job tracks last audit execution dates
+- [ ] Blocks merge if any quarterly audit > 90 days overdue
+- [ ] Blocks merge if any monthly audit > 30 days overdue
+- [ ] Warning at 75% threshold
+
+## Priority
+HIGH - Schedule enforcement is missing
+
+---
+
+## Issue #251: audit: Fix ESLint security plugin installation (0813 finding)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+0813 Code Quality audit found ESLint security plugins were declared but never installed. ESLint crashed silently.
+
+## Evidence
+From 0813 audit record 2026-01-08:
+> ESLint security plugins declared in package.json but never installed
+> ESLint crashed with ERR_MODULE_NOT_FOUND
+
+## Impact
+Zero JavaScript security linting. Silent failure treated as pass.
+
+## Acceptance Criteria
+- [ ] Run npm install to install declared dependencies
+- [ ] Verify eslint-plugin-security is working
+- [ ] Add CI check that ESLint actually produces output
+- [ ] No silent ESLint failures
+
+## Priority
+HIGH - Security linting is broken
+
+---
+
+## Issue #252: audit: Add external framework version tracking (drift detection)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Audits reference external frameworks (OWASP Top 10, ISO 42001, EU AI Act) but have no process to detect when frameworks update.
+
+## Evidence
+- 0809 references 'OWASP Top 10:2025'
+- 0818 references 'ISO/IEC 42001:2023'
+- 0821 references 'OWASP Agentic 2026'
+- No tracking of when these are superseded
+
+## Impact
+Audits against outdated frameworks give false compliance.
+
+## Acceptance Criteria
+- [ ] Create framework version registry
+- [ ] Track publication dates
+- [ ] Quarterly check for new versions
+- [ ] Alert when framework updates detected
+
+## Priority
+MEDIUM - Long-term staleness risk
+
+---
+
+## Issue #253: audit: Document all audit failures as GitHub issues (policy)
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Current policy allows audit findings to be documented internally without creating tracking issues. Findings can be hidden in audit records.
+
+## Proposal
+ALL audit findings must create GitHub issues:
+- FAIL → Issue created immediately
+- WARN → Issue created with 'low-priority' label
+- INFO → Optional issue
+
+## Rationale
+GitHub issues are visible, trackable, and cannot be quietly dismissed. Internal audit records can be edited or forgotten.
+
+## Acceptance Criteria
+- [ ] Update CLAUDE.md with issue creation requirement
+- [ ] Update 0800-audit-index with policy
+- [ ] Pre-commit hook: block if audit record shows FAIL but no issue link
+- [ ] No internal-only failures
+
+## Priority
+HIGH - Visibility and accountability
+
+---
+
+## Issue #254: audit: Create missing system integration audits
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+Multiple system integration areas have no audit coverage:
+- Bedrock guardrails configuration
+- DynamoDB schema compliance
+- Lambda environment variable security
+- Claude Code model versions
+
+## Evidence
+No 08xx file covers these areas. Audit index has no entries.
+
+## Impact
+Critical infrastructure configurations are unverified.
+
+## Acceptance Criteria
+- [ ] Create 0826 Model Version Audit (Claude/Bedrock tracking)
+- [ ] Create 0827 Guardrails Configuration Audit
+- [ ] Create 0828 Infrastructure Security Audit
+- [ ] Add to audit schedule
+
+## Priority
+MEDIUM - Coverage gaps
 
 ---
