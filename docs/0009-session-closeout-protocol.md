@@ -94,23 +94,13 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
     --next "Per user direction"
 ```
 
-**Phase 4 - Commit & Push:**
-```bash
-git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/
-git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: quick cleanup YYYY-MM-DD"
-git -C /c/Users/mcwiz/Projects/Aletheia push
-```
+**Note:** Session log is written to file but NOT committed. Session logs should be committed by the agent doing actual work, not by cleanup agents. This prevents commit spam when multiple agents run cleanup simultaneously.
 
-**Phase 5 - Verify:**
+**Phase 4 - Verify:**
 ```bash
-# MANDATORY: Show what was actually committed
-git -C /c/Users/mcwiz/Projects/Aletheia log -1 --stat
-
-# Verify clean state
 git -C /c/Users/mcwiz/Projects/Aletheia status
+gh pr list --state open --repo martymcenroe/Aletheia
 ```
-
-**CRITICAL REQUIREMENT:** Before reporting cleanup status, verify that what you claim to have done matches what was actually committed. Compare your claimed actions against the `git log -1 --stat` output.
 
 ---
 
@@ -131,7 +121,6 @@ gh issue list --state open --repo martymcenroe/Aletheia
 **Phase 2 - Doc Sync:**
 ```bash
 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
-git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
 ```
 
 **Phase 3 - Session Log:**
@@ -144,25 +133,13 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
     --next "Per user direction"
 ```
 
-**Phase 4 - Commit & Push:**
-```bash
-git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/
-git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
-git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: normal cleanup YYYY-MM-DD"
-git -C /c/Users/mcwiz/Projects/Aletheia push
-```
+**Note:** Doc sync and session log are written to files but NOT committed. This prevents race conditions when multiple agents run cleanup simultaneously. Session logs should be committed by the agent doing actual work.
 
-**Phase 5 - Verify:**
+**Phase 4 - Verify:**
 ```bash
-# MANDATORY: Show what was actually committed
-git -C /c/Users/mcwiz/Projects/Aletheia log -1 --stat
-
-# Verify clean state
 git -C /c/Users/mcwiz/Projects/Aletheia status
 gh pr list --state open --repo martymcenroe/Aletheia
 ```
-
-**CRITICAL REQUIREMENT:** Before reporting cleanup status, you MUST verify that what you claim to have done matches what was actually committed. Compare your claimed actions against the `git log -1 --stat` output. If you claimed "regenerated 6000-open-issues.md" but it's not in the commit, you MUST investigate and fix the discrepancy - NEVER skip steps or misreport status.
 
 ---
 
@@ -204,30 +181,32 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
     --next "Next steps"
 ```
 
-**Phase 4 - Commit & Push:**
+**Phase 4 - Commit & Push (if needed):**
+
+**Note:** Session logs are NOT committed (prevents race conditions). Only commit files that full cleanup legitimately modifies (inventory updates, IMMEDIATE-PLAN corrections, stale worktree removals).
+
 ```bash
-git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/
+# Check if there are actual changes to commit (excluding session logs)
+git -C /c/Users/mcwiz/Projects/Aletheia status --short
+
+# If changes exist (inventory, IMMEDIATE-PLAN, etc.), commit them:
 git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
 git -C /c/Users/mcwiz/Projects/Aletheia add docs/0003-file-inventory.md
 git -C /c/Users/mcwiz/Projects/Aletheia add docs/0000a-IMMEDIATE-PLAN.md
 git -C /c/Users/mcwiz/Projects/Aletheia add docs/9000-lessons-learned.md
 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: full cleanup YYYY-MM-DD"
 git -C /c/Users/mcwiz/Projects/Aletheia push
+
+# If no changes, skip commit
 ```
 
 **Phase 5 - Verify:**
 ```bash
-# MANDATORY: Show what was actually committed
-git -C /c/Users/mcwiz/Projects/Aletheia log -1 --stat
-
-# Verify clean state (parallel)
 git -C /c/Users/mcwiz/Projects/Aletheia status
 git -C /c/Users/mcwiz/Projects/Aletheia worktree list
 git -C /c/Users/mcwiz/Projects/Aletheia branch -r
 gh pr list --state open --repo martymcenroe/Aletheia
 ```
-
-**CRITICAL REQUIREMENT:** Before reporting cleanup status, you MUST verify that what you claim to have done matches what was actually committed. Compare your claimed actions against the `git log -1 --stat` output. If you claimed "regenerated 6000-open-issues.md" but it's not in the commit, you MUST investigate and fix the discrepancy - NEVER skip steps or misreport status.
 
 **Human Reminder:**
 - Chrome: `chrome://extensions/` → Reload extension
@@ -247,7 +226,8 @@ The cleanup returns a summary table:
 | Branches | ✅ Only main / ⚠️ {list} |
 | Worktrees | ✅ Only main / ⚠️ {list} |
 | Stashes | ✅ None / ⚠️ {count} |
-| Commit | ✅ Pushed / ❌ Failed |
+| Session Log | ✅ Written (not committed) |
+| Doc Sync | ✅ Regenerated (not committed in quick/normal) |
 
 ---
 
