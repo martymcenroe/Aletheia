@@ -6,9 +6,11 @@
  * - browser.tabs.onRemoved
  * - browser.storage.local.get() / set() / remove()
  * - browser.storage.session.get() / set() / remove()
- * - browser.identity.launchWebAuthFlow()
- * - browser.identity.getRedirectURL()
  * - browser.runtime.sendMessage()
+ *
+ * NOTE: browser.identity is NOT available in Firefox MV3.
+ * Firefox OAuth requires a different approach (tabs-based flow).
+ * See: docs/0825-audit-cross-browser-testing.md
  * - browser.runtime.onMessage
  * - browser.runtime.onInstalled
  * - browser.runtime.id
@@ -108,31 +110,11 @@ export function createFirefoxMock(options = {}) {
       lastError: null
     },
 
-    // Identity API (OAuth support)
-    identity: {
-      launchWebAuthFlow: vi.fn().mockImplementation(({ url, interactive: _interactive }) => {
-        return new Promise((resolve, reject) => {
-          if (!oauthConfig.shouldSucceed) {
-            reject(new Error('OAuth flow cancelled by user'));
-            return;
-          }
-
-          // Extract state from the auth URL for CSRF validation
-          const authUrl = new URL(url);
-          const stateParam = authUrl.searchParams.get('state');
-
-          // Use configured returnedState or echo back the sent state (valid flow)
-          const returnState = oauthConfig.returnedState !== null
-            ? oauthConfig.returnedState
-            : stateParam;
-
-          // Return mock redirect URL with code and state
-          const redirectUrl = `https://mock-extension-id.extensions.allizom.org/?code=${oauthConfig.mockCode}&state=${returnState}`;
-          resolve(redirectUrl);
-        });
-      }),
-      getRedirectURL: vi.fn().mockReturnValue('https://mock-extension-id.extensions.allizom.org/')
-    },
+    // REMOVED: browser.identity API
+    // Firefox MV3 does NOT have browser.identity - it's Chrome-only.
+    // See: docs/0825-audit-cross-browser-testing.md
+    // Firefox OAuth must use a tabs-based flow instead.
+    // The identity property is intentionally undefined to catch code that incorrectly uses it.
 
     // Tabs API
     tabs: {
