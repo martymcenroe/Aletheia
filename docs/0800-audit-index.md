@@ -37,10 +37,10 @@ Audits exist because:
 
 | Category | Count | Focus |
 |----------|-------|-------|
-| Core Development | 11 | Code quality, security, privacy, accessibility |
+| Core Development | 12 | Code quality, security, privacy, accessibility |
 | AI Governance | 7 | AI-specific controls and compliance |
 | Meta | 2 | Audit system governance |
-| **Total** | **20** | |
+| **Total** | **21** | |
 
 ### 3.2 Quick Reference
 
@@ -64,6 +64,7 @@ Audits exist because:
 | 0821 | Agentic AI Governance (OWASP Agentic) |
 | 0822 | Bias & Fairness |
 | 0823 | AI Incident Post-Mortem |
+| 0826 | Cross-Browser Testing (Firefox/Chrome parity) |
 | 0898 | Horizon Scanning Protocol |
 | 0899 | Meta-Audit (validation & execution) |
 
@@ -88,6 +89,7 @@ Audits for code quality, security, and development practices.
 | 0817 | Wiki Alignment | On user-facing changes | Manual |
 | 0815 | Claude Code Workflow | Monthly | Manual |
 | 0816 | Dependabot PRs | Weekly | Semi-auto |
+| 0826 | Cross-Browser Testing | On extension changes | CI |
 
 ### 4.2 AI Governance Audits
 
@@ -238,6 +240,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 - [0822 - Bias & Fairness](0822-audit-bias-fairness.md)
 - [0823 - AI Incident Post-Mortem](0823-audit-ai-incident-post-mortem.md)
 - [0825 - AI Safety](0825-audit-ai-safety.md)
+- [0826 - Cross-Browser Testing](0826-audit-cross-browser-testing.md)
 - [0898 - Horizon Scanning Protocol](0898-horizon-scanning-protocol.md)
 - [0899 - Meta-Audit](0899-meta-audit.md)
 
@@ -335,6 +338,7 @@ By using appropriate models instead of Opus for all audits:
 
 | Date | Change |
 |------|--------|
+| 2026-01-09 | Created 0826 (Cross-Browser Testing) after Firefox incident. Enforces file parity and mock fidelity. Total audits: 21. |
 | 2026-01-08 | Split 0809 per ADR 0213. Created 0825 (AI Safety) with LLM, Agentic, NIST AI RMF sections. 0809 now focused on app security. Total audits: 20. |
 | 2026-01-08 | Index consistency audit. Fixed broken links (0811-0814, 0815, 0817). Corrected audit names/descriptions to match actual files. Added 0817 Wiki Alignment. Total audits: 19. |
 | 2026-01-06 | Major update. Added AI Governance audits (0818-0823), split meta-audit into 0898 (horizon scanning) and 0899 (validation). Merged 0800-common-audits.md into this file (preserved Audit Philosophy section). Total audits: 17. |

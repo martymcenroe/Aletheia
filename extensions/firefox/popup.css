@@ -399,3 +399,181 @@ body {
 .list-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-secondary);
 }
+
+/* RESTRICTED VIEW (Issue #104 - Age Gate) */
+#restricted-view {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.restricted-icon-container {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba(220, 38, 38, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.restricted-icon {
+  font-size: 36px;
+  color: #DC2626;
+}
+
+.restricted-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.restricted-message {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* CHECKING VIEW (Issue #104 - Race condition handling) */
+#checking-view {
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.checking-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.checking-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.checking-text {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* LOGIN VIEW (Issue #116 - LinkedIn OAuth) */
+#login-view {
+  padding: 24px;
+}
+
+.login-content {
+  text-align: center;
+}
+
+.login-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.login-message {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #0A66C2;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.login-button:hover {
+  background-color: #004182;
+}
+
+.login-button:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.linkedin-icon {
+  font-weight: 700;
+  font-size: 16px;
+  background-color: white;
+  color: #0A66C2;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-privacy {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 16px;
+  line-height: 1.4;
+}
+
+.login-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+  padding: 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* USER BAR (Issue #116) */
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  margin: -24px -24px 16px -24px;
+}
+
+.user-name {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.logout-button {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.logout-button:hover {
+  background-color: var(--color-border);
+  color: var(--color-text);
+}
