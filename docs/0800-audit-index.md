@@ -29,6 +29,22 @@ Audits exist because:
 
 **The code is the truth. The docs are a claim about the truth.**
 
+### 2.2 N/A Verification Policy (MANDATORY)
+
+**"N/A" is not a free pass.** Items marked Not Applicable require verification each audit:
+
+| Wrong | Right |
+|-------|-------|
+| "Data Poisoning: N/A (no fine-tuning)" | "Data Poisoning: ⬜ VERIFY no fine-tuning → ✅ VERIFIED: No training jobs, no custom models" |
+| Check box without evidence | Grep/inspect to prove claim still true |
+
+**Every N/A claim requires:**
+1. **Architectural verification** - Confirm the reason still holds (check code/config)
+2. **Documentation** - Note in audit record: "Verified [item] N/A: [evidence]"
+3. **Re-evaluation** - If architecture changed, audit the item fully
+
+**Rationale:** Architecture evolves. What was N/A last quarter (e.g., "no fine-tuning") may not be N/A now. Blind N/A checkboxes become security debt.
+
 ---
 
 ## 3. Audit Suite Overview

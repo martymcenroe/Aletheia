@@ -13,7 +13,19 @@ AI-specific safety audit covering LLM security, agentic AI risks, and AI governa
 
 ---
 
-## 2. OWASP Top 10 for LLM Applications (2025)
+## 2. N/A Verification Policy
+
+**There is no automatic N/A bypass.** Items marked as potentially N/A require verification:
+
+1. **Confirm architecture unchanged** - Verify the reason for N/A still holds
+2. **Document verification** - Note in audit record: "Verified [item] N/A: [reason still valid]"
+3. **If architecture changed** - Re-evaluate and audit the item fully
+
+Items below marked "VERIFY N/A" require explicit confirmation each audit.
+
+---
+
+## 3. OWASP Top 10 for LLM Applications (2025)
 
 ### Checklist
 
@@ -22,11 +34,11 @@ AI-specific safety audit covering LLM security, agentic AI risks, and AI governa
 | **LLM01: Prompt Injection** | User-selected text sent to Claude | XML-wrapped in etymologist.py, prompt injection instruction | ⬜ |
 | **LLM02: Sensitive Info Disclosure** | Claude responses | No PII stored, in-memory only | ⬜ |
 | **LLM03: Supply Chain** | Bedrock/Claude dependency | AWS-managed, no custom models | ⬜ |
-| **LLM04: Data Poisoning** | N/A (no fine-tuning) | Not applicable | ⬜ N/A |
+| **LLM04: Data Poisoning** | VERIFY: no fine-tuning | Not applicable if no training | ⬜ VERIFY |
 | **LLM05: Improper Output Handling** | Rendering Claude output | textContent used (not innerHTML) | ⬜ |
 | **LLM06: Excessive Agency** | Claude actions | Read-only analysis, no tool use | ⬜ |
 | **LLM07: System Prompt Leakage** | System prompt exposure | Hardcoded, "Prompt Injection Attempt" response | ⬜ |
-| **LLM08: Vector/Embedding Weaknesses** | N/A (no RAG) | Not applicable | ⬜ N/A |
+| **LLM08: Vector/Embedding Weaknesses** | VERIFY: no RAG | Not applicable if no embeddings | ⬜ VERIFY |
 | **LLM09: Misinformation** | Claude accuracy | Etymologist persona, neutral tone | ⬜ |
 | **LLM10: Unbounded Consumption** | Bedrock costs | 20k char limit, 500 token max | ⬜ |
 
@@ -52,22 +64,22 @@ Actively attempt these attacks during audit:
 
 ---
 
-## 3. OWASP Top 10 for Agentic Applications (2026)
+## 4. OWASP Top 10 for Agentic Applications (2026)
 
 ### Checklist
 
 | Risk | Aletheia Applicability | Mitigation | Status |
 |------|------------------------|------------|--------|
 | **AA01: Agent Goal Hijacking** | Low risk (single-purpose) | Fixed purpose, no goal modification | ⬜ |
-| **AA02: Rogue Agents** | N/A (no agent persistence) | Stateless Lambda | ⬜ N/A |
-| **AA03: Memory Poisoning** | N/A (no memory) | No conversation history | ⬜ N/A |
-| **AA04: Insecure Inter-Agent Comms** | N/A (single agent) | Not applicable | ⬜ N/A |
-| **AA05: Tool Misuse** | N/A (no tools) | Read-only analysis | ⬜ N/A |
+| **AA02: Rogue Agents** | VERIFY: stateless Lambda | No agent persistence if Lambda stateless | ⬜ VERIFY |
+| **AA03: Memory Poisoning** | VERIFY: no conversation memory | No memory if no DynamoDB history | ⬜ VERIFY |
+| **AA04: Insecure Inter-Agent Comms** | VERIFY: single agent | Not applicable if no agent-to-agent | ⬜ VERIFY |
+| **AA05: Tool Misuse** | VERIFY: no tool use | Not applicable if read-only | ⬜ VERIFY |
 | **AA06: Excessive Autonomy** | Low (user-initiated) | Requires user context menu click | ⬜ |
 | **AA07: Trust Boundary Violations** | Extension ↔ Lambda | WAF header validation | ⬜ |
-| **AA08: Cascading Hallucinations** | N/A (single step) | Not applicable | ⬜ N/A |
-| **AA09: Agent Impersonation** | N/A (no multi-agent) | Not applicable | ⬜ N/A |
-| **AA10: Persistence Mechanisms** | N/A (stateless) | In-memory only, no state | ⬜ N/A |
+| **AA08: Cascading Hallucinations** | VERIFY: single inference | Not applicable if no chaining | ⬜ VERIFY |
+| **AA09: Agent Impersonation** | VERIFY: single agent | Not applicable if no multi-agent | ⬜ VERIFY |
+| **AA10: Persistence Mechanisms** | VERIFY: stateless design | No persistence if in-memory only | ⬜ VERIFY |
 
 ### Least Agency Principle
 
@@ -80,7 +92,7 @@ Actively attempt these attacks during audit:
 
 ---
 
-## 4. NIST AI RMF Alignment
+## 5. NIST AI RMF Alignment
 
 ### MAP Function (Context)
 
@@ -116,7 +128,7 @@ Actively attempt these attacks during audit:
 
 ---
 
-## 5. AI Model Provenance
+## 6. AI Model Provenance
 
 | Check | Requirement | Status |
 |-------|-------------|--------|
@@ -130,7 +142,7 @@ Cross-reference: 0819 AI Supply Chain Audit for AIBOM details.
 
 ---
 
-## 6. Audit Procedure
+## 7. Audit Procedure
 
 ### Prerequisites
 
@@ -145,16 +157,6 @@ Cross-reference: 0819 AI Supply Chain Audit for AIBOM details.
 4. Document findings in audit record
 5. Create issues for any failures
 6. Re-audit after remediation
-
----
-
-## 7. Exception Registry (ADR 0213)
-
-| Exception | ADR | Justification | Review Date | Status |
-|-----------|-----|---------------|-------------|--------|
-| (none) | - | - | - | - |
-
-**Exception Budget:** 2 (exceeding budget = automatic FAIL)
 
 ---
 
