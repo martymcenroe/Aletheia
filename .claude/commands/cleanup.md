@@ -165,6 +165,12 @@ Then stage (do NOT commit yet):
 git -C /c/Users/mcwiz/Projects/Aletheia add docs/6000-open-issues.md
 ```
 
+**Full mode only: Transcript Archival**
+```bash
+poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/archive_transcripts.py
+```
+Archives verbatim transcripts older than 7 days to monthly archive directories (`~/.claude/projects/.../archive/YYYY-MM/`).
+
 **Full mode only: Additional checks**
 
 1. **Inventory audit**: Use Glob tool with patterns **/*.py, **/*.js, **/*.md, **/*.sh
