@@ -199,6 +199,21 @@ See **`docs/0015-agent-prohibited-actions.md`** for the complete list with ratio
 - ❌ `/tmp` or system temp directories (use `{project}/tmp/`)
 - ❌ `gh pr merge` (use `poetry run python tools/merge_pr.py --pr {number}`)
 
+### ISSUE CREATION GATE (BULK OPERATION PROTECTION)
+
+**Before creating more than 3 issues in a single session, STOP and execute this gate:**
+
+1. **Inform user:** "I'm about to create N issues. Proceed?"
+2. **Wait for explicit approval** - do NOT proceed without "yes" or equivalent
+3. **Offer alternatives:**
+   - Batch findings into a single tracking issue with checklist
+   - Create issues across multiple days
+   - Document findings without creating issues (user creates later)
+
+**Why this gate exists:** Bulk issue creation affects the repository's activity history. Always ask before bulk operations.
+
+**Incident 2026-01-09:** Agent created 23 audit issues in 3 minutes without warning.
+
 ### Required Workflow:
 - **Docs before Code:** You MUST write the relevant LLD (`docs/lld/active/`) or Standard *before* writing a single line of code.
 - **Review Gate (MANDATORY):** After writing the LLD:
