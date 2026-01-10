@@ -2,6 +2,7 @@
  * Unit Tests for Firefox service-worker.js
  *
  * Issue #218: Firefox Service Worker Tests (Browser Parity)
+ * Issue #223: Refactored to use canonical browser.* namespace
  * Per ADR 0215: Tests verify message handlers, installation events, and age gate.
  *
  * Test Categories:
@@ -12,14 +13,11 @@
  * 5. Tab Lifecycle - Memory cleanup on tab close
  * 6. NoArchive Signal - Per Issue #162
  *
- * NOTE: Firefox MV3 supports both `browser.*` and `chrome.*` namespaces.
- * The current Firefox service-worker.js uses `chrome.*` for Chrome compatibility.
- * These tests use the Chrome mock since that's what the code currently calls.
- * Future work: Refactor to use `browser.*` for canonical Firefox API usage.
+ * Uses Firefox mock with canonical `browser.*` namespace.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createChromeMock } from '../../mocks/chrome-api.mock.js';
+import { createFirefoxMock } from '../../mocks/firefox-api.mock.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -48,17 +46,17 @@ function cleanupEnvironment() {
 }
 
 /**
- * Creates a test environment with Chrome API mocks and evaluates service-worker.js
- * NOTE: Uses Chrome mock because Firefox service-worker.js currently uses chrome.* APIs
+ * Creates a test environment with Firefox API mocks and evaluates service-worker.js
+ * Uses canonical browser.* namespace per Issue #223
  */
 function createServiceWorkerEnvironment(options = {}) {
   // Clean any previous state first
   cleanupEnvironment();
 
-  const chromeMock = createChromeMock(options);
+  const browserMock = createFirefoxMock(options);
 
-  // Set up global chrome object (Firefox supports chrome.* namespace)
-  global.chrome = chromeMock;
+  // Set up global browser object (canonical Firefox namespace)
+  global.browser = browserMock;
 
   // Mock console to suppress logging during tests (save original first)
   const originalConsole = global.console;
@@ -89,7 +87,7 @@ function createServiceWorkerEnvironment(options = {}) {
     }
   }
 
-  return { chromeMock };
+  return { browserMock };
 }
 
 // ============================================================================
@@ -133,25 +131,25 @@ describe('Installation Events (Firefox)', () => {
   });
 
   it('registers onInstalled listener', () => {
-    const { chromeMock } = env;
-    expect(chromeMock.runtime.onInstalled.addListener).toHaveBeenCalled();
+    const { browserMock } = env;
+    expect(browserMock.runtime.onInstalled.addListener).toHaveBeenCalled();
   });
 
   it('creates context menu on install', () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Trigger onInstalled event
-    chromeMock.__triggerOnInstalled({ reason: 'install' });
+    browserMock.__triggerOnInstalled({ reason: 'install' });
 
-    expect(chromeMock.contextMenus.create).toHaveBeenCalled();
+    expect(browserMock.contextMenus.create).toHaveBeenCalled();
   });
 
   it('creates "Explain with AI" context menu item', () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
-    chromeMock.__triggerOnInstalled({ reason: 'install' });
+    browserMock.__triggerOnInstalled({ reason: 'install' });
 
-    const createCall = chromeMock.contextMenus.create.mock.calls[0][0];
+    const createCall = browserMock.contextMenus.create.mock.calls[0][0];
     expect(createCall.id).toBe('explain-with-ai');
     expect(createCall.title).toBe('Explain with AI');
     expect(createCall.contexts).toContain('selection');
@@ -174,15 +172,15 @@ describe('Message Handlers (Firefox)', () => {
   });
 
   it('registers onMessage listener', () => {
-    const { chromeMock } = env;
-    expect(chromeMock.runtime.onMessage.addListener).toHaveBeenCalled();
+    const { browserMock } = env;
+    expect(browserMock.runtime.onMessage.addListener).toHaveBeenCalled();
   });
 
   describe('GET_TAB_STATE message', () => {
     it('returns state for known tab', async () => {
-      const { chromeMock } = env;
+      const { browserMock } = env;
 
-      const response = await chromeMock.__simulateMessage({
+      const response = await browserMock.__simulateMessage({
         type: 'GET_TAB_STATE',
         tabId: 1
       });
@@ -193,9 +191,9 @@ describe('Message Handlers (Firefox)', () => {
     });
 
     it('returns unknown for untracked tab', async () => {
-      const { chromeMock } = env;
+      const { browserMock } = env;
 
-      const response = await chromeMock.__simulateMessage({
+      const response = await browserMock.__simulateMessage({
         type: 'GET_TAB_STATE',
         tabId: 999 // Untracked tab
       });
@@ -207,14 +205,14 @@ describe('Message Handlers (Firefox)', () => {
 
   describe('RECHECK_TAB message', () => {
     it('responds asynchronously', async () => {
-      const { chromeMock } = env;
+      const { browserMock } = env;
 
       // Set up script injection to return allowed content
-      chromeMock.__setScriptInjectionResults([{
+      browserMock.__setScriptInjectionResults([{
         result: { isRestricted: false, ratingValue: null, noarchive: false }
       }]);
 
-      const response = await chromeMock.__simulateMessage({
+      const response = await browserMock.__simulateMessage({
         type: 'RECHECK_TAB'
       });
 
@@ -240,10 +238,10 @@ describe('Security - Sender Validation (Firefox)', () => {
   });
 
   it('rejects messages from unknown sender', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Simulate message from hostile extension
-    const _response = await chromeMock.__simulateMessage(
+    const _response = await browserMock.__simulateMessage(
       { type: 'GET_TAB_STATE', tabId: 1 },
       { id: 'malicious-extension-id' }
     );
@@ -254,12 +252,12 @@ describe('Security - Sender Validation (Firefox)', () => {
   });
 
   it('accepts messages from own extension', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
-    // Simulate message from same extension
-    const response = await chromeMock.__simulateMessage(
+    // Simulate message from same extension (Firefox extension ID)
+    const response = await browserMock.__simulateMessage(
       { type: 'GET_TAB_STATE', tabId: 1 },
-      { id: 'mock-extension-id-12345' }
+      { id: 'extension@aletheia.study' }
     );
 
     // Should process message normally
@@ -267,10 +265,10 @@ describe('Security - Sender Validation (Firefox)', () => {
   });
 
   it('accepts messages from content scripts (undefined sender.id)', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Content scripts have undefined sender.id
-    const response = await chromeMock.__simulateMessage(
+    const response = await browserMock.__simulateMessage(
       { type: 'GET_TAB_STATE', tabId: 1 },
       { tab: { id: 1 } } // Content script sender
     );
@@ -296,24 +294,24 @@ describe('Age Gate - Tab State Management (Firefox)', () => {
   });
 
   it('registers tabs.onRemoved listener for cleanup', () => {
-    const { chromeMock } = env;
-    expect(chromeMock.tabs.onRemoved.addListener).toHaveBeenCalled();
+    const { browserMock } = env;
+    expect(browserMock.tabs.onRemoved.addListener).toHaveBeenCalled();
   });
 
   it('cleans up tab state when tab is closed', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // First, get state for a tab (creates entry)
-    await chromeMock.__simulateMessage({
+    await browserMock.__simulateMessage({
       type: 'GET_TAB_STATE',
       tabId: 42
     });
 
     // Simulate tab close
-    chromeMock.__triggerTabRemoved(42);
+    browserMock.__triggerTabRemoved(42);
 
     // State should be cleaned up (will return unknown for removed tab)
-    const response = await chromeMock.__simulateMessage({
+    const response = await browserMock.__simulateMessage({
       type: 'GET_TAB_STATE',
       tabId: 42
     });
@@ -338,18 +336,18 @@ describe('Context Menu Click Handler (Firefox)', () => {
   });
 
   it('registers contextMenus.onClicked listener', () => {
-    const { chromeMock } = env;
-    expect(chromeMock.contextMenus.onClicked.addListener).toHaveBeenCalled();
+    const { browserMock } = env;
+    expect(browserMock.contextMenus.onClicked.addListener).toHaveBeenCalled();
   });
 
   it('handles explain-with-ai menu click', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Set up allowlist
-    chromeMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
 
     // Set up script injection results
-    chromeMock.__setScriptInjectionResults([{
+    browserMock.__setScriptInjectionResults([{
       result: { isRestricted: false, noarchive: false }
     }]);
 
@@ -366,23 +364,23 @@ describe('Context Menu Click Handler (Firefox)', () => {
       title: 'Test Page'
     };
 
-    chromeMock.__triggerContextMenuClick(info, tab);
+    browserMock.__triggerContextMenuClick(info, tab);
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Should have attempted to inject overlay and call API
-    expect(chromeMock.scripting.executeScript).toHaveBeenCalled();
+    expect(browserMock.scripting.executeScript).toHaveBeenCalled();
   });
 
   it('shows warning when site not in allowlist', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Empty allowlist
-    chromeMock.__setLocalStorageData({ allowlist: [] });
+    browserMock.__setLocalStorageData({ allowlist: [] });
 
     // Set up script injection results (non-restricted)
-    chromeMock.__setScriptInjectionResults([{
+    browserMock.__setScriptInjectionResults([{
       result: { isRestricted: false, noarchive: false }
     }]);
 
@@ -398,13 +396,13 @@ describe('Context Menu Click Handler (Firefox)', () => {
       title: 'Not Allowed'
     };
 
-    chromeMock.__triggerContextMenuClick(info, tab);
+    browserMock.__triggerContextMenuClick(info, tab);
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Should show warning badge
-    const badgeState = chromeMock.__getBadgeState(1);
+    const badgeState = browserMock.__getBadgeState(1);
     expect(badgeState.text).toBe('!');
     expect(badgeState.color).toBe('#FBBF24');
   });
@@ -426,10 +424,10 @@ describe('Badge State (Firefox)', () => {
   });
 
   it('sets success badge on successful API response', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Set up allowlist
-    chromeMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
 
     // Set up successful response
     global.fetch = vi.fn().mockResolvedValue({
@@ -442,7 +440,7 @@ describe('Badge State (Firefox)', () => {
     });
 
     // Set up script injection
-    chromeMock.__setScriptInjectionResults([{
+    browserMock.__setScriptInjectionResults([{
       result: { isRestricted: false, noarchive: false }
     }]);
 
@@ -454,11 +452,11 @@ describe('Badge State (Firefox)', () => {
 
     const tab = { id: 1, url: 'https://example.com', title: 'Test' };
 
-    chromeMock.__triggerContextMenuClick(info, tab);
+    browserMock.__triggerContextMenuClick(info, tab);
     await new Promise(resolve => setTimeout(resolve, 150));
 
     // Should have set success badge at some point
-    expect(chromeMock.action.setBadgeText).toHaveBeenCalled();
+    expect(browserMock.action.setBadgeText).toHaveBeenCalled();
   });
 });
 
@@ -478,13 +476,13 @@ describe('API Integration (Firefox)', () => {
   });
 
   it('includes X-Aletheia-Client-Version header in API requests', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Set up allowlist
-    chromeMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
 
     // Set up script injection
-    chromeMock.__setScriptInjectionResults([
+    browserMock.__setScriptInjectionResults([
       { result: { isRestricted: false, noarchive: false } },
       { result: 'page body text' }
     ]);
@@ -497,7 +495,7 @@ describe('API Integration (Firefox)', () => {
 
     const tab = { id: 1, url: 'https://example.com', title: 'Test' };
 
-    chromeMock.__triggerContextMenuClick(info, tab);
+    browserMock.__triggerContextMenuClick(info, tab);
     await new Promise(resolve => setTimeout(resolve, 150));
 
     // Check fetch was called with version header
@@ -509,13 +507,13 @@ describe('API Integration (Firefox)', () => {
   });
 
   it('sends noarchive signal in payload when present', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Set up allowlist
-    chromeMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
 
     // Set up script injection with noarchive signal
-    chromeMock.__setScriptInjectionResults([
+    browserMock.__setScriptInjectionResults([
       { result: { isRestricted: false, noarchive: true } },
       { result: 'page body text' }
     ]);
@@ -528,7 +526,7 @@ describe('API Integration (Firefox)', () => {
 
     const tab = { id: 1, url: 'https://example.com', title: 'Test' };
 
-    chromeMock.__triggerContextMenuClick(info, tab);
+    browserMock.__triggerContextMenuClick(info, tab);
     await new Promise(resolve => setTimeout(resolve, 150));
 
     // Check fetch was called (noarchive signal handling is implementation detail)
@@ -573,16 +571,16 @@ describe('Error Handling (Firefox)', () => {
   });
 
   it('handles API fetch errors gracefully', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Set up allowlist
-    chromeMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
 
     // Mock network error
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     // Set up script injection
-    chromeMock.__setScriptInjectionResults([
+    browserMock.__setScriptInjectionResults([
       { result: { isRestricted: false, noarchive: false } },
       { result: 'page body' }
     ]);
@@ -596,20 +594,20 @@ describe('Error Handling (Firefox)', () => {
     const tab = { id: 1, url: 'https://example.com', title: 'Test' };
 
     // Should not throw
-    chromeMock.__triggerContextMenuClick(info, tab);
+    browserMock.__triggerContextMenuClick(info, tab);
     await new Promise(resolve => setTimeout(resolve, 150));
 
     // Should set error badge
-    const _badgeState = chromeMock.__getBadgeState(1);
+    const _badgeState = browserMock.__getBadgeState(1);
     // Badge should indicate error (checkmark or X)
-    expect(chromeMock.action.setBadgeText).toHaveBeenCalled();
+    expect(browserMock.action.setBadgeText).toHaveBeenCalled();
   });
 
   it('handles script injection failures (FAIL OPEN)', async () => {
-    const { chromeMock } = env;
+    const { browserMock } = env;
 
     // Make script injection fail (CSP restriction)
-    chromeMock.scripting.executeScript.mockRejectedValue(
+    browserMock.scripting.executeScript.mockRejectedValue(
       new Error('Cannot access a chrome:// URL')
     );
 
