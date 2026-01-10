@@ -240,7 +240,7 @@ Since Aletheia uses API-based models, explainability comes through prompt engine
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-01-10 | Claude Opus 4.5 | PASS: AI disclosure present in popup.html ("AI-powered context analysis"), etymologist persona provides structured explanations (signal, gem, context format), uncertainty markers in prompt design, clear classification rules | None |
 
 ---
 
