@@ -78,7 +78,7 @@ Ensure Aletheia browser extension is usable by people with disabilities, complia
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-01-10 | Claude Opus 4.5 | PASS with gaps: overlay.js has ARIA labels, popup.html missing ARIA labels on interactive buttons (power, logout, manage), images have alt text, lang attribute present | #260 |
 
 ---
 
