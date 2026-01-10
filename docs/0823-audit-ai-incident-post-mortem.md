@@ -24,6 +24,34 @@ Structured process for analyzing AI system failures, near-misses, and unexpected
 | **SEV-3** | Medium - degraded experience | Slow responses, minor errors | < 24 hours |
 | **SEV-4** | Low - minor issues | Cosmetic bugs, edge cases | < 1 week |
 
+### 2.1.1 Automatic Severity Indicators (MANDATORY)
+
+**Agent classification is a SUGGESTION. Human confirms final severity.**
+
+The following keywords/patterns trigger AUTOMATIC severity floors:
+
+| Trigger | Auto-Minimum | Rationale |
+|---------|--------------|-----------|
+| "user data", "PII", "credentials", "password" | SEV-1 | Privacy breach |
+| "security", "breach", "exploit", "injection" | SEV-1 | Security incident |
+| "harmful", "offensive", "slur", "hate" | SEV-1 | Safety failure |
+| "data loss", "corruption", "deleted" | SEV-1 | Data integrity |
+| "service down", "outage", "unavailable" | SEV-2 | Availability |
+| "bypass", "circumvent", "evade" | SEV-2 | Control failure |
+
+**Classification Override Rules:**
+
+1. Agent proposes severity based on assessment
+2. If any auto-trigger keyword is present, severity CANNOT be lower than the trigger floor
+3. Human can escalate (SEV-3 → SEV-1) but agent cannot downgrade below auto-floor
+4. All severity classifications must be documented with rationale
+
+**Example:**
+- Incident: "Prompt injection bypassed guardrail"
+- Keyword triggers: "injection" (SEV-1), "bypass" (SEV-2)
+- Auto-floor: SEV-1 (highest trigger wins)
+- Agent cannot classify this as SEV-3 or SEV-4
+
 ### 2.2 AI-Specific Incident Types
 
 | Type | Description | Typical Severity |
