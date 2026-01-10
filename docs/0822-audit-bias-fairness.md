@@ -272,7 +272,7 @@ The semantic guardrail uses Claude to classify content. Check for classification
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-01-10 | Claude Opus 4.5 | PASS: Etymologist prompt enforces neutral scholarly voice ("inform not moralize", "factual, concise"), denylist sourced from Wikipedia per ADR, no user demographic data collected (privacy-first design prevents demographic bias), cultural neutrality emphasized in prompt design | None |
 
 ---
 
