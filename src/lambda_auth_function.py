@@ -443,6 +443,67 @@ def delete_user_data(user_id: str) -> int:
         raise
 
 
+def handle_oauth_callback(query_params: dict) -> dict:
+    """
+    Handle GET /auth/callback - OAuth redirect endpoint for Firefox.
+
+    Firefox doesn't have browser.identity API, so we use a Lambda callback.
+    LinkedIn redirects here with ?code=...&state=...
+    We return an HTML page that the extension can detect and extract the code from.
+
+    Issue #256: Firefox OAuth tabs-based flow.
+    """
+    code = query_params.get("code", "")
+    state = query_params.get("state", "")
+    error = query_params.get("error", "")
+    error_description = query_params.get("error_description", "")
+
+    if error:
+        # OAuth error from LinkedIn
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>Aletheia - Login Failed</title>
+    <style>
+        body {{ font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; text-align: center; }}
+        .error {{ color: #dc3545; }}
+    </style>
+</head>
+<body>
+    <h1 class="error">Login Failed</h1>
+    <p>{error_description or error}</p>
+    <p>You can close this tab.</p>
+    <div id="oauth-result" data-error="{error}" data-error-description="{error_description}"></div>
+</body>
+</html>"""
+    else:
+        # Success - include code and state in a hidden div for extension to extract
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>Aletheia - Login Successful</title>
+    <style>
+        body {{ font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; text-align: center; }}
+        .success {{ color: #28a745; }}
+        #oauth-result {{ display: none; }}
+    </style>
+</head>
+<body>
+    <h1 class="success">Login Successful!</h1>
+    <p>You can close this tab and return to the extension.</p>
+    <div id="oauth-result" data-code="{code}" data-state="{state}"></div>
+</body>
+</html>"""
+
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Content-Type": "text/html; charset=utf-8",
+        },
+        "body": html,
+    }
+
+
 def handle_delete_my_data(headers: dict) -> dict:
     """
     Handle DELETE /my-data - GDPR Article 17 data erasure endpoint.
@@ -501,6 +562,7 @@ def lambda_handler(event: dict, context: Any) -> dict:
     - POST /auth/token - Exchange code for tokens
     - POST /auth/refresh - Refresh access token
     - GET /auth/validate - Validate access token
+    - GET /auth/callback - OAuth callback for Firefox (Issue #256)
     - DELETE /my-data - GDPR erasure (Issue #147)
 
     See: docs/1116-linkedin-oauth.md, docs/1147-gdpr-data-erasure.md
@@ -527,6 +589,9 @@ def lambda_handler(event: dict, context: Any) -> dict:
 
         headers = event.get("headers", {})
 
+        # Parse query string parameters (for callback)
+        query_params = event.get("queryStringParameters", {}) or {}
+
         # Route to appropriate handler
         if path == "/auth/token" and http_method == "POST":
             return handle_token_exchange(body)
@@ -534,6 +599,8 @@ def lambda_handler(event: dict, context: Any) -> dict:
             return handle_token_refresh(body)
         elif path == "/auth/validate" and http_method == "GET":
             return handle_validate_token(headers)
+        elif path == "/auth/callback" and http_method == "GET":
+            return handle_oauth_callback(query_params)
         elif path == "/my-data" and http_method == "DELETE":
             return handle_delete_my_data(headers)
         else:

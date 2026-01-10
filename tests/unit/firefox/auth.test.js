@@ -80,7 +80,12 @@ function createAuthEnvironment(options = {}) {
     }
   }
 
-  return { browserMock };
+  // Auth config from the source file (for test assertions)
+  const authConfig = {
+    LAMBDA_AUTH_URL: 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws'
+  };
+
+  return { browserMock, authConfig };
 }
 
 // ============================================================================
@@ -92,8 +97,12 @@ describe('Namespace Verification', () => {
     expect(authJsSource.length).toBeGreaterThan(0);
   });
 
-  it('uses browser.identity not chrome.identity', () => {
-    expect(authJsSource).toContain('browser.identity');
+  it('does NOT use browser.identity (Firefox MV3 does not have it)', () => {
+    // Firefox MV3 doesn't have browser.identity API
+    // We use a tabs-based OAuth flow instead
+    // See: docs/0826-audit-cross-browser-testing.md, Issue #256
+    expect(authJsSource).not.toContain('browser.identity.launchWebAuthFlow');
+    expect(authJsSource).not.toContain('browser.identity.getRedirectURL');
     expect(authJsSource).not.toContain('chrome.identity');
   });
 
@@ -133,66 +142,35 @@ describe('CSRF State Generation', () => {
     expect(global.window.AletheiaAuth).toBeDefined();
   });
 
-  it('generateState produces 64-character hex string', async () => {
-    // Access internal function if exposed, or test via initiateLogin
-    // For now, we'll test the outcome: state stored in session storage
-    const { browserMock } = env;
-
-    // Trigger login to generate state
-    if (global.window.AletheiaAuth) {
-      // Set mock mode to avoid actual OAuth flow
-      // The state should be stored before launchWebAuthFlow is called
-      try {
-        await global.window.AletheiaAuth.initiateLogin();
-      } catch (_e) {
-        // May fail if fetch mock isn't perfect, but state should be set
-      }
-
-      // Check that oauth_state was stored in session
-      const sessionData = browserMock.__getSessionStorageData();
-      if (sessionData.oauth_state) {
-        expect(sessionData.oauth_state).toMatch(/^[0-9a-f]{64}$/);
-      }
+  it('generateState produces 64-character hex string', () => {
+    // Use the exposed generateState function directly
+    if (global.window.AletheiaAuth && global.window.AletheiaAuth.generateState) {
+      const state = global.window.AletheiaAuth.generateState();
+      expect(state).toMatch(/^[0-9a-f]{64}$/);
     }
   });
 
-  it('generates unique state values', async () => {
+  it('generates unique state values', () => {
     const states = new Set();
-    const { browserMock } = env;
 
     // Generate multiple states
-    for (let i = 0; i < 10; i++) {
-      browserMock.__resetSessionStorage();
-
-      if (global.window.AletheiaAuth) {
-        try {
-          await global.window.AletheiaAuth.initiateLogin();
-        } catch (_e) {
-          // Expected - we just want the state
-        }
-
-        const sessionData = browserMock.__getSessionStorageData();
-        if (sessionData.oauth_state) {
-          states.add(sessionData.oauth_state);
-        }
+    if (global.window.AletheiaAuth && global.window.AletheiaAuth.generateState) {
+      for (let i = 0; i < 10; i++) {
+        const state = global.window.AletheiaAuth.generateState();
+        states.add(state);
       }
-    }
 
-    // All states should be unique
-    if (states.size > 0) {
+      // All states should be unique
       expect(states.size).toBe(10);
     }
   });
 });
 
 // ============================================================================
-// CSRF STATE VALIDATION TESTS
+// CSRF STATE VALIDATION TESTS (Tabs-based flow - Issue #256)
 // ============================================================================
 
-// SKIPPED: These tests require browser.identity API which doesn't exist in Firefox MV3.
-// Firefox OAuth must be reimplemented using a tabs-based flow.
-// See: docs/0826-audit-cross-browser-testing.md
-describe.skip('CSRF State Validation', () => {
+describe('CSRF State Validation', () => {
   let env;
 
   beforeEach(() => {
@@ -209,26 +187,77 @@ describe.skip('CSRF State Validation', () => {
   it('rejects mismatched state parameter', async () => {
     const { browserMock } = env;
 
-    // Configure mock to return a different state (CSRF attack simulation)
-    browserMock.__setOAuthReturnedState('attacker-controlled-state');
+    if (!global.window.AletheiaAuth) return;
 
-    if (global.window.AletheiaAuth) {
-      await expect(global.window.AletheiaAuth.initiateLogin())
-        .rejects.toThrow(/CSRF|state/i);
-    }
+    // Start login - this will create a tab
+    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+
+    // Wait for tab to be created
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Get the stored state (we don't use it - attacker uses different state)
+    const stored = await browserMock.storage.session.get(['oauth_state']);
+    const _correctState = stored.oauth_state;
+
+    // Simulate LinkedIn callback with WRONG state (CSRF attack)
+    const callbackUrl = `${env.authConfig.LAMBDA_AUTH_URL}/auth/callback?code=fake-code&state=attacker-controlled-state`;
+    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
+
+    // Should reject with CSRF error
+    await expect(loginPromise).rejects.toThrow(/CSRF|state/i);
   });
 
   it('accepts matching state parameter', async () => {
     const { browserMock } = env;
 
-    // Configure mock to echo back the correct state (valid flow)
-    browserMock.__setOAuthReturnedState(null); // null = echo back sent state
+    if (!global.window.AletheiaAuth) return;
 
-    if (global.window.AletheiaAuth) {
-      // Should not throw CSRF error
-      await expect(global.window.AletheiaAuth.initiateLogin())
-        .resolves.toBeDefined();
-    }
+    // Mock successful token exchange
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresIn: 3600,
+        user: { id: 'test-user-id', name: 'Test User' }
+      })
+    });
+
+    // Start login - this will create a tab
+    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+
+    // Wait for tab to be created
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Get the stored state (this is what the extension expects back)
+    const stored = await browserMock.storage.session.get(['oauth_state']);
+    const correctState = stored.oauth_state;
+
+    // Simulate LinkedIn callback with CORRECT state
+    const callbackUrl = `${env.authConfig.LAMBDA_AUTH_URL}/auth/callback?code=valid-auth-code&state=${correctState}`;
+    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
+
+    // Should succeed
+    const user = await loginPromise;
+    expect(user).toEqual({ id: 'test-user-id', name: 'Test User' });
+  });
+
+  it('handles user closing auth tab', async () => {
+    const { browserMock } = env;
+
+    if (!global.window.AletheiaAuth) return;
+
+    // Start login - this will create a tab
+    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+
+    // Wait for tab to be created
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Simulate user closing the auth tab
+    browserMock.__triggerTabRemoved(100, {});
+
+    // Should reject with cancelled error
+    await expect(loginPromise).rejects.toThrow(/cancelled|closed/i);
   });
 });
 
@@ -251,43 +280,82 @@ describe('Token Storage Hierarchy', () => {
   });
 
   it('stores access token in session storage', async () => {
-    const { browserMock } = env;
+    const { browserMock, authConfig } = env;
 
-    if (global.window.AletheiaAuth) {
-      try {
-        await global.window.AletheiaAuth.initiateLogin();
-      } catch (_e) {
-        // May fail, check storage anyway
-      }
+    if (!global.window.AletheiaAuth) return;
 
-      // Verify browser.storage.session.set was called with accessToken
-      expect(browserMock.storage.session.set).toHaveBeenCalled();
+    // Mock successful token exchange
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        accessToken: 'test-access-token',
+        refreshToken: 'test-refresh-token',
+        expiresIn: 3600,
+        user: { id: 'test-user-id', name: 'Test User' }
+      })
+    });
 
-      const sessionData = browserMock.__getSessionStorageData();
-      // Access token should be in session storage
-      if (Object.keys(sessionData).length > 0) {
-        expect(sessionData.accessToken || sessionData.oauth_state).toBeDefined();
-      }
-    }
+    // Start login
+    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+
+    // Wait for tab to be created
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Get the stored state
+    const stored = await browserMock.storage.session.get(['oauth_state']);
+    const correctState = stored.oauth_state;
+
+    // Simulate successful OAuth callback
+    const callbackUrl = `${authConfig.LAMBDA_AUTH_URL}/auth/callback?code=test-code&state=${correctState}`;
+    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
+
+    // Complete login
+    await loginPromise;
+
+    // Verify access token is in session storage
+    const sessionData = browserMock.__getSessionStorageData();
+    expect(sessionData.accessToken).toBe('test-access-token');
+    expect(sessionData.expiresAt).toBeDefined();
   });
 
   it('stores refresh token in local storage', async () => {
-    const { browserMock } = env;
+    const { browserMock, authConfig } = env;
 
-    if (global.window.AletheiaAuth) {
-      try {
-        await global.window.AletheiaAuth.initiateLogin();
-      } catch (_e) {
-        // May fail, check storage anyway
-      }
+    if (!global.window.AletheiaAuth) return;
 
-      // Verify browser.storage.local.set was called
-      // After successful login, refresh token should be in local
-      const localData = browserMock.__getLocalStorageData();
-      if (localData.refreshToken) {
-        expect(localData.refreshToken).toBeDefined();
-      }
-    }
+    // Mock successful token exchange
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        accessToken: 'test-access-token',
+        refreshToken: 'test-refresh-token',
+        expiresIn: 3600,
+        user: { id: 'test-user-id', name: 'Test User' }
+      })
+    });
+
+    // Start login
+    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+
+    // Wait for tab to be created
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Get the stored state
+    const stored = await browserMock.storage.session.get(['oauth_state']);
+    const correctState = stored.oauth_state;
+
+    // Simulate successful OAuth callback
+    const callbackUrl = `${authConfig.LAMBDA_AUTH_URL}/auth/callback?code=test-code&state=${correctState}`;
+    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
+
+    // Complete login
+    await loginPromise;
+
+    // Verify refresh token and user info are in local storage
+    const localData = browserMock.__getLocalStorageData();
+    expect(localData.refreshToken).toBe('test-refresh-token');
+    expect(localData.userId).toBe('test-user-id');
+    expect(localData.displayName).toBe('Test User');
   });
 
   it('clears all tokens on logout', async () => {
