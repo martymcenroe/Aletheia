@@ -197,6 +197,7 @@ See **`docs/0015-agent-prohibited-actions.md`** for the complete list with ratio
 - ❌ `git reset`, `git push --force`, `git clean -fd`
 - ❌ `pip install` (use `poetry add`)
 - ❌ `/tmp` or system temp directories (use `{project}/tmp/`)
+- ❌ `gh pr merge` (use `poetry run python tools/merge_pr.py --pr {number}`)
 
 ### Required Workflow:
 - **Docs before Code:** You MUST write the relevant LLD (`docs/lld/active/`) or Standard *before* writing a single line of code.
@@ -220,10 +221,13 @@ See **`docs/0015-agent-prohibited-actions.md`** for the complete list with ratio
 - **Push immediately:** `git push -u origin HEAD` - NEVER keep branches local-only
 - **Single commit per feature:** Batch all work (code, tests, docs, reports) into ONE `feat:` commit. No intermediate commits unless pre-commit hooks require re-staging.
 - **Commit format:** `type: description (ref #ID)` or `(close #ID)` when complete
-- **Cleanup completely:** Delete BOTH local and remote branches after merge:
-  - `git branch -d {branch-name}` (local)
-  - `git push origin --delete {branch-name}` (remote)
-- **Merge and cleanup:** After PR is created and tests pass, merge it (`gh pr merge`), then cleanup worktree and branches per 0002 §4
+- **Merge PRs (ATOMIC ONLY):** After PR is approved, use the atomic merge script:
+  ```bash
+  poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {number}
+  ```
+  - ❌ NEVER use `gh pr merge` directly - you WILL forget cleanup
+  - ✅ ALWAYS use `merge_pr.py` - it merges AND cleans up atomically
+  - The script: merges PR → removes worktree → deletes local branch → verifies
 - **Reports before cleanup (MANDATORY):** Before closing ANY issue, create:
   - `docs/reports/{IssueID}/implementation-report.md` - What was built and why
   - `docs/reports/{IssueID}/test-report.md` - Evidence it works
@@ -365,40 +369,23 @@ Step 2: Stage and wait
 **State the gate explicitly:** Before any commit, say:
 > "Executing PRE-COMMIT GATE: verifying reports exist before staging for review."
 
-### POST-MERGE GATE (EXECUTE AFTER EVERY PR MERGE)
+### POST-MERGE GATE (ATOMIC - USE THE SCRIPT)
 
-**After `gh pr merge` completes, you MUST execute this cleanup sequence. No exceptions.**
+**NEVER run `gh pr merge` directly. Use the atomic merge script:**
 
-```
-Step 1: Verify merge succeeded
-├── gh pr view {PR-number} --repo martymcenroe/Aletheia --json state
-│   └── Should show "MERGED"
+```bash
+poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {number}
 ```
 
-```
-Step 2: Remove worktree
-├── git -C /c/Users/mcwiz/Projects/Aletheia worktree remove ../Aletheia-{IssueID}
-│   └── If "not empty" error: git worktree remove --force ../Aletheia-{IssueID}
-```
+The script does ALL of this atomically (no gaps where you can forget):
+1. Merges the PR (with --squash --delete-branch)
+2. Removes the worktree
+3. Deletes the local branch
+4. Verifies cleanup succeeded
 
-```
-Step 3: Delete local branch
-├── git -C /c/Users/mcwiz/Projects/Aletheia branch -d {branch-name}
-│   └── If "not fully merged" (squash merge): git branch -D {branch-name}
-```
+**Why atomic?** The bash rules prohibit `&&` and `;`, forcing separate commands. Between separate commands, agents forget/stop/get interrupted. The script eliminates that gap.
 
-```
-Step 4: Verify cleanup complete
-├── git -C /c/Users/mcwiz/Projects/Aletheia worktree list
-│   └── Should show ONLY: /c/Users/mcwiz/Projects/Aletheia ... [main]
-├── git -C /c/Users/mcwiz/Projects/Aletheia branch --list
-│   └── Should show ONLY: * main
-```
-
-**State the gate explicitly:** After any merge, say:
-> "Executing POST-MERGE GATE: removing worktree and deleting local branch."
-
-**Why this gate exists:** GitHub auto-deletes remote branches after merge, but local branches and worktrees remain. Without explicit cleanup, orphaned branches accumulate. Incident 2026-01-09: Branch `126-hard-soft-blocking` was orphaned because this gate didn't exist.
+**Incident history:** Dozens of orphaned branches from agents running `gh pr merge` then forgetting cleanup. This script exists because the manual gate DOES NOT WORK.
 
 ### Document Mutability (WORM Policy):
 Some documents are **immutable** — NEVER modify after creation:
