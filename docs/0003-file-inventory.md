@@ -352,6 +352,9 @@
 | `tests/e2e/waf-integration.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for WAF integration. |
 | `tests/e2e/age-gate.spec.js` | **Test** | 🟢 **Stable** | #104 | Playwright E2E tests for age-restricted site blocking. |
 | `tests/e2e/xss-protection.spec.js` | **Test** | 🟢 **Stable** | #95 | Playwright E2E tests for XSS protection. |
+| `tests/e2e/museum-label.spec.js` | **Test** | 🟡 **Beta** | #125 | Playwright E2E tests for Museum Label UI (Chrome). |
+| `tests/e2e/firefox/overlay.spec.js` | **Test** | 🟢 **Stable** | #265 | Playwright E2E tests for Firefox overlay rendering. |
+| `tests/e2e/helpers/overlay-helpers.js` | **Helper** | 🟢 **Stable** | #265 | Shared helpers for overlay E2E tests (shadow DOM access). |
 | `tests/fixtures/html/test-waf.html` | **Fixture** | 🟢 **Stable** | #95 | Test page for WAF E2E tests. |
 | `tests/fixtures/html/test-adult.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with adult rating meta tag. |
 | `tests/fixtures/html/test-rta.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with RTA label pattern. |

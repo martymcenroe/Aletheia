@@ -1,4 +1,5 @@
 // @ts-check
+/* global require, module, process, __dirname */
 const { defineConfig } = require('@playwright/test');
 const path = require('path');
 
@@ -81,7 +82,9 @@ module.exports = defineConfig({
         }
     },
 
-    // Only use Chromium (extensions not supported in Firefox/WebKit)
+    // Browser projects
+    // - chromium: Full extension loading (requires headed mode)
+    // - firefox-overlay: Script injection only (headless OK) - Issue #265
     projects: [
         {
             name: 'chromium',
@@ -89,6 +92,19 @@ module.exports = defineConfig({
                 browserName: 'chromium',
                 // Extensions require headed mode
                 headless: false
+            }
+        },
+        {
+            name: 'firefox-overlay',
+            testMatch: /firefox\/.*\.spec\.js/,
+            use: {
+                browserName: 'firefox',
+                // Script injection doesn't require extension loading
+                headless: true,
+                // Remove Chrome extension args for Firefox
+                launchOptions: {
+                    args: []
+                }
             }
         }
     ],
