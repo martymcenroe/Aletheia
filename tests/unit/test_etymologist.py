@@ -222,6 +222,85 @@ class TestExtractJSON:
         assert result["gem"] == "'Quoted' and 'single'."
 
 
+class TestComprehensiveQuoteNormalization:
+    """Issue #288: Tests for comprehensive Unicode quote normalization (22 chars)."""
+
+    @pytest.mark.parametrize(
+        "input_char,expected,description",
+        [
+            # Double quote variants -> single quote
+            ("\u201C", "'", "LEFT DOUBLE QUOTATION MARK"),
+            ("\u201D", "'", "RIGHT DOUBLE QUOTATION MARK"),
+            ("\u201E", "'", "DOUBLE LOW-9 QUOTATION MARK"),
+            ("\u201F", "'", "DOUBLE HIGH-REVERSED-9 QUOTATION MARK"),
+            ("\u2033", "'", "DOUBLE PRIME"),
+            ("\u2036", "'", "REVERSED DOUBLE PRIME"),
+            ("\u00AB", "'", "LEFT-POINTING DOUBLE ANGLE QUOTATION MARK"),
+            ("\u00BB", "'", "RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK"),
+            # Single quote variants -> straight single quote
+            ("\u2018", "'", "LEFT SINGLE QUOTATION MARK"),
+            ("\u2019", "'", "RIGHT SINGLE QUOTATION MARK"),
+            ("\u201A", "'", "SINGLE LOW-9 QUOTATION MARK"),
+            ("\u201B", "'", "SINGLE HIGH-REVERSED-9 QUOTATION MARK"),
+            ("\u2032", "'", "PRIME"),
+            ("\u2035", "'", "REVERSED PRIME"),
+            ("\u2039", "'", "SINGLE LEFT-POINTING ANGLE QUOTATION MARK"),
+            ("\u203A", "'", "SINGLE RIGHT-POINTING ANGLE QUOTATION MARK"),
+            # Fullwidth variants
+            ("\uFF02", '"', "FULLWIDTH QUOTATION MARK"),
+            ("\uFF07", "'", "FULLWIDTH APOSTROPHE"),
+            # CJK brackets
+            ("\u300C", "'", "LEFT CORNER BRACKET"),
+            ("\u300D", "'", "RIGHT CORNER BRACKET"),
+            ("\u300E", "'", "LEFT WHITE CORNER BRACKET"),
+            ("\u300F", "'", "RIGHT WHITE CORNER BRACKET"),
+        ],
+    )
+    def test_individual_quote_normalization(self, input_char, expected, description):
+        """Test each quote character normalizes correctly in isolation."""
+        from src.etymologist import normalize_unicode_quotes
+
+        result = normalize_unicode_quotes(input_char)
+        assert result == expected, f"Failed: {description} (U+{ord(input_char):04X})"
+
+    def test_guillemets_in_json_value(self):
+        """French guillemets (« ») should not break JSON parsing."""
+        raw = '{"signal": "Test", "gem": "French uses \u00ABguillemets\u00BB.", "context": "Context."}'
+        result = extract_json(raw)
+        assert result is not None
+        assert result["gem"] == "French uses 'guillemets'."
+
+    def test_double_prime_in_json_value(self):
+        """Double prime (″ used for inches) should not break parsing."""
+        raw = '{"signal": "Test", "gem": "A 6\u2033 display.", "context": "Context."}'
+        result = extract_json(raw)
+        assert result is not None
+        assert result["gem"] == "A 6' display."
+
+    def test_cjk_brackets_in_json_value(self):
+        """CJK corner brackets should not break parsing."""
+        raw = '{"signal": "Test", "gem": "Japanese uses \u300C\u300D brackets.", "context": "Context."}'
+        result = extract_json(raw)
+        assert result is not None
+        # Brackets normalized to single quotes
+        assert result["gem"] == "Japanese uses '' brackets."
+
+    def test_mixed_quote_variants(self):
+        """Response with multiple different quote variants."""
+        # Mix of guillemets, curly quotes, and primes
+        raw = '{"signal": "Test", "gem": "\u00ABOne\u00BB \u201Ctwo\u201D \u2032three\u2032.", "context": "Context."}'
+        result = extract_json(raw)
+        assert result is not None
+        assert result["gem"] == "'One' 'two' 'three'."
+
+    def test_fullwidth_quotation_mark_preserved_as_delimiter(self):
+        """Fullwidth quotation mark (＂) should become ASCII double quote."""
+        from src.etymologist import normalize_unicode_quotes
+
+        result = normalize_unicode_quotes("\uFF02test\uFF02")
+        assert result == '"test"'
+
+
 class TestCountWords:
     """Tests for word counting utility."""
 
