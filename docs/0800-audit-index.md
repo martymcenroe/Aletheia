@@ -244,6 +244,31 @@ Standard format for all audits:
 - ❌ Generic "Agent" without model name
 - ❌ Findings without PASS/FAIL classification
 
+### 8.3 Audit Failure → GitHub Issue (MANDATORY)
+
+**Every audit failure MUST create a GitHub issue.** No internal-only findings.
+
+| Finding | Action | Issue Label |
+|---------|--------|-------------|
+| **FAIL** | Create issue immediately | `audit`, `high-priority` |
+| **WARN** | Create issue | `audit`, `low-priority` |
+| **PASS** | No issue needed | - |
+
+**Audit Record Entry Format for Failures:**
+
+```markdown
+| Date | Auditor | Findings Summary | Issues Created |
+|------|---------|------------------|----------------|
+| 2026-01-10 | Claude Opus 4.5 | FAIL: XSS in overlay | #NNN |
+```
+
+**Forbidden:**
+- ❌ `FAIL` without issue reference
+- ❌ `FAIL: See internal notes`
+- ❌ Findings buried in prose without issue
+
+**Rationale:** GitHub issues are visible, trackable, and cannot be quietly dismissed. Internal audit records can be edited or forgotten.
+
 ---
 
 ## 9. Audit Ownership
