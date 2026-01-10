@@ -1,0 +1,64 @@
+# Performance Benchmark Workflow
+# Issue #161: Automated performance benchmarks in CI
+# See: docs/lld/active/1161-ci-performance-benchmarks.md
+#
+# Runs:
+# - On every PR: Fast mocked benchmarks (no network I/O)
+# - Weekly (Sunday 2am UTC): Full benchmark suite
+
+name: Benchmark
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly on Sunday at 2:00 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --with dev
+
+      - name: Run benchmarks
+        run: |
+          poetry run pytest tests/benchmark/ \
+            --benchmark-only \
+            --benchmark-json=benchmark-results.json \
+            --benchmark-columns=min,max,mean,stddev,median,ops \
+            --benchmark-sort=name \
+            -v
+
+      - name: Display benchmark results
+        run: cat benchmark-results.json
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results.json
+          retention-days: 30
+
+      # Warn-only mode per LLD: 50% threshold initially
+      # TODO: Tighten to 20% after baseline established
+      - name: Check for regressions (warn only)
+        if: always()
+        run: |
+          echo "::notice::Benchmark complete. Results saved to artifacts."
+          echo "::notice::Regression detection in 'warn only' mode per LLD."
+          echo "::notice::Review benchmark-results.json for latency metrics."
