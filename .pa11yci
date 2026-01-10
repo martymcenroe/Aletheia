@@ -1,0 +1,20 @@
+{
+  "defaults": {
+    "timeout": 10000,
+    "wait": 1000,
+    "standard": "WCAG2AA",
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox"]
+    }
+  },
+  "urls": [
+    {
+      "url": "http://localhost:8080/extensions/chrome/popup.html",
+      "screenCapture": "./pa11y-screenshots/chrome-popup.png"
+    },
+    {
+      "url": "http://localhost:8080/extensions/firefox/popup.html",
+      "screenCapture": "./pa11y-screenshots/firefox-popup.png"
+    }
+  ]
+}
