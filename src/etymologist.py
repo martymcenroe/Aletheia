@@ -129,6 +129,7 @@ def extract_json(raw_response: str) -> dict | None:
     - Markdown code fences (```json ... ```)
     - Preamble text ("Here is the analysis: {...}")
     - Trailing text after JSON
+    - Curly/smart quotes from LLM output (Issue #259)
 
     Returns parsed dict or None if extraction fails.
 
@@ -138,6 +139,11 @@ def extract_json(raw_response: str) -> dict | None:
         return None
 
     text = raw_response.strip()
+
+    # Step 0: Normalize curly/smart quotes to straight quotes (Issue #259)
+    # LLMs sometimes emit curly quotes which break JSON parsing
+    text = text.replace('"', '"').replace('"', '"')  # Curly double quotes to straight
+    text = text.replace(''', "'").replace(''', "'")  # Curly single quotes to straight
 
     # Step 1: Strip markdown code fences
     # Handle ```json and ``` variants
@@ -150,6 +156,8 @@ def extract_json(raw_response: str) -> dict | None:
     last_brace = text.rfind("}")
 
     if first_brace == -1 or last_brace == -1 or last_brace <= first_brace:
+        logger.warning(f"No valid JSON boundaries: first_brace={first_brace}, last_brace={last_brace}")
+        logger.warning(f"Text after preprocessing (first 300 chars): {text[:300]}")
         return None
 
     json_str = text[first_brace : last_brace + 1]
@@ -157,7 +165,9 @@ def extract_json(raw_response: str) -> dict | None:
     # Step 3: Attempt parse
     try:
         return json.loads(json_str)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        logger.warning(f"JSON decode failed: {e}")
+        logger.warning(f"JSON string (first 200 chars): {json_str[:200]}")
         return None
 
 
@@ -233,6 +243,7 @@ def process_bedrock_response(raw_response: str) -> tuple[EtymologistResponse, Li
     extracted = extract_json(raw_response)
     if extracted is None:
         logger.warning("JSON extraction failed from raw response")
+        logger.warning(f"Raw response (first 500 chars): {raw_response[:500] if raw_response else 'EMPTY'}")
         return get_fallback_response(), "fallback", ["JSON extraction failed"]
 
     # Step 2: Validate schema
