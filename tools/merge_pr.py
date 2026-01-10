@@ -20,7 +20,6 @@ import sys
 from pathlib import Path
 
 # Base paths for git operations
-REPO_PATH_UNIX = "/c/Users/mcwiz/Projects/Aletheia"
 REPO_PATH_WIN = Path("C:/Users/mcwiz/Projects/Aletheia")
 
 
@@ -36,8 +35,8 @@ def run_cmd(
         print(f"  $ {' '.join(cmd)}")
 
     # S603: All command inputs are hardcoded strings, not user input
-    result = subprocess.run(
-        cmd,  # noqa: S603
+    result = subprocess.run(  # noqa: S603
+        cmd,
         check=False,  # We'll handle errors ourselves
         capture_output=True,
         text=True,
@@ -88,16 +87,14 @@ def branch_exists(branch_name: str) -> bool:
     return branch_name in result.stdout
 
 
-def worktree_exists(worktree_path: str) -> bool:
-    """Check if a worktree exists."""
+def worktree_exists(issue_id: str) -> bool:
+    """Check if a worktree exists for the given issue ID."""
     result = run_cmd(
         ["git", "worktree", "list"],
         capture=True,
         cwd=REPO_PATH_WIN,
         quiet=True,
     )
-    # Check for both Unix and Windows path formats
-    issue_id = worktree_path.split("-")[-1]
     return f"Aletheia-{issue_id}" in result.stdout
 
 
@@ -141,7 +138,7 @@ def main() -> int:
     print("\n[2/6] Determining worktree path...")
     issue_id = get_issue_id_from_branch(branch_name)
     if issue_id:
-        worktree_path = f"/c/Users/mcwiz/Projects/Aletheia-{issue_id}"
+        worktree_path = f"C:/Users/mcwiz/Projects/Aletheia-{issue_id}"
         print(f"  Worktree: {worktree_path}")
     else:
         worktree_path = None
@@ -149,7 +146,7 @@ def main() -> int:
 
     # Check what currently exists
     has_branch = branch_exists(branch_name)
-    has_worktree = worktree_path and worktree_exists(worktree_path)
+    has_worktree = issue_id and worktree_exists(issue_id)
 
     print(f"  Local branch exists: {'Yes' if has_branch else 'No'}")
     print(f"  Worktree exists: {'Yes' if has_worktree else 'No'}")
@@ -199,18 +196,7 @@ def main() -> int:
         if result.returncode == 0:
             print("  Worktree removed!")
         else:
-            # Try with Windows path as fallback
-            win_path = f"C:/Users/mcwiz/Projects/Aletheia-{issue_id}"
-            result = run_cmd(
-                ["git", "worktree", "remove", win_path, "--force"],
-                check=False,
-                cwd=REPO_PATH_WIN,
-                quiet=True,
-            )
-            if result.returncode == 0:
-                print("  Worktree removed!")
-            else:
-                print(f"  Warning: Could not remove worktree: {result.stderr.strip()}")
+            print(f"  Warning: Could not remove worktree: {result.stderr.strip()}")
 
     # Step 5: Delete local branch
     print("\n[5/6] Deleting local branch...")
@@ -231,7 +217,7 @@ def main() -> int:
     print("\n[6/6] Verifying cleanup...")
 
     final_has_branch = branch_exists(branch_name)
-    final_has_worktree = worktree_path and worktree_exists(worktree_path)
+    final_has_worktree = issue_id and worktree_exists(issue_id)
 
     print(f"\n{'='*60}")
     if final_has_branch or final_has_worktree:
