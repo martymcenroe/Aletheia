@@ -403,7 +403,8 @@ describe('View Rendering', () => {
       expect(statusLabel.textContent).toBe('INACTIVE');
     });
 
-    // TODO: Fix legacy scope issue (See Issue #215)
+    // TODO: Fix test harness - mockResolvedValueOnce is consumed by DOMContentLoaded init
+    // before the test's renderMainView() call. Needs mock reset or different setup pattern.
     it.skip('should handle null domain gracefully', async () => {
       const { window } = env;
       const { document } = window;
@@ -519,8 +520,8 @@ describe('View Rendering', () => {
       expect(domainSpan.textContent).toBe('example.com');
     });
 
-    // TODO: Fix legacy scope issue (See Issue #215)
-    it.skip('should add current badge when domain matches currentDomain', async () => {
+    // Fixed: Issue #217 - exposed selectedDomains/currentDomain to window
+    it('should add current badge when domain matches currentDomain', async () => {
       const { window } = env;
 
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -553,8 +554,8 @@ describe('Event Handlers', () => {
   });
 
   describe('handleCheckboxChange', () => {
-    // TODO: Fix legacy scope issue (See Issue #215)
-    it.skip('should add domain to selectedDomains when checked', async () => {
+    // Fixed: Issue #217 - exposed selectedDomains/currentDomain to window
+    it('should add domain to selectedDomains when checked', async () => {
       const { window } = env;
 
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -578,8 +579,8 @@ describe('Event Handlers', () => {
       expect(window.selectedDomains.has('test.com')).toBe(true);
     });
 
-    // TODO: Fix legacy scope issue (See Issue #215)
-    it.skip('should remove domain from selectedDomains when unchecked', async () => {
+    // Fixed: Issue #217 - exposed selectedDomains/currentDomain to window
+    it('should remove domain from selectedDomains when unchecked', async () => {
       const { window } = env;
 
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -607,8 +608,8 @@ describe('Event Handlers', () => {
   });
 
   describe('updateRemoveButton', () => {
-    // TODO: Fix legacy scope issue (See Issue #215)
-    it.skip('should disable button when no domains selected', async () => {
+    // Fixed: Issue #217 - exposed selectedDomains/currentDomain to window
+    it('should disable button when no domains selected', async () => {
       const { window } = env;
       const { document } = window;
 
@@ -622,8 +623,8 @@ describe('Event Handlers', () => {
       expect(removeButton.textContent).toBe('Remove Selected');
     });
 
-    // TODO: Fix legacy scope issue (See Issue #215)
-    it.skip('should enable button and show count when domains selected', async () => {
+    // Fixed: Issue #217 - exposed selectedDomains/currentDomain to window
+    it('should enable button and show count when domains selected', async () => {
       const { window } = env;
       const { document } = window;
 
