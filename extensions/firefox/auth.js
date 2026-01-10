@@ -4,6 +4,14 @@
 //
 // CRITICAL: Uses browser.* namespace (NOT chrome.*)
 // Firefox extension APIs use the WebExtensions browser.* standard
+//
+// NOTE: Firefox MV3 does NOT have browser.identity API.
+// This module uses a tabs-based OAuth flow instead:
+// 1. Open auth page in new tab (browser.tabs.create)
+// 2. Monitor tab URL changes (browser.tabs.onUpdated)
+// 3. Detect callback URL and extract auth code
+// 4. Exchange code for tokens via Lambda
+// See: docs/0826-audit-cross-browser-testing.md, Issue #256
 
 // =============================================================================
 // CONFIGURATION
@@ -213,8 +221,17 @@ async function mockLogin() {
 }
 
 // =============================================================================
-// OAUTH FLOW
+// OAUTH FLOW (Firefox tabs-based - Issue #256)
 // =============================================================================
+
+/**
+ * Get the OAuth callback URL.
+ * Firefox doesn't have browser.identity, so we use a Lambda callback endpoint.
+ * @returns {string} Callback URL
+ */
+function getRedirectURL() {
+    return `${AUTH_CONFIG.LAMBDA_AUTH_URL}/auth/callback`;
+}
 
 /**
  * Build LinkedIn authorization URL with required parameters.
@@ -222,7 +239,7 @@ async function mockLogin() {
  * @returns {string} Full authorization URL
  */
 function buildAuthUrl(state) {
-    const redirectUri = browser.identity.getRedirectURL();
+    const redirectUri = getRedirectURL();
     const params = new URLSearchParams({
         response_type: 'code',
         client_id: AUTH_CONFIG.CLIENT_ID,
@@ -235,9 +252,75 @@ function buildAuthUrl(state) {
 }
 
 /**
+ * Wait for OAuth callback by monitoring tab URL changes.
+ * @param {number} tabId - The auth tab ID
+ * @param {string} callbackUrl - The callback URL prefix to watch for
+ * @returns {Promise<{code: string, state: string}>} The auth code and state
+ */
+function waitForOAuthCallback(tabId, callbackUrl) {
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            browser.tabs.onUpdated.removeListener(listener);
+            browser.tabs.onRemoved.removeListener(removedListener);
+            reject(new Error('OAuth timeout: user did not complete login within 5 minutes'));
+        }, 5 * 60 * 1000); // 5 minute timeout
+
+        const removedListener = (removedTabId) => {
+            if (removedTabId === tabId) {
+                clearTimeout(timeout);
+                browser.tabs.onUpdated.removeListener(listener);
+                browser.tabs.onRemoved.removeListener(removedListener);
+                reject(new Error('OAuth cancelled: user closed the login tab'));
+            }
+        };
+
+        const listener = (updatedTabId, changeInfo, tab) => {
+            if (updatedTabId !== tabId) return;
+            if (changeInfo.status !== 'complete') return;
+            if (!tab.url || !tab.url.startsWith(callbackUrl)) return;
+
+            // We've reached the callback URL
+            clearTimeout(timeout);
+            browser.tabs.onUpdated.removeListener(listener);
+            browser.tabs.onRemoved.removeListener(removedListener);
+
+            try {
+                const url = new URL(tab.url);
+                const code = url.searchParams.get('code');
+                const state = url.searchParams.get('state');
+                const error = url.searchParams.get('error');
+                const errorDescription = url.searchParams.get('error_description');
+
+                // Close the auth tab
+                browser.tabs.remove(tabId).catch(() => {});
+
+                if (error) {
+                    reject(new Error(`LinkedIn OAuth error: ${errorDescription || error}`));
+                } else if (!code) {
+                    reject(new Error('No authorization code received'));
+                } else {
+                    resolve({ code, state });
+                }
+            } catch (e) {
+                reject(new Error(`Failed to parse callback URL: ${e.message}`));
+            }
+        };
+
+        browser.tabs.onUpdated.addListener(listener);
+        browser.tabs.onRemoved.addListener(removedListener);
+    });
+}
+
+/**
  * Initiate LinkedIn OAuth login flow.
  *
- * Uses browser.identity.launchWebAuthFlow for Firefox-compliant OAuth.
+ * Firefox doesn't have browser.identity API, so we use a tabs-based flow:
+ * 1. Open a new tab with LinkedIn OAuth page
+ * 2. User authenticates with LinkedIn
+ * 3. LinkedIn redirects to our Lambda callback
+ * 4. We detect the callback URL and extract the auth code
+ * 5. Exchange code for tokens via Lambda
+ *
  * Includes CSRF protection via state parameter.
  *
  * @returns {Promise<{id: string, name: string}>} User info on success
@@ -252,29 +335,23 @@ async function initiateLogin() {
     // 1. Generate CSRF state
     const state = generateState();
 
-    // 2. Store state for validation (use session storage for popup context)
-    // Note: In MV3, we use browser.storage.session which is shared across extension contexts
+    // 2. Store state for validation
     await browser.storage.session.set({ oauth_state: state });
 
     // 3. Build auth URL
     const authUrl = buildAuthUrl(state);
-    const redirectUri = browser.identity.getRedirectURL();
+    const redirectUri = getRedirectURL();
 
-    console.log('[Aletheia Auth] Launching OAuth flow...');
+    console.log('[Aletheia Auth] Launching OAuth flow (tabs-based)...');
     console.log('[Aletheia Auth] Redirect URI:', redirectUri);
 
     try {
-        // 4. Launch OAuth flow
-        const responseUrl = await browser.identity.launchWebAuthFlow({
-            url: authUrl,
-            interactive: true
-        });
+        // 4. Open auth tab
+        const tab = await browser.tabs.create({ url: authUrl });
+        console.log('[Aletheia Auth] Opened auth tab:', tab.id);
 
-        // 5. Parse response
-        const url = new URL(responseUrl);
-        const returnedState = url.searchParams.get('state');
-        const code = url.searchParams.get('code');
-        const error = url.searchParams.get('error');
+        // 5. Wait for OAuth callback
+        const { code, state: returnedState } = await waitForOAuthCallback(tab.id, redirectUri);
 
         // 6. Validate state (CSRF protection)
         const stored = await browser.storage.session.get(['oauth_state']);
@@ -284,16 +361,7 @@ async function initiateLogin() {
             throw new Error('CSRF detected: state mismatch');
         }
 
-        // 7. Check for errors
-        if (error) {
-            throw new Error(`LinkedIn OAuth error: ${error}`);
-        }
-
-        if (!code) {
-            throw new Error('No authorization code received');
-        }
-
-        // 8. Exchange code for tokens via Lambda
+        // 7. Exchange code for tokens via Lambda
         console.log('[Aletheia Auth] Exchanging code for tokens...');
         const tokenResponse = await fetch(`${AUTH_CONFIG.LAMBDA_AUTH_URL}/auth/token`, {
             method: 'POST',
@@ -311,7 +379,7 @@ async function initiateLogin() {
 
         const tokenData = await tokenResponse.json();
 
-        // 9. Store tokens
+        // 8. Store tokens
         await storeTokens(
             tokenData.accessToken,
             tokenData.refreshToken,
@@ -348,6 +416,9 @@ window.AletheiaAuth = {
     getAuthState,
     getAccessToken,
     clearTokens,
+    // Exposed for testing
+    generateState,
+    getRedirectURL,
     // Config for debugging
     getConfig: () => ({ ...AUTH_CONFIG, CLIENT_ID: '***' })  // Hide client ID in logs
 };

@@ -62,6 +62,7 @@ export function createFirefoxMock(options = {}) {
 
   // Internal tab state
   let mockTabs = [];
+  let nextTabId = 100; // Start tab IDs at 100 to distinguish from default tab
 
   // Message handler responses
   let messageResponses = {};
@@ -71,6 +72,7 @@ export function createFirefoxMock(options = {}) {
   const installHandlers = [];
   const contextMenuClickHandlers = [];
   const tabRemovedHandlers = [];
+  const tabUpdatedHandlers = [];
 
   // Badge state per tab
   const badgeState = new Map();
@@ -139,9 +141,37 @@ export function createFirefoxMock(options = {}) {
           }
         });
       }),
+      create: vi.fn().mockImplementation((createProperties) => {
+        // Create a mock tab for OAuth flow testing
+        const newTab = {
+          id: nextTabId++,
+          url: createProperties.url || 'about:blank',
+          active: createProperties.active !== false,
+          currentWindow: true
+        };
+        mockTabs.push(newTab);
+        return Promise.resolve(newTab);
+      }),
+      remove: vi.fn().mockImplementation((tabId) => {
+        mockTabs = mockTabs.filter(t => t.id !== tabId);
+        return Promise.resolve();
+      }),
+      onUpdated: {
+        addListener: vi.fn().mockImplementation((handler) => {
+          tabUpdatedHandlers.push(handler);
+        }),
+        removeListener: vi.fn().mockImplementation((handler) => {
+          const index = tabUpdatedHandlers.indexOf(handler);
+          if (index > -1) tabUpdatedHandlers.splice(index, 1);
+        })
+      },
       onRemoved: {
         addListener: vi.fn().mockImplementation((handler) => {
           tabRemovedHandlers.push(handler);
+        }),
+        removeListener: vi.fn().mockImplementation((handler) => {
+          const index = tabRemovedHandlers.indexOf(handler);
+          if (index > -1) tabRemovedHandlers.splice(index, 1);
         })
       }
     },
@@ -385,6 +415,27 @@ export function createFirefoxMock(options = {}) {
       }
     },
 
+    /**
+     * Simulate a tab URL update (for OAuth flow testing).
+     * @param {number} tabId - The tab ID
+     * @param {string} url - The new URL
+     * @param {string} status - Load status ('loading' or 'complete')
+     */
+    __simulateTabUpdate: (tabId, url, status = 'complete') => {
+      // Update the mock tab's URL
+      const tab = mockTabs.find(t => t.id === tabId);
+      if (tab) {
+        tab.url = url;
+      }
+
+      const changeInfo = { status, url };
+      const tabInfo = tab || { id: tabId, url, active: true, currentWindow: true };
+
+      for (const handler of tabUpdatedHandlers) {
+        handler(tabId, changeInfo, tabInfo);
+      }
+    },
+
     /** Get badge state for a tab */
     __getBadgeState: (tabId) => {
       return badgeState.get(tabId) || { text: '', color: '' };
@@ -400,11 +451,13 @@ export function createFirefoxMock(options = {}) {
       localStorageData = { allowlist: [] };
       sessionStorageData = {};
       mockTabs = [];
+      nextTabId = 100;
       messageResponses = {};
       messageListeners.length = 0;
       installHandlers.length = 0;
       contextMenuClickHandlers.length = 0;
       tabRemovedHandlers.length = 0;
+      tabUpdatedHandlers.length = 0;
       badgeState.clear();
       scriptInjectionResults = [{ result: {} }];
       oauthConfig = {
