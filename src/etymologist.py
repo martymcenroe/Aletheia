@@ -140,10 +140,11 @@ def extract_json(raw_response: str) -> dict | None:
 
     text = raw_response.strip()
 
-    # Step 0: Normalize curly/smart quotes to straight quotes (Issue #259)
-    # LLMs sometimes emit curly quotes which break JSON parsing
-    # Using explicit Unicode escapes to ensure correct matching
-    text = text.replace('\u201c', '"').replace('\u201d', '"')  # Curly double quotes to straight
+    # Step 0: Normalize curly/smart quotes (Issue #259)
+    # LLMs emit curly quotes INSIDE string values for emphasis (e.g., "the term "waypoint" originated")
+    # Replacing with straight double quotes would break JSON (creates unescaped quotes in strings)
+    # Solution: Replace curly double quotes with single quotes to preserve readability
+    text = text.replace('\u201c', "'").replace('\u201d', "'")  # Curly double quotes to single
     text = text.replace('\u2018', "'").replace('\u2019', "'")  # Curly single quotes to straight
 
     # Step 1: Strip markdown code fences
