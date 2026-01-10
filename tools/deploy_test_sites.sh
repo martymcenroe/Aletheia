@@ -23,7 +23,7 @@ if [ ! -d "$FIXTURES_DIR" ]; then
 fi
 
 # Count fixtures
-FILE_COUNT=$(ls -1 "$FIXTURES_DIR"/*.html 2>/dev/null | wc -l)
+FILE_COUNT=$(find "$FIXTURES_DIR" -maxdepth 1 -name "*.html" 2>/dev/null | wc -l)
 if [ "$FILE_COUNT" -eq 0 ]; then
     echo -e "${RED}Error: No HTML files found in $FIXTURES_DIR${NC}"
     exit 1
@@ -71,7 +71,7 @@ fi
 
 # Return to original branch
 echo "Returning to $CURRENT_BRANCH..."
-git checkout $CURRENT_BRANCH
+git checkout "$CURRENT_BRANCH"
 
 # Cleanup
 rm -rf "$TEMP_DIR"
