@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-09 12:10 CT
-**Total Open Issues:** 17
+**Generated:** 2026-01-09 18:15 CT
+**Total Open Issues:** 21
 
 ---
 
@@ -641,49 +641,6 @@ Run on schedule (weekly) rather than every PR to avoid CI slowdown.
 
 ---
 
-## Issue #189: Test suite gaps: missing test_build_release.py and orphan test_guardrails.py
-
-**Created:** 2026-01-07
-**Updated:** 2026-01-07
-
-### Description
-
-## Summary
-
-During the regression test suite audit (#189 task), the following gaps were identified:
-
-## Missing Tests
-
-### `test_build_release.py`
-- **Status:** MISSING
-- **Expected location:** `tests/tools/test_build_release.py`
-- **Context:** Mentioned in task requirements for consolidating tests. The `tools/build_release.py` script (Issue #53) has no automated tests.
-- **Recommendation:** Create unit tests for the build script covering:
-  - Icon verification
-  - Manifest parity check
-  - Version extraction
-  - Zip file generation
-
-## Orphan Tests
-
-### `test_guardrails.py`
-- **Status:** Present but not mentioned in any `docs/reports/*/test-report.md`
-- **Location:** `tests/unit/test_guardrails.py`
-- **Questions:**
-  - Which issue created this file?
-  - Should it be documented in a report?
-  - Is it still relevant or can it be merged into another test file?
-
-## Action Items
-
-- [ ] Create `tests/tools/test_build_release.py` for Issue #53
-- [ ] Investigate `test_guardrails.py` origin and document or consolidate
-
----
-*Found during test suite reorganization audit*
-
----
-
 ## Issue #203: Future: AgentOS Process Improvements (Research-Based)
 
 **Labels:** process, post-mvp
@@ -915,7 +872,9 @@ Only auto-delete if ALL conditions are met:
 
 ---
 
-## Issue #206: feat(firefox): Add LinkedIn OAuth authentication to Firefox extension
+## Issue #211: test(unit): Add tests for auth.js OAuth flow
+
+**Labels:** testing
 
 **Created:** 2026-01-09
 **Updated:** 2026-01-09
@@ -924,42 +883,259 @@ Only auto-delete if ALL conditions are met:
 
 ## Summary
 
-Firefox extension is missing LinkedIn OAuth authentication that was added to Chrome in Issue #116. This creates feature parity gap between the two extensions.
+`extensions/chrome/auth.js` has 350 lines of code with **zero unit tests**. This is the OAuth authentication module handling LinkedIn login, token refresh, and CSRF protection.
 
 ## Current State
 
-| Feature | Chrome | Firefox |
-|---------|--------|---------|
-| LinkedIn OAuth | ✅ Yes (Issue #116) | ❌ Missing |
-| Login view | ✅ Yes | ❌ No |
-| User bar | ✅ Yes | ❌ No |
-| Age gate | ✅ Yes | ❌ No |
+- **File:** `extensions/chrome/auth.js`
+- **Lines:** 350
+- **Test coverage:** 0%
+- **Source:** Test Gap Analysis 2026-01-09, Report #116
 
-## Files to Port
+## Why Untested
 
-From Chrome to Firefox:
-- `extensions/chrome/auth.js` → `extensions/firefox/auth.js`
-- `extensions/chrome/popup.js` (auth sections) → `extensions/firefox/popup.js`
-- `extensions/chrome/popup.html` (login view, user bar) → `extensions/firefox/popup.html`
-- `extensions/chrome/popup.css` (auth styles) → `extensions/firefox/popup.css`
+Report #116 states: "Unit tests for auth module not implemented due to OAuth complexity. Integration and manual testing provide coverage."
 
-## Considerations
+## Gap Analysis
 
-1. **API differences**: Firefox uses `browser.*` APIs vs Chrome's `chrome.*` (mostly compatible via polyfill or direct use)
-2. **Identity API**: Firefox's `browser.identity` may have different OAuth flow - needs investigation
-3. **Manifest V2**: Firefox extension is MV2, Chrome is MV3 - may affect how auth tokens are handled
+The following functions have no automated tests:
+- `initiateLogin()` - OAuth flow initiation with CSRF state
+- `handleAuthCallback()` - Token exchange
+- `refreshAccessToken()` - Token refresh logic
+- `validateCsrfState()` - CSRF protection
+- Token storage hierarchy (session vs local)
+
+## Proposed Solution
+
+Extract pure functions that can be tested without Chrome API mocks:
+
+1. **CSRF state generation/validation** - Pure crypto functions
+2. **Token expiry checking** - Date comparison logic
+3. **Storage key management** - Constants and helpers
+4. **Error response parsing** - LinkedIn API error handling
+
+Create `tests/unit/auth.test.js` using Vitest (same as popup.test.js).
 
 ## Acceptance Criteria
 
-- [ ] Firefox extension has login view matching Chrome
-- [ ] LinkedIn OAuth flow works in Firefox
-- [ ] User bar displays after authentication
-- [ ] Age gate check works post-authentication
-- [ ] Logout functionality works
+- [ ] Extract testable pure functions from auth.js
+- [ ] Create `tests/unit/auth.test.js`
+- [ ] Test CSRF state generation (cryptographically random, correct length)
+- [ ] Test CSRF state validation (match/mismatch scenarios)
+- [ ] Test token expiry logic
+- [ ] Test error handling for common OAuth failures
+- [ ] Minimum 50% line coverage for auth.js
 
 ## References
 
-- Issue #116 - Original Chrome LinkedIn OAuth implementation
-- `docs/0002-coding-standards.md` §9.3 - Dual extension parity requirement
+- Report #116: `docs/reports/116/test-report.md`
+- LLD: `docs/1116-linkedin-oauth.md`
+- Existing JS test pattern: `tests/unit/popup.test.js`
+
+---
+
+## Issue #212: test(unit): Add tests for service-worker.js
+
+**Labels:** testing
+
+**Created:** 2026-01-09
+**Updated:** 2026-01-09
+
+### Description
+
+## Summary
+
+`extensions/chrome/service-worker.js` has 395 lines of code with **zero unit tests**. This is the extension's background script handling context menus, tab state management, and message routing.
+
+## Current State
+
+- **File:** `extensions/chrome/service-worker.js`
+- **Lines:** 395
+- **Test coverage:** 0%
+- **Source:** Test Gap Analysis 2026-01-09
+
+## Gap Analysis
+
+The following functionality has no automated tests:
+
+### Context Menu Management
+- `chrome.contextMenus.create()` - Menu item creation
+- `handleContextMenuClick()` - Click handler routing
+- Menu item enable/disable based on allowlist
+
+### Tab State Management
+- `tabStates` Map - Age gate state tracking
+- `GET_TAB_STATE` message handler
+- Tab state transitions (checking → allowed/restricted)
+
+### Message Routing
+- `chrome.runtime.onMessage` handler
+- Response formatting
+- Error handling
+
+## Proposed Solution
+
+1. Create `tests/unit/service-worker.test.js` using Vitest
+2. Mock Chrome APIs (contextMenus, tabs, runtime, storage)
+3. Test each message type handler independently
+4. Test tab state transitions
+
+## Acceptance Criteria
+
+- [ ] Create `tests/unit/service-worker.test.js`
+- [ ] Test context menu creation on install
+- [ ] Test context menu click handling
+- [ ] Test tab state management (GET_TAB_STATE)
+- [ ] Test message routing for all message types
+- [ ] Test error handling for invalid messages
+- [ ] Minimum 50% line coverage
+
+## References
+
+- Chrome mocks pattern: `tests/mocks/chrome-api.mock.js`
+- Existing JS test pattern: `tests/unit/popup.test.js`
+
+---
+
+## Issue #214: test(unit): Port popup.test.js and overlay tests to Firefox extension
+
+**Labels:** testing
+
+**Created:** 2026-01-09
+**Updated:** 2026-01-09
+
+### Description
+
+## Summary
+
+Firefox extension (`extensions/firefox/`) lacks test parity with Chrome. Chrome has comprehensive tests (`tests/unit/popup.test.js` - 920 lines) but Firefox has none.
+
+## Current State
+
+| File | Chrome Tests | Firefox Tests |
+|------|--------------|---------------|
+| popup.js | 920 lines in popup.test.js | None |
+| overlay.js | E2E tests exist | None |
+| service-worker.js | None (separate issue) | None |
+
+- **Source:** Test Gap Analysis 2026-01-09
+
+## Gap Analysis
+
+Firefox extension files with no tests:
+- `extensions/firefox/popup.js` (494 lines in Chrome version)
+- `extensions/firefox/overlay.js` (871 lines in Chrome version)
+
+## Considerations
+
+1. **API Differences:** Firefox uses `browser.*` APIs vs Chrome's `chrome.*`
+2. **Manifest Version:** Firefox is MV2, Chrome is MV3
+3. **Auth Module:** Firefox lacks auth.js (Issue #206 tracks adding it)
+
+## Proposed Solution
+
+### Option A: Shared Test Suite (Recommended)
+Create parameterized tests that run against both extensions:
+
+```javascript
+const extensions = ['chrome', 'firefox'];
+extensions.forEach(browser => {
+  describe(`popup.js (${browser})`, () => {
+    // Load browser-specific popup.js
+    // Use browser-specific API mocks
+  });
+});
+```
+
+### Option B: Separate Test Files
+- `tests/unit/popup-firefox.test.js`
+- Mirror Chrome tests with Firefox API mocks
+
+## Acceptance Criteria
+
+- [ ] Firefox popup.js has unit tests
+- [ ] Tests cover storage functions (getAllowlist, addToAllowlist, etc.)
+- [ ] Tests cover view rendering
+- [ ] Tests cover event handlers
+- [ ] Firefox overlay.js has E2E coverage
+- [ ] Test parity documented in test report
+
+## References
+
+- Chrome popup tests: `tests/unit/popup.test.js`
+- Firefox auth gap: Issue #206
+- Coding standards: Dual extension parity requirement
+
+---
+
+## Issue #217: test(fix): Repair legacy popup.test.js failures
+
+**Labels:** technical-debt
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Context
+  We skipped 6 tests in `popup.test.js` during the Chrome Fortification (Issue #211) to get the build Green. These tests fail due to window scope/global variable issues in the legacy codebase.
+
+  ## Scope
+  1. Unskip the tests in `tests/unit/chrome/popup.test.js`.
+  2. Refactor `popup.js` or the test harness to properly mock global variables (e.g., `selectedDomains`).
+  3. Ensure `npm run test:unit` passes with these tests active.
+
+---
+
+## Issue #218: test(firefox): Add unit tests for Service Worker (Parity)
+
+**Labels:** testing, technical-debt
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Context
+  We implemented Chrome Service Worker tests in #212. We must achieve parity for Firefox.
+
+  ## Requirements
+  1. Create `tests/unit/firefox/service-worker.test.js`
+  2. Port logic from `tests/unit/chrome/service-worker.test.js`
+  3. Use `browser.*` mocks via `firefox-api.mock.js`
+  4. Ensure `npm run test:unit` runs both suites.
+
+---
+
+## Issue #220: fix: ShellCheck failures in provision.sh blocking CI
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-10
+
+### Description
+
+## Problem
+
+The `infra-lint` CI check is failing due to ShellCheck violations in `provision.sh`. This is blocking PRs that don't touch infrastructure code.
+
+**Evidence:** PR #219 (Chrome test coverage) failed infra-lint despite only modifying test files.
+
+**CI Job:** https://github.com/martymcenroe/Aletheia/actions/runs/20869197592/job/59967188800
+
+## Impact
+
+- Blocks unrelated PRs from merging
+- Creates false negatives in CI pipeline
+
+## Proposed Fix
+
+1. Run `shellcheck provision.sh` locally to identify violations
+2. Fix all ShellCheck warnings/errors
+3. Verify infra-lint passes
+
+## Acceptance Criteria
+
+- [ ] `shellcheck provision.sh` exits with code 0
+- [ ] `infra-lint` CI job passes on main branch
 
 ---
