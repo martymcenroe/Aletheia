@@ -214,9 +214,41 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 ---
 
-## 8. Audit Ownership
+## 8. Audit Record Requirements (MANDATORY)
 
-### 8.1 By Role
+### 8.1 Auditor Identity
+
+**Every audit record entry MUST include auditor identity.** No anonymous audits.
+
+| Field | Requirement | Example |
+|-------|-------------|---------|
+| **Auditor** | Model name + version | "Claude Opus 4.5", "Gemini 3.0 Pro" |
+| **Date** | ISO 8601 format | 2026-01-10 |
+| **Findings** | Explicit PASS/FAIL with issue refs | "PASS", "FAIL: See #234" |
+
+**Accountability Rule:** The auditor recorded in the audit record MUST match the git commit author. If Claude runs the audit, the commit must be by Claude. This creates traceability.
+
+### 8.2 Audit Record Format
+
+Standard format for all audits:
+
+```markdown
+| Date | Auditor | Findings Summary | Issues Created |
+|------|---------|------------------|----------------|
+| YYYY-MM-DD | [Model Name] | [PASS/FAIL summary] | #NNN, #NNN |
+```
+
+**Forbidden entries:**
+- ❌ Empty auditor field
+- ❌ "TBD" or "TODO" as auditor
+- ❌ Generic "Agent" without model name
+- ❌ Findings without PASS/FAIL classification
+
+---
+
+## 9. Audit Ownership
+
+### 9.1 By Role
 
 | Role | Audits Owned |
 |------|--------------|
@@ -224,7 +256,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 | **CI/CD** | 0813 |
 | **Dependabot** | 0816 (triggers) |
 
-### 8.2 Accountability
+### 9.2 Accountability
 
 | Audit | Accountable | Responsible | Consulted |
 |-------|-------------|-------------|-----------|
@@ -234,9 +266,9 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 ---
 
-## 9. Quick Links
+## 10. Quick Links
 
-### 9.1 By Number
+### 10.1 By Number
 
 - [0808 - Permission Permissiveness](0808-audit-permission-permissiveness.md)
 - [0824 - Permission Friction](0824-audit-permission-friction.md)
@@ -260,7 +292,7 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 - [0898 - Horizon Scanning Protocol](0898-horizon-scanning-protocol.md)
 - [0899 - Meta-Audit](0899-meta-audit.md)
 
-### 9.2 By Topic
+### 10.2 By Topic
 
 | Topic | Relevant Audits |
 |-------|-----------------|
@@ -279,11 +311,11 @@ See **0898 Horizon Scanning Protocol** for ongoing gap discovery.
 
 ---
 
-## 10. Model Recommendations
+## 11. Model Recommendations
 
 Cost optimization: use the cheapest model that can reliably execute each audit.
 
-### 10.1 By Model Tier
+### 11.1 By Model Tier
 
 | Model | Cost | Audits | Rationale |
 |-------|------|--------|-----------|
@@ -291,7 +323,7 @@ Cost optimization: use the cheapest model that can reliably execute each audit.
 | **Sonnet** | $$ | 0811, 0815, 0820, 0822, 0824, 0898 | Web research, framework analysis, moderate reasoning |
 | **Opus** | $$$ | 0809, 0810, 0818, 0821, 0823, 0825 | Complex reasoning, security analysis, incident review |
 
-### 10.2 Detailed Rationale
+### 11.2 Detailed Rationale
 
 | Audit | Recommended | Why |
 |-------|-------------|-----|
@@ -315,7 +347,7 @@ Cost optimization: use the cheapest model that can reliably execute each audit.
 | 0898 Horizon Scanning | Sonnet | Framework research, moderate analysis |
 | 0899 Meta-Audit | Haiku | Execution tracking, checklist validation |
 
-### 10.3 Estimated Savings
+### 11.3 Estimated Savings
 
 By using appropriate models instead of Opus for all audits:
 - **Haiku audits (7):** ~66% savings per audit
@@ -324,16 +356,16 @@ By using appropriate models instead of Opus for all audits:
 
 ---
 
-## 11. Getting Started
+## 12. Getting Started
 
-### 11.1 For New Contributors
+### 12.1 For New Contributors
 
 1. Read this index to understand the audit landscape
 2. Review 0815 for Claude Code workflow rules
 3. Code quality audit (0813) runs automatically on PRs
 4. Security (0809) and Privacy (0810) are the most comprehensive
 
-### 11.2 For Audit Execution
+### 12.2 For Audit Execution
 
 1. Check 0899 for audit schedule and status
 2. Run audit per its documented procedure
@@ -341,7 +373,7 @@ By using appropriate models instead of Opus for all audits:
 4. Create GitHub issues for failures
 5. Update 0899 with execution date
 
-### 11.3 For Gap Discovery
+### 12.3 For Gap Discovery
 
 1. Review 0898 Horizon Scanning Protocol
 2. Check Framework Registry for updates
@@ -350,7 +382,7 @@ By using appropriate models instead of Opus for all audits:
 
 ---
 
-## 12. History
+## 13. History
 
 | Date | Change |
 |------|--------|
