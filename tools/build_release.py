@@ -108,8 +108,9 @@ def run_firefox_lint() -> None:
         return
 
     # Run web-ext lint
+    # npx path is from shutil.which(), not user input - safe to use
     result = subprocess.run(
-        ["npx", "web-ext", "lint", "--source-dir", str(FIREFOX_DIR)],
+        [npx, "web-ext", "lint", "--source-dir", str(FIREFOX_DIR)],  # noqa: S603
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
