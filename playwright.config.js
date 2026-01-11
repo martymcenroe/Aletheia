@@ -95,6 +95,16 @@ module.exports = defineConfig({
             }
         },
         {
+            // Issue #263: Edge E2E test matrix
+            name: 'edge',
+            use: {
+                channel: 'msedge',
+                // Extensions require headed mode
+                headless: false
+                // Inherits launchOptions from global use block (extension loading)
+            }
+        },
+        {
             name: 'firefox-overlay',
             testMatch: /firefox\/.*\.spec\.js/,
             use: {
