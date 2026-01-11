@@ -11,6 +11,7 @@ See: docs/1116-linkedin-oauth.md
 Issue #116: LinkedIn OAuth Authentication
 """
 
+import html
 import json
 import logging
 import os
@@ -462,15 +463,17 @@ def handle_oauth_callback(query_params: dict) -> dict:
     We return an HTML page that the extension can detect and extract the code from.
 
     Issue #256: Firefox OAuth tabs-based flow.
+    Issue #262: XSS fix - escape all user-provided parameters.
     """
-    code = query_params.get("code", "")
-    state = query_params.get("state", "")
-    error = query_params.get("error", "")
-    error_description = query_params.get("error_description", "")
+    # XSS prevention: escape all user-provided parameters before HTML insertion
+    code = html.escape(query_params.get("code", ""))
+    state = html.escape(query_params.get("state", ""))
+    error = html.escape(query_params.get("error", ""))
+    error_description = html.escape(query_params.get("error_description", ""))
 
     if error:
         # OAuth error from LinkedIn
-        html = f"""<!DOCTYPE html>
+        response_html = f"""<!DOCTYPE html>
 <html>
 <head>
     <title>Aletheia - Login Failed</title>
@@ -488,7 +491,7 @@ def handle_oauth_callback(query_params: dict) -> dict:
 </html>"""
     else:
         # Success - include code and state in a hidden div for extension to extract
-        html = f"""<!DOCTYPE html>
+        response_html = f"""<!DOCTYPE html>
 <html>
 <head>
     <title>Aletheia - Login Successful</title>
@@ -510,7 +513,7 @@ def handle_oauth_callback(query_params: dict) -> dict:
         "headers": {
             "Content-Type": "text/html; charset=utf-8",
         },
-        "body": html,
+        "body": response_html,
     }
 
 
