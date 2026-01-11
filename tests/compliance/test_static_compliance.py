@@ -68,8 +68,8 @@ class TestStaticCompliance:
 
         Our privacy policy MUST state that AWS Bedrock does not train on user data.
         """
-        index_html = Path(__file__).parent.parent.parent / "index.html"
-        assert index_html.exists(), "index.html not found at repository root"
+        index_html = Path(__file__).parent.parent.parent / "web" / "index.html"
+        assert index_html.exists(), "index.html not found at web/index.html"
 
         content = index_html.read_text(encoding="utf-8")
 

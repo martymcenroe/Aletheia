@@ -281,27 +281,20 @@
 | `extensions/firefox/popup.css` | **Style** | 🟡 **Beta** | #100 | Popup styling with design tokens. |
 | `extensions/firefox/popup.js` | **Logic** | 🟡 **Beta** | #100 | Popup logic and storage interaction. |
 | `extensions/firefox/icons/*` | **Asset** | 🟢 **Stable** | #82 | Firefox extension icons (16/32/48/128px). |
-| `index.html` | **Asset** | ⚫ **Legacy** | #81 | Landing page (cyberpunk). To be redesigned. |
+| `web/index.html` | **Asset** | ⚫ **Legacy** | #81 | Landing page (cyberpunk). To be redesigned. |
 
 ### Infrastructure & Deployment
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `aws-cleanup-old-resources.sh` | **Script** | 🟡 **Beta** | - | Cleanup old AWS resources. |
-| `aws-inventory-check.sh` | **Script** | 🟡 **Beta** | - | AWS resource inventory audit. |
-| `batch-pdf.sh` | **Script** | 🟡 **Beta** | - | Batch PDF generation script. |
 | `deploy.sh` | **Script** | 🟢 **Stable** | #113 | Lambda deployment automation. |
-| `print-all-pdfs.sh` | **Script** | 🟡 **Beta** | - | Print all markdown files to PDF. |
-| `print-docs.sh` | **Script** | 🟡 **Beta** | - | Print documentation to PDF. |
 | `provision.sh` | **Script** | 🟢 **Stable** | #113 | AWS infrastructure provisioning. |
-| `scripts/aws/.gitkeep` | **Placeholder** | 🟢 **Stable** | - | AWS scripts directory placeholder. |
 | `dist/` | **Output** | 🚫 **Gitignored** | - | Build artifacts (empty). |
 | `temp-pdfs/` | **Output** | 🚫 **Gitignored** | - | Temporary PDF storage (auto-deleted after successful print). |
 
 ### Tools & Utilities
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `format-issues.py` | **Utility** | 🟡 **Beta** | - | GitHub issues formatter. |
-| `harvest_test_data.py` | **Utility** | 🟡 **Beta** | #72 | Log puller. Pending move to tools/. |
+| `tools/harvest_test_data.py` | **Utility** | 🟡 **Beta** | #72 | Log puller. Pending move to tools/. |
 | `tools/fetch_denylist.py` | **Utility** | 🟢 **Stable** | #121 | Wikipedia denylist fetcher (multi-pass wikitext parser). |
 | `tools/generate_store_assets.py` | **Utility** | ⚪ **Placeholder** | #53 | Store asset generator. |
 | `tools/log_viewer.py` | **Utility** | 🟢 **Stable** | #69 | DynamoDB Inspector. |
@@ -320,6 +313,8 @@
 | `tools/aws/lambda-on.sh` | **Utility** | 🟢 **Stable** | - | Enable Lambda (remove concurrency limit). |
 | `tools/aws/lambda-off.sh` | **Utility** | 🟢 **Stable** | - | Disable Lambda (set concurrency=0). |
 | `tools/aws/waf-setup.sh` | **Utility** | 🟢 **Stable** | #95 | CloudFront + WAF setup with rate limiting (--env dev/prod). |
+| `tools/aws/cleanup_old_resources.sh` | **Utility** | 🟡 **Beta** | #204 | Cleanup old AWS resources (moved from root). |
+| `tools/aws/inventory_check.sh` | **Utility** | 🟡 **Beta** | #204 | AWS resource inventory audit (moved from root). |
 | `tools/policy_check.sh` | **Utility** | 🟢 **Stable** | - | Pre-commit/CI policy compliance check (ADR 0201, CLAUDE.md directives). |
 | `tools/deploy_test_sites.sh` | **Utility** | 🟢 **Stable** | #105 | Deploy test site fixtures to GitHub Pages. |
 | `tools/data_hygiene.py` | **Utility** | 🟢 **Stable** | #150 | AI-powered DynamoDB data cleanup tool. |
@@ -333,9 +328,9 @@
 
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `run_guardrails.py` | **Test** | ⚪ **Placeholder** | - | Guardrail runner. |
-| `test_ground_truth.json` | **Data** | 🟢 **Stable** | - | Gold standard test dataset. |
-| `test_holistic_data.json` | **Data** | 🟡 **Beta** | - | Raw harvested test data. |
+| `tools/run_guardrails.py` | **Utility** | ⚪ **Placeholder** | - | Guardrail runner (moved from root). |
+| `tests/data/ground_truth.json` | **Data** | 🟢 **Stable** | - | Gold standard test dataset. |
+| `tests/data/holistic_data.json` | **Data** | 🟡 **Beta** | - | Raw harvested test data. |
 | `tests/__init__.py` | **Test** | 🟢 **Stable** | - | Test package init. |
 | `tests/unit/__init__.py` | **Test** | 🟢 **Stable** | #190 | Unit tests package init. |
 | `tests/unit/test_denylist.py` | **Test** | 🟢 **Stable** | #45 | Unit tests for denylist guardrail. |
@@ -371,8 +366,8 @@
 | `tests/fixtures/html/test-mature.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with mature rating (allowed). |
 | `tests/fixtures/html/test-clean.html` | **Fixture** | 🟢 **Stable** | #104 | Test page with no rating meta. |
 | `tests/fixtures/html/test-xss-*.html` | **Fixture** | 🟢 **Stable** | #95 | XSS attack vector test pages (script, img, event). |
-| `verify_bedrock.py` | **Test** | ⚪ **Placeholder** | - | Bedrock connectivity test. |
-| `verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
+| `tools/verify_bedrock.py` | **Utility** | ⚪ **Placeholder** | - | Bedrock connectivity test (moved from root). |
+| `tools/verify_holistic.py` | **Test** | 🟡 **Beta** | - | LLM-based holistic judge. |
 | `docs/security/vulnerability-test.md` | **Test** | 🟢 **Stable** | #95 | Manual vulnerability reproduction scripts. |
 
 ### Session Logs
