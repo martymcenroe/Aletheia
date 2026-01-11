@@ -10,17 +10,16 @@ const path = require('path');
  * @param {string} browser - 'chrome' or 'firefox'
  */
 async function injectOverlay(page, browser = 'chrome') {
-    // For Firefox tests, we need to patch attachShadow to use 'open' mode
-    // because Firefox doesn't expose closed shadow roots like Chrome does
-    if (browser === 'firefox') {
-        await page.evaluate(() => {
-            const originalAttachShadow = Element.prototype.attachShadow;
-            Element.prototype.attachShadow = function(options) {
-                // Force open mode for testing
-                return originalAttachShadow.call(this, { ...options, mode: 'open' });
-            };
-        });
-    }
+    // Patch attachShadow to use 'open' mode for testing
+    // Closed shadow roots return null for host.shadowRoot, breaking test queries
+    // This patch is required for BOTH Chrome and Firefox (#272)
+    await page.evaluate(() => {
+        const originalAttachShadow = Element.prototype.attachShadow;
+        Element.prototype.attachShadow = function(options) {
+            // Force open mode for testing
+            return originalAttachShadow.call(this, { ...options, mode: 'open' });
+        };
+    });
 
     const overlayPath = browser === 'firefox'
         ? path.join(__dirname, '../../../extensions/firefox/overlay.js')

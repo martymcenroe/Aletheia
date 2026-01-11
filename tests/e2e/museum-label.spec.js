@@ -7,104 +7,16 @@
 // LLD: docs/1125-museum-label-ui.md
 
 const { test, expect } = require('@playwright/test');
-const path = require('path');
-
-// Test data fixtures
-const TEST_DATA = {
-    neutral: {
-        signal: 'Historical Term',
-        gem: 'A word from early 20th century usage.',
-        context: 'First documented in 1923. Common in academic writing. Still used in historical contexts today.'
-    },
-    warning: {
-        signal: 'Archaic Pejorative',
-        gem: 'Once clinical, now outdated and considered offensive.',
-        context: 'First used in 18th century medicine. Fell out of clinical use by 1950. Now recognized as dehumanizing.'
-    },
-    blocked: {
-        signal: 'Hard Block',
-        gem: 'This content is blocked.',
-        context: 'Content blocked by safety filter.',
-        blocked: 'Content blocked by safety filter'
-    },
-    longContext: {
-        signal: 'Etymological Analysis',
-        gem: 'A term with complex historical roots spanning multiple centuries.',
-        context: 'This is a much longer context that will test the typewriter animation. The word originated in ancient Greek, traveled through Latin during the Roman Empire, was adopted into Old French during the medieval period, and finally entered English through Norman influence. Its meaning has shifted considerably over the centuries, from a technical term to everyday usage.'
-    }
-};
-
-// Helper: Inject overlay.js into the page
-async function injectOverlay(page) {
-    const overlayPath = path.join(__dirname, '../../extensions/chrome/overlay.js');
-    await page.addScriptTag({ path: overlayPath });
-    // Wait for functions to be defined
-    await page.waitForFunction(() => window.showAletheiaResult !== undefined);
-}
-
-// Helper: Select text element to establish selection geometry
-async function selectText(page, testId) {
-    const element = page.locator(`[data-testid="${testId}"]`);
-    await element.click({ clickCount: 3 }); // Triple-click to select all
-    await page.waitForTimeout(100);
-}
-
-// Helper: Query element inside Shadow DOM
-async function shadowQuery(page, selector) {
-    return page.evaluate((sel) => {
-        const host = document.getElementById('aletheia-overlay-host');
-        if (!host || !host.shadowRoot) return null;
-        const el = host.shadowRoot.querySelector(sel);
-        return el ? {
-            className: el.className,
-            textContent: el.textContent,
-            ariaExpanded: el.getAttribute('aria-expanded'),
-            isVisible: el.offsetParent !== null || getComputedStyle(el).display !== 'none'
-        } : null;
-    }, selector);
-}
-
-// Helper: Check if overlay host exists and is visible
-async function isOverlayVisible(page) {
-    return page.evaluate(() => {
-        const host = document.getElementById('aletheia-overlay-host');
-        return host !== null && host.offsetParent !== null;
-    });
-}
-
-// Helper: Click element inside Shadow DOM
-async function shadowClick(page, selector) {
-    await page.evaluate((sel) => {
-        const host = document.getElementById('aletheia-overlay-host');
-        if (host && host.shadowRoot) {
-            const el = host.shadowRoot.querySelector(sel);
-            if (el) el.click();
-        }
-    }, selector);
-}
-
-// Helper: Hover over element inside Shadow DOM
-async function shadowHover(page, selector) {
-    await page.evaluate((sel) => {
-        const host = document.getElementById('aletheia-overlay-host');
-        if (host && host.shadowRoot) {
-            const el = host.shadowRoot.querySelector(sel);
-            if (el) {
-                el.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-            }
-        }
-    }, selector);
-}
-
-// Helper: Check if element inside Shadow DOM is focused
-async function isShadowElementFocused(page, selector) {
-    return page.evaluate((sel) => {
-        const host = document.getElementById('aletheia-overlay-host');
-        if (!host || !host.shadowRoot) return false;
-        const el = host.shadowRoot.querySelector(sel);
-        return el === host.shadowRoot.activeElement;
-    }, selector);
-}
+const {
+    injectOverlay,
+    selectText,
+    shadowQuery,
+    isOverlayVisible,
+    shadowClick,
+    shadowHover,
+    isShadowElementFocused,
+    TEST_DATA
+} = require('./helpers/overlay-helpers');
 
 test.describe('Museum Label UI (#125)', () => {
 
