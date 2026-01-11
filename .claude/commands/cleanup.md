@@ -143,17 +143,26 @@ Run these commands simultaneously in a single message with multiple Bash tool ca
 
 ## Phase 3: Session Log
 
+**Session Name:** The session name (e.g., "whimsical-wobbling-widget") adds personality to logs. Always include it prominently.
+
 Append session log entry (if tool available):
 ```bash
 poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/append_session_log.py \
     --model "Claude Sonnet 4" \
-    --summary "Cleanup ([MODE] mode) | Session: [SESSION_NAME]" \
+    --summary "[MODE] cleanup | [SESSION_NAME]" \
     --created "None" \
     --closed "None" \
     --next "Per user direction"
 ```
 
-If no session log tool exists, manually append to the current day's session log.
+If no session log tool exists, manually append to the current day's session log with format:
+```
+### Session: [SESSION_NAME]
+- **Mode:** [MODE] cleanup
+- **Model:** Claude Sonnet 4
+- **Closed:** [issues if any]
+- **Next:** Per user direction
+```
 
 ## Phase 4: Single Commit & Push (SKIP FOR QUICK MODE)
 
@@ -202,7 +211,10 @@ git -C /c/Users/mcwiz/Projects/Aletheia branch -r
 
 ## Return Results
 
-Return a summary table:
+Return a summary with session name header and table:
+
+```
+## Session: [SESSION_NAME]
 
 | Check | Status |
 |-------|--------|
@@ -214,6 +226,7 @@ Return a summary table:
 | Auto-Deleted | {count} branches / Skipped |
 | Stashes | None / {count} |
 | Commit | Pushed / Failed |
+```
 
 Flag any unexpected conditions.
 ```
