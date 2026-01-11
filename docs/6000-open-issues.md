@@ -1,20 +1,7 @@
 # Aletheia - Open Issues
 
-**Generated:** 2026-01-10 09:42 CT
-**Total Open Issues:** 14
-
----
-
-## Issue #51: Chrome Web Store Compliance
-
-**Labels:** high-priority, chore
-
-**Created:** 2025-12-10
-**Updated:** 2026-01-09
-
-### Description
-
-Prepare assets (Manifest, Privacy Policy, Store Listing) for submission.
+**Generated:** 2026-01-10 21:58 CT
+**Total Open Issues:** 9
 
 ---
 
@@ -104,158 +91,10 @@ This is a **future enhancement** - not required for MVP or store submission.
 
 ---
 
-## Issue #117: spike: Investigate mechanisms to support unauthenticated users while limiting abuse
-
-**Labels:** documentation, enhancement, post-mvp
-
-**Created:** 2025-12-30
-**Updated:** 2026-01-01
-
-### Description
-
-## Context
-We want LinkedIn OAuth as primary auth (#116), but would like to offer some level of trial/anonymous access without requiring signup. The challenge: preventing abuse without capturing privacy-sensitive data that Chrome Web Store wouldn't approve.
-
-## Problem Statement
-How do we let users "try before they buy" while preventing:
-- One person creating unlimited trial accounts
-- Bots/scripts abusing free tier
-- Denial-of-wallet attacks on our Bedrock costs
-
-## Constraints
-- Chrome Web Store privacy requirements
-- No IP address logging (likely prohibited)
-- No invasive fingerprinting
-- Must work across browser profiles/reinstalls (ideally)
-
-## Options to Investigate
-
-### 1. No Trial (Baseline)
-- Require LinkedIn OAuth from first use
-- **Pros:** Simple, no abuse vector
-- **Cons:** High friction, loses casual users
-
-### 2. Extension Install ID
-- Use `chrome.runtime.id` or generate UUID on install
-- Track usage server-side per ID
-- **Pros:** Simple, no PII
-- **Cons:** Bypassable via reinstall, cleared on uninstall
-
-### 3. Time-Limited Trial
-- "Free for first 24/48 hours after install"
-- Store install timestamp locally + server validation
-- **Pros:** Natural expiration
-- **Cons:** Reinstall resets clock
-
-### 4. Usage-Limited Trial
-- "First N requests free"
-- Counter stored server-side keyed by install ID
-- **Pros:** Fair, predictable cost
-- **Cons:** Same bypass as #2
-
-### 5. Rate Limiting Only
-- Allow anonymous but heavily rate-limited (e.g., 5 req/day)
-- Authenticated users get higher limits
-- **Pros:** Always available, natural upgrade path
-- **Cons:** Determined abusers can still accumulate
-
-### 6. Hybrid: Generous + Decay
-- Start with N free requests
-- After exhausted, drop to rate-limited mode
-- Auth unlocks full access
-- **Pros:** Best UX for legitimate users
-- **Cons:** Complex to implement
-
-## Questions to Answer
-1. What does Chrome Web Store actually prohibit re: tracking?
-2. What's our cost-per-request? (Determines abuse tolerance)
-3. What's the conversion funnel goal? (Trial → Auth → Paid?)
-4. Can we defer this entirely for MVP and require auth?
-
-## Deliverable
-Recommendation document with chosen approach and rationale.
-
-## Related
-- #116 - LinkedIn OAuth (primary auth mechanism)
-
----
-
-## Issue #123: blog: Agent Operating System (AOS) - Beyond CMS for AI Collaboration
-
-**Labels:** blog
-
-**Created:** 2025-12-31
-**Updated:** 2026-01-04
-
-### Description
-
-## Concept
-
-The Aletheia documentation system has evolved beyond a Content Management System (CMS) into something more fundamental: an **Agent Operating System (AOS)**—executable documentation that AI agents run as their program.
-
-## The Insight
-
-"CMS" undersells what this is. The docs aren't just reference material—they're the instructions agents execute.
-
-## The AOS Layers
-
-| Layer | What It Does | Examples |
-|-------|--------------|----------|
-| **Process Automation** | Checklists that execute, not just document | 0009 (Session/Full Closeout) |
-| **Context Persistence** | State preserved across sessions and agents | Session logs, IMMEDIATE-PLAN |
-| **Agent Orchestration** | Who does what, when, how | CLAUDE.md, GEMINI.md, 0004 |
-| **Reality Verification** | Don't trust metadata—verify actual state | 0009 Full Mode |
-| **Executable Standards** | Rules that agents can follow literally | 0002, Forbidden Commands |
-
-## The Operating System Metaphor
-
-- **Docs = Programs** — Agents read and execute them
-- **Session Logs = Process State** — Preserved across restarts
-- **IMMEDIATE-PLAN = Current Task** — The foreground process
-- **Checklists = Subroutines** — Called when conditions are met
-- **Orchestrator = Scheduler** — Decides which agent runs which task
-
-## What Makes This New
-
-Traditional OS manages hardware resources. AOS manages **cognitive resources** across:
-- Multiple agents with different capabilities
-- Limited context windows
-- No persistent memory within agents
-- Varying instruction-following fidelity
-
-## Key Lessons Discovered
-
-1. **Don't trust metadata—verify reality.** Issue status can be wrong. Check if the code actually exists.
-
-2. **Docs are programs.** If you can't execute the instruction literally, it's not clear enough.
-
-3. **Orchestrator is scheduler, not programmer.** The human's job is to route agents to the right docs, not to remember context.
-
-4. **Session logs are process state.** Without them, context dies when the session ends.
-
-## Origin
-
-Discovered during Aletheia development when a session closeout revealed that Issue #45 and #113 were both complete but the IMMEDIATE-PLAN still listed them as pending. The instruction "update IMMEDIATE-PLAN" was insufficient—agents needed to be told to **verify reality, not trust metadata**.
-
-This led to the realization that what we'd built wasn't just documentation—it was an operating system for AI-human collaboration.
-
-## References
-
-- `docs/0000-GUIDE.md` - AOS philosophy section
-- `docs/0009-session-closeout-protocol.md` - Full Mode for IMMEDIATE-PLAN verification
-
-## Publication Notes
-
-- Target audience: AI/ML practitioners, developer tooling engineers, anyone working with AI agents
-- Angle: Novel framing of documentation as executable infrastructure
-- Could include diagrams showing the "OS layers" and agent execution flow
-
----
-
 ## Issue #132: Set up support email infrastructure (Cloudflare Email Routing)
 
 **Created:** 2026-01-01
-**Updated:** 2026-01-01
+**Updated:** 2026-01-11
 
 ### Description
 
@@ -301,162 +140,6 @@ We need email capability for:
 
 ---
 
-## Issue #203: Future: AgentOS Process Improvements (Research-Based)
-
-**Labels:** process, post-mvp
-
-**Created:** 2026-01-09
-**Updated:** 2026-01-09
-
-### Description
-
-## Summary
-
-Consolidated backlog item for process improvements derived from academic research (Paper 2512.14012) on expert LLM agent usage patterns.
-
-These ideas are **valid but not urgent** - the current AgentOS workflow successfully shipped Aletheia to the Chrome Web Store. Revisit if evidence of process failures emerges.
-
----
-
-## Improvement Ideas
-
-### 1. Active Plan & Context Injection (was #127)
-- Agents maintain `CURRENT_STATUS.md` in worktrees
-- Prompts must reference specific LLD steps, target files, domain objects
-- **Goal:** Prevent context loss, provide crash recovery save points
-
-### 2. Scaffolding vs. Logic Split (was #128)
-- Two-pass implementation model:
-  - **Pass 1 (Skeleton):** Directory structure, function signatures, failing tests (high autonomy)
-  - **Pass 2 (Brain):** Business logic implementation (high supervision)
-- **Goal:** Match agent autonomy level to task suitability
-
-### 3. Red Team Architecture Challenge (was #129)
-- Insert critique phase before LLD approval
-- Different model attacks the plan: "Find 3 ways this fails in production"
-- **Goal:** Catch hallucinations, over-engineering, security gaps early
-
----
-
-## Implementation Criteria
-
-Only implement these if:
-- [ ] Evidence of repeated process failures (lost context, bad LLDs, etc.)
-- [ ] Current review gates prove insufficient
-- [ ] Team bandwidth exists after MVP launch
-
----
-
-## References
-- Paper 2512.14012 (arXiv - Expert LLM Agent Usage Patterns)
-- Supersedes: #127, #128, #129
-
----
-*Consolidated during backlog cleanup, 2026-01-09*
-
----
-
-## Issue #204: chore: Repository reorganization - move scripts and test data to proper directories
-
-**Created:** 2026-01-09
-**Updated:** 2026-01-09
-
-### Description
-
-## Summary
-
-The repository root has accumulated clutter that should be organized into proper directories. This is a housekeeping task to align with professional Python/JavaScript project standards.
-
-## Current Problems
-
-### Root Directory Clutter
-
-| Category | Count | Files |
-|----------|-------|-------|
-| Python scripts | 5 | `format-issues.py`, `harvest_test_data.py`, `run_guardrails.py`, `verify_bedrock.py`, `verify_holistic.py` |
-| Shell scripts | 6 | `aws-cleanup-old-resources.sh`, `aws-inventory-check.sh`, `batch-pdf.sh`, `print-*.sh`, `run-audit.bat` |
-| Test data | 2 | `test_ground_truth.json` (2KB), `test_holistic_data.json` (337KB) |
-| Orphan files | 2 | `index.html`, `.print-history.json` |
-
-### Directory Confusion
-
-- `scripts/` is empty (just `.gitkeep`) but `tools/` has all actual tools
-- `prompts/` contains stale files including "clean this out later" folder
-
-## Proposed Changes
-
-### 1. Move Python Scripts to `tools/`
-```
-format-issues.py      → tools/format_issues.py
-harvest_test_data.py  → tools/harvest_test_data.py
-run_guardrails.py     → tools/run_guardrails.py
-verify_bedrock.py     → tools/verify_bedrock.py
-verify_holistic.py    → tools/verify_holistic.py
-```
-
-### 2. Consolidate Shell Scripts to `tools/aws/`
-```
-aws-cleanup-old-resources.sh → tools/aws/cleanup_old_resources.sh
-aws-inventory-check.sh       → tools/aws/inventory_check.sh
-```
-
-### 3. Move Print Scripts to `tools/print/`
-```
-batch-pdf.sh       → tools/print/batch_pdf.sh
-print-all-pdfs.sh  → tools/print/print_all.sh
-print-docs.sh      → tools/print/print_docs.sh
-```
-
-### 4. Move Test Data to `tests/data/`
-```
-test_ground_truth.json  → tests/data/ground_truth.json
-test_holistic_data.json → tests/data/holistic_data.json
-```
-
-### 5. Create `web/` for Landing Page
-```
-index.html → web/index.html
-```
-
-### 6. Cleanup
-- [ ] Delete empty `scripts/` directory
-- [ ] Add to `.gitignore`: `.print-history.json`, `temp-pdfs/`
-- [ ] Move `run-audit.bat` to `tools/`
-- [ ] Move `CHATGPT.md`, `GEMINI.md` to `docs/llm-guides/` or delete
-- [ ] Clean up `prompts/` directory (archive stale content)
-
-## Post-Move Updates Required
-
-- [ ] Update any import statements referencing moved Python files
-- [ ] Update `.claude/settings.local.json` permission paths
-- [ ] Update `pyproject.toml` if script entry points exist
-- [ ] Update `CLAUDE.md` documentation references
-- [ ] Update `docs/0003-file-inventory.md`
-- [ ] Run full test suite to verify nothing broke
-
-## Target Structure (Root)
-
-After cleanup, root should contain only:
-- Config files: `.gitignore`, `.pre-commit-config.yaml`, `eslint.config.mjs`, `pyproject.toml`, `package.json`, `poetry.lock`, `package-lock.json`, `playwright.config.js`
-- Documentation: `README.md`, `LICENSE`, `NOTICE`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `CLAUDE.md`
-- Entry points: `deploy.sh`, `provision.sh` (convention to keep in root)
-- Directories: `.claude/`, `.github/`, `docs/`, `extensions/`, `src/`, `tests/`, `tools/`, `web/`
-
-## Acceptance Criteria
-
-- [ ] No `.py` files in repository root
-- [ ] No utility `.sh` files in repository root (except `deploy.sh`, `provision.sh`)
-- [ ] No test data JSON files in repository root
-- [ ] Empty `scripts/` directory removed
-- [ ] All tests pass after reorganization
-- [ ] File inventory updated
-
-## Labels
-
-`chore`, `tech-debt`, `documentation`
-
----
-
 ## Issue #246: audit: Add adversarial test logging to 0825 AI Safety
 
 **Created:** 2026-01-10
@@ -485,33 +168,6 @@ Agent writes 'adversarial tests PASS' with no proof.
 
 ## Priority
 HIGH - AI safety claims are unverifiable
-
----
-
-## Issue #248: audit: Add CI job to verify audit execution claims
-
-**Created:** 2026-01-10
-**Updated:** 2026-01-10
-
-### Description
-
-## Problem
-Agents can claim to execute audits with no verification. Session logs may say 'ran 0809 Security - PASS' but nothing validates this.
-
-## Evidence
-90% of audits are manual-only. No CI verification that claimed audits were actually run.
-
-## Impact
-Audit claims are unverifiable. Trust-based system enables self-excuse.
-
-## Acceptance Criteria
-- [ ] CI job scans session logs for audit claims
-- [ ] Cross-references against audit record updates
-- [ ] Blocks if audit claimed but no record updated
-- [ ] Weekly report: audits claimed vs audits evidenced
-
-## Priority
-CRITICAL - This is the enforcement gap
 
 ---
 
@@ -613,59 +269,6 @@ Medium - Requires CI configuration changes
 
 ---
 
-## Issue #264: test(integration): Add DynamoDB integration test fixtures
-
-**Labels:** testing
-
-**Created:** 2026-01-10
-**Updated:** 2026-01-10
-
-### Description
-
-## Summary
-
-DynamoDB operations are only tested manually via dry-run mode. No automated integration tests exist.
-
-## Source
-
-Test Gap Analysis 2026-01-10 (from Reports #147, #150)
-
-## Problem
-
-Multiple reports note DynamoDB-dependent functionality is "manual only":
-- `delete_user_data()` - GDPR compliance function (Report #147)
-- TTL backfill logic - Data hygiene (Report #150)
-- GSI query performance - User data lookup (Report #147)
-- Pagination for tables >1MB - Not tested (Report #150)
-
-## Proposed Solution
-
-Create DynamoDB Local integration test fixtures:
-
-1. **Docker-based DynamoDB Local** for CI
-2. **Fixture data** representing production schema
-3. **Integration test suite** for Lambda data operations
-
-## Acceptance Criteria
-
-- [ ] DynamoDB Local runs in CI via Docker
-- [ ] Test fixtures create tables with GSI
-- [ ] Integration tests for `delete_user_data()`
-- [ ] Integration tests for TTL operations
-- [ ] Pagination tested with >1MB fixture data
-- [ ] Tests isolated (no production data access)
-
-## Effort
-
-Medium - Requires Docker setup and fixture design
-
-## Related
-
-- Report: docs/reports/147/test-report.md
-- Report: docs/reports/150/implementation-report.md
-
----
-
 ## Issue #272: test(fix): Apply Shadow DOM patch to Chrome E2E tests
 
 **Labels:** testing, technical-debt
@@ -719,5 +322,272 @@ Current state on main:
 - #265 - Firefox overlay E2E tests (implemented the fix)
 - #125 - Museum Label UI (original tests)
 - ADR 0202 - Shadow DOM isolation decision
+
+---
+
+## Issue #294: feat: Switch to Amazon Nova Micro for sub-second latency
+
+**Created:** 2026-01-10
+**Updated:** 2026-01-11
+
+### Description
+
+## Summary
+
+Investigation into Amazon Nova Micro as a replacement for Claude Haiku to achieve sub-second Lambda response times.
+
+## Performance Findings
+
+| Model | Avg Latency | Min | Max |
+|-------|-------------|-----|-----|
+| Claude Haiku | 1,469ms | 1,194ms | 1,854ms |
+| Amazon Nova Micro | 532ms | 498ms | 576ms |
+
+**Speedup: 2.76x faster**
+
+### Projected Full Pipeline Latency
+
+- **Current (Haiku)**: ~500ms guardrail + ~1,500ms etymology = ~2,000ms warm
+- **With Nova Micro**: ~200ms guardrail + ~530ms etymology = ~730ms warm
+
+This would comfortably pass the 3.0s smoke test threshold even with cold starts.
+
+## Quality Gap: Prompt Tuning Required
+
+Nova Micro's classifications diverge from our taxonomy in problematic ways:
+
+| Term | Haiku | Nova Micro | Correct? |
+|------|-------|------------|----------|
+| glamorous | Formal Adjective | Modern Adjective | Both OK |
+| cryptocurrency | Technical Financial Term | Modern Technical Term | Both OK |
+| **immiserate** | Formal Academic Term | **Archaic Pejorative** | ❌ Nova wrong |
+| serendipity | Formal Academic Term | Historical Term | Haiku better |
+| hello | Common Greeting | Common Greeting | ✓ |
+
+### The "Immiserate" Problem
+
+Nova classified "immiserate" as "Archaic Pejorative" - this is wrong.
+
+- **Actual usage**: Active in economics ("immiseration thesis"), academic papers, WSJ/Economist
+- **Why Nova got it wrong**: Likely pattern-matching "negative-sounding word" → "pejorative"
+- **Our WSJ Rule**: If a word appeared in quality journalism in the last 10 years, it's NOT archaic
+
+This suggests Nova needs prompt tuning to understand:
+1. The distinction between "rare" and "archaic"
+2. That describing negative phenomena (poverty, decline) is not the same as being pejorative
+3. Our specific taxonomy definitions
+
+## Work Required
+
+1. **Prompt Engineering**: Adapt system prompts for Nova Micro's response characteristics
+   - May need more explicit examples distinguishing formal academic terms from pejoratives
+   - Test against our full taxonomy edge cases
+
+2. **Semantic Guardrail**: Test Nova for safety classification (separate from etymology)
+
+3. **JSON Reliability**: Nova produced valid JSON 5/5 times vs Haiku's 4/5 (Haiku had unescaped quote issue on "glamorous")
+
+## API Differences
+
+Nova uses different request schema:
+```python
+# Claude Haiku
+{"anthropic_version": "bedrock-2023-05-31", "max_tokens": 500, "system": "...", "messages": [...]}
+
+# Nova Micro
+{"schemaVersion": "messages-v1", "system": [{"text": "..."}], "messages": [...], "inferenceConfig": {"max_new_tokens": 500}}
+```
+
+## Test Script
+
+Investigation script at: `tmp/test_nova_micro.py`
+
+## Acceptance Criteria
+
+- [ ] Nova Micro prompts tuned to match Haiku classification accuracy
+- [ ] Semantic guardrail tested with Nova Micro
+- [ ] Lambda updated to use Nova Micro (configurable via env var)
+- [ ] Smoke test passes with <3.0s latency
+- [ ] All 5 test terms classified correctly
+
+## References
+
+- [Amazon Nova Models - Bedrock Docs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-nova.html)
+- Model ID: `amazon.nova-micro-v1:0`
+- Region: us-east-1 (available)
+
+---
+
+## Issue #295: feat: Display confidence scores instead of single classification label
+
+**Created:** 2026-01-11
+**Updated:** 2026-01-11
+
+### Description
+
+## Objective
+
+Display confidence scores across all categories (above threshold) to users instead of a single classification label.
+
+## UX Flow
+
+### Scenario 1: Word with Clear Category
+1. User highlights "forsooth" on a webpage
+2. Extension calls Lambda → returns confidence scores
+3. Popup displays:
+   ```
+   Archaic: 95%
+   General Usage: 5%
+   ```
+4. User understands this is an archaic term
+
+### Scenario 2: Word with Mixed Signals
+1. User highlights "serendipity"
+2. Extension calls Lambda → returns confidence scores
+3. Popup displays:
+   ```
+   General Usage: 70%
+   Archaic: 15%
+   Neologism: 15%
+   ```
+4. User sees nuanced breakdown, not false precision of single label
+
+### Scenario 3: Provocative Term (Soft Block)
+1. User highlights "tupping"
+2. Extension calls Lambda → returns scores + warning flag
+3. Popup displays:
+   ```
+   ⚠️ Provocative: 85%
+   Archaic: 10%
+   General Usage: 5%
+   ```
+4. Warning icon indicates sensitivity
+
+### Scenario 4: Hate Speech (Hard Block)
+1. User highlights a slur
+2. Extension calls Lambda → 403 Forbidden
+3. Popup displays: "Content blocked"
+4. No scores shown (hate filter catches this upstream)
+
+## Requirements
+
+### Display Threshold
+1. Show all categories with confidence ≥ 15%
+2. Round to nearest 5% for cleaner display (done in Extension, not Lambda)
+3. Categories shown in descending order by confidence
+
+### Score Normalization
+1. Scores MUST sum to 1.0 (100%) - enforced by LLM prompt
+2. Lambda returns raw floats (e.g., 0.70, 0.15)
+3. Extension handles display formatting (percentages, rounding)
+
+### Category Taxonomy (Simplified)
+1. **General Usage** - Standard, safe language (renamed from "None")
+2. **Archaic** - Words that dropped out of common usage before 1950
+3. **Provocative** - Sexual slang or double entendres
+4. **Neologism** - Newly coined words from last 2 years
+
+### Categories Removed
+1. **Hate** - Handled by separate 403 guardrail, never reaches display
+2. **Pejorative** - Remove from etymologist prompts (redundant with Hate)
+3. **Formal Academic Term** - No longer a label; just show General Usage confidence
+
+### API Response Format
+```json
+{
+  "scores": {
+    "general_usage": 0.70,
+    "archaic": 0.15,
+    "provocative": 0.05,
+    "neologism": 0.10
+  },
+  "gem": "First recorded in 1754, coined by Horace Walpole...",
+  "context": "Three sentences of etymological detail...",
+  "warning": false
+}
+```
+
+## Technical Approach
+
+- **Lambda**: Return full `scores` object from semantic guardrail (already calculated)
+- **Etymologist**: Remove single-label "signal" output; return only gem+context
+- **Extension**: Parse `scores`, filter by threshold, render as list
+- **Taxonomy**: Rename "None" → "General Usage" in taxonomy.json
+
+## Files to Create/Modify
+
+- `src/lambda_function.py` — Include scores in response body
+- `src/etymologist.py` — Remove "signal" field from prompt/output
+- `src/guardrails/resources/taxonomy.json` — Rename "None" to "General Usage"
+- `extension/popup.js` — Render score breakdown instead of signal
+- `extension/popup.html` — UI for confidence list
+
+## Security Considerations
+
+**Data Exposure Change:**
+- Previously: Single label visible to user ("Formal Academic Term")
+- Now: Full confidence distribution visible (all 4 categories with percentages)
+- Risk: Minimal - categories are non-sensitive (General Usage, Archaic, Provocative, Neologism)
+- Hate category scores are NEVER exposed - 403 block occurs before score calculation
+
+**Score Manipulation:**
+- Scores come from LLM classification, not user input
+- No new attack surface introduced
+- Existing XML tag wrapping prevents prompt injection
+
+**Blocked Content:**
+- Hate speech still triggers 403 at guardrail layer
+- No change to hard block behavior
+- Users cannot see scores for blocked content
+
+## Dependencies
+
+- None (foundational change)
+- **Blocks:** Issue #294 (Nova Micro switch) — complete this first
+
+## Out of Scope (Future)
+
+- Issue #294 (Nova Micro switch) — do after this is complete
+- Confidence calibration — accept model's scores as-is for MVP
+- User-configurable threshold — hardcode 15% for now
+
+## Acceptance Criteria
+
+- [ ] Lambda returns `scores` object with all 4 categories
+- [ ] Extension displays all categories ≥ 15% confidence
+- [ ] "Pejorative" removed from all prompts
+- [ ] "None" renamed to "General Usage" in taxonomy
+- [ ] No single "signal" label in response
+- [ ] Hate speech still returns 403 (no scores shown)
+- [ ] Smoke test passes
+
+## Definition of Done
+
+### Implementation
+- [ ] Lambda response includes scores
+- [ ] Etymologist no longer returns "signal" field
+- [ ] Extension renders score breakdown
+- [ ] Unit tests for score filtering
+
+### Documentation
+- [ ] LLD: `docs/lld/active/XXX-confidence-score-display.md`
+- [ ] Update extension wiki if applicable
+- [ ] Add new files to `docs/0003-file-inventory.md`
+
+### Reports (Pre-Merge Gate)
+- [ ] `docs/reports/{IssueID}/implementation-report.md` created
+- [ ] `docs/reports/{IssueID}/test-report.md` created
+
+### Verification
+- [ ] Run 0809 Security Audit - PASS
+- [ ] Run 0817 Wiki Alignment Audit - PASS (if wiki updated)
+
+## Testing Notes
+
+Test with these terms to verify correct score distribution:
+- "hello" → General Usage: ~100%
+- "forsooth" → Archaic: ~95%
+- "cryptocurrency" → General Usage: ~80%, Neologism: ~20%
+- "tupping" → Provocative: ~85%, Archaic: ~10%
 
 ---

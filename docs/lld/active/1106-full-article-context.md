@@ -12,10 +12,10 @@
 - [x] ~~What triggers "full article" mode?~~ **Popup button (explicit consent)**
 - [x] ~~How do we handle copyright implications?~~ **Hard Stop for noarchive pages**
 - [x] ~~What's the maximum article length?~~ **~10k chars (~2.5k tokens) truncated client-side**
-- [ ] Should full article content be persisted to DynamoDB, or processed in-memory only?
+- [x] ~~Should full article content be persisted to DynamoDB?~~ **No - in-memory only (privacy)**
 - [x] ~~How does this interact with noarchive signals?~~ **Hard Stop - feature disabled**
 - [x] ~~Do we need user consent UI?~~ **Yes - popup button is explicit consent**
-- [ ] Should this be opt-in per-request or a global preference?
+- [x] ~~Should this be opt-in per-request or a global preference?~~ **Per-request (button click = consent)**
 
 ### Resolved Questions (Gemini Review 2026-01-06)
 
@@ -336,6 +336,10 @@ async function handleFullPageClick(): void;
 
 ## 11. Verification & Testing
 
+*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+
+**Testing Philosophy:** All scenarios are automated. CloudWatch verification requires live Lambda but is still automated.
+
 ### 11.1 Test Scenarios
 
 | ID | Scenario | Type | Input | Expected Output | Pass Criteria |
@@ -347,7 +351,7 @@ async function handleFullPageClick(): void;
 | 050 | PII scrubbing - phone | Auto | Text with phones | `[phone redacted]` | Pattern replaced |
 | 060 | Client-side truncation | Auto | 15k char text | 10k chars + truncation marker | Under limit |
 | 070 | noarchive Hard Stop | Auto | noarchive page | Button disabled | "Content Protected" |
-| 080 | Mode logging | Auto | Full article request | Log with mode="full_article" | CloudWatch entry |
+| 080 | Mode logging | Auto-Live | Full article request | Log with mode="full_article" | CloudWatch entry |
 | 090 | Fallback on error | Auto | Malformed page | Selection-only mode | Graceful degradation |
 
 ### 11.2 Test Commands
@@ -356,16 +360,20 @@ async function handleFullPageClick(): void;
 # Extension unit tests
 npm test -- --grep "full article"
 
-# E2E tests
+# E2E tests (all automated)
 npx playwright test --grep "full article"
 
-# CloudWatch log verification
+# CloudWatch log verification (Auto-Live - hits real AWS)
 aws logs filter-log-events \
   --log-group-name /aws/lambda/AletheiaLambda \
   --filter-pattern '{ $.mode = "full_article" }'
 ```
 
-### 11.3 Fixture Requirements
+### 11.3 Manual Tests
+
+N/A - All scenarios automated.
+
+### 11.4 Fixture Requirements
 
 All test fixtures MUST be:
 - **Synthetic:** Generated Lorem Ipsum or procedurally created
@@ -400,31 +408,32 @@ All test fixtures MUST be:
 
 ---
 
-## Appendix: Gemini Review Response
+## Appendix: Review Log
 
-**Review Date:** 2026-01-06
+*Track all review feedback with timestamps and implementation status.*
+
+### Gemini Review #1 (APPROVED)
+
+**Timestamp:** 2026-01-06
 **Reviewer:** Gemini 3 Pro
+**Verdict:** APPROVED (after revisions)
 
-### Tier 1 Issues (BLOCKING) - Addressed
+#### Comments
 
-| Issue | Resolution |
-|-------|------------|
-| Extraction Strategy (innerText captures noise) | Implemented Readability-style extraction with article/main/fallback strategy |
-| PII Scrubbing | Added client-side regex scrubbing for emails and phone numbers |
-| noarchive Enforcement | Changed from "Warn" to **Hard Stop** - button disabled on noarchive pages |
+| ID | Comment | Implemented? |
+|----|---------|--------------|
+| G1.1 | "[BLOCKING] Extraction strategy uses innerText - captures nav/footer noise" | ✅ YES - Readability-style extraction in Section 6.1 |
+| G1.2 | "[BLOCKING] PII scrubbing required before sending to Lambda" | ✅ YES - Client-side regex in Section 6.2 |
+| G1.3 | "[BLOCKING] noarchive should be Hard Stop, not Warn" | ✅ YES - Button disabled in Section 6.4 |
+| G1.4 | "[HIGH] Truncation should happen client-side, not Lambda" | ✅ YES - Client-side truncation in Section 6.3 |
+| G1.5 | "[HIGH] Test fixtures must be synthetic/public domain" | ✅ YES - Section 11.4 added |
+| G1.6 | "[SUGGESTION] UX trigger should be explicit consent" | ✅ YES - Popup button in Section 6.4 |
+| G1.7 | "[SUGGESTION] Add cost monitoring via logging" | ✅ YES - mode="full_article" tag in Section 6.5 |
 
-### Tier 2 Issues (HIGH) - Addressed
+### Review Summary
 
-| Issue | Resolution |
-|-------|------------|
-| Truncation at Lambda | Moved to **client-side truncation** (~10k chars) |
-| Fixture Hygiene | Added explicit requirement: synthetic/public domain only |
+| Review | Date | Verdict | Key Issue |
+|--------|------|---------|-----------|
+| Gemini #1 | 2026-01-06 | APPROVED | noarchive Hard Stop required |
 
-### Tier 3 Issues (SUGGESTIONS) - Addressed
-
-| Issue | Resolution |
-|-------|------------|
-| UX Trigger | Selected **Popup Button** approach |
-| Cost Monitoring | Added `mode="full_article"` tag to Lambda logs |
-
-**Verdict:** APPROVED after revisions.
+**Final Status:** APPROVED

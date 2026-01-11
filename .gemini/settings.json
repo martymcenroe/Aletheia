@@ -1,0 +1,9 @@
+{
+  "previewFeatures": {
+    "enabled": true
+  },
+  "general": {
+    "previewFeatures": true
+  },
+  "selectedModel": "gemini-3-pro-preview"
+}

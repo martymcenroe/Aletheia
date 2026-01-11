@@ -364,41 +364,49 @@ Push to `main` branch, GitHub Pages auto-deploys.
 
 ## 11. Verification & Testing
 
+*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+
+**Testing Philosophy:** Maximize automated testing. Visual design approval requires human judgment.
+
 ### 11.1 Test Scenarios
 
 | ID | Scenario | Type | Input | Expected Output | Pass Criteria |
 |----|----------|------|-------|-----------------|---------------|
-| 010 | Page loads | Manual | Open index.html | Page renders | Visual inspection |
-| 020 | Mobile responsive | Manual | Resize browser | Layout adapts | No horizontal scroll |
-| 030 | Dark mode | Manual | Toggle system preference | Colors switch | Readable in both modes |
-| 040 | CTA link works | Manual | Click Install | Chrome Store opens | Correct URL |
-| 050 | Privacy Policy link | Manual | Click Privacy Policy | privacy.html loads | Page renders |
-| 060 | Lighthouse audit | Auto | Run Lighthouse | Score > 95 | Performance, accessibility |
-| 070 | Load time | Auto | Measure FCP | < 500ms | Performance budget |
+| 010 | Page loads | Auto | Playwright navigate | 200 status | Page title correct |
+| 020 | Mobile responsive | Auto | Playwright viewport 375x667 | No overflow | `overflow-x: hidden` computable |
+| 030 | Dark mode | Auto | Playwright emulateMedia dark | CSS vars change | `--color-bg` is dark |
+| 040 | CTA link works | Auto | Playwright click | href correct | URL contains chrome.google.com |
+| 050 | Privacy Policy link | Auto | Playwright click | privacy.html loads | Page title contains "Privacy" |
+| 060 | Lighthouse audit | Auto | lighthouse CLI | Score > 95 | JSON output score |
+| 070 | Load time | Auto | Playwright performance | FCP < 500ms | Performance API |
+| 080 | HTML validation | Auto | html-validate CLI | 0 errors | Exit code 0 |
+| 090 | Links not broken | Auto | Playwright check all anchors | All resolve | No 404s |
 
 ### 11.2 Test Commands
 
 ```bash
-# Local preview
-npx serve .
+# Run all automated tests
+npx playwright test tests/e2e/landing-page.spec.js
 
-# Lighthouse audit (requires Chrome)
-npx lighthouse https://martymcenroe.github.io/Aletheia/ --output=json
+# Lighthouse audit (headless)
+npx lighthouse https://martymcenroe.github.io/Aletheia/ --output=json --chrome-flags="--headless"
 
 # HTML validation
 npx html-validate index.html privacy.html
+
+# Local preview for manual review
+npx serve .
 ```
 
-### 11.3 Manual Review Checklist
+### 11.3 Manual Tests (Only If Unavoidable)
 
-- [ ] Looks professional and trustworthy
-- [ ] Mobile responsive (test on actual device)
-- [ ] Dark mode works (toggle system preference)
-- [ ] All links work (Chrome Store, GitHub, Privacy Policy)
-- [ ] Privacy messaging is prominent
-- [ ] No typos in copy
-- [ ] Wordmark logo displays correctly
-- [ ] Icons are legible in both light/dark modes
+| ID | Scenario | Why Not Automated | Steps |
+|----|----------|-------------------|-------|
+| M010 | Visual design approval | Subjective "professional" judgment | 1. Open in browser 2. Screenshot desktop/mobile 3. Present to stakeholder |
+| M020 | Typography readability | Human perception required | 1. Read full page 2. Check font rendering 3. Verify line height comfortable |
+| M030 | Icon clarity | Subjective visual assessment | 1. View icons at 100% 2. Check both light/dark modes |
+
+**Justification:** These tests require human aesthetic judgment that cannot be reliably automated. Design approval is inherently subjective.
 
 ## 12. Definition of Done
 
@@ -436,26 +444,32 @@ npx html-validate index.html privacy.html
 
 ---
 
-## Appendix: Gemini Review Response
+## Appendix: Review Log
 
-**Review Date:** 2026-01-06
+*Track all review feedback with timestamps and implementation status.*
+
+### Gemini Review #1 (APPROVED)
+
+**Timestamp:** 2026-01-06
 **Reviewer:** Gemini 3 Pro
-
-### Tier 2 Issues (HIGH) - Addressed
-
-| Issue | Resolution |
-|-------|------------|
-| Legal Pages | **YES** - privacy.html required, linked from footer (blocks #51 Store submission) |
-
-### Tier 3 Issues (SUGGESTIONS) - Incorporated
-
-| Issue | Resolution |
-|-------|------------|
-| Framework Choice | Selected **Vanilla CSS** - single page doesn't justify build pipeline |
-| Dark Mode | **Yes** - @media (prefers-color-scheme: dark), ~10 lines CSS |
-| Color Palette | **Tech Trust** - Deep Slate Blue/Indigo primary, muted teal accent |
-| Logo | **Text-only wordmark** - Inter font with tight tracking |
-| Hero | **Minimal** - CSS shapes or Museum Label screenshot |
-| Features | **3 key features** - Context Awareness, Privacy First, Open Source |
-
 **Verdict:** APPROVED
+
+#### Comments
+
+| ID | Comment | Implemented? |
+|----|---------|--------------|
+| G1.1 | "Legal pages required - privacy.html blocks Store submission" | ✅ YES - Section 7.3 added |
+| G1.2 | "Framework choice should be explicit" | ✅ YES - Vanilla CSS selected in Section 3 |
+| G1.3 | "Dark mode support recommended" | ✅ YES - @media prefers-color-scheme in Section 6.1 |
+| G1.4 | "Color palette should convey trust" | ✅ YES - Tech Trust palette in Section 6.1 |
+| G1.5 | "Logo approach unclear" | ✅ YES - Text-only wordmark in Section 6.2 |
+| G1.6 | "Hero illustration needed" | ✅ YES - Minimal CSS shapes in Section 5 |
+| G1.7 | "Features should be specific" | ✅ YES - 3 key features in Section 7.2 |
+
+### Review Summary
+
+| Review | Date | Verdict | Key Issue |
+|--------|------|---------|-----------|
+| Gemini #1 | 2026-01-06 | APPROVED | privacy.html required |
+
+**Final Status:** APPROVED

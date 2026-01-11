@@ -81,6 +81,7 @@ This is **explicit approval** to execute all audits autonomously.
 - Use `--repo martymcenroe/Aletheia` for all gh commands
 - **Evidence over inference:** Grep code/config, don't trust doc claims
 - **Do NOT auto-fix issues** - report findings for orchestrator triage
+  - **Exception:** 0829 Lambda Failure Remediation is a remediation audit - it MAY fix issues on worktrees
 - Report findings with severity: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFO`
 - In standard mode: Skip audits that require external access
 - In deep mode: Use WebSearch tool for external research
@@ -329,6 +330,27 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 2. Verify incident classification process exists
 3. Check lessons learned captured in 9000
 4. Review response time SLAs
+
+### 0829 - Lambda Failure Remediation
+**Purpose:** Proactively detect and fix Lambda failures from CloudWatch logs.
+**Ref:** `docs/0829-audit-lambda-failure-remediation.md`
+**Special:** This is a REMEDIATION audit - it MAY fix issues on worktrees.
+
+**Check:**
+1. Get Lambda deployment timestamp from AWS
+2. Query CloudWatch for all errors since deployment
+3. Categorize and deduplicate by root cause
+4. For each error:
+   - If fixable: Create worktree, implement fix, create PR (don't merge)
+   - If not fixable: Draft issue to `tmp/pending-issues/`
+5. Generate report showing: errors found, PRs created, issues drafted
+
+**Output:**
+- Report: `tmp/audit-reports/0829-lambda-failures-{date}.md`
+- Pending issues: `tmp/pending-issues/lambda-failure-*.md`
+- PRs: Listed in report (require orchestrator merge)
+
+**AWS commands require:** `MSYS_NO_PATHCONV=1` prefix on Windows.
 
 ### 0898 - Horizon Scanning
 **Purpose:** Discover emerging AI governance frameworks and threats.

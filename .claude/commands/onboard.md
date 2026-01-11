@@ -45,8 +45,7 @@ Read only the executive summary:
 1. Read `docs/0000b-ONBOARD-DIGEST.md`
 2. Parse the `**Generated:**` timestamp and calculate age
 3. Report digest age prominently (e.g., "Digest is 3 days old - consider `/onboard --full` to refresh")
-4. State the Bash command oath
-5. Acknowledge readiness
+4. Acknowledge readiness
 
 **Use when:** Task is simple, context is clear, or you're resuming recent work.
 
@@ -75,10 +74,7 @@ Read these files simultaneously:
 
 ### Step 3: Acknowledge
 
-State the **Bash Command Oath**:
-> "I have read the Bash command rules. I will not use pipes or && in Bash commands. I will use single commands with absolute paths."
-
-Then report:
+Report:
 1. Current sprint focus (from 0000a)
 2. Top 3 priority issues
 3. Last session's state on exit

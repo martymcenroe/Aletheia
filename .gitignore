@@ -97,6 +97,12 @@ test-results/
 # Project-local temp directory (use instead of system /tmp)
 tmp/*
 !tmp/.gitkeep
+!tmp/pending-issues/
+tmp/pending-issues/*
+!tmp/pending-issues/.gitkeep
+!tmp/audit-reports/
+tmp/audit-reports/*
+!tmp/audit-reports/.gitkeep
 
 # Audit artifacts (output is transient, results are local)
 audit-output.md

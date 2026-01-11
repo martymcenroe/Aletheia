@@ -200,7 +200,16 @@ git -C /c/Users/mcwiz/Projects/Aletheia push
 # If no changes, skip commit
 ```
 
-**Phase 5 - Verify:**
+**Phase 5 - Gemini Auth Restore:**
+
+If Gemini API key mode was used during this session, restore OAuth mode:
+```bash
+bash ~/.gemini/use-oauth.sh
+```
+
+This ensures the next session starts with OAuth (global default) and doesn't leave credentials in a project-specific state.
+
+**Phase 6 - Verify:**
 ```bash
 git -C /c/Users/mcwiz/Projects/Aletheia status
 git -C /c/Users/mcwiz/Projects/Aletheia worktree list

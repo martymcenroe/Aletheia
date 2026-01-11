@@ -83,19 +83,46 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {numbe
 
 ### Implementation Review
 
-**Trigger:** After implementation complete, reports generated, before commit
+**Trigger:** After implementation complete, reports generated, **after commit**
+
+**IMPORTANT:** Gemini CLI runs from the main project directory and cannot see uncommitted worktree changes. Implementation reviews must be run AFTER committing code to the feature branch.
 
 **Process:**
-1. Load prompt from `gemini-prompts/implementation-review.txt`
-2. Invoke Gemini for review
-3. Parse decision: `[APPROVE]` or `[BLOCK]`
-4. **Dual Approval Gate:** Require BOTH Gemini + User approval before merge
+1. Commit implementation to feature branch (single feat: commit)
+2. Push to remote
+3. Load prompt from `gemini-prompts/implementation-review.txt`
+4. Include actual code diff in the prompt (not just descriptions)
+5. Invoke Gemini for review
+6. Parse decision: `[APPROVE]` or `[BLOCK]`
+7. **Dual Approval Gate:** Require BOTH Gemini + User approval before merge
 
 ### Model Downgrade Detection
 
 Every Gemini invocation validates the model tier used:
 - Expected: `gemini-3-pro-preview`
 - If downgrade detected: ABORT review, notify user
+
+### Quota Exhaustion Handling
+
+When Gemini review fails with "quota exhausted" error:
+
+1. **Automatic Recovery:** Switch to API key mode:
+   ```bash
+   bash ~/.gemini/use-apikey.sh
+   ```
+   This moves OAuth credentials aside and uses `GEMINI_API_KEY` env var.
+
+2. **Retry the review** - API key has separate quota allocation
+
+3. **Log the event** to `tmp/gemini-quota-events.jsonl`
+
+**Prerequisite:** User must have `GEMINI_API_KEY` environment variable set.
+
+**Scripts:**
+- `~/.gemini/use-apikey.sh` - Switch to API key mode (moves OAuth creds aside)
+- `~/.gemini/use-oauth.sh` - Restore OAuth mode (restores OAuth creds)
+
+**Cleanup:** `/cleanup --full` automatically restores OAuth mode via `use-oauth.sh`.
 
 ---
 
