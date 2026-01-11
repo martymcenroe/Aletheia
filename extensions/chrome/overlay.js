@@ -124,12 +124,43 @@ const OVERLAY_STYLES = `
     color: #FFFFFF;
 }
 
-/* Signal text */
+/* Signal text (backward compat fallback) */
 .aletheia-signal {
     flex: 1;
     font-weight: 600;
     font-size: 14px;
     color: #F9FAFB;
+}
+
+/* Issue #295: Score display list */
+.aletheia-scores {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.aletheia-score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.aletheia-score-category {
+    color: #F9FAFB;
+    font-weight: 500;
+}
+
+.aletheia-score-value {
+    color: #9CA3AF;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+}
+
+.aletheia-score-item.warning .aletheia-score-category {
+    color: #FBBF24;
 }
 
 /* Close button */
@@ -561,9 +592,32 @@ function showResultOverlay(response, httpStatus = 200) {
     const header = createElement('div', { className: 'aletheia-header' });
 
     const badge = createElement('span', { className: `aletheia-badge ${badgeType}` }, badgeIcon);
-    const signalEl = createElement('span', { className: 'aletheia-signal' });
-    // XSS-safe: signal text set via textContent
-    signalEl.textContent = signal;
+
+    // Issue #295: Render scores_display if available, otherwise fall back to signal
+    const scoresDisplay = response?.scores_display;
+    let headerContent;
+
+    if (scoresDisplay && Array.isArray(scoresDisplay) && scoresDisplay.length > 0) {
+        // New: Render score breakdown
+        headerContent = createElement('div', { className: 'aletheia-scores' });
+        for (const item of scoresDisplay) {
+            const scoreItem = createElement('div', {
+                className: item.category === 'Provocative' ? 'aletheia-score-item warning' : 'aletheia-score-item'
+            });
+            const categorySpan = createElement('span', { className: 'aletheia-score-category' });
+            categorySpan.textContent = item.category;
+            const valueSpan = createElement('span', { className: 'aletheia-score-value' });
+            valueSpan.textContent = `${item.score}%`;
+            scoreItem.appendChild(categorySpan);
+            scoreItem.appendChild(valueSpan);
+            headerContent.appendChild(scoreItem);
+        }
+    } else {
+        // Backward compat: Fall back to signal text
+        headerContent = createElement('span', { className: 'aletheia-signal' });
+        // XSS-safe: signal text set via textContent
+        headerContent.textContent = signal;
+    }
 
     const closeBtn = createElement('button', {
         className: 'aletheia-close',
@@ -572,7 +626,7 @@ function showResultOverlay(response, httpStatus = 200) {
     }, '×');
 
     header.appendChild(badge);
-    header.appendChild(signalEl);
+    header.appendChild(headerContent);
     header.appendChild(closeBtn);
     card.appendChild(header);
 

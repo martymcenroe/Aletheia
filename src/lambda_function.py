@@ -46,6 +46,47 @@ AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 # Issue #145: TTL for automatic data expiry (30 days)
 TTL_SECONDS = 2592000
 
+# Issue #295: Score display threshold and category mapping
+SCORE_DISPLAY_THRESHOLD = 0.15
+CATEGORY_DISPLAY_NAMES = {
+    "None": "General Usage",
+    "Archaic": "Archaic",
+    "Provocative": "Provocative",
+    "Neologism": "Neologism",
+    "Hate": "Hate",  # Should never be displayed (403 blocks first)
+}
+
+
+def process_scores_for_display(scores: dict[str, float]) -> list[dict[str, Any]]:
+    """
+    Issue #295: Process raw scores into display-ready format.
+
+    - Filter: Keep categories with score >= 15%
+    - Round: Round to nearest 5%
+    - Sort: Descending by score
+    - Rename: "None" -> "General Usage"
+
+    Returns list of {category: str, score: int} dicts.
+    """
+    if not scores:
+        return []
+
+    display_list = []
+    for category, score in scores.items():
+        if score >= SCORE_DISPLAY_THRESHOLD:
+            # Round to nearest 5%
+            rounded = round(score * 20) * 5  # 0.73 -> 15 -> 75%
+            display_name = CATEGORY_DISPLAY_NAMES.get(category, category)
+            display_list.append({
+                "category": display_name,
+                "score": rounded,
+            })
+
+    # Sort descending by score (cast for mypy)
+    display_list.sort(key=lambda x: x["score"] if isinstance(x["score"], int) else 0, reverse=True)
+    return display_list
+
+
 # Lazy-initialized clients (warm start optimization)
 _dynamodb_client = None
 _bedrock_client = None
@@ -433,18 +474,26 @@ def lambda_handler(
         # Issue #137: Log all timings for analysis
         logger.info(f"LATENCY_BREAKDOWN: {json.dumps(timings)}")
 
+        # Issue #295: Get scores from semantic guardrail metadata
+        raw_scores = metadata.get("scores", {})
+        scores_display = process_scores_for_display(raw_scores)
+
         # Build response with structured output
+        # Issue #295: Include both signal (backward compat) and scores (new)
         response_body: dict[str, Any] = {
             "thread_id": thread_id,
             "status": result["status"],
-            "signal": result["response"]["signal"],
+            "signal": result["response"]["signal"],  # Backward compat for old extensions
+            "scores": raw_scores,  # Issue #295: Full scores object
+            "scores_display": scores_display,  # Issue #295: Pre-processed for display
             "gem": result["response"]["gem"],
             "context": result["response"]["context"],
         }
 
-        # Issue #126: Add warning flag for soft blocks
-        # Soft block = 200 OK but with warning for frontend to display
-        if block_type == BLOCK_TYPE_SOFT:
+        # Issue #126 + #295: Add warning flag
+        # Warning when: soft block OR provocative >= 50%
+        provocative_score = raw_scores.get("Provocative", 0.0)
+        if block_type == BLOCK_TYPE_SOFT or provocative_score >= 0.50:
             response_body["warning"] = True
             response_body["warning_category"] = category
             # Include fallback flag if semantic check had an error
