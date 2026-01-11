@@ -8,7 +8,7 @@
 ## Phase 1: Context Loading (The Map)
 
 1.  **Read Core Architecture:**
-    - `docs/0001-system-architecture.md` ( The Vision)
+    - `docs/0001-architecture.md` (Landing Page) and sub-documents (0001a-g)
     - `docs/0002-coding-standards.md` (The Rules)
     - `docs/0004-orchestration-protocol.md` (The Process)
     - `docs/0200-ADR-index.md` (The Decisions)

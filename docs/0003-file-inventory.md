@@ -42,7 +42,15 @@
 | `docs/0000-GUIDE.md` | **Guide** | 🟢 **Stable** | - | The "Start Here" manual and project philosophy. |
 | `docs/0000a-IMMEDIATE-PLAN.md` | **Plan** | 🟢 **Stable** | - | Current sprint focus and handoff context. |
 | `docs/0000b-ONBOARD-DIGEST.md` | **Report** | 🟢 **Stable** | - | Auto-generated onboard digest (regenerate with `tools/generate_onboard_digest.py`). |
-| `docs/0001-system-architecture.md` | **Spec** | 🟢 **Stable** | #1 | High-level system design and AWS topology. |
+| `docs/0001-architecture.md` | **Spec** | 🟢 **Stable** | #308 | Architecture landing page (progressive disclosure). |
+| `docs/0001a-context-view.md` | **Spec** | 🟢 **Stable** | #308 | System context diagram (C4 Level 1). |
+| `docs/0001b-container-view.md` | **Spec** | 🟢 **Stable** | #308 | Container view (C4 Level 2). |
+| `docs/0001c-runtime-view.md` | **Spec** | 🟢 **Stable** | #308 | Key sequence diagrams. |
+| `docs/0001d-adr-digest.md` | **Spec** | 🟢 **Stable** | #308 | ADR one-liner summaries. |
+| `docs/0001e-quality-attributes.md` | **Spec** | 🟢 **Stable** | #308 | NFRs with evidence. |
+| `docs/0001f-deployment-view.md` | **Spec** | 🟢 **Stable** | #308 | AWS and CI/CD overview. |
+| `docs/0001g-glossary.md` | **Spec** | 🟢 **Stable** | #308 | Key terms and concepts. |
+| `docs/0001-system-architecture.md` | **Redirect** | ⚫ **Legacy** | #308 | Redirect stub to new 0001-architecture.md. |
 | `docs/0002-coding-standards.md` | **Standard** | 🟢 **Stable** | #36 | Python, Git, and Documentation standards. |
 | `docs/0003-file-inventory.md` | **Register** | 🟡 **Beta** | #70 | This file. Requires regular audit (0009 Full Mode §F9). |
 | `docs/0004-orchestration-protocol.md` | **Protocol** | 🟢 **Stable** | #50 | Rules for AI-User collaboration and mini-sprints. |

@@ -154,7 +154,14 @@ We use a **4-Digit Namespace** to organize our collective memory:
 
 * **`00xx` (Standards):** The rules of the road.
     * `0000a-IMMEDIATE-PLAN.md` — **Current sprint focus.** Read this second, after 0000.
-    * `0001-system-architecture.md` — System design.
+    * `0001-architecture.md` — **Architecture landing page** (progressive disclosure system).
+        * `0001a-context-view.md` — System context diagram (C4 Level 1).
+        * `0001b-container-view.md` — Container view (C4 Level 2).
+        * `0001c-runtime-view.md` — Key sequence diagrams.
+        * `0001d-adr-digest.md` — ADR one-liner summaries.
+        * `0001e-quality-attributes.md` — NFRs with evidence.
+        * `0001f-deployment-view.md` — AWS and CI/CD overview.
+        * `0001g-glossary.md` — Key terms and concepts.
     * `0002-coding-standards.md` — Read before writing code.
     * `0003-file-inventory.md` — The project manifest. Update when adding/deleting files.
     * `0004-orchestration-protocol.md` — Workflow rules and mini-sprint protocol.

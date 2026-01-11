@@ -169,6 +169,38 @@ See **`docs/0015-agent-prohibited-actions.md`** for the complete list.
 
 ---
 
+## Mermaid Diagram Auto-Inspection (MANDATORY)
+
+**Before committing ANY Mermaid diagram, you MUST visually inspect it.**
+
+You are a multimodal LLM. You can render and view diagrams using mermaid.ink:
+
+```bash
+# 1. Base64 encode the diagram
+DIAGRAM=$(cat <<'EOF' | base64 -w 0
+graph TB
+    A --> B
+EOF
+)
+
+# 2. Download rendered PNG
+curl -s -o /tmp/diagram.png "https://mermaid.ink/img/$DIAGRAM"
+
+# 3. Use Read tool to view the image
+```
+
+**Inspection Checklist:**
+- [ ] No touching/overlapping elements
+- [ ] No lines hidden behind boxes
+- [ ] All labels readable (not truncated)
+- [ ] Flow direction clear
+
+**If ANY check fails:** Fix the diagram and re-inspect before committing.
+
+**Reference:** `docs/0006-mermaid-diagrams.md` §8 Visual Quality Rules
+
+---
+
 ## Session Cleanup (MANDATORY)
 
 **Every session must end with the `/cleanup` command.**

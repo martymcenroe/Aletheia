@@ -53,10 +53,10 @@ Audits exist because:
 
 | Category | Count | Focus |
 |----------|-------|-------|
-| Core Development | 14 | Code quality, security, privacy, accessibility |
+| Core Development | 15 | Code quality, security, privacy, accessibility |
 | AI Governance | 7 | AI-specific controls and compliance |
 | Meta | 2 | Audit system governance |
-| **Total** | **23** | |
+| **Total** | **24** | |
 
 ### 3.2 Quick Reference
 
@@ -84,6 +84,7 @@ Audits exist because:
 | 0827 | Infrastructure Integration (Lambda, DynamoDB, API Gateway) |
 | 0828 | Build Artifact Freshness |
 | 0829 | Lambda Failure Remediation (proactive fix or draft issue) |
+| 0830 | Architecture Freshness (documentation completeness and currency) |
 | 0898 | Horizon Scanning Protocol |
 | 0899 | Meta-Audit (validation & execution) |
 
@@ -112,6 +113,7 @@ Audits for code quality, security, and development practices.
 | 0827 | Infrastructure Integration | Quarterly | Manual |
 | 0828 | Build Artifact Freshness | On deploy | Manual |
 | 0829 | Lambda Failure Remediation | On-demand / cleanup --full | Manual |
+| 0830 | Architecture Freshness | Monthly + on change | Manual |
 
 ### 4.2 AI Governance Audits
 
@@ -323,6 +325,7 @@ Standard format for all audits:
 - [0827 - Infrastructure Integration](0827-audit-infrastructure-integration.md)
 - [0828 - Build Artifact Freshness](0828-audit-build-artifact-freshness.md)
 - [0829 - Lambda Failure Remediation](0829-audit-lambda-failure-remediation.md)
+- [0830 - Architecture Freshness](0830-audit-architecture-freshness.md)
 - [0898 - Horizon Scanning Protocol](0898-horizon-scanning-protocol.md)
 - [0899 - Meta-Audit](0899-meta-audit.md)
 
@@ -424,6 +427,7 @@ By using appropriate models instead of Opus for all audits:
 
 | Date | Change |
 |------|--------|
+| 2026-01-11 | Created 0830 (Architecture Freshness) for documentation completeness and currency. Part of Architectural Depth Model (#308). Total audits: 24. |
 | 2026-01-10 | Created 0829 (Lambda Failure Remediation) for proactive CloudWatch error detection and fix-or-draft workflow. Total audits: 23. |
 | 2026-01-10 | Created 0827 (Infrastructure Integration) for Lambda, DynamoDB, API Gateway verification. Total audits: 22. |
 | 2026-01-09 | Created 0826 (Cross-Browser Testing) after Firefox incident. Enforces file parity and mock fidelity. Total audits: 21. |

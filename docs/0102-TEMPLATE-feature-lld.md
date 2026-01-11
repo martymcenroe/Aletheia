@@ -59,6 +59,35 @@
 ## 5. Diagram
 *{Write "N/A" if not applicable - do not delete sections}*
 
+### 5.1 Mermaid Quality Gate
+
+Before finalizing any diagram, verify in [Mermaid Live Editor](https://mermaid.live) or GitHub preview:
+
+- [ ] **Simplicity:** Similar components collapsed (per 0006 §8.1)
+- [ ] **No touching:** All elements have visual separation (per 0006 §8.2)
+- [ ] **No hidden lines:** All arrows fully visible (per 0006 §8.3)
+- [ ] **Readable:** Labels not truncated, flow direction clear
+- [ ] **Auto-inspected:** Agent rendered via mermaid.ink and viewed (per 0006 §8.5)
+
+**Agent Auto-Inspection (MANDATORY):**
+
+AI agents MUST render and view the diagram before committing:
+1. Base64 encode diagram → fetch PNG from `https://mermaid.ink/img/{base64}`
+2. Read the PNG file (multimodal inspection)
+3. Document results below
+
+**Auto-Inspection Results:**
+```
+- Touching elements: [ ] None / [ ] Found: ___
+- Hidden lines: [ ] None / [ ] Found: ___
+- Label readability: [ ] Pass / [ ] Issue: ___
+- Flow clarity: [ ] Clear / [ ] Issue: ___
+```
+
+*Reference: [0006-mermaid-diagrams.md](0006-mermaid-diagrams.md)*
+
+### 5.2 Diagram
+
 ```mermaid
 sequenceDiagram
     participant User

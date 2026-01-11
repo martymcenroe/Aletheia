@@ -27,7 +27,7 @@ Ensure GitHub Wiki pages accurately reflect the current project state, features,
 | Getting-Started | Installation steps | Extension manifests, store listings |
 | User-Guide | Usage instructions | Current UI behavior |
 | FAQ | Answers accuracy | Current implementation |
-| Architecture | System design | 0001-system-architecture.md, actual code |
+| Architecture | System design | 0001-architecture.md (and 0001a-g), actual code |
 | Developer-Guide | Setup instructions | pyproject.toml, package.json |
 | API-Reference | Endpoints, formats | Lambda handler, actual API |
 | Terms-of-Use | Content restrictions | content-safety.js behavior |
