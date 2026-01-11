@@ -188,7 +188,7 @@ Extension → API Gateway → Lambda → Bedrock
 ## 10. References
 
 ### Internal
-- docs/0001-system-architecture.md
+- docs/0001-architecture.md (and 0001a-g views)
 - docs/0014-cost-architecture.md
 - docs/0819-audit-ai-supply-chain.md
 

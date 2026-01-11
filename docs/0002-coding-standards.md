@@ -271,7 +271,7 @@ overlay.textContent = `Saved: ${selectedWord}`;
 ```
 
 ### 9.2 Shadow DOM for Injected UI
-All UI injected into host pages must use Shadow DOM. See ADR-002 in `docs/0001-system-architecture.md`.
+All UI injected into host pages must use Shadow DOM. See [ADR-0202](0202-ADR-shadow-dom-isolation.md).
 ```javascript
 // CORRECT — isolated styling
 const host = document.createElement('div');
