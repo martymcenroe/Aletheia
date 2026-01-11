@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-Edit Hook: Enforce Worktree Isolation (ADR 0210)
+# Pre-Edit Hook: Enforce Worktree Isolation
 #
 # HARD BLOCK: Code files on main branch
 # ALLOW: Documentation and staging files on main branch
@@ -61,7 +61,7 @@ case "$file" in
         echo "You MUST create a worktree first:" >&2
         echo "  git worktree add ../Aletheia-{ID} -b {ID}-description" >&2
         echo "" >&2
-        echo "See ADR 0210 for rationale." >&2
+        echo "See CLAUDE.md for worktree isolation rationale." >&2
         echo "" >&2
         exit 1
         ;;

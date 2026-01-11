@@ -154,7 +154,7 @@ if [ -n "$warnings" ]; then
     echo "" >&2
     echo "Detected patterns:$warnings" >&2
     echo "" >&2
-    echo "Review the security-reviewer agent checklist" >&2
+    echo "Review security best practices" >&2
     echo "before modifying security-sensitive code." >&2
     echo "" >&2
     echo "This is a WARNING, not a block." >&2

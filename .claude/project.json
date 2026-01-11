@@ -1,0 +1,11 @@
+{
+  "variables": {
+    "PROJECT_ROOT": "/c/Users/mcwiz/Projects/Aletheia",
+    "PROJECT_NAME": "Aletheia",
+    "GITHUB_REPO": "martymcenroe/Aletheia",
+    "TOOLS_DIR": "/c/Users/mcwiz/Projects/Aletheia/tools",
+    "WORKTREE_PATTERN": "Aletheia-{ID}"
+  },
+
+  "inherit_from": "C:\\Users\\mcwiz\\Projects"
+}

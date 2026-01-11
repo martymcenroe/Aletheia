@@ -8,7 +8,7 @@
             "type": "command",
             "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-check.sh",
             "timeout": 5,
-            "description": "Branch Protection (ADR 0210)"
+            "description": "Branch Protection (Worktree Isolation)"
           },
           {
             "type": "command",

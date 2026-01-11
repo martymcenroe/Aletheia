@@ -18,7 +18,7 @@ fi
 # Get current branch
 branch=$(git branch --show-current 2>/dev/null || echo "unknown")
 
-# On main branch, allow all commits (docs only per ADR 0210)
+# On main branch, allow all commits (docs only per worktree isolation)
 if [ "$branch" = "main" ]; then
     exit 0
 fi
@@ -30,7 +30,7 @@ if [ -z "$issue_id" ]; then
     echo "" >&2
     echo "WARNING: Branch name doesn't start with issue ID" >&2
     echo "Branch: $branch" >&2
-    echo "Expected format: {IssueID}-description (e.g., 45-denylist)" >&2
+    echo "Expected format: {IssueID}-description (e.g., 45-feature-name)" >&2
     echo "" >&2
     echo "Allowing commit, but please follow naming conventions." >&2
     exit 0
