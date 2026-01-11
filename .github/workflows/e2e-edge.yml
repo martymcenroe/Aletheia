@@ -1,0 +1,48 @@
+# Issue #263: Edge E2E Test Matrix
+# See: docs/lld/active/1263-edge-e2e-test-matrix.md
+#
+# Runs E2E tests against Microsoft Edge to verify Chrome extension compatibility.
+# Uses warn-only mode initially (continue-on-error: true) until baseline is established.
+# After baseline: remove continue-on-error to make Edge failures block PRs.
+
+name: E2E Tests (Edge)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-edge:
+    runs-on: ubuntu-latest
+    # Warn-only initially - remove after baseline established
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build:chrome
+
+      - name: Install Edge
+        run: npx playwright install msedge
+
+      - name: Run E2E tests (Edge)
+        run: npx playwright test --project=edge
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-test-results
+          path: test-results/
+          retention-days: 7
