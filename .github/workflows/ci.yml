@@ -262,6 +262,52 @@ jobs:
           fi
           exit $EXIT_CODE
 
+  # Chrome E2E tests - BLOCKING gate for extension functionality
+  # Issue #306: Ensures extension works in Chrome before merge
+  e2e-chrome:
+    needs: policy-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Chromium
+        run: npx playwright install chromium
+
+      - name: Install Chromium OS dependencies
+        run: npx playwright install-deps chromium
+
+      - name: Run Chrome E2E tests
+        # xvfb-run required for headed mode (extensions require headless: false)
+        # --headed flag ensures headed mode regardless of config file state
+        # --reporter=html ensures playwright-report/ is generated for artifact upload
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" npx playwright test --project=chromium --headed --reporter=html
+
+      - name: Upload test report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-chrome
+          path: playwright-report/
+          retention-days: 7
+
   # Accessibility testing with pa11y (WCAG 2.0 AA)
   accessibility:
     needs: policy-check
