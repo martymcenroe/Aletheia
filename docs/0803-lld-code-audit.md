@@ -82,6 +82,7 @@ For each feature, verify:
 - [ ] Test IDs in code match LLD IDs
 - [ ] Deviations documented in Implementation Report
 - [ ] LLD updated if interface changed
+- [ ] **LLD moved from `active/` to `done/`** (when issue closes)
 
 ## Common Deviations
 
@@ -119,7 +120,38 @@ For each feature, verify:
 - [ ] N/A - LLD update not needed
 ```
 
+## Step 6: LLD Lifecycle Management
+
+**MANDATORY:** When closing an issue, move its LLD from `active/` to `done/`.
+
+```bash
+# For issue #121:
+git mv docs/lld/active/1121-feature-name.md docs/lld/done/
+```
+
+### Lifecycle States
+
+| Directory | Meaning | When to Use |
+|-----------|---------|-------------|
+| `docs/lld/active/` | In-progress, Draft, or Placeholder | Issue is OPEN |
+| `docs/lld/done/` | Implemented and merged | Issue is CLOSED |
+
+### Quick Audit Check
+
+To find orphaned LLDs (closed issues with LLDs still in active/):
+
+```bash
+# List active LLDs
+ls docs/lld/active/
+
+# For each, extract issue number (1xxx → #xxx) and check if closed
+gh issue view {issue_number} --json state
+```
+
+**If LLD is in `active/` but issue is CLOSED:** Move to `done/` immediately.
+
 ## Integration
 
 - Run as final step before PR merge
 - Required by 0004 §8.6 (Issue Closure Requirements)
+- **LLD move to done/ is part of issue closure** - not optional

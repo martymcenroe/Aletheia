@@ -4,6 +4,8 @@
 # Runs E2E tests against Microsoft Edge to verify Chrome extension compatibility.
 # Uses warn-only mode initially (continue-on-error: true) until baseline is established.
 # After baseline: remove continue-on-error to make Edge failures block PRs.
+#
+# Note: Extension is unpacked (no build step needed). Extension loads from extensions/chrome/.
 
 name: E2E Tests (Edge)
 
@@ -16,6 +18,7 @@ on:
 jobs:
   test-edge:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Prevent stalled browser hangs
     # Warn-only initially - remove after baseline established
     continue-on-error: true
 
@@ -30,19 +33,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build extension
-        run: npm run build:chrome
-
-      - name: Install Edge
+      - name: Install Edge browser
         run: npx playwright install msedge
 
-      - name: Run E2E tests (Edge)
-        run: npx playwright test --project=edge
+      - name: Install Edge OS dependencies
+        run: npx playwright install-deps msedge
 
-      - name: Upload test results
+      - name: Run E2E tests (Edge)
+        # xvfb-run required for headed mode (extensions require headless: false)
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" npx playwright test --project=edge
+
+      - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: edge-test-results
-          path: test-results/
+          name: playwright-report-edge
+          path: playwright-report/
           retention-days: 7

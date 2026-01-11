@@ -1,33 +1,33 @@
-# Immediate Plan: Store Review & Post-Launch
+# Immediate Plan: POST-MVP - Store Review Period
 
-**Updated:** 2026-01-10
-**Status:** Submitted to stores, awaiting review
+**Updated:** 2026-01-11
+**Status:** POST-MVP — Submitted to stores, awaiting approval
 
 ---
 
-## Backlog Cleanup (2026-01-09 - 2026-01-10)
+## Project Phase: POST-MVP
 
-Reviewed all open issues. Closed/consolidated 9 issues:
+**The MVP is complete.** All core features are implemented, tested, and deployed. The extension has been submitted to both Chrome Web Store and Firefox Add-ons.
 
-| Issue | Action |
-|-------|--------|
-| #6 | Closed - RAG Vector Store was resume fluff, no clear use case |
-| #127, #128, #129 | Consolidated into #203 (Future: AgentOS Process Improvements) |
-| #151 | Closed - GitHub Security Settings already complete |
-| #149 | Closed - lambda_harvester_function.py already removed |
-| #161 | Closed - CI Performance benchmarks completed |
-| #160 | Closed - CI Accessibility checks completed |
-| #126 | Closed - Hard vs. Soft blocking completed |
+What "post-MVP" means:
+- Product is feature-complete for initial release
+- Waiting on external store approvals (out of our hands)
+- Extensions not yet public (orchestrator decision)
+- Agents are available for new work — **awaiting orchestrator to file issues**
 
-**Backlog reduced to 14 open issues.**
+---
 
-### Ready to Implement (LLD + Gemini Review)
-- **#132** - Support email infrastructure (needs Cloudflare access)
+## Recent Completions (2026-01-11)
 
-### Updated /onboard Skill
-- `--full` now regenerates digest before reading docs
-- `--quick` reports digest age
-- Digest is now gitignored (auto-generated, local-only)
+| PR | Feature | Impact |
+|----|---------|--------|
+| #302 | Nova Micro switch | 2.76x faster (sub-second latency) |
+| #297 | Confidence score display | Shows category breakdown instead of single label |
+| #298 | Shadow DOM patch | Chrome E2E tests fixed (was 4/16, now passing) |
+| #300 | aria-expanded fix | Accessibility compliance |
+| #301 | Mixed quote normalization | Bedrock JSON parsing reliability |
+
+**Backlog reduced to 3 open issues.**
 
 ---
 
@@ -79,15 +79,20 @@ No open PRs. All feature work merged.
 
 ---
 
-## Post-Launch Features
+## Open Issues (3)
 
 | Issue | Feature | Status |
 |-------|---------|--------|
+| #306 | Chrome E2E tests as CI blocking gate | testing/process |
+| #106 | Full article context retrieval | future enhancement |
 | #81 | Landing page redesign | post-mvp |
-| #117 | Unauthenticated users | post-mvp |
+
+**LLDs ready:** #81 and #106 have completed LLDs with Gemini review.
 
 ---
 
 ## Next Action
 
-**Monitor Chrome Web Store review.** Resubmit to Firefox Add-ons when ready.
+1. **Monitor store reviews** — Chrome and Firefox approvals pending
+2. **Orchestrator to file new issues** — Agents standing by
+3. **#306** available for implementation (no LLD needed - process change)

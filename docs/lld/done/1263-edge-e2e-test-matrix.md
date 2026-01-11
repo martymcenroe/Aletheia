@@ -4,7 +4,7 @@
 * **Issue:** #263
 * **Objective:** Add Microsoft Edge to the Playwright E2E test matrix to verify Chrome extension compatibility.
 * **Status:** Draft
-* **Related Issues:** #160 (accessibility CI), #161 (performance benchmarks), #272 (Shadow DOM patch)
+* **Related Issues:** #160 (accessibility CI), #161 (performance benchmarks), #272 (Shadow DOM patch), #306 (Chrome E2E CI gate - **DEPENDENCY**)
 
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*

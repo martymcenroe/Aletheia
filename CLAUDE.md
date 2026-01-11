@@ -96,6 +96,23 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {numbe
 6. Parse decision: `[APPROVE]` or `[BLOCK]`
 7. **Dual Approval Gate:** Require BOTH Gemini + User approval before merge
 
+### Issue Filing Review Automation
+
+**Trigger:** Before running `gh issue create` for any new issue
+
+**MANDATORY:** All issues MUST be reviewed by Gemini before filing. Do NOT file issues directly.
+
+**Process:**
+1. Draft the issue body (use template from `docs/0101-TEMPLATE-issue.md` for features)
+2. Load prompt template from `gemini-prompts/issue-review.txt`
+3. Replace `{{ISSUE_DRAFT}}` with the full issue body
+4. Invoke Gemini using `tools/gemini-model-check.sh`
+5. Parse feedback: `[BLOCKING]`, `[HIGH]`, `[SUGGESTION]`
+6. If `[BLOCKING]` issues exist: Update draft and re-submit to Gemini
+7. Present final draft to user for approval
+8. Only after user approval: `gh issue create --repo martymcenroe/Aletheia ...`
+9. **Post-filing:** Add Gemini review summary as a comment on the issue
+
 ### Model Downgrade Detection
 
 Every Gemini invocation validates the model tier used:
