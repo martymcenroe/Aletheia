@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Aletheia</title>
+  <meta name="description" content="Privacy Policy for Aletheia browser extension. Learn how we protect your data.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/privacy.html">
+  <meta property="og:title" content="Privacy Policy - Aletheia">
+  <meta property="og:description" content="Privacy Policy for Aletheia browser extension. Learn how we protect your data.">
+
+  <!-- Favicon - multiple formats for browser compatibility -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --color-primary: #0D9488;
+      --color-primary-light: #14B8A6;
+      --color-accent: #4F46E5;
+      --color-text: #1F2937;
+      --color-text-muted: #6B7280;
+      --color-bg: #F9FAFB;
+      --color-surface: #FFFFFF;
+      --font-serif: 'Libre Baskerville', Georgia, serif;
+      --font-sans: 'Space Grotesk', system-ui, sans-serif;
+      --max-width: 700px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-primary: #2DD4BF;
+        --color-primary-light: #5EEAD4;
+        --color-accent: #818CF8;
+        --color-text: #F9FAFB;
+        --color-text-muted: #9CA3AF;
+        --color-bg: #111827;
+        --color-surface: #1F2937;
+      }
+    }
+
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      font-weight: 400;
+      line-height: 1.7;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+    }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--color-primary-light);
+    }
+
+    /* ===== Layout ===== */
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ===== Header ===== */
+    header {
+      padding: 1.25rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      header {
+        border-bottom-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1100px;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--color-text);
+    }
+
+    .logo .lambda {
+      color: var(--color-primary);
+      font-size: 1.5rem;
+    }
+
+    .logo-lambda {
+      height: 1.0em;
+      vertical-align: baseline;
+      margin-right: 0.15em;
+    }
+
+    nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--color-primary);
+    }
+
+    /* ===== Main Content ===== */
+    main {
+      padding: 3rem 0 5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--color-text);
+    }
+
+    .last-updated {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      margin-bottom: 2.5rem;
+    }
+
+    h2 {
+      font-family: var(--font-sans);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--color-text);
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--color-text);
+    }
+
+    ul {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+      color: var(--color-text);
+    }
+
+    strong {
+      font-weight: 600;
+    }
+
+    .highlight-box {
+      background-color: var(--color-surface);
+      border-left: 3px solid var(--color-primary);
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .highlight-box {
+        background-color: rgba(255,255,255,0.03);
+      }
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      padding: 2rem 0;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      footer {
+        border-top-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    footer .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      max-width: 1100px;
+    }
+
+    @media (min-width: 768px) {
+      footer .container {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+    }
+
+    .footer-logo {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--color-text);
+    }
+
+    .footer-logo .lambda {
+      color: var(--color-primary);
+      font-size: 1.2rem;
+    }
+
+    .footer-lambda {
+      height: 1.0em;
+      vertical-align: baseline;
+      margin-right: 0.12em;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    .footer-links a:hover {
+      color: var(--color-primary);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Privacy Policy</h1>
+      <p class="last-updated">Last updated: January 2026</p>
+
+      <div class="highlight-box">
+        <strong>Summary:</strong> Aletheia is privacy-first. We only access text you explicitly select, we don't track you, and we don't sell your data.
+      </div>
+
+      <h2>1. What We Collect</h2>
+      <p>When you select text and choose "Explain with AI", the following is sent to our servers:</p>
+      <ul>
+        <li>The text you select</li>
+        <li>The surrounding text</li>
+        <li>The page URL where you selected it</li>
+      </ul>
+      <p>We do <strong>not</strong> collect:</p>
+      <ul>
+        <li>Your browsing history across sites</li>
+        <li>Personal information</li>
+        <li>Any data without your explicit action</li>
+      </ul>
+
+      <h2>2. How We Process Your Data</h2>
+      <p>Your text is analyzed using AWS Bedrock (Amazon Nova AI). AWS Bedrock:</p>
+      <ul>
+        <li>Does not train on your prompts</li>
+        <li>Does not store your data beyond processing</li>
+        <li>Processes data in secure, isolated environments</li>
+      </ul>
+
+      <h2>3. Data Retention</h2>
+      <p>Submitted text is stored for <strong>30 days</strong> to enable features like conversation history, then automatically deleted. We never sell your data or use it to train AI models.</p>
+
+      <h2>4. Browser Permissions</h2>
+      <p>Aletheia requests only the permissions strictly necessary:</p>
+      <ul>
+        <li><strong>ActiveTab:</strong> Access only the current tab when you invoke the extension</li>
+        <li><strong>ContextMenus:</strong> Add "Explain with AI" to your right-click menu</li>
+        <li><strong>Storage:</strong> Save your preferences locally</li>
+      </ul>
+      <p>We <strong>cannot</strong> access your browsing history, other tabs, or any data you don't explicitly select.</p>
+
+      <h2>5. Your Rights (GDPR/CCPA)</h2>
+      <p>You have the right to:</p>
+      <ul>
+        <li>Request deletion of your data at any time</li>
+        <li>Access information about what data we hold</li>
+        <li>Data portability</li>
+      </ul>
+      <p>Data is also automatically purged after 30 days.</p>
+
+      <h2>6. Third-Party Services</h2>
+      <p>We use the following third-party services:</p>
+      <ul>
+        <li><strong>AWS Bedrock:</strong> AI processing (Amazon Web Services)</li>
+        <li><strong>AWS DynamoDB:</strong> Temporary data storage</li>
+      </ul>
+      <p>We do not use analytics, advertising networks, or tracking services.</p>
+
+      <h2>7. Open Source Transparency</h2>
+      <p>Aletheia is fully open source under the MIT License. You can audit our code at any time:</p>
+      <p><a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">github.com/martymcenroe/Aletheia</a></p>
+
+      <h2>8. Contact</h2>
+      <p>For privacy inquiries:</p>
+      <ul>
+        <li>Open an issue at <a href="https://github.com/martymcenroe/Aletheia/issues" target="_blank" rel="noopener">GitHub Issues</a></li>
+        <li>Email: <a href="mailto:support@aletheia.study">support@aletheia.study</a></li>
+      </ul>
+
+      <h2>9. Changes to This Policy</h2>
+      <p>We may update this privacy policy from time to time. Significant changes will be announced via our GitHub repository. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

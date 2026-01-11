@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aletheia - Privacy-First AI Context</title>
+  <meta name="description" content="Understand what you read. Privacy-first AI context for any webpage.">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/">
+  <meta property="og:title" content="Aletheia - Privacy-First AI Context">
+  <meta property="og:description" content="Understand what you read. Privacy-first AI context for any webpage.">
+  <meta property="og:image" content="https://aletheia.study/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Favicon - multiple formats for browser compatibility -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      /* Light mode (default) - Teal Primary */
+      --color-primary: #0D9488;
+      --color-primary-light: #14B8A6;
+      --color-accent: #4F46E5;
+      --color-text: #1F2937;
+      --color-text-muted: #6B7280;
+      --color-bg: #F9FAFB;
+      --color-surface: #FFFFFF;
+
+      /* Typography */
+      --font-serif: 'Libre Baskerville', Georgia, serif;
+      --font-sans: 'Space Grotesk', system-ui, sans-serif;
+      --max-width: 1100px;
+    }
+
+    /* Dark mode (auto-detect) */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-primary: #2DD4BF;
+        --color-primary-light: #5EEAD4;
+        --color-accent: #818CF8;
+        --color-text: #F9FAFB;
+        --color-text-muted: #9CA3AF;
+        --color-bg: #111827;
+        --color-surface: #1F2937;
+      }
+    }
+
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+    }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--color-primary-light);
+    }
+
+    /* ===== Layout ===== */
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ===== Header ===== */
+    header {
+      padding: 1.25rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      header {
+        border-bottom-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--color-text);
+    }
+
+    .logo-lambda {
+      height: 1.0em;
+      vertical-align: baseline;
+      margin-right: 0.15em;
+    }
+
+    nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--color-primary);
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      padding: 5rem 0 4rem;
+      text-align: center;
+    }
+
+    .hero-wordmark {
+      font-family: var(--font-serif);
+      font-size: clamp(3rem, 10vw, 5.5rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--color-text);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-wordmark .lambda {
+      color: var(--color-primary);
+    }
+
+    .hero-lambda {
+      height: 0.85em;
+      vertical-align: baseline;
+      margin: 0 0.02em 0 0.10em;
+      display: inline-block;
+    }
+
+    .hero-tagline {
+      font-family: var(--font-serif);
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      font-weight: 400;
+      color: var(--color-text);
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--color-text-muted);
+      margin-bottom: 2.5rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta, .cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 2px solid var(--color-primary);
+      background: transparent;
+      color: var(--color-primary);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    }
+
+    .cta:hover, .cta-secondary:hover {
+      background-color: var(--color-primary);
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .cta-secondary {
+      margin-left: 1rem;
+    }
+
+    /* ===== Features ===== */
+    .features {
+      padding: 4rem 0;
+    }
+
+    .features-grid {
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 768px) {
+      .features-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .feature-card {
+      display: block;
+      background-color: var(--color-surface);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      border: 1px solid rgba(0,0,0,0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .feature-card {
+        border-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 1rem;
+      color: var(--color-primary);
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-sans);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--color-text);
+    }
+
+    .feature-card p {
+      font-size: 0.95rem;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+
+    /* ===== Privacy Section ===== */
+    .privacy-section {
+      padding: 4rem 0;
+      background-color: var(--color-surface);
+      border-top: 1px solid rgba(0,0,0,0.06);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .privacy-section {
+        border-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    .privacy-section .container {
+      max-width: 700px;
+      text-align: center;
+    }
+
+    .privacy-section h2 {
+      font-family: var(--font-serif);
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--color-text);
+    }
+
+    .privacy-list {
+      list-style: none;
+      text-align: left;
+      max-width: 450px;
+      margin: 0 auto;
+    }
+
+    .privacy-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      color: var(--color-text-muted);
+    }
+
+    .privacy-list li img {
+      flex-shrink: 0;
+      width: 1.25em;
+      height: 1.25em;
+      margin-top: 0.15em;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      padding: 3rem 0;
+    }
+
+    footer .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      footer .container {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+    }
+
+    .footer-logo {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--color-text);
+    }
+
+    .footer-lambda {
+      height: 1.0em;
+      vertical-align: baseline;
+      margin-right: 0.12em;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .footer-links a, .footer-links span {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    .footer-links a:hover {
+      color: var(--color-primary);
+    }
+
+    .copyright {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      .copyright {
+        text-align: right;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <!-- Lockup A: Lambda before -->
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png?v=3" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="#features" class="nav-link">Features</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <!-- Lockup B: Lambda replaces L (large, integrated) - λ is Greek letter L -->
+        <h1 class="hero-wordmark">A<img src="assets/lambda-web-hero.png?v=3" alt="λ" class="hero-lambda">etheia</h1>
+        <p class="hero-tagline">Understand what you read.</p>
+        <p class="hero-subtitle">Privacy-first AI context for any webpage. Select text, get instant etymological and contextual insights.</p>
+        <div>
+          <a href="https://chromewebstore.google.com/detail/aletheia/pfkfdlcdbajamklbneflfbkmnceooijm" class="cta" target="_blank" rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+            Install for Chrome
+          </a>
+          <a href="https://addons.mozilla.org/en-US/firefox/addon/aletheia-ai/" class="cta-secondary" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.066 9.645c.183 4.04-2.83 8.544-8.164 8.544-1.622 0-3.131-.476-4.402-1.291 1.524.18 3.045-.244 4.252-1.189-1.256-.023-2.317-.854-2.684-1.995.451.086.895.061 1.298-.049-1.381-.278-2.335-1.522-2.304-2.853.388.215.83.344 1.301.359-1.279-.855-1.641-2.544-.889-3.835 1.416 1.738 3.533 2.881 5.92 3.001-.419-1.796.944-3.527 2.799-3.527.825 0 1.572.349 2.096.907.654-.128 1.27-.368 1.824-.697-.215.671-.67 1.233-1.263 1.589.581-.07 1.135-.224 1.649-.453-.384.578-.87 1.084-1.433 1.489z"/></svg>
+            Install for Firefox
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <div class="container">
+        <div class="features-grid">
+          <!-- Feature 1: Context-Aware -->
+          <a href="context.html" class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <h3>Context-Aware</h3>
+            <p>Analyzes text within its surrounding paragraph, not just isolated dictionary definitions.</p>
+          </a>
+
+          <!-- Feature 2: Privacy-First -->
+          <a href="privacy.html" class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <h3>Privacy-First</h3>
+            <p>We never track your browsing across sites. No analytics, no cookies.</p>
+          </a>
+
+          <!-- Feature 3: Open Source -->
+          <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener" class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            <h3>Open Source</h3>
+            <p>Fully transparent. Audit the code yourself on GitHub. MIT licensed.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="privacy" class="privacy-section">
+      <div class="container">
+        <h2>Your data stays yours.</h2>
+        <p style="color: var(--color-text-muted); margin-bottom: 1.5rem;">When you use Aletheia, we collect:</p>
+        <ul class="privacy-list">
+          <li>
+            <img src="assets/favicon-16.png" alt="λ">
+            <span>The text you select</span>
+          </li>
+          <li>
+            <img src="assets/favicon-16.png" alt="λ">
+            <span>The surrounding text</span>
+          </li>
+          <li>
+            <img src="assets/favicon-16.png" alt="λ">
+            <span>The page URL where you selected it</span>
+          </li>
+        </ul>
+        <p style="color: var(--color-text-muted); margin-top: 1.5rem;">We never track your browsing across sites. No analytics, no cookies.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <!-- Lockup A: Lambda before (small) -->
+      <span class="footer-logo"><img src="assets/lambda-web-16.png?v=3" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+        <span>MIT License</span>
+      </nav>
+      <p class="copyright">&copy; 2026 Aletheia. Open source.</p>
+    </div>
+  </footer>
+</body>
+</html>

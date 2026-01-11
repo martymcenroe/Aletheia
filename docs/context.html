@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context-Aware Analysis - Aletheia</title>
+  <meta name="description" content="How Aletheia's context-aware AI understands text within its surrounding paragraph.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/context.html">
+  <meta property="og:title" content="Context-Aware Analysis - Aletheia">
+  <meta property="og:description" content="How Aletheia's context-aware AI understands text within its surrounding paragraph.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --color-primary: #0D9488;
+      --color-primary-light: #14B8A6;
+      --color-text: #1F2937;
+      --color-text-muted: #6B7280;
+      --color-bg: #F9FAFB;
+      --color-surface: #FFFFFF;
+      --font-serif: 'Libre Baskerville', Georgia, serif;
+      --font-sans: 'Space Grotesk', system-ui, sans-serif;
+      --max-width: 700px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-primary: #2DD4BF;
+        --color-primary-light: #5EEAD4;
+        --color-text: #F9FAFB;
+        --color-text-muted: #9CA3AF;
+        --color-bg: #111827;
+        --color-surface: #1F2937;
+      }
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+    }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--color-primary-light);
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    header {
+      padding: 1.25rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      header {
+        border-bottom-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1100px;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--color-text);
+    }
+
+    .logo-lambda {
+      height: 1.0em;
+      vertical-align: baseline;
+      margin-right: 0.15em;
+    }
+
+    nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+    }
+
+    .nav-link:hover {
+      color: var(--color-primary);
+    }
+
+    main {
+      padding: 3rem 0 5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      font-family: var(--font-sans);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .placeholder-notice {
+      background-color: var(--color-surface);
+      border-left: 3px solid var(--color-primary);
+      padding: 1rem 1.25rem;
+      margin: 2rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    footer {
+      padding: 2rem 0;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      footer {
+        border-top-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    footer .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      max-width: 1100px;
+    }
+
+    @media (min-width: 768px) {
+      footer .container {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+    }
+
+    .footer-logo {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--color-text);
+    }
+
+    .footer-lambda {
+      height: 1.0em;
+      vertical-align: baseline;
+      margin-right: 0.12em;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    .footer-links a:hover {
+      color: var(--color-primary);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Context-Aware Analysis</h1>
+
+      <div class="placeholder-notice">
+        <strong>Coming Soon:</strong> This page will explain how Aletheia's context-aware AI works differently from traditional dictionaries.
+      </div>
+
+      <h2>Why Context Matters</h2>
+      <p>Traditional dictionaries give you static definitions. But words change meaning based on context. "Bank" means something different in finance vs. geography. "Cell" means something different in biology vs. telecommunications.</p>
+
+      <h2>How Aletheia Works</h2>
+      <p>When you select a word or phrase, Aletheia sends both the selection <em>and</em> the surrounding text to understand the context. This allows the AI to provide explanations that are relevant to what you're actually reading.</p>
+
+      <h2>Examples</h2>
+      <p><em>Content coming soon...</em></p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
