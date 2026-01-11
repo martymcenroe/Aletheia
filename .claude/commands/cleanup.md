@@ -85,6 +85,12 @@ Session: [SESSION_NAME]
 - Run independent commands in PARALLEL (multiple Bash calls in one message)
 - ONE commit at the end - stage files as you go, commit once
 
+## CRITICAL: Contribution Budget & Worktree Safety
+
+**PARSIMONIOUS COMMITS:** The user has a contribution budget (~110/day). Batch ALL pending changes into ONE commit. Never make multiple small commits when one will do. If you find accumulated changes (LLDs, CLAUDE.md, workflow files, docs/, etc.), commit them ALL together in a single commit.
+
+**WORKTREE ISOLATION:** Multiple agents (5-10) run in parallel on different worktrees. NEVER touch, modify, read, or clean up files in worktree directories (e.g., `../Aletheia-123/`). Only operate on the main worktree at `/c/Users/mcwiz/Projects/Aletheia`. Worktrees are managed by their owning agents. If you see worktrees in the list, leave them alone - they are active work by other agents.
+
 ## Phase 1: Information Gathering (ALL PARALLEL)
 
 Run these commands simultaneously in a single message with multiple Bash tool calls:
@@ -153,9 +159,16 @@ If no session log tool exists, manually append to the current day's session log.
 
 **If mode is `quick`: SKIP this entire phase. Go directly to Phase 5.**
 
-Stage all documentation changes:
+**IMPORTANT: Stage ALL pending changes in the main worktree, not just session-logs.**
+
+Check what needs to be staged:
 ```bash
-git -C /c/Users/mcwiz/Projects/Aletheia add docs/session-logs/
+git -C /c/Users/mcwiz/Projects/Aletheia status --short
+```
+
+Stage ALL documentation and config changes (LLDs, CLAUDE.md, workflows, docs/):
+```bash
+git -C /c/Users/mcwiz/Projects/Aletheia add docs/ CLAUDE.md .github/workflows/ .claude/
 ```
 
 Review staged changes:
@@ -163,7 +176,7 @@ Review staged changes:
 git -C /c/Users/mcwiz/Projects/Aletheia status
 ```
 
-Commit (ONE commit for everything):
+Commit (ONE commit for everything - be parsimonious!):
 ```bash
 git -C /c/Users/mcwiz/Projects/Aletheia commit -m "docs: [MODE] cleanup $(powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd'")"
 ```

@@ -4,7 +4,7 @@
 * **Issue:** #106
 * **Objective:** Enable retrieval of full article content when surrounding text selection is insufficient for accurate analysis.
 * **Status:** Draft (Revised per Gemini Review 2026-01-06)
-* **Related Issues:** #162 (noarchive Transform layer), #155 (noarchive skip persistence)
+* **Related Issues:** #162 (noarchive Transform layer), #155 (noarchive skip persistence), **#310 (Poetic Resonance Detection - synergy)**
 
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
@@ -405,6 +405,50 @@ All test fixtures MUST be:
 ### Review
 - [ ] Code review completed
 - [ ] User approval before closing issue
+
+---
+
+## 13. Synergy with Poetic Resonance (#310)
+
+**Issue #310** introduces Poetic Resonance Detection - the ability to detect layered/poetic meanings in word usage. Full article context significantly improves this feature.
+
+### Why Full Context Matters for Poetic Analysis
+
+The canonical example from #310: A journalist visits a nursing home and uses the word "ascension" (British architectural term for skylight). Elderly residents sit beneath it discussing death. The poetic resonance requires understanding:
+- The architectural context (skylight)
+- The mortality theme (elderly, death)
+- The religious connotation (Christ's ascension)
+
+**Current state:** Without #106, we have `domContext` (raw body.innerText), which captures surrounding text but includes noise (nav, footer, ads, comments). This noise can:
+- Dilute the signal the Opus analyzer needs
+- Introduce false positives from unrelated content
+- Miss key thematic elements buried in cluttered output
+
+**With #106:** Clean, Readability-style extracted article text provides:
+- Focused content (no nav/footer/ads noise)
+- PII-scrubbed text (privacy compliance)
+- Truncated to ~10k chars (cost-controlled)
+
+This cleaner context significantly improves Opus's ability to detect poetic resonance.
+
+### Integration Points
+
+| Component | Without #106 | With #106 |
+|-----------|--------------|-----------|
+| Context available | `domContext` (raw body.innerText with noise) | Full article (Readability-extracted, PII-scrubbed) |
+| Content quality | Includes nav/footer/ads/comments | Article content only |
+| Poetic detection quality | Good (noise may dilute signal) | **Excellent** (clean signal) |
+| Opus synthesis depth | Surface-level connections | Deep contextual resonance |
+
+### Implementation Note
+
+#106 and #310 are **independent** - each can be implemented without the other. However:
+- If #106 is implemented first: #310's Opus analyzer can immediately utilize the cleaner `full_article` field
+- If #310 is implemented first: Works with existing `domContext`, quality improves when #106 lands
+
+**Recommendation:** Implement #106 before or alongside #310 to maximize poetic analysis quality.
+
+**Note:** PII scrubbing is formally defined in Section 6.2 of this LLD.
 
 ---
 

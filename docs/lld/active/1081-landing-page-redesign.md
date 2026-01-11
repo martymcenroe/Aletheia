@@ -3,26 +3,27 @@
 ## 1. Context & Goal
 * **Issue:** #81
 * **Objective:** Replace cyberpunk/retro landing page with modern, professional design that builds trust.
-* **Status:** Draft (Revised per Gemini Review 2026-01-06)
+* **Status:** Draft (Revised per Gemini Review 2026-01-06, Branding Update 2026-01-11)
 * **Related Issues:** #51 (Chrome Web Store Compliance), #53 (Store Assets)
 
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*
 
-- [x] ~~What's the brand color palette?~~ **Tech Trust: Deep Slate Blue primary, muted teal accent, off-white bg**
-- [x] ~~Do we have a logo asset?~~ **Text-only wordmark acceptable for MVP**
+- [x] ~~What's the brand color palette?~~ **Teal-primary palette (evolved from Lambda green heritage)**
+- [x] ~~Do we have a logo asset?~~ **Lambda (λ) icon + Libre Baskerville wordmark lockup**
 - [x] ~~Should we use a CSS framework?~~ **Vanilla CSS (single page, no build complexity)**
 - [x] ~~What's the hero illustration?~~ **Minimal - CSS shapes or Museum Label screenshot**
 - [x] ~~What are the key features to highlight?~~ **Context Awareness, Privacy First, Open Source**
 - [x] ~~Should dark mode be supported?~~ **Yes - use @media (prefers-color-scheme: dark)**
 - [x] ~~Do we need legal pages?~~ **YES - privacy.html required for Store compliance**
 
-### Resolved Questions (Gemini Review 2026-01-06)
+### Resolved Questions (Gemini Review 2026-01-06, Branding 2026-01-11)
 
 | Question | Resolution |
 |----------|------------|
-| Color Palette | **Tech Trust palette** - Deep Slate Blue/Indigo primary, muted teal accent, off-white background |
-| Logo | **Text-only wordmark** - Use Inter font with tight tracking |
+| Color Palette | **Teal-primary palette** - Teal primary (evolved from Lambda green), Indigo accent, off-white background |
+| Logo | **Lambda + Wordmark lockup** - λ icon + "Aletheia" in Libre Baskerville, multiple lockup variations |
+| Typography | **Libre Baskerville + Space Grotesk** - Serif wordmark, sans-serif body (see ADR-0001) |
 | Framework | **Vanilla CSS** - single page doesn't justify build pipeline |
 | Hero | **Minimal** - CSS shapes or Museum Label UI screenshot |
 | Features | **3 key features** - Context Awareness, Privacy First, Open Source |
@@ -36,7 +37,7 @@
 |----|-------------|---------------------|
 | R1 | Clean, modern aesthetic | Similar to Linear, Notion, Stripe |
 | R2 | Light theme primary with dark mode | Default light, auto dark via prefers-color-scheme |
-| R3 | Professional typography | Inter or system-ui with tight tracking |
+| R3 | Professional typography | Libre Baskerville (wordmark) + Space Grotesk (body) |
 | R4 | Trust signals | Privacy-first messaging, open source badge |
 | R5 | Mobile responsive | Works on all screen sizes |
 | R6 | Fast load | < 1 second load time |
@@ -83,22 +84,29 @@
 
 | Asset | Source | Notes |
 |-------|--------|-------|
-| Logo | **Text-only wordmark** | Inter font, tight tracking, SVG optional |
-| Feature icons | Heroicons or Feather | MIT licensed |
+| Lambda icon | Copy from `extensions/chrome/icons/` → `docs/assets/lambda.svg` | Convert to SVG, match teal palette |
+| Wordmark | Libre Baskerville 700 | "Aletheia" or "λletheia" (integrated) |
+| Body font | Space Grotesk | Google Fonts, Greek subset |
+| Feature icons | **Heroicons v2 Outline** | MIT licensed, consistent stroke widths |
 | Screenshots | Museum Label UI (once implemented) | Optional |
 | Chrome Store link | Existing URL | Verify live before launch |
 
 ### 4.3 File Structure
 
+*Landing page lives in `docs/` folder for clean separation from extension code. GitHub Pages serves from `/docs` on main branch.*
+
 ```
-/
+docs/                   # Marketing site (GitHub Pages root)
 ├── index.html          # Main page
 ├── privacy.html        # Privacy Policy (REQUIRED for Store)
 ├── assets/
-│   ├── icon-*.svg      # Feature icons (Heroicons)
+│   ├── lambda.svg      # Lambda icon (COPIED from extensions/, not linked)
+│   ├── icon-*.svg      # Feature icons (Heroicons v2 Outline)
 │   └── og-image.png    # Social sharing image (1200x630)
 └── CNAME               # Custom domain (if applicable)
 ```
+
+**Note:** Lambda icon must be *copied* to `docs/assets/`, not linked to `../extensions/`. This ensures site remains self-contained.
 
 ### 4.4 Deployment Pipeline
 
@@ -106,15 +114,16 @@ Push to `main` branch, GitHub Pages auto-deploys.
 
 ## 5. Diagram
 
-### Page Structure
+### Page Structure (with Lockup Placements)
 
 ```
 +-------------------------------------------+
-|  HEADER                                   |
-|  Aletheia          [Features] [GitHub]    |
+|  HEADER (Lockup A: Lambda before)         |
+|  [λ] Aletheia      [Features] [GitHub]    |
 +-------------------------------------------+
 |                                           |
-|  HERO                                     |
+|  HERO (Lockup B: Lambda replaces A)       |
+|           λletheia                        |
 |  "Understand what you read."              |
 |  Privacy-first AI context for any webpage |
 |                                           |
@@ -122,15 +131,11 @@ Push to `main` branch, GitHub Pages auto-deploys.
 |                                           |
 +-------------------------------------------+
 |                                           |
-|  FEATURES (3 cards)                       |
-|  [Icon] Context-Aware                     |
-|  Analyzes text within its paragraph...    |
-|                                           |
-|  [Icon] Privacy-First                     |
-|  Uses ActiveTab: we can't see history...  |
-|                                           |
-|  [Icon] Open Source                       |
-|  Fully transparent. Audit the code...     |
+|  FEATURES (3 cards, Lockup C: stacked)    |
+|    λ              λ              λ        |
+|  Context       Privacy        Open        |
+|   Aware         First        Source       |
+|  Analyzes...   ActiveTab...  Audit...     |
 |                                           |
 +-------------------------------------------+
 |                                           |
@@ -141,11 +146,20 @@ Push to `main` branch, GitHub Pages auto-deploys.
 |  - Open source: verify yourself           |
 |                                           |
 +-------------------------------------------+
-|  FOOTER                                   |
+|  FOOTER (Lockup A: Lambda before)         |
+|  [λ] Aletheia                             |
 |  [Privacy Policy] [GitHub] [MIT License]  |
 |  (c) 2026 Aletheia. Open source.          |
 +-------------------------------------------+
 ```
+
+### Lambda Lockup Variations
+
+| Variation | Format | Usage | Notes |
+|-----------|--------|-------|-------|
+| **A** | `[λ] Aletheia` | Header, Footer | Lambda separate, easily detachable |
+| **B** | `λletheia` | Hero (large) | Lambda replaces A, integrated |
+| **C** | `λ` above text | Feature cards | Stacked, square format |
 
 ## 6. Technical Approach
 
@@ -153,26 +167,36 @@ Push to `main` branch, GitHub Pages auto-deploys.
 * **Dependencies:** None (vanilla HTML/CSS)
 * **Pattern:** Static site, single page with separate privacy policy
 
-### 6.1 Color Palette (Tech Trust)
+### 6.1 Color Palette (Teal-Primary)
+
+*Evolved from Lambda icon's green heritage toward professional "Tech Trust" palette.*
 
 ```css
+/* Google Fonts import */
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&subset=greek&display=swap');
+
 :root {
-  /* Light mode (default) */
-  --color-primary: #4F46E5;      /* Indigo - trust, technology */
-  --color-accent: #0D9488;       /* Teal - modern, fresh */
+  /* Light mode (default) - Teal Primary */
+  --color-primary: #0D9488;      /* Teal 600 - evolved from Lambda green */
+  --color-primary-light: #14B8A6; /* Teal 500 - hover states */
+  --color-accent: #4F46E5;       /* Indigo - secondary accent */
   --color-text: #1F2937;         /* Slate 800 - readable */
   --color-text-muted: #6B7280;   /* Gray 500 - secondary */
   --color-bg: #F9FAFB;           /* Gray 50 - off-white */
   --color-surface: #FFFFFF;      /* White - cards */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Typography */
+  --font-serif: 'Libre Baskerville', Georgia, serif;
+  --font-sans: 'Space Grotesk', system-ui, sans-serif;
   --max-width: 1200px;
 }
 
 /* Dark mode (auto-detect) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-primary: #818CF8;    /* Indigo 400 */
-    --color-accent: #2DD4BF;     /* Teal 400 */
+    --color-primary: #2DD4BF;    /* Teal 400 */
+    --color-primary-light: #5EEAD4; /* Teal 300 */
+    --color-accent: #818CF8;     /* Indigo 400 */
     --color-text: #F9FAFB;       /* Gray 50 */
     --color-text-muted: #9CA3AF; /* Gray 400 */
     --color-bg: #111827;         /* Gray 900 */
@@ -181,24 +205,54 @@ Push to `main` branch, GitHub Pages auto-deploys.
 }
 ```
 
-### 6.2 Typography (Wordmark Logo)
+**Rationale:** Teal honors the Lambda icon's green heritage while feeling more mature/professional than the original mint. Indigo becomes a secondary accent rather than competing with the Lambda.
+
+### 6.2 Typography System
+
+*See ADR-0001 for full rationale and selection process.*
+
+**Font Pairing:**
+| Role | Font | Weight | Notes |
+|------|------|--------|-------|
+| Wordmark | Libre Baskerville | 700 | Classic serif, complements serifed Lambda |
+| Headlines | Libre Baskerville | 700 | Large sizes, tight tracking |
+| Body text | Space Grotesk | 400 | Technical sans-serif, screen-optimized |
+| UI/Labels | Space Grotesk | 500 | Buttons, navigation |
 
 ```css
-/* Logo as styled text - no image required */
-.logo {
-  font-family: var(--font-sans);
-  font-size: 1.5rem;
+/* Wordmark - Libre Baskerville */
+.logo, .wordmark {
+  font-family: var(--font-serif);
   font-weight: 700;
-  letter-spacing: -0.025em;  /* Tight tracking */
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+/* Lambda character in wordmark */
+.lambda {
   color: var(--color-primary);
 }
 
-/* Hero heading */
-.hero h1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+/* Hero - integrated lockup (λletheia) */
+.hero-wordmark {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 8vw, 5rem);
   font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Body text - Space Grotesk */
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* UI elements */
+.btn, .nav-link {
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 ```
 
@@ -247,29 +301,54 @@ Push to `main` branch, GitHub Pages auto-deploys.
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aletheia - Privacy-First AI Context</title>
   <meta name="description" content="Understand what you read. Privacy-first AI context for any webpage.">
-  <style>/* All CSS inline */</style>
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/">
+  <meta property="og:title" content="Aletheia - Privacy-First AI Context">
+  <meta property="og:description" content="Understand what you read. Privacy-first AI context for any webpage.">
+  <meta property="og:image" content="https://aletheia.study/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&subset=greek&display=swap" rel="stylesheet">
+  <style>/* All CSS inline - see Section 6 */</style>
 </head>
 <body>
   <header>
-    <span class="logo">Aletheia</span>
+    <!-- Lockup A: Lambda before -->
+    <div class="logo">
+      <span class="lambda">λ</span>
+      <span class="wordmark">Aletheia</span>
+    </div>
     <nav>
-      <a href="#features">Features</a>
-      <a href="https://github.com/martymcenroe/Aletheia">GitHub</a>
+      <a href="#features" class="nav-link">Features</a>
+      <a href="https://github.com/martymcenroe/Aletheia" class="nav-link">GitHub</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
-      <h1>Understand what you read.</h1>
-      <p>Privacy-first AI context for any webpage.</p>
-      <a href="https://chrome.google.com/webstore/..." class="cta">
+      <!-- Lockup B: Lambda replaces A (large, integrated) -->
+      <h1 class="hero-wordmark"><span class="lambda">λ</span>letheia</h1>
+      <p class="hero-tagline">Understand what you read.</p>
+      <p class="hero-subtitle">Privacy-first AI context for any webpage.</p>
+      <a href="https://chrome.google.com/webstore/..." class="btn cta">
         Install for Chrome
       </a>
     </section>
 
     <section id="features" class="features">
       <div class="features-grid">
-        <!-- 3 feature cards -->
+        <!-- 3 feature cards with Lockup C: stacked -->
+        <div class="feature-card">
+          <span class="feature-lambda">λ</span>
+          <h3>Context-Aware</h3>
+          <p>Analyzes text within its surrounding paragraph...</p>
+        </div>
+        <!-- ... more cards -->
       </div>
     </section>
 
@@ -280,10 +359,17 @@ Push to `main` branch, GitHub Pages auto-deploys.
   </main>
 
   <footer>
-    <a href="privacy.html">Privacy Policy</a>
-    <a href="https://github.com/martymcenroe/Aletheia">GitHub</a>
-    <span>MIT License</span>
-    <p>&copy; 2026 Aletheia. Open source.</p>
+    <!-- Lockup A: Lambda before (small) -->
+    <div class="footer-logo">
+      <span class="lambda">λ</span>
+      <span class="wordmark">Aletheia</span>
+    </div>
+    <nav class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="https://github.com/martymcenroe/Aletheia">GitHub</a>
+      <span>MIT License</span>
+    </nav>
+    <p class="copyright">&copy; 2026 Aletheia. Open source.</p>
   </footer>
 </body>
 </html>
@@ -411,9 +497,9 @@ npx serve .
 ## 12. Definition of Done
 
 ### Design
-- [x] Color palette defined (Tech Trust: Indigo/Teal)
-- [x] Typography selected (Inter/system-ui)
-- [x] Logo approach decided (Text-only wordmark)
+- [x] Color palette defined (Teal-primary, evolved from Lambda green - see Section 6.1)
+- [x] Typography selected (Libre Baskerville + Space Grotesk - see ADR-0001)
+- [x] Logo approach decided (Lambda + Wordmark lockup system - see Section 5)
 - [ ] Icons selected from Heroicons
 
 ### Code
@@ -466,10 +552,47 @@ npx serve .
 | G1.6 | "Hero illustration needed" | ✅ YES - Minimal CSS shapes in Section 5 |
 | G1.7 | "Features should be specific" | ✅ YES - 3 key features in Section 7.2 |
 
+### Branding Update (2026-01-11)
+
+**Participants:** Marty (Product), Claude Opus 4.5 (Implementation)
+**Process:** Iterative visual font comparison via local HTML preview pages
+
+#### Decisions Made
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Primary Color | Teal (#0D9488) | Evolved from Lambda's mint green heritage |
+| Wordmark Font | Libre Baskerville | Serif complements serifed Lambda icon |
+| Body Font | Space Grotesk | Technical sans-serif, pairs well with serif |
+| Logo System | Lambda + Wordmark lockup | Three variations (A, B, C) for different contexts |
+
+#### Artifacts Created
+
+- `docs/adr/0001-typography-system.md` - Full ADR with reusable prompt
+- `tmp/font-preview*.html` - Visual comparison pages (dev artifacts)
+
+### Gemini Review #2 (APPROVED with fixes)
+
+**Timestamp:** 2026-01-11
+**Reviewer:** Gemini 3 Pro
+**Verdict:** APPROVED (after addressing HIGH issues)
+
+#### Feedback Received
+
+| Priority | Issue | Resolution |
+|----------|-------|------------|
+| [BLOCKING] | Corrupted font URL | **FALSE POSITIVE** - URLs verified correct |
+| [HIGH] | Files in repo root | ✅ FIXED - Moved to `docs/` folder |
+| [HIGH] | Icon not self-contained | ✅ FIXED - Copy to `docs/assets/lambda.svg` |
+| [SUGGESTION] | Missing OG meta tags | ✅ ADDED - Open Graph + Twitter Card |
+| [SUGGESTION] | Icon set unspecified | ✅ FIXED - Heroicons v2 Outline |
+
 ### Review Summary
 
 | Review | Date | Verdict | Key Issue |
 |--------|------|---------|-----------|
 | Gemini #1 | 2026-01-06 | APPROVED | privacy.html required |
+| Branding Update | 2026-01-11 | UPDATED | Typography + color + lockups defined |
+| Gemini #2 | 2026-01-11 | APPROVED | Structure + self-containment |
 
-**Final Status:** APPROVED
+**Final Status:** APPROVED - Ready for implementation

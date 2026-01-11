@@ -131,7 +131,16 @@
       "Bash(CLAUDE_TOOL_INPUT_FILE_PATH=* bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-security-warn.sh)",
       "Skill(code-review)",
       "Bash(shellcheck:*)",
-      "Read(//c/Users/mcwiz/.claude/**)"
+      "Read(//c/Users/mcwiz/.claude/**)",
+      "Bash(start \"\" \"C:\\\\Users\\\\mcwiz\\\\Projects\\\\Aletheia\\\\tmp\\\\font-preview.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\mcwiz\\\\Projects\\\\Aletheia\\\\tmp\\\\font-preview-serifs.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\mcwiz\\\\Projects\\\\Aletheia\\\\tmp\\\\font-preview-serifs-2.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\mcwiz\\\\Projects\\\\Aletheia\\\\tmp\\\\font-preview-finals.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\mcwiz\\\\Projects\\\\Aletheia\\\\tmp\\\\font-preview-pairings.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\mcwiz\\\\Projects\\\\Aletheia\\\\docs\\\\index.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\mcwiz\\\\Projects\\\\Aletheia\\\\docs\\\\privacy.html\")",
+      "Bash(dig:*)",
+      "Bash(nslookup:*)"
     ],
     "deny": [
       "Read(.env)",
