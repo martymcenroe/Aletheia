@@ -14,6 +14,7 @@ from src.lambda_function import (
     TTL_SECONDS,
     generate_thread_id,
     lambda_handler,
+    process_scores_for_display,
     run_guardrails,
     save_state,
     validate_input,
@@ -414,3 +415,87 @@ class TestSaveStateTTL:
         """TTL_SECONDS constant equals 30 days in seconds."""
         assert TTL_SECONDS == 2592000, "TTL_SECONDS should be 30 days (2592000 seconds)"
         assert TTL_SECONDS == 30 * 24 * 60 * 60, "TTL_SECONDS should be 30 days"
+
+
+class TestProcessScoresForDisplay:
+    """Tests for process_scores_for_display - Issue #295 LLD Section 11."""
+
+    def test_060_score_filtering_threshold(self):
+        """Scenario 060: Only scores >= 15% are included."""
+        scores = {"Archaic": 0.80, "Provocative": 0.14, "None": 0.06}
+        result = process_scores_for_display(scores)
+        assert len(result) == 1
+        assert result[0]["category"] == "Archaic"
+
+    def test_061_boundary_exactly_15_percent(self):
+        """Scenario 061: Score exactly at 15% is included."""
+        scores = {"Archaic": 0.85, "None": 0.15}
+        result = process_scores_for_display(scores)
+        assert len(result) == 2
+        categories = [r["category"] for r in result]
+        assert "General Usage" in categories  # None -> General Usage
+
+    def test_062_boundary_just_below_15_percent(self):
+        """Scenario 062: Score at 14.9% is excluded."""
+        scores = {"Archaic": 0.851, "None": 0.149}
+        result = process_scores_for_display(scores)
+        assert len(result) == 1
+        assert result[0]["category"] == "Archaic"
+
+    def test_063_boundary_just_above_15_percent(self):
+        """Scenario 063: Score at 15.1% is included."""
+        scores = {"Archaic": 0.849, "None": 0.151}
+        result = process_scores_for_display(scores)
+        assert len(result) == 2
+
+    def test_070_score_rounding_to_nearest_5(self):
+        """Scenario 070: Scores are rounded to nearest 5%."""
+        scores = {"Archaic": 0.73}  # Should round to 75%
+        result = process_scores_for_display(scores)
+        assert result[0]["score"] == 75
+
+    def test_070b_rounding_edge_cases(self):
+        """Rounding edge cases for various values.
+
+        Rounding is to nearest 5%:
+        - 0.72 (72%) -> round(14.4) * 5 = 70%
+        - 0.73 (73%) -> round(14.6) * 5 = 75%
+        - 0.77 (77%) -> round(15.4) * 5 = 75%
+        - 0.78 (78%) -> round(15.6) * 5 = 80%
+        """
+        assert process_scores_for_display({"Archaic": 0.72})[0]["score"] == 70
+        assert process_scores_for_display({"Archaic": 0.73})[0]["score"] == 75
+        assert process_scores_for_display({"Archaic": 0.77})[0]["score"] == 75  # Still rounds to 75
+        assert process_scores_for_display({"Archaic": 0.78})[0]["score"] == 80  # Rounds up to 80
+        assert process_scores_for_display({"Archaic": 0.975})[0]["score"] == 100
+        assert process_scores_for_display({"Archaic": 0.15})[0]["score"] == 15
+
+    def test_080_score_sorting_descending(self):
+        """Scenario 080: Scores sorted in descending order."""
+        scores = {"Archaic": 0.30, "None": 0.70}
+        result = process_scores_for_display(scores)
+        assert result[0]["category"] == "General Usage"  # 70% comes first
+        assert result[1]["category"] == "Archaic"  # 30% comes second
+        assert result[0]["score"] > result[1]["score"]
+
+    def test_category_name_mapping(self):
+        """None is mapped to General Usage in display."""
+        scores = {"None": 0.95, "Archaic": 0.05}
+        result = process_scores_for_display(scores)
+        assert result[0]["category"] == "General Usage"
+
+    def test_empty_scores_returns_empty_list(self):
+        """Empty scores dict returns empty list."""
+        result = process_scores_for_display({})
+        assert result == []
+
+    def test_none_scores_returns_empty_list(self):
+        """None input returns empty list."""
+        result = process_scores_for_display(None)
+        assert result == []
+
+    def test_all_categories_below_threshold(self):
+        """All scores below 15% returns empty list."""
+        scores = {"Archaic": 0.05, "Provocative": 0.05, "None": 0.04}
+        result = process_scores_for_display(scores)
+        assert result == []
