@@ -652,7 +652,8 @@ function showResultOverlay(response, httpStatus = 200) {
             className: 'aletheia-context',
             id: 'aletheia-context-section',
             role: 'region',
-            'aria-label': 'Full context'
+            'aria-label': 'Full context',
+            'aria-expanded': 'false'
         });
 
         // Toggle button
@@ -742,6 +743,7 @@ function handleToggleClick(shadow) {
         stopTypewriter();
         if (contextEl) {
             contextEl.classList.remove('expanded');
+            updateAriaExpanded(contextEl, false);
         }
         if (gemEl) {
             gemEl.classList.remove('visible');
@@ -758,6 +760,7 @@ function handleToggleClick(shadow) {
         }
         if (contextEl) {
             contextEl.classList.add('expanded');
+            updateAriaExpanded(contextEl, true);
             // Start typewriter animation
             const contextText = overlayData?.context || '';
             typewriterRender(contextEl, contextText);
