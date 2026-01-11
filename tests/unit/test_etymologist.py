@@ -18,6 +18,7 @@ from src.etymologist import (
     count_words,
     escape_xml,
     extract_json,
+    fix_mixed_quote_pairs,
     get_fallback_response,
     process_bedrock_response,
     validate_response_schema,
@@ -359,6 +360,71 @@ class TestFixUnescapedInnerQuotes:
         input_json = '{"outer":{"inner":"The "word" here."}}'
         expected = """{"outer":{"inner":"The 'word' here."}}"""
         result = fix_unescaped_inner_quotes(input_json)
+        assert result == expected
+
+
+class TestFixMixedQuotePairs:
+    """Tests for mixed quote pair fixing (0829 audit).
+
+    When LLM uses curly LEFT quote + ASCII RIGHT quote, after unicode
+    normalization we get 'word" which breaks JSON parsing. This fixes
+    'word" -> 'word'.
+    """
+
+    def test_basic_mixed_pair(self):
+        """Basic case: single quote start, double quote end."""
+        input_text = """'diffidere", meaning 'to distrust'"""
+        expected = """'diffidere', meaning 'to distrust'"""
+        result = fix_mixed_quote_pairs(input_text)
+        assert result == expected
+
+    def test_multiple_mixed_pairs(self):
+        """Multiple mixed quote pairs in one string."""
+        input_text = """The words 'one" and 'two" are here."""
+        expected = """The words 'one' and 'two' are here."""
+        result = fix_mixed_quote_pairs(input_text)
+        assert result == expected
+
+    def test_no_mixed_pairs(self):
+        """String with no mixed pairs should be unchanged."""
+        input_text = """Normal text with 'proper' quotes."""
+        result = fix_mixed_quote_pairs(input_text)
+        assert result == input_text
+
+    def test_in_json_context(self):
+        """Mixed pair inside a JSON string value."""
+        input_text = '{"context": "From the Latin \'diffidere\", meaning trust."}'
+        expected = '{"context": "From the Latin \'diffidere\', meaning trust."}'
+        result = fix_mixed_quote_pairs(input_text)
+        assert result == expected
+
+    def test_real_world_bedrock_response(self):
+        """Real-world case from 0829 audit - diffidere with mixed quotes."""
+        # After unicode normalization, curly LEFT becomes ', but ASCII RIGHT stays "
+        input_text = """{"signal": "Formal Academic Term", "gem": "Test.", "context": "Derived from the Latin 'diffidere", meaning 'to distrust', the word emerged in the 16th century."}"""
+        result = extract_json(input_text)
+        assert result is not None
+        assert result["signal"] == "Formal Academic Term"
+        assert "'diffidere'" in result["context"]
+
+    def test_preserves_proper_double_quotes(self):
+        """Should not affect properly placed double quotes (JSON delimiters)."""
+        input_text = '{"key": "value"}'
+        result = fix_mixed_quote_pairs(input_text)
+        assert result == input_text
+
+    def test_empty_quoted_string(self):
+        """Empty string between quotes."""
+        input_text = """'", test"""
+        # Pattern 'X" requires at least one char between quotes
+        result = fix_mixed_quote_pairs(input_text)
+        assert result == input_text  # No change - empty match
+
+    def test_phrase_with_spaces(self):
+        """Quoted phrase with spaces."""
+        input_text = """'to be or not to be", that is the question."""
+        expected = """'to be or not to be', that is the question."""
+        result = fix_mixed_quote_pairs(input_text)
         assert result == expected
 
 

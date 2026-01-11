@@ -174,6 +174,47 @@ def normalize_unicode_quotes(text: str) -> str:
     return text
 
 
+def fix_mixed_quote_pairs(text: str) -> str:
+    """Fix mixed quote pairs where LLM used curly LEFT but ASCII RIGHT quotes.
+
+    After unicode normalization, curly quotes become single quotes. But if
+    the LLM inconsistently used a curly left quote and ASCII right quote,
+    we get patterns like:  'diffidere", meaning 'to distrust'
+
+    The 'word" pattern indicates a mixed quote pair that should be 'word'.
+
+    This specifically targets the pattern:
+    - Single quote followed by word characters (letters, digits, spaces, hyphens)
+    - Followed by ASCII double quote
+    - Convert the double quote to single quote
+
+    IMPORTANT: Only match word-like content, NOT JSON structural elements.
+    Exclude: commas, colons, brackets, braces (to avoid breaking JSON structure)
+
+    Example:
+        Input:  'diffidere", meaning
+        Output: 'diffidere', meaning
+
+    See 0829 Lambda Failure Remediation audit for context.
+    """
+    # Pattern: 'word" where word is the quoted term (word-like content only)
+    # Match: single quote, word chars (letters, digits, spaces, hyphens),
+    # then ASCII double quote
+    # We convert the trailing " to '
+    #
+    # CRITICAL: Exclude JSON structural chars (,:{}[]) to avoid matching
+    # across JSON boundaries like '.", "context' -> '.", 'context'
+    #
+    # The regex matches: 'word" where word is alphanumeric with spaces/hyphens
+    pattern = r"'([a-zA-Z][a-zA-Z0-9\s\-]*)\""
+
+    def replace_mixed(match: re.Match) -> str:
+        # Replace the trailing " with '
+        return f"'{match.group(1)}'"
+
+    return re.sub(pattern, replace_mixed, text)
+
+
 def fix_unescaped_inner_quotes(text: str) -> str:
     """Fix unescaped ASCII double quotes inside JSON string values.
 
@@ -297,7 +338,12 @@ def extract_json(raw_response: str) -> dict | None:
     # Uses QUOTE_NORMALIZATION_MAP to handle 22+ Unicode quote variants
     text = normalize_unicode_quotes(text)
 
-    # Step 0b: Fix unescaped ASCII double quotes inside string values (Issue #288)
+    # Step 0b: Fix mixed quote pairs (0829 audit)
+    # LLM sometimes uses curly LEFT quote + ASCII RIGHT quote
+    # After normalization: 'word" - fix this to 'word'
+    text = fix_mixed_quote_pairs(text)
+
+    # Step 0c: Fix unescaped ASCII double quotes inside string values (Issue #288)
     # Bedrock sometimes returns invalid JSON with unescaped " inside strings
     text = fix_unescaped_inner_quotes(text)
 
