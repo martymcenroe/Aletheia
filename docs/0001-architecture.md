@@ -12,14 +12,14 @@ graph TB
         DF[Defense Funnel] --> DE[Digital Etymologist]
     end
 
-    Lambda -.->|SSE stream| Ext
+    Lambda -.->|JSON response| Ext
 ```
 
 ## Components
 
 | Component | Description | Zoom Deeper |
 |-----------|-------------|-------------|
-| Extension | Chrome MV3 / Firefox MV2 browser extension | [Container View](0001b-container-view.md#extension) |
+| Extension | Chrome MV3 / Firefox MV3 browser extension | [Container View](0001b-container-view.md#extension) |
 | Lambda Service | Stateful serverless with DynamoDB hydration | [Container View](0001b-container-view.md#lambda) |
 | Defense Funnel | 4-layer fail-fast content filter | [ADR-0204](0204-ADR-defense-funnel.md) |
 | Digital Etymologist | Structured JSON persona (signal/gem/context) | [LLD-1124](lld/done/1124-digital-etymologist.md) |

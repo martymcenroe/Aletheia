@@ -53,10 +53,10 @@ Audits exist because:
 
 | Category | Count | Focus |
 |----------|-------|-------|
-| Core Development | 15 | Code quality, security, privacy, accessibility |
+| Core Development | 16 | Code quality, security, privacy, accessibility |
 | AI Governance | 7 | AI-specific controls and compliance |
 | Meta | 2 | Audit system governance |
-| **Total** | **24** | |
+| **Total** | **25** | |
 
 ### 3.2 Quick Reference
 
@@ -85,6 +85,7 @@ Audits exist because:
 | 0828 | Build Artifact Freshness |
 | 0829 | Lambda Failure Remediation (proactive fix or draft issue) |
 | 0830 | Architecture Freshness (documentation completeness and currency) |
+| 0831 | Web Assets (icons, buttons, responsive design, accessibility) |
 | 0898 | Horizon Scanning Protocol |
 | 0899 | Meta-Audit (validation & execution) |
 
@@ -114,6 +115,7 @@ Audits for code quality, security, and development practices.
 | 0828 | Build Artifact Freshness | On deploy | Manual |
 | 0829 | Lambda Failure Remediation | On-demand / cleanup --full | Manual |
 | 0830 | Architecture Freshness | Monthly + on change | Manual |
+| 0831 | Web Assets | On landing page change | Manual |
 
 ### 4.2 AI Governance Audits
 
@@ -326,6 +328,7 @@ Standard format for all audits:
 - [0828 - Build Artifact Freshness](0828-audit-build-artifact-freshness.md)
 - [0829 - Lambda Failure Remediation](0829-audit-lambda-failure-remediation.md)
 - [0830 - Architecture Freshness](0830-audit-architecture-freshness.md)
+- [0831 - Web Assets](0831-audit-web-assets.md)
 - [0898 - Horizon Scanning Protocol](0898-horizon-scanning-protocol.md)
 - [0899 - Meta-Audit](0899-meta-audit.md)
 
@@ -335,7 +338,7 @@ Standard format for all audits:
 |-------|-----------------|
 | Agent behavior | 0808, 0824, 0815, 0821 |
 | AI safety | 0809, 0818, 0821, 0822 |
-| Accessibility | 0811 |
+| Accessibility | 0811, 0831 |
 | Code quality | 0813 |
 | Compliance | 0818, 0820, 0898 |
 | Dependencies | 0816, 0819 |
@@ -358,7 +361,7 @@ Cost optimization: use the cheapest model that can reliably execute each audit.
 | Model | Cost | Audits | Rationale |
 |-------|------|--------|-----------|
 | **Haiku** | $ | 0808, 0812, 0814, 0816, 0817, 0819, 0827, 0899 | Simple checklist, metric aggregation, file parsing |
-| **Sonnet** | $$ | 0811, 0815, 0820, 0822, 0824, 0898 | Web research, framework analysis, moderate reasoning |
+| **Sonnet** | $$ | 0811, 0815, 0820, 0822, 0824, 0831, 0898 | Web research, framework analysis, moderate reasoning |
 | **Opus** | $$$ | 0809, 0810, 0818, 0821, 0823, 0825, 0829 | Complex reasoning, security analysis, incident review, remediation |
 
 ### 11.2 Detailed Rationale
@@ -385,6 +388,7 @@ Cost optimization: use the cheapest model that can reliably execute each audit.
 | 0827 Infrastructure Integration | Haiku | Config verification, AWS CLI parsing |
 | 0828 Build Artifact Freshness | Haiku | Timestamp comparison, manifest parsing |
 | 0829 Lambda Failure Remediation | **Opus** | Root cause analysis, code fixes, issue drafting |
+| 0831 Web Assets | Sonnet | Visual design evaluation, responsive testing, accessibility |
 | 0898 Horizon Scanning | Sonnet | Framework research, moderate analysis |
 | 0899 Meta-Audit | Haiku | Execution tracking, checklist validation |
 
@@ -427,6 +431,7 @@ By using appropriate models instead of Opus for all audits:
 
 | Date | Change |
 |------|--------|
+| 2026-01-11 | Renumbered 0827-audit-web-assets.md to 0831 (resolved duplicate with 0827-infrastructure-integration). Total audits: 25. |
 | 2026-01-11 | Created 0830 (Architecture Freshness) for documentation completeness and currency. Part of Architectural Depth Model (#308). Total audits: 24. |
 | 2026-01-10 | Created 0829 (Lambda Failure Remediation) for proactive CloudWatch error detection and fix-or-draft workflow. Total audits: 23. |
 | 2026-01-10 | Created 0827 (Infrastructure Integration) for Lambda, DynamoDB, API Gateway verification. Total audits: 22. |

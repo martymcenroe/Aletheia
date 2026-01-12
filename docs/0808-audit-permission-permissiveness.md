@@ -166,6 +166,44 @@ If agent ignores friction rules despite instructions:
 - Strengthen CLAUDE.md visibility requirements
 - Consider hooks for enforcement
 
+### 5.5 Auto-Fix (Default Behavior)
+
+**This audit auto-fixes permission problems rather than just reporting them.**
+
+When a pattern is identified as needing remediation:
+
+```markdown
+Auto-fix procedure:
+1. For missing allowlist entries:
+   - Read .claude/settings.local.json
+   - Add pattern to "allow" array (alphabetically sorted)
+   - Write updated file
+   - Log: "Added 'Bash({pattern}:*)' to allowlist"
+
+2. For friction risk patterns:
+   - Read CLAUDE.md
+   - Add row to "Friction Risk Assessment" table
+   - Log: "Added '{pattern}' to friction risk table"
+
+3. Update checkpoint:
+   - Mark violation as "resolved"
+   - Add resolution details
+```
+
+**Auto-fix safety checks:**
+
+| Check | Action if Fails |
+|-------|-----------------|
+| Command in deny list? | Skip auto-fix, flag for manual review |
+| Destructive pattern? (`rm -rf`, `git push -f`) | Skip auto-fix, flag for manual review |
+| Overly broad? (`Bash(*:*)`) | Skip auto-fix, flag for manual review |
+| Duplicate entry? | Skip (already exists) |
+
+**Cannot auto-fix:**
+- Structural issues (agent behavior requires CLAUDE.md revision by human)
+- Novel command categories (need human judgment on safety)
+- Model behavior issues (require investigation)
+
 ---
 
 ## 6. Output Format

@@ -2,7 +2,74 @@
 
 You are a team member on the Aletheia project, not a tool.
 
-## FIRST: Read Parent CLAUDE.md
+## STOP - MANDATORY PRE-TOOL CHECKLIST
+
+**BEFORE calling ANY tool (Read, Write, Edit, Glob, Bash), you MUST complete this checklist OUT LOUD:**
+
+```
+PRE-TOOL CHECK:
+1. Tool I'm about to use: [Read/Write/Edit/Glob/Bash]
+2. Path I'm about to use: [write the full path]
+3. Does path start with ~? → IF YES, STOP. Rewrite as C:\Users\mcwiz\Projects\...
+4. Does path start with C:\ ? → IF YES for Read/Write/Edit/Glob, PROCEED
+5. Does path start with /c/ ? → IF YES for Bash, PROCEED
+6. Does Bash command contain && or | or ; ? → IF YES, STOP. Split into separate commands.
+```
+
+**IF YOU SKIP THIS CHECKLIST, YOU WILL CAUSE PERMISSION PROMPTS.**
+
+---
+
+## PATH FORMAT RULES
+
+| Tool | MUST Start With | Example |
+|------|-----------------|---------|
+| Read, Write, Edit, Glob | `C:\Users\mcwiz\Projects\` | `C:\Users\mcwiz\Projects\Aletheia\file.md` |
+| Bash | `/c/Users/mcwiz/Projects/` | `/c/Users/mcwiz/Projects/Aletheia/file.md` |
+
+**THE TILDE CHARACTER (~) DOES NOT EXIST. NEVER USE IT.**
+
+Windows does not support `~` for home directory. If you use `~`, you WILL trigger permission prompts.
+
+**BANNED PATTERNS - MEMORIZE THESE:**
+- `~\anything` - BANNED (tilde + backslash = ALWAYS WRONG)
+- `~/anything` - BANNED (tilde + forward slash = ALWAYS WRONG on Windows)
+- `&& ` in Bash - BANNED (split into separate commands)
+- `| ` in Bash - BANNED (use dedicated tools instead)
+- `; ` in Bash - BANNED (split into separate commands)
+
+**YOUR WORKING DIRECTORY:**
+- If in Aletheia: `C:\Users\mcwiz\Projects\Aletheia`
+- If in Aletheia-106: `C:\Users\mcwiz\Projects\Aletheia-106`
+- If in Aletheia-310: `C:\Users\mcwiz\Projects\Aletheia-310`
+
+Use YOUR working directory as the base for all paths.
+
+---
+
+## WORKTREE PATH CONSTRUCTION (CRITICAL)
+
+**When accessing worktrees (Aletheia-{ID}), the ONLY valid paths are:**
+
+| Worktree | For Glob/Read/Write/Edit | For Bash |
+|----------|--------------------------|----------|
+| Aletheia-106 | `C:\Users\mcwiz\Projects\Aletheia-106` | `/c/Users/mcwiz/Projects/Aletheia-106` |
+| Aletheia-310 | `C:\Users\mcwiz\Projects\Aletheia-310` | `/c/Users/mcwiz/Projects/Aletheia-310` |
+| Any worktree | `C:\Users\mcwiz\Projects\Aletheia-{ID}` | `/c/Users/mcwiz/Projects/Aletheia-{ID}` |
+
+**WORKTREES ARE NOT AT:**
+- `~/Projects/Aletheia-{ID}` ← WRONG
+- `~\Projects\Aletheia-{ID}` ← WRONG
+- `~\Projects\...` ← WRONG
+
+**BEFORE constructing ANY worktree path, STOP and verify:**
+1. Does the path start with `C:\Users\mcwiz\Projects\` (for Read/Glob)?
+2. Does the path start with `/c/Users/mcwiz/Projects/` (for Bash)?
+3. If NO to both → you are constructing the path WRONG
+
+---
+
+## SECOND: Read Parent CLAUDE.md
 
 **Before reading this file, read the parent AgentOS rules:**
 `C:\Users\mcwiz\Projects\CLAUDE.md`
@@ -29,8 +96,9 @@ Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and 
 ### Project Identifiers
 
 - **Repository:** `martymcenroe/Aletheia`
-- **Project Root:** `/c/Users/mcwiz/Projects/Aletheia`
-- **Worktree Pattern:** `Aletheia-{IssueID}` (e.g., `Aletheia-45`)
+- **Project Root (Windows - for Read/Glob):** `C:\Users\mcwiz\Projects\Aletheia`
+- **Project Root (Unix - for Bash):** `/c/Users/mcwiz/Projects/Aletheia`
+- **Worktree Pattern:** `Aletheia-{IssueID}` (e.g., `Aletheia-45`, located at `C:\Users\mcwiz\Projects\Aletheia-45`)
 
 ### Required Workflow
 
@@ -57,89 +125,6 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {numbe
 ```
 - NEVER use `gh pr merge` directly - you WILL forget cleanup
 - The script: merges PR → removes worktree → deletes local branch → verifies
-
----
-
-## Gemini Dual-Review Integration
-
-**Claude Code and Gemini CLI collaborate as a dual-AI review system.**
-
-### Review Gates
-
-1. **LLD Design Review** - After LLD is written, before implementation
-2. **Implementation Review** - After code is written, before merge
-3. **Issue Filing Review** - After issue is drafted, before filing
-
-### LLD Review Automation
-
-**Trigger:** After writing any LLD to `docs/lld/active/*.md`
-
-**Process:**
-1. Load prompt template from `gemini-prompts/lld-review.txt`
-2. Invoke Gemini using `tools/gemini-model-check.sh`
-3. Parse feedback: `[BLOCKING]`, `[HIGH]`, `[SUGGESTION]`
-4. Update LLD with all [BLOCKING] and [HIGH] feedback
-5. Wait for user to say "implement"
-
-### Implementation Review
-
-**Trigger:** After implementation complete, reports generated, **after commit**
-
-**IMPORTANT:** Gemini CLI runs from the main project directory and cannot see uncommitted worktree changes. Implementation reviews must be run AFTER committing code to the feature branch.
-
-**Process:**
-1. Commit implementation to feature branch (single feat: commit)
-2. Push to remote
-3. Load prompt from `gemini-prompts/implementation-review.txt`
-4. Include actual code diff in the prompt (not just descriptions)
-5. Invoke Gemini for review
-6. Parse decision: `[APPROVE]` or `[BLOCK]`
-7. **Dual Approval Gate:** Require BOTH Gemini + User approval before merge
-
-### Issue Filing Review Automation
-
-**Trigger:** Before running `gh issue create` for any new issue
-
-**MANDATORY:** All issues MUST be reviewed by Gemini before filing. Do NOT file issues directly.
-
-**Process:**
-1. Draft the issue body (use template from `docs/0101-TEMPLATE-issue.md` for features)
-2. Load prompt template from `gemini-prompts/issue-review.txt`
-3. Replace `{{ISSUE_DRAFT}}` with the full issue body
-4. Invoke Gemini using `tools/gemini-model-check.sh`
-5. Parse feedback: `[BLOCKING]`, `[HIGH]`, `[SUGGESTION]`
-6. If `[BLOCKING]` issues exist: Update draft and re-submit to Gemini
-7. Present final draft to user for approval
-8. Only after user approval: `gh issue create --repo martymcenroe/Aletheia ...`
-9. **Post-filing:** Add Gemini review summary as a comment on the issue
-
-### Model Downgrade Detection
-
-Every Gemini invocation validates the model tier used:
-- Expected: `gemini-3-pro-preview`
-- If downgrade detected: ABORT review, notify user
-
-### Quota Exhaustion Handling
-
-When Gemini review fails with "quota exhausted" error:
-
-1. **Automatic Recovery:** Switch to API key mode:
-   ```bash
-   bash ~/.gemini/use-apikey.sh
-   ```
-   This moves OAuth credentials aside and uses `GEMINI_API_KEY` env var.
-
-2. **Retry the review** - API key has separate quota allocation
-
-3. **Log the event** to `tmp/gemini-quota-events.jsonl`
-
-**Prerequisite:** User must have `GEMINI_API_KEY` environment variable set.
-
-**Scripts:**
-- `~/.gemini/use-apikey.sh` - Switch to API key mode (moves OAuth creds aside)
-- `~/.gemini/use-oauth.sh` - Restore OAuth mode (restores OAuth creds)
-
-**Cleanup:** `/cleanup --full` automatically restores OAuth mode via `use-oauth.sh`.
 
 ---
 

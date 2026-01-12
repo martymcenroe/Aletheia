@@ -329,6 +329,14 @@
 | `tools/generate_store_images.py` | **Utility** | 🟢 **Stable** | #53 | Store screenshot generator for Chrome Web Store. |
 | `tools/generate_promo_tiles.py` | **Utility** | 🟢 **Stable** | #53 | Promotional tile generator for store listings. |
 | `tools/archive_transcripts.py` | **Utility** | 🟢 **Stable** | #276 | Archive verbatim transcripts older than 7 days to monthly directories. |
+| `tools/audit_record_check.py` | **Utility** | 🟢 **Stable** | - | Check audit records exist for completed audits. |
+| `tools/audit_schedule_check.py` | **Utility** | 🟢 **Stable** | - | Check audit schedule adherence. |
+| `tools/check_artifact_freshness.py` | **Utility** | 🟢 **Stable** | - | Verify build artifacts are up-to-date. |
+| `tools/create_web_icons.py` | **Utility** | 🟢 **Stable** | - | Web icon generator for landing page. |
+| `tools/merge_pr.py` | **Utility** | 🟢 **Stable** | - | Atomic PR merge (merge + worktree cleanup + branch delete). |
+| `tools/print/print_closed_issues.py` | **Utility** | 🟢 **Stable** | - | GitHub closed issues fetcher/printer (saves to docs/6001-*.md). |
+| `tools/test_lambda.py` | **Utility** | 🟢 **Stable** | - | Lambda local test runner with mock events. |
+| `tools/verify_audits.py` | **Utility** | 🟢 **Stable** | - | Verify audit procedures are complete and valid. |
 
 ### Testing & Verification
 

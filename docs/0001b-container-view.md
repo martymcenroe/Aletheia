@@ -10,7 +10,7 @@ graph TB
             SW_C[Service Worker]
             Popup_C[Popup UI]
         end
-        subgraph ExtFirefox [Firefox Extension - MV2]
+        subgraph ExtFirefox [Firefox Extension - MV3]
             CS_F[Content Script]
             BG_F[Background Script]
             Popup_F[Popup UI]
@@ -31,7 +31,7 @@ graph TB
     APIGW -->|invoke| Lambda
     Lambda <-->|hydrate/persist| DDB
     Lambda -->|invoke_model| Bedrock
-    Lambda -->|SSE stream| APIGW
+    Lambda -->|JSON response| APIGW
 ```
 
 ## Extension Container {#extension}
@@ -81,7 +81,7 @@ graph TB
 
 - **Naked Python**: No LangChain/LangGraph, direct boto3 ([ADR-0211](0211-ADR-naked-python-architecture.md))
 - **Stateful Serverless**: DynamoDB hydration/dehydration cycle ([ADR-0203](0203-ADR-stateful-serverless.md))
-- **Streaming**: SSE via `@awslambda.streamify_response` ([ADR-0206](0206-ADR-streaming-sse.md))
+- **Buffered Response**: Synchronous JSON response for reliable parsing ([ADR-0206](0206-ADR-streaming-sse.md) superseded)
 
 ## Infrastructure Container {#infrastructure}
 

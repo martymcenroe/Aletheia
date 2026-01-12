@@ -242,9 +242,46 @@ A diagram should be promoted if it:
 
 ---
 
-## 8. Remediation Workflow
+## 8. Auto-Fix (Default Behavior)
 
-When findings require updates:
+**This audit auto-fixes freshness issues rather than just reporting them.**
+
+### 8.1 Auto-Fixable Items
+
+| Finding | Auto-Fix Action |
+|---------|-----------------|
+| Missing ADR in digest | Extract title from file, add row to 0001d-adr-digest.md |
+| Missing term in glossary | Add term with placeholder definition, flag for review |
+| Broken internal link | Update to correct path if target exists |
+| Orphaned old file reference | Update to new canonical path |
+| Stale count mismatch | Update count to match reality |
+
+### 8.2 Auto-Fix Procedure
+
+```markdown
+For each auto-fixable finding:
+1. Identify the target file and location
+2. Generate the fix:
+   - ADR: `| [XXXX](02XX-ADR-name.md) | {title from file} | Final |`
+   - Glossary: `| **Term** | [Definition needed] | - |`
+   - Link: Update path to resolved location
+3. Apply the edit
+4. Log: "Auto-fixed: {description}"
+```
+
+### 8.3 Manual Review Required
+
+| Finding | Reason |
+|---------|--------|
+| Missing component in 0001b | Requires accurate description |
+| Diagram quality issues | Requires visual judgment |
+| Quality attribute values | Requires CloudWatch/metrics verification |
+| Diagram graduation | Requires architectural judgment |
+| Major restructuring | Requires design discussion |
+
+### 8.4 Fallback Workflow
+
+When auto-fix cannot resolve:
 
 1. **Minor updates** (typos, broken links): Fix in current session
 2. **Missing components**: Add to relevant 0001x document

@@ -47,6 +47,44 @@ Compare **Code vs. Docs** using the specific categories from `docs/0601-skill-ge
 
 ---
 
+## Phase 4: Auto-Fix (Default Behavior)
+
+**This audit auto-fixes documentation drift rather than just reporting it.**
+
+When drift is detected:
+
+### Auto-Fixable Drift
+
+| Drift Type | Detection | Auto-Fix |
+|------------|-----------|----------|
+| **Manifest version** | Compare `manifest.json` `manifest_version` vs docs | Update docs to match actual version |
+| **Response type** | Grep code for `stream` vs `return` patterns | Update architecture diagrams |
+| **File paths** | Check if referenced files exist at stated paths | Update paths in docs |
+| **Permission lists** | Compare manifest `permissions` vs docs | Update permission lists in docs |
+
+### Auto-Fix Procedure
+
+```markdown
+For each detected drift:
+1. Verify the CODE is the source of truth (not a bug)
+2. Update the DOCS to match the code
+3. Add "Updated by 0806 audit {date}" comment if needed
+4. Log the change to audit output
+
+For security/correctness drift (Tier 1):
+1. Do NOT auto-fix - these require investigation
+2. Flag as BLOCKING finding
+3. Create GitHub issue for human review
+```
+
+### Cannot Auto-Fix
+
+- Security vulnerabilities (needs investigation)
+- Missing tests (needs implementation)
+- Architectural regressions (needs design review)
+
+---
+
 ## Output Format: The "As-Built" Audit Report
 
 ```markdown

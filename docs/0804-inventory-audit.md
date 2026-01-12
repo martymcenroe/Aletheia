@@ -69,15 +69,42 @@ For files marked 🟠 **In-Progress**:
 - Should have linked issue
 - Should be actively worked on
 
-### Step 5: Remediation
+### Step 5: Auto-Fix (Default Behavior)
 
+**This audit auto-fixes inventory drift rather than just reporting it.**
+
+When drift is detected:
+
+1. **Missing files**: Automatically add to inventory with:
+   - Status: 🟢 **Stable** (if tests exist) or 🟡 **Beta** (otherwise)
+   - Role: Inferred from location (src/=Logic, tools/=Utility, tests/=Test, docs/=Doc)
+   - Description: Inferred from filename or file docstring
+
+2. **Deleted files**: Automatically remove entry from inventory
+
+3. **Path changes**: Automatically update paths
+
+**Auto-fix procedure:**
+
+```markdown
+For each missing file:
+1. Determine appropriate section in inventory (by directory)
+2. Determine status (check for corresponding test file)
+3. Add entry in alphabetical order within section
+
+For each deleted entry:
+1. Remove line from inventory
+2. Log removal to audit output
+```
+
+### Step 6: Manual Review (Fallback)
+
+Only use manual review if auto-fix cannot determine:
 | Finding | Action |
 |---------|--------|
-| File not in inventory | Add entry with appropriate status |
-| Deleted file in inventory | Remove entry |
-| Wrong path | Update path |
-| Wrong status | Update status with note |
-| Missing linked issue | Add issue reference or N/A |
+| Ambiguous status | Ask user or default to 🟡 **Beta** |
+| Missing linked issue | Add `-` or find related issue |
+| Complex file moves | Verify new location before updating |
 
 ## Quick Commands
 

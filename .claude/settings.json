@@ -2,8 +2,25 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "Glob|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/path-gate.sh",
+            "timeout": 5,
+            "description": "Path Gate (blocks ~ tilde paths)"
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write",
         "hooks": [
+          {
+            "type": "command",
+            "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/path-gate.sh",
+            "timeout": 5,
+            "description": "Path Gate (blocks ~ tilde paths)"
+          },
           {
             "type": "command",
             "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-edit-check.sh",

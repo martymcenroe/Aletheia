@@ -66,15 +66,46 @@ gh issue list --state all --limit 200 --json number,title,body > temp-all-issues
 grep -i "RSDB\|LangGraph\|L1\|L2\|L3\|L4" temp-all-issues.json
 ```
 
-### Step 5: Remediation
+### Step 5: Auto-Fix (Default Behavior)
 
+**This audit auto-fixes terminology drift rather than just reporting it.**
+
+For each deprecated term found in non-excluded files:
+
+```markdown
+Auto-fix procedure:
+1. Identify old term and its replacement from Known Terminology Changes table
+2. For each file match:
+   - Skip if in exclusion list (legacy/, ADRs, session logs, closed issues)
+   - Replace old term with new term
+   - Log: "Replaced '{old}' with '{new}' in {file}:{line}"
+3. For open GitHub issues:
+   - Use `gh issue edit {number} --body "$(updated body)"`
+   - Log: "Updated issue #{number}: replaced '{old}' with '{new}'"
+```
+
+**Auto-fix mapping:**
+
+| Old Term | New Term | Scope |
+|----------|----------|-------|
+| `L1` | `Selection Check` | docs, code comments |
+| `L2` | `Denylist` | docs, code comments |
+| `L3` | `Semantic` | docs, code comments |
+| `L4` | `Transform` | docs, code comments |
+| `LangGraph` | `Naked Python` | docs (not ADR 0205/0211) |
+| `LangChain` | `boto3` | docs (not ADRs) |
+| `RSDB` | `Wikipedia denylist` | docs, code |
+
+### Step 6: Manual Review (Fallback)
+
+Only use manual review for:
 | Location | Action |
 |----------|--------|
-| Active docs | Edit directly, commit |
 | Legacy docs | Leave as-is (historical) |
-| Code comments | Update if touched, note if not |
-| GitHub issues (open) | `gh issue edit --body` |
+| ADRs | Leave as-is (documents decision at time made) |
+| Session logs | Leave as-is (historical) |
 | GitHub issues (closed) | Leave as-is (historical) |
+| Ambiguous context | Review if replacement changes meaning |
 
 ## Exclusions
 

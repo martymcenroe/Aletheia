@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Context-Aware Analysis - Aletheia</title>
-  <meta name="description" content="How Aletheia's context-aware AI understands text within its surrounding paragraph.">
+  <meta name="description" content="How Aletheia's context-aware AI understands words within their surrounding text, unlike traditional dictionaries.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://aletheia.study/context.html">
   <meta property="og:title" content="Context-Aware Analysis - Aletheia">
-  <meta property="og:description" content="How Aletheia's context-aware AI understands text within its surrounding paragraph.">
+  <meta property="og:description" content="How Aletheia's context-aware AI understands words within their surrounding text, unlike traditional dictionaries.">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -26,6 +26,7 @@
     :root {
       --color-primary: #0D9488;
       --color-primary-light: #14B8A6;
+      --color-accent: #4F46E5;
       --color-text: #1F2937;
       --color-text-muted: #6B7280;
       --color-bg: #F9FAFB;
@@ -39,6 +40,7 @@
       :root {
         --color-primary: #2DD4BF;
         --color-primary-light: #5EEAD4;
+        --color-accent: #818CF8;
         --color-text: #F9FAFB;
         --color-text-muted: #9CA3AF;
         --color-bg: #111827;
@@ -54,6 +56,7 @@
 
     body {
       font-family: var(--font-sans);
+      font-weight: 400;
       line-height: 1.7;
       color: var(--color-text);
       background-color: var(--color-bg);
@@ -114,6 +117,7 @@
       font-weight: 500;
       font-size: 0.9rem;
       color: var(--color-text-muted);
+      transition: color 0.2s;
     }
 
     .nav-link:hover {
@@ -129,6 +133,7 @@
       font-size: 2.25rem;
       font-weight: 700;
       margin-bottom: 1.5rem;
+      color: var(--color-text);
     }
 
     h2 {
@@ -137,18 +142,152 @@
       font-weight: 600;
       margin-top: 2.5rem;
       margin-bottom: 1rem;
+      color: var(--color-text);
     }
 
     p {
       margin-bottom: 1rem;
+      color: var(--color-text);
     }
 
-    .placeholder-notice {
+    ul {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+      color: var(--color-text);
+    }
+
+    strong {
+      font-weight: 600;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    .highlight-box {
       background-color: var(--color-surface);
       border-left: 3px solid var(--color-primary);
       padding: 1rem 1.25rem;
-      margin: 2rem 0;
+      margin: 1.5rem 0;
       border-radius: 0 8px 8px 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .highlight-box {
+        background-color: rgba(255,255,255,0.03);
+      }
+    }
+
+    .example-container {
+      display: grid;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    @media (min-width: 600px) {
+      .example-container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example-box {
+      background-color: var(--color-surface);
+      border-radius: 8px;
+      padding: 1.25rem;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .example-box {
+        background-color: rgba(255,255,255,0.03);
+        border-color: rgba(255,255,255,0.08);
+      }
+    }
+
+    .example-box.dictionary {
+      border-top: 3px solid var(--color-text-muted);
+    }
+
+    .example-box.aletheia {
+      border-top: 3px solid var(--color-primary);
+    }
+
+    .example-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .example-box.aletheia .example-label {
+      color: var(--color-primary);
+    }
+
+    .example-word {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .example-context {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      font-style: italic;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .example-context {
+        border-bottom-color: rgba(255,255,255,0.06);
+      }
+    }
+
+    .example-definition {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .coming-soon-box {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(13, 148, 136, 0.08));
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2.5rem 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .coming-soon-box {
+        background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(45, 212, 191, 0.1));
+        border-color: rgba(129, 140, 248, 0.3);
+      }
+    }
+
+    .coming-soon-box h3 {
+      font-family: var(--font-sans);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      margin-bottom: 0.75rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .coming-soon-box h3 {
+        color: var(--color-accent);
+      }
+    }
+
+    .coming-soon-box p {
+      margin-bottom: 0;
+      font-size: 0.95rem;
     }
 
     footer {
@@ -220,18 +359,77 @@
     <div class="container">
       <h1>Context-Aware Analysis</h1>
 
-      <div class="placeholder-notice">
-        <strong>Coming Soon:</strong> This page will explain how Aletheia's context-aware AI works differently from traditional dictionaries.
+      <div class="highlight-box">
+        <strong>The difference:</strong> Traditional dictionaries give you every possible meaning. Aletheia gives you the <em>right</em> meaning for what you're reading.
       </div>
 
       <h2>Why Context Matters</h2>
-      <p>Traditional dictionaries give you static definitions. But words change meaning based on context. "Bank" means something different in finance vs. geography. "Cell" means something different in biology vs. telecommunications.</p>
+      <p>Words are shape-shifters. The same word can mean completely different things depending on where it appears. Traditional dictionaries list all possible definitions and leave you to figure out which one applies.</p>
+      <p>This works fine for simple words. But for words with multiple meanings, technical jargon, or domain-specific usage, you end up scanning through numbered definitions trying to match one to what you're reading.</p>
+      <p>Aletheia eliminates this guesswork. By analyzing the text surrounding your selection, it delivers the meaning that actually fits your context.</p>
 
       <h2>How Aletheia Works</h2>
-      <p>When you select a word or phrase, Aletheia sends both the selection <em>and</em> the surrounding text to understand the context. This allows the AI to provide explanations that are relevant to what you're actually reading.</p>
+      <p>When you select a word or phrase, Aletheia captures three things:</p>
+      <ul>
+        <li><strong>Your selection</strong> - the word or phrase you highlighted</li>
+        <li><strong>Surrounding text</strong> - the paragraph and nearby sentences</li>
+        <li><strong>Page context</strong> - metadata about what you're reading</li>
+      </ul>
+      <p>This context bundle is sent to an AI model that understands language the way humans do: in context. Instead of pattern-matching to a static database, it reasons about what the word means <em>here</em>, in <em>this</em> sentence, on <em>this</em> page.</p>
+      <p>The result is an explanation tailored to your reading, not a generic dictionary entry.</p>
 
       <h2>Examples</h2>
-      <p><em>Content coming soon...</em></p>
+      <p>See the difference context makes:</p>
+
+      <h3 style="font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--color-text-muted);">"Cell" in a biology article</h3>
+      <div class="example-container">
+        <div class="example-box dictionary">
+          <div class="example-label">Dictionary</div>
+          <div class="example-word">cell</div>
+          <div class="example-definition">1. a small room, as in a convent or prison. 2. the basic structural unit of all organisms. 3. a device that converts chemical energy into electricity. 4. a small group forming a nucleus of political activity. 5. a geographic area served by a single transmitter...</div>
+        </div>
+        <div class="example-box aletheia">
+          <div class="example-label">Aletheia</div>
+          <div class="example-word">cell</div>
+          <div class="example-context">Context: "The mitochondria within each cell produce ATP..."</div>
+          <div class="example-definition">The basic structural and functional unit of living organisms. In this context, the author is discussing cellular respiration and energy production within biological cells.</div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--color-text-muted);">"Interest" in a financial article</h3>
+      <div class="example-container">
+        <div class="example-box dictionary">
+          <div class="example-label">Dictionary</div>
+          <div class="example-word">interest</div>
+          <div class="example-definition">1. a feeling of wanting to know about something. 2. the quality of exciting curiosity. 3. money paid for the use of money lent. 4. a stake or involvement in an undertaking. 5. a legal concern, title, or right...</div>
+        </div>
+        <div class="example-box aletheia">
+          <div class="example-label">Aletheia</div>
+          <div class="example-word">interest</div>
+          <div class="example-context">Context: "The Federal Reserve raised interest rates by 0.25%..."</div>
+          <div class="example-definition">The cost of borrowing money, expressed as a percentage. When the Fed raises rates, borrowing becomes more expensive, which typically slows economic activity and helps control inflation.</div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--color-text-muted);">"Revolution" in an astronomy article</h3>
+      <div class="example-container">
+        <div class="example-box dictionary">
+          <div class="example-label">Dictionary</div>
+          <div class="example-word">revolution</div>
+          <div class="example-definition">1. a forcible overthrow of a government or social order. 2. a dramatic change in ideas or practice. 3. an instance of revolving. 4. the movement of an object in a circular course...</div>
+        </div>
+        <div class="example-box aletheia">
+          <div class="example-label">Aletheia</div>
+          <div class="example-word">revolution</div>
+          <div class="example-context">Context: "Earth completes one revolution around the Sun every 365.25 days..."</div>
+          <div class="example-definition">A complete orbital path around another body. Here, it refers to Earth's yearly journey around the Sun, distinct from rotation (spinning on its axis).</div>
+        </div>
+      </div>
+
+      <div class="coming-soon-box">
+        <h3>Coming Soon: Explore Deeper Meaning</h3>
+        <p>Sometimes words carry layers of meaning beyond the literal. When you read about "ascension" in an article about elderly care, there's a poetic resonance with religious and architectural imagery that enriches the text. Our upcoming <em>Explore Deeper Meaning</em> feature will detect these layered meanings and let you explore them with a single click.</p>
+      </div>
 
     </div>
   </main>

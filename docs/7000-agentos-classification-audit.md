@@ -17,8 +17,6 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 | **Split** | `a-split` | Extract generic parts | 9 |
 | **Project-Specific** | `proj` | Stays in Aletheia | 27 |
 
-**Note:** File number 0827 is duplicated (infrastructure-integration and web-assets). Total is 93 entries (92 unique files). This should be corrected in a future cleanup.
-
 ---
 
 ## Classification Criteria
@@ -152,7 +150,7 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 | `0825-audit-ai-safety.md` | `a-split` | AI safety framework generic; Bedrock/etymologist project-specific |
 | `0826-audit-cross-browser-testing.md` | `proj` | Browser extension testing - Aletheia-specific |
 | `0827-audit-infrastructure-integration.md` | `proj` | Lambda/DynamoDB/Bedrock integration - Aletheia-specific |
-| `0827-audit-web-assets.md` | `proj` | Web assets for extension/landing page - Aletheia-specific |
+| `0831-audit-web-assets.md` | `proj` | Web assets for extension/landing page - Aletheia-specific |
 | `0828-audit-build-artifact-freshness.md` | `proj` | Build artifacts for extension - Aletheia-specific |
 | `0829-audit-lambda-failure-remediation.md` | `proj` | Lambda failure recovery - Aletheia-specific |
 | `0830-audit-architecture-freshness.md` | `a-tmpl` | Architecture freshness format reusable; docs are project-specific |
@@ -192,7 +190,7 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 | `proj` | 27 | 29% |
 | **Total** | 93 | 100% |
 
-**Note:** Total is 93 entries (92 unique files due to duplicate 0827). Excludes 7000 itself and files in appendix.
+**Note:** Excludes 7000 itself and files in appendix.
 
 ---
 

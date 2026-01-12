@@ -4,6 +4,8 @@
 # BLOCK: Bash commands containing banned patterns (&&, |, ;)
 # These patterns trigger permission approval dialogs.
 #
+# When blocked, outputs a SUGGESTED FIX that Claude should use to retry.
+#
 # Environment: $CLAUDE_TOOL_INPUT_COMMAND contains the bash command
 
 set -e
@@ -16,57 +18,118 @@ if [ -z "$command" ]; then
 fi
 
 violations=""
+suggested_fix=""
 
-# Check for && (chain operator)
-if [[ "$command" == *"&&"* ]]; then
+# Check for cd at start followed by && (common pattern: cd /path && git ...)
+if [[ "$command" =~ ^cd[[:space:]]+([^[:space:]&]+)[[:space:]]*\&\&[[:space:]]*git[[:space:]]+(.*) ]]; then
+    path="${BASH_REMATCH[1]}"
+    git_args="${BASH_REMATCH[2]}"
+    violations="${violations}
+  - Pattern: cd /path && git ...
+    Issue: Chain operator triggers permission dialogs"
+    suggested_fix="git -C $path $git_args"
+fi
+
+# Check for cd at start followed by && (other commands)
+if [[ -z "$suggested_fix" ]] && [[ "$command" =~ ^cd[[:space:]]+([^[:space:]&]+)[[:space:]]*\&\&[[:space:]]+(.*) ]]; then
+    path="${BASH_REMATCH[1]}"
+    rest="${BASH_REMATCH[2]}"
+    violations="${violations}
+  - Pattern: cd /path && command
+    Issue: Chain operator triggers permission dialogs"
+    # Can't auto-fix non-git, but suggest the pattern
+    suggested_fix="[Run command with absolute path: $path/... or use working directory]"
+fi
+
+# Check for && (chain operator) - generic
+if [[ -z "$suggested_fix" ]] && [[ "$command" == *"&&"* ]]; then
     violations="${violations}
   - Found: &&
     Issue: Chain operator triggers permission dialogs
-    Fix: Split into separate Bash calls or use git -C /path"
+    Fix: Split into separate Bash calls"
+    # Split suggestion
+    IFS='&&' read -ra parts <<< "$command"
+    suggested_fix="[SPLIT INTO PARALLEL BASH CALLS:]"
+    for part in "${parts[@]}"; do
+        trimmed=$(echo "$part" | xargs)
+        if [ -n "$trimmed" ]; then
+            suggested_fix="${suggested_fix}
+  Bash call: $trimmed"
+        fi
+    done
 fi
 
-# Check for | (pipe)
-if [[ "$command" == *"|"* ]]; then
+# Check for | (pipe) with common patterns
+if [[ "$command" =~ (.+)\|[[:space:]]*(head|tail|grep|wc|sort) ]]; then
+    base_cmd="${BASH_REMATCH[1]}"
+    pipe_to="${BASH_REMATCH[2]}"
+    violations="${violations}
+  - Found: | $pipe_to
+    Issue: Pipe operator triggers permission dialogs"
+    case "$pipe_to" in
+        head|tail)
+            suggested_fix="[USE Read TOOL instead with limit/offset parameters]"
+            ;;
+        grep)
+            suggested_fix="[USE Grep TOOL instead of piping to grep]"
+            ;;
+        *)
+            suggested_fix="[USE dedicated tool or split into steps]"
+            ;;
+    esac
+elif [[ "$command" == *"|"* ]]; then
     violations="${violations}
   - Found: |
-    Issue: Pipe operator triggers permission dialogs
-    Fix: Use dedicated tools (Read, Grep, Glob) instead of piping"
+    Issue: Pipe operator triggers permission dialogs"
+    suggested_fix="[USE dedicated tools: Read (not cat|head|tail), Grep (not grep), Glob (not find|ls)]"
 fi
 
 # Check for ; (command separator)
-if [[ "$command" == *";"* ]]; then
+if [[ -z "$suggested_fix" ]] && [[ "$command" == *";"* ]]; then
     violations="${violations}
   - Found: ;
-    Issue: Command separator triggers permission dialogs
-    Fix: Split into separate parallel Bash calls"
+    Issue: Command separator triggers permission dialogs"
+    IFS=';' read -ra parts <<< "$command"
+    suggested_fix="[SPLIT INTO PARALLEL BASH CALLS:]"
+    for part in "${parts[@]}"; do
+        trimmed=$(echo "$part" | xargs)
+        if [ -n "$trimmed" ]; then
+            suggested_fix="${suggested_fix}
+  Bash call: $trimmed"
+        fi
+    done
 fi
 
-# Check for cd at start (should use absolute paths)
-if [[ "$command" =~ ^cd[[:space:]] ]]; then
+# Check for cd at start without && (standalone cd)
+if [[ -z "$violations" ]] && [[ "$command" =~ ^cd[[:space:]] ]]; then
     violations="${violations}
   - Found: cd at start
-    Issue: Directory change followed by command should use absolute paths
-    Fix: Use 'git -C /path' or absolute paths directly"
+    Issue: Directory change should use absolute paths or git -C"
+    suggested_fix="[USE absolute paths or git -C /path instead]"
 fi
 
-# If violations found, block the command
+# If violations found, block the command and suggest fix
 if [ -n "$violations" ]; then
     echo "" >&2
     echo "========================================" >&2
     echo "BLOCKED: Bash Command Gate Violation" >&2
     echo "========================================" >&2
     echo "" >&2
-    echo "Command: $command" >&2
+    echo "REJECTED: $command" >&2
     echo "" >&2
     echo "Violations:$violations" >&2
     echo "" >&2
-    echo "REQUIRED PATTERN:" >&2
-    echo "  - One command per Bash tool call" >&2
-    echo "  - Use absolute paths (e.g., /c/Users/mcwiz/Projects/...)" >&2
-    echo "  - Use 'git -C /path' instead of 'cd /path && git'" >&2
-    echo "  - Multiple independent commands? Use parallel Bash calls" >&2
-    echo "" >&2
-    echo "See CLAUDE.md 'BASH COMMAND GATE' section." >&2
+
+    if [ -n "$suggested_fix" ]; then
+        echo "----------------------------------------" >&2
+        echo "RETRY WITH:" >&2
+        echo "$suggested_fix" >&2
+        echo "----------------------------------------" >&2
+        echo "" >&2
+    fi
+
+    echo "ACTION REQUIRED: Rewrite command and retry." >&2
+    echo "DO NOT STOP. Fix the command and try again." >&2
     echo "" >&2
     exit 1
 fi

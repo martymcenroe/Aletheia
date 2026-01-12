@@ -190,6 +190,43 @@ For commands that can be restructured:
 | `cd /path && poetry run` | `poetry -C /path run` |
 | `cd /path && npm run` | Use absolute script path |
 
+### 4.6 Auto-Fix (Default Behavior)
+
+**This audit auto-fixes friction patterns rather than just reporting them.**
+
+When friction is identified:
+
+```markdown
+Auto-fix procedure:
+1. For missing permission patterns:
+   - Read .claude/settings.local.json
+   - Add pattern to "allow" array
+   - Write updated file
+   - Log: "Added 'Bash({pattern}:*)' to allowlist"
+
+2. For MSYS path conversion issues:
+   - Add MSYS-prefixed pattern to allowlist
+   - Update CLAUDE.md Bash rules if pattern is new category
+   - Log: "Added MSYS_NO_PATHCONV pattern for {command}"
+
+3. For glob depth issues (./tools/* not matching subdirs):
+   - Update pattern from `*` to `**`
+   - Log: "Changed '{old}' to '{new}' for recursive matching"
+```
+
+**Auto-fix safety checks:**
+
+| Check | Action if Fails |
+|-------|-----------------|
+| Command in deny list? | Skip auto-fix, log as unresolvable |
+| Structural issue (&&, \|)? | Skip auto-fix, agent behavior issue |
+| Security-sensitive path? | Skip auto-fix, flag for manual review |
+
+**Cannot auto-fix (per §6.2):**
+- Edits to `.claude/settings.local.json` itself (security feature)
+- Pipe and chain operators (intentionally blocked)
+- Novel destructive command patterns
+
 ---
 
 ## 5. Output Format

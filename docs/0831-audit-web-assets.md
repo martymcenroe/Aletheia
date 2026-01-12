@@ -1,4 +1,4 @@
-# 0827 Web Assets Audit
+# 0831 Web Assets Audit
 
 **Status:** Active
 **Created:** 2026-01-11
