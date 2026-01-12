@@ -46,6 +46,11 @@ const clearAllButton = document.getElementById('clear-all-button');
 const cancelButton = document.getElementById('cancel-button');
 const confirmClearButton = document.getElementById('confirm-clear-button');
 
+// Full Page Elements (Issue #106)
+const fullPageButton = document.getElementById('full-page-button');
+const fullPageText = document.getElementById('full-page-text');
+const fullPageStatus = document.getElementById('full-page-status');
+
 // ============================================================================
 // STORAGE FUNCTIONS
 // ============================================================================
@@ -377,6 +382,7 @@ async function checkAgeGate() {
           } else {
             showView('main');
             await renderMainView();
+            await updateFullPageButton();  // Issue #106
           }
         } else {
           attempts++;
@@ -389,12 +395,14 @@ async function checkAgeGate() {
     } else {
       showView('main');
       await renderMainView();
+      await updateFullPageButton();  // Issue #106
     }
   } catch (error) {
     console.error('[Aletheia] Age gate check failed:', error);
     // Fail open - show main view
     showView('main');
     await renderMainView();
+    await updateFullPageButton();  // Issue #106
   }
 }
 
@@ -448,6 +456,179 @@ async function updateUserBar() {
 }
 
 // ============================================================================
+// FULL PAGE ANALYSIS (Issue #106)
+// ============================================================================
+
+// API endpoint (same as service-worker.js)
+const API_ENDPOINT = "https://d1fkpkls2wesse.cloudfront.net/";
+const CLIENT_VERSION = "1.0";
+
+/**
+ * Check if current tab has noarchive signal.
+ * Uses service worker to get cached noarchive status.
+ */
+async function checkNoarchive() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return false;
+
+    // Trigger a recheck to ensure we have the latest noarchive status
+    await chrome.runtime.sendMessage({
+      type: 'RECHECK_TAB',
+      tabId: tab.id
+    });
+
+    // Get the noarchive status from service worker
+    // The service worker stores this in tabNoArchive Map
+    const response = await chrome.runtime.sendMessage({
+      type: 'GET_NOARCHIVE_STATUS',
+      tabId: tab.id
+    });
+
+    return response?.noarchive || false;
+  } catch (error) {
+    console.error('[Aletheia] Error checking noarchive:', error);
+    return false;
+  }
+}
+
+/**
+ * Update full page button state based on noarchive signal.
+ */
+async function updateFullPageButton() {
+  if (!fullPageButton) return;
+
+  try {
+    const hasNoarchive = await checkNoarchive();
+
+    if (hasNoarchive) {
+      // Hard Stop - button disabled
+      fullPageButton.disabled = true;
+      fullPageButton.classList.add('protected');
+      fullPageText.textContent = 'Content Protected';
+      fullPageButton.title = 'This page is marked noarchive - full retrieval disabled';
+
+      // Show status message
+      fullPageStatus.textContent = 'Publisher has restricted content archiving';
+      fullPageStatus.classList.add('protected');
+      fullPageStatus.style.display = 'block';
+    } else {
+      // Allow full page analysis
+      fullPageButton.disabled = false;
+      fullPageButton.classList.remove('protected');
+      fullPageText.textContent = 'Analyze Full Page';
+      fullPageButton.title = 'Analyze the full article content with AI';
+      fullPageStatus.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('[Aletheia] Error updating full page button:', error);
+    // Fail safe - disable button on error
+    fullPageButton.disabled = true;
+    fullPageText.textContent = 'Analyze Full Page';
+  }
+}
+
+/**
+ * Handle full page button click.
+ * Extracts article content, scrubs PII, truncates, and sends to Lambda.
+ */
+async function handleFullPageClick() {
+  if (!fullPageButton || fullPageButton.disabled) return;
+
+  try {
+    // Set loading state
+    fullPageButton.disabled = true;
+    fullPageButton.classList.add('loading');
+    fullPageText.textContent = 'Analyzing...';
+    fullPageStatus.textContent = 'Extracting article content...';
+    fullPageStatus.classList.remove('error', 'protected');
+    fullPageStatus.style.display = 'block';
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) {
+      throw new Error('No active tab found');
+    }
+
+    // Inject article extractor script and get result
+    fullPageStatus.textContent = 'Extracting article content...';
+
+    const extractionResults = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['article-extractor.js']
+    });
+
+    const extraction = extractionResults?.[0]?.result;
+    if (!extraction || !extraction.text) {
+      throw new Error('Failed to extract article content');
+    }
+
+    // Show extraction status
+    const truncatedMsg = extraction.truncated ? ' (truncated)' : '';
+    fullPageStatus.textContent = `Extracted ${extraction.text.length} chars${truncatedMsg}. Sending to AI...`;
+
+    // Build payload with full_article field
+    const payload = {
+      text: '', // Empty selection - full article mode
+      url: tab.url,
+      title: tab.title,
+      full_article: extraction.text,
+      signals: {
+        noarchive: false // Already checked, would be blocked if true
+      }
+    };
+
+    // Send to Lambda
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Aletheia-Client-Version': CLIENT_VERSION
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseData.error || `Server error: ${response.status}`);
+    }
+
+    // Inject overlay.js if not already present
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['overlay.js']
+    });
+
+    // Show result in overlay
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: (data, status) => window.showAletheiaResult(data, status),
+      args: [responseData, response.status]
+    });
+
+    // Success state
+    fullPageStatus.textContent = 'Analysis complete!';
+    fullPageText.textContent = 'Analyze Full Page';
+    fullPageButton.disabled = false;
+    fullPageButton.classList.remove('loading');
+
+    // Close popup after showing result
+    setTimeout(() => window.close(), 500);
+
+  } catch (error) {
+    console.error('[Aletheia] Full page analysis failed:', error);
+
+    // Error state
+    fullPageStatus.textContent = error.message || 'Analysis failed';
+    fullPageStatus.classList.add('error');
+    fullPageStatus.style.display = 'block';
+    fullPageText.textContent = 'Analyze Full Page';
+    fullPageButton.disabled = false;
+    fullPageButton.classList.remove('loading');
+  }
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
@@ -468,6 +649,11 @@ async function init() {
   // Confirm view event listeners
   cancelButton.addEventListener('click', handleCancelClick);
   confirmClearButton.addEventListener('click', handleConfirmClearClick);
+
+  // Full page button (Issue #106)
+  if (fullPageButton) {
+    fullPageButton.addEventListener('click', handleFullPageClick);
+  }
 
   // Check auth state first (Issue #116)
   let isAuthed = false;

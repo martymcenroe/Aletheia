@@ -153,6 +153,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return false; // Synchronous response
     }
 
+    // Issue #106: Get noarchive status for full page analysis
+    if (message.type === 'GET_NOARCHIVE_STATUS') {
+        const noarchive = tabNoArchive.get(message.tabId) || false;
+        sendResponse({ noarchive });
+        return false; // Synchronous response
+    }
+
     if (message.type === 'RECHECK_TAB') {
         // Async operation - need to return true and call sendResponse later
         (async () => {

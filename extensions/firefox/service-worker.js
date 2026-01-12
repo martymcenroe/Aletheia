@@ -23,6 +23,9 @@ const TabState = {
 // In-memory tab states (no persistence - privacy by design)
 const tabStates = new Map();
 
+// Issue #162: Store noarchive signals per tab
+const tabNoArchive = new Map();
+
 /**
  * Check if a URL should be checked for age-restricted content.
  * Only check navigable web pages (http/https).
@@ -136,6 +139,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'GET_TAB_STATE') {
         const state = getTabState(message.tabId);
         sendResponse({ state });
+        return false; // Synchronous response
+    }
+
+    // Issue #106: Get noarchive status for full page analysis
+    if (message.type === 'GET_NOARCHIVE_STATUS') {
+        const noarchive = tabNoArchive.get(message.tabId) || false;
+        sendResponse({ noarchive });
         return false; // Synchronous response
     }
 

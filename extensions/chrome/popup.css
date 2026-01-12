@@ -577,3 +577,66 @@ body {
   background-color: var(--color-border);
   color: var(--color-text);
 }
+
+/* FULL PAGE SECTION (Issue #106 - Full Article Context Retrieval) */
+.full-page-section {
+  margin-bottom: 16px;
+}
+
+.full-page-button {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.full-page-button:hover:not(:disabled) {
+  background-color: #2563EB;
+}
+
+.full-page-button:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.full-page-button.protected {
+  background-color: #6B7280;
+}
+
+.full-page-button.loading {
+  background-color: #3B82F6;
+}
+
+.full-page-icon {
+  font-size: 16px;
+}
+
+.full-page-status {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 4px;
+}
+
+.full-page-status.error {
+  color: var(--color-danger);
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.full-page-status.protected {
+  color: #6B7280;
+  background-color: rgba(107, 114, 128, 0.1);
+}
