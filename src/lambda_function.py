@@ -46,6 +46,10 @@ AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 # Issue #145: TTL for automatic data expiry (30 days)
 TTL_SECONDS = 2592000
 
+# Issue #310: Poetic resonance detection threshold
+# When poetic_potential >= this value, "Explore Deeper Meaning" button appears
+POETIC_THRESHOLD = 0.6
+
 # Issue #295: Score display threshold and category mapping
 SCORE_DISPLAY_THRESHOLD = 0.15
 CATEGORY_DISPLAY_NAMES = {
@@ -371,6 +375,40 @@ def lambda_handler(
             body = event
         timings["parse_body_ms"] = int((time.time() - t0) * 1000)
 
+        # Issue #310: Handle deep poetic analysis action (separate flow)
+        if body.get("action") == "deep_poetic_analysis":
+            from .poetic_analyzer import analyze_poetic_resonance
+
+            t0 = time.time()
+            poetic_result = analyze_poetic_resonance(
+                word=body.get("text", ""),
+                etymology=body.get("etymology", {}),
+                page_context=body.get("domContext", ""),
+                dimensions=body.get("dimensions", []),
+                bedrock_client=get_bedrock_client(),
+            )
+            timings["poetic_analysis_ms"] = int((time.time() - t0) * 1000)
+            timings["handler_total_ms"] = int((time.time() - handler_start) * 1000)
+
+            logger.info(f"POETIC_ANALYSIS: {json.dumps(timings)}")
+
+            response_dict = {
+                "status": poetic_result["status"],
+                "synthesis": poetic_result["synthesis"],
+                "dimensions": poetic_result["dimensions"],
+                "resonance_strength": poetic_result["resonance_strength"],
+                "latency_ms": poetic_result["latency_ms"],
+            }
+
+            if os.environ.get("ALETHEIA_ENV") == "dev":
+                response_dict["_debug_timings"] = timings
+
+            return {
+                "statusCode": 200 if poetic_result["status"] == "success" else 500,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps(response_dict),
+            }
+
         # 1. Validation
         t0 = time.time()
         valid, error = validate_input(body)
@@ -480,6 +518,10 @@ def lambda_handler(
 
         # Build response with structured output
         # Issue #295: Include both signal (backward compat) and scores (new)
+        # Issue #310: Include poetic resonance fields
+        poetic_potential = result["response"].get("poetic_potential", 0.0)
+        potential_dimensions = result["response"].get("potential_dimensions", [])
+
         response_body: dict[str, Any] = {
             "thread_id": thread_id,
             "status": result["status"],
@@ -488,6 +530,9 @@ def lambda_handler(
             "scores_display": scores_display,  # Issue #295: Pre-processed for display
             "gem": result["response"]["gem"],
             "context": result["response"]["context"],
+            # Issue #310: Poetic resonance detection
+            "poetic_potential": poetic_potential,
+            "potential_dimensions": potential_dimensions,
         }
 
         # Issue #126 + #295: Add warning flag

@@ -1,4 +1,4 @@
-// extensions/firefox/overlay.js
+// extensions/chrome/overlay.js
 // Museum Label UI - Progressive Disclosure (Issue #125)
 // See: docs/1125-museum-label-ui.md
 // Refactored: Issue #194 - Replaced innerHTML with DOM methods for XSS safety
@@ -9,6 +9,9 @@
 
 const OVERLAY_Z_INDEX = 2147483647; // Max z-index to beat all host content
 const TYPEWRITER_DELAY_MS = 15;
+
+// Issue #310: Poetic resonance detection threshold
+const POETIC_THRESHOLD = 0.6;
 
 // Badge types for color coding
 const BadgeType = {
@@ -24,6 +27,15 @@ const OverlayState = {
     HOVER: 'hover',
     EXPANDED: 'expanded',
 };
+
+// =============================================================================
+// SHADOW DOM STATE (Issue #197 - ADR 0202 Compliance)
+// =============================================================================
+// Closed Shadow DOM returns null for element.shadowRoot, even to our own code.
+// We capture the reference at creation time to maintain internal access.
+// See: docs/1197-shadow-dom-hardening.md
+
+let activeShadowRoot = null;
 
 // =============================================================================
 // STYLES (Inline for Shadow DOM isolation)
@@ -280,6 +292,163 @@ const OVERLAY_STYLES = `
     font-size: 13px;
     color: #FCA5A5;
 }
+
+/* Issue #310: Poetic Resonance Detection Styles */
+
+/* "Explore Deeper Meaning" button */
+.aletheia-deep-button {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    border: none;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+    border-radius: 0 0 8px 8px;
+}
+
+.aletheia-deep-button:hover {
+    opacity: 0.9;
+}
+
+.aletheia-deep-button:active {
+    transform: scale(0.98);
+}
+
+.aletheia-deep-button:focus {
+    outline: 2px solid #A78BFA;
+    outline-offset: -2px;
+}
+
+.aletheia-deep-button:disabled {
+    background: #4B5563;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.aletheia-deep-button.loading {
+    background: #4B5563;
+}
+
+/* Poetic analysis section */
+.aletheia-poetic-section {
+    padding: 12px 14px;
+    border-top: 1px solid #4B5563;
+    background: #1F2937;
+}
+
+.aletheia-poetic-synthesis {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #D1D5DB;
+    margin-bottom: 12px;
+}
+
+/* Dimension chips */
+.aletheia-dimensions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.aletheia-dimension-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Dimension colors (with text labels for accessibility) */
+.aletheia-dimension-chip.religious {
+    background: #7C3AED;
+    color: #FFFFFF;
+}
+
+.aletheia-dimension-chip.literary {
+    background: #F97316;
+    color: #FFFFFF;
+}
+
+.aletheia-dimension-chip.architectural {
+    background: #22C55E;
+    color: #FFFFFF;
+}
+
+.aletheia-dimension-chip.artistic {
+    background: #3B82F6;
+    color: #FFFFFF;
+}
+
+.aletheia-dimension-chip.political {
+    background: #EF4444;
+    color: #FFFFFF;
+}
+
+.aletheia-dimension-chip.scientific {
+    background: #06B6D4;
+    color: #FFFFFF;
+}
+
+.aletheia-dimension-chip.novel {
+    background: #6B7280;
+    color: #FFFFFF;
+}
+
+/* Resonance strength indicator */
+.aletheia-resonance {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+.aletheia-resonance-bar {
+    flex: 1;
+    height: 4px;
+    background: #374151;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.aletheia-resonance-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366F1 0%, #A78BFA 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Error state */
+.aletheia-poetic-error {
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #FCA5A5;
+    text-align: center;
+}
+
+.aletheia-retry-button {
+    display: inline-block;
+    margin-top: 8px;
+    background: #374151;
+    border: none;
+    color: #F9FAFB;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.aletheia-retry-button:hover {
+    background: #4B5563;
+}
 `;
 
 // =============================================================================
@@ -471,15 +640,6 @@ let overlayData = null;
 // with id="aletheia-overlay-host" that could be returned by getElementById
 let overlayHostRef = null;
 
-// =============================================================================
-// SHADOW DOM STATE (Issue #197 - ADR 0202 Compliance)
-// =============================================================================
-// Closed Shadow DOM returns null for element.shadowRoot, even to our own code.
-// We capture the reference at creation time to maintain internal access.
-// See: docs/1197-shadow-dom-hardening.md
-
-let activeShadowRoot = null;
-
 /**
  * Remove existing overlay from DOM.
  * Security: Uses stored reference instead of getElementById to prevent DOM clobbering
@@ -667,6 +827,22 @@ function showResultOverlay(response, httpStatus = 200) {
         card.appendChild(gemEl);
         card.appendChild(contextEl);
         card.appendChild(toggleBtn);
+
+        // Issue #310: "Explore Deeper Meaning" button for poetic resonance
+        const poeticPotential = response?.poetic_potential || 0;
+        const potentialDimensions = response?.potential_dimensions || [];
+
+        // Store for later use in deep analysis
+        overlayData.poetic_potential = poeticPotential;
+        overlayData.potential_dimensions = potentialDimensions;
+
+        if (poeticPotential >= POETIC_THRESHOLD) {
+            const deepButton = createElement('button', {
+                className: 'aletheia-deep-button',
+                'aria-label': 'Explore deeper meaning of this word'
+            }, 'Explore Deeper Meaning');
+            card.appendChild(deepButton);
+        }
     }
 
     shadow.appendChild(card);
@@ -687,6 +863,12 @@ function showResultOverlay(response, httpStatus = 200) {
         // Toggle button for context
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => handleToggleClick(shadow));
+        }
+
+        // Issue #310: Deep analysis button
+        const deepButton = shadow.querySelector('.aletheia-deep-button');
+        if (deepButton) {
+            deepButton.addEventListener('click', () => handleDeepAnalysisClick(shadow, card));
         }
     }
 
@@ -729,6 +911,157 @@ function handleMouseLeave(shadow) {
         gemEl.classList.remove('visible');
     }
     currentOverlayState = OverlayState.GLANCE;
+}
+
+/**
+ * Issue #310: Handle "Explore Deeper Meaning" button click.
+ * Sends request to Lambda for Opus analysis and displays results.
+ */
+async function handleDeepAnalysisClick(shadow, card) {
+    const deepButton = shadow.querySelector('.aletheia-deep-button');
+    if (!deepButton) return;
+
+    // Show loading state
+    deepButton.disabled = true;
+    deepButton.classList.add('loading');
+    deepButton.textContent = 'Analyzing...';
+
+    try {
+        // Build payload for deep analysis
+        const payload = {
+            action: 'deep_poetic_analysis',
+            text: overlayData?.selectedText || '',
+            etymology: {
+                signal: overlayData?.signal || '',
+                gem: overlayData?.gem || '',
+                context: overlayData?.context || ''
+            },
+            domContext: overlayData?.domContext || '',
+            dimensions: overlayData?.potential_dimensions || []
+        };
+
+        // Send request via chrome.runtime.sendMessage to service worker
+        const result = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(
+                { type: 'DEEP_POETIC_ANALYSIS', payload },
+                (response) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                    } else {
+                        resolve(response);
+                    }
+                }
+            );
+        });
+
+        if (result?.status === 'success') {
+            // Render poetic analysis results
+            renderPoeticAnalysis(shadow, card, result);
+        } else {
+            // Show error state
+            renderPoeticError(shadow, card, result?.error || 'Analysis failed');
+        }
+
+    } catch (error) {
+        console.error('[Aletheia] Deep analysis error:', error);
+        renderPoeticError(shadow, card, error.message || 'Analysis unavailable');
+    }
+}
+
+/**
+ * Issue #310: Render poetic analysis results.
+ */
+function renderPoeticAnalysis(shadow, card, result) {
+    // Remove the button
+    const deepButton = shadow.querySelector('.aletheia-deep-button');
+    if (deepButton) {
+        deepButton.remove();
+    }
+
+    // Create poetic section
+    const poeticSection = createElement('div', { className: 'aletheia-poetic-section' });
+
+    // Synthesis paragraph
+    const synthesisEl = createElement('p', { className: 'aletheia-poetic-synthesis' });
+    synthesisEl.textContent = result.synthesis || '';
+    poeticSection.appendChild(synthesisEl);
+
+    // Dimension chips
+    if (result.dimensions && result.dimensions.length > 0) {
+        const dimensionsContainer = createElement('div', { className: 'aletheia-dimensions' });
+        for (const dim of result.dimensions) {
+            const dimName = dim.dimension || 'unknown';
+            // Handle novel dimensions (novel:description format)
+            const isNovel = dimName.startsWith('novel:');
+            const chipClass = isNovel ? 'novel' : dimName.toLowerCase();
+            const displayName = isNovel ? dimName.substring(6) : dimName;
+
+            const chip = createElement('span', {
+                className: `aletheia-dimension-chip ${chipClass}`,
+                title: dim.explanation || ''
+            }, displayName);
+            dimensionsContainer.appendChild(chip);
+        }
+        poeticSection.appendChild(dimensionsContainer);
+    }
+
+    // Resonance strength indicator
+    const resonanceStrength = result.resonance_strength || 0;
+    const resonanceEl = createElement('div', { className: 'aletheia-resonance' });
+
+    const resonanceLabel = createElement('span', {}, 'Resonance');
+    const resonanceBar = createElement('div', { className: 'aletheia-resonance-bar' });
+    const resonanceFill = createElement('div', { className: 'aletheia-resonance-fill' });
+    resonanceFill.style.width = `${Math.round(resonanceStrength * 100)}%`;
+    resonanceBar.appendChild(resonanceFill);
+
+    const resonanceValue = createElement('span', {}, `${Math.round(resonanceStrength * 100)}%`);
+
+    resonanceEl.appendChild(resonanceLabel);
+    resonanceEl.appendChild(resonanceBar);
+    resonanceEl.appendChild(resonanceValue);
+    poeticSection.appendChild(resonanceEl);
+
+    card.appendChild(poeticSection);
+}
+
+/**
+ * Issue #310: Render error state with retry button.
+ */
+function renderPoeticError(shadow, card, errorMessage) {
+    // Remove the button
+    const deepButton = shadow.querySelector('.aletheia-deep-button');
+    if (deepButton) {
+        deepButton.remove();
+    }
+
+    // Create error section
+    const errorSection = createElement('div', { className: 'aletheia-poetic-error' });
+
+    const errorText = createElement('span', {}, errorMessage || 'Analysis unavailable');
+    errorSection.appendChild(errorText);
+
+    // Retry button
+    const retryButton = createElement('button', {
+        className: 'aletheia-retry-button',
+        'aria-label': 'Retry analysis'
+    }, 'Retry');
+
+    retryButton.addEventListener('click', () => {
+        // Remove error section
+        errorSection.remove();
+
+        // Re-add the deep button
+        const newDeepButton = createElement('button', {
+            className: 'aletheia-deep-button',
+            'aria-label': 'Explore deeper meaning of this word'
+        }, 'Explore Deeper Meaning');
+        newDeepButton.addEventListener('click', () => handleDeepAnalysisClick(shadow, card));
+        card.appendChild(newDeepButton);
+    });
+
+    errorSection.appendChild(retryButton);
+    card.appendChild(errorSection);
 }
 
 function handleToggleClick(shadow) {
