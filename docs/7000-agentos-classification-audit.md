@@ -12,12 +12,12 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 
 | Category | Code | Description | Count |
 |----------|------|-------------|-------|
-| **AgentOS Core** | `a-core` | Move entirely to AgentOS | 35 |
-| **AgentOS Template** | `a-tmpl` | Create template in AgentOS | 19 |
+| **AgentOS Core** | `a-core` | Move entirely to AgentOS | 37 |
+| **AgentOS Template** | `a-tmpl` | Create template in AgentOS | 20 |
 | **Split** | `a-split` | Extract generic parts | 9 |
-| **Project-Specific** | `proj` | Stays in Aletheia | 24 |
+| **Project-Specific** | `proj` | Stays in Aletheia | 27 |
 
-**Note:** File number 0827 is duplicated (infrastructure-integration and web-assets). This should be corrected in a future cleanup.
+**Note:** File number 0827 is duplicated (infrastructure-integration and web-assets). Total is 93 entries (92 unique files). This should be corrected in a future cleanup.
 
 ---
 
@@ -186,13 +186,13 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| `a-core` | 35 | 40% |
-| `a-tmpl` | 19 | 22% |
+| `a-core` | 37 | 40% |
+| `a-tmpl` | 20 | 22% |
 | `a-split` | 9 | 10% |
-| `proj` | 24 | 28% |
-| **Total** | 87 | 100% |
+| `proj` | 27 | 29% |
+| **Total** | 93 | 100% |
 
-**Note:** Total includes 87 classified files (excludes 7000 itself and files in appendix).
+**Note:** Total is 93 entries (92 unique files due to duplicate 0827). Excludes 7000 itself and files in appendix.
 
 ---
 
