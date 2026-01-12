@@ -156,13 +156,56 @@ done
 
 **Action:** Update 0000-GUIDE.md §3 to include all current files.
 
+## Auto-Fix (Default Behavior)
+
+**This audit auto-fixes AgentOS health issues rather than just reporting them.**
+
+### Auto-Fixable Items
+
+| Finding | Auto-Fix Action |
+|---------|-----------------|
+| Broken doc reference | Update to correct path if target exists elsewhere |
+| Missing from template index (0100) | Add entry to 0100-TEMPLATE-GUIDE.md |
+| Missing from file inventory (0003) | Add entry to 0003-file-inventory.md |
+| Missing from GUIDE filing system | Add entry to 0000-GUIDE.md §3 |
+| Orphaned doc (exists but not listed) | Add to appropriate index |
+| Stale IMMEDIATE-PLAN reference | Update or remove closed issue references |
+
+### Auto-Fix Procedure
+
+```markdown
+For each auto-fixable finding:
+1. Identify the target index/document
+2. Generate the fix:
+   - Template index: Add row with filename, purpose
+   - File inventory: Add row with status, description
+   - GUIDE filing system: Add to appropriate section
+   - Broken reference: Update path to resolved target
+3. Apply the edit
+4. Log: "Auto-fixed: {description}"
+```
+
+### Cannot Auto-Fix
+
+| Finding | Reason |
+|---------|--------|
+| CLAUDE.md / GUIDE alignment issues | Requires semantic judgment |
+| Template drift | Old reports should not be updated |
+| Unclear protocol steps | Requires human clarification |
+| Conflicting guidance | Requires human decision on which is correct |
+| Protocol executability issues | Requires domain expertise |
+
 ## Output Format
 
 ```markdown
 ## AgentOS Health Check - YYYY-MM-DD
 
-### Broken References
-- [ ] `docs/XXXX.md` references deleted `docs/YYYY.md`
+### Auto-Fixed
+- [x] Added `0107-TEMPLATE-xxx.md` to template index
+- [x] Updated broken reference in 0004 from `0011.md` to `0007.md`
+
+### Broken References (Unfixable)
+- [ ] `docs/XXXX.md` references deleted `docs/YYYY.md` (target not found)
 
 ### Alignment Issues
 - [ ] CLAUDE.md says X, 0000-GUIDE.md says Y

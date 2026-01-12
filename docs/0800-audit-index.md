@@ -51,71 +51,93 @@ Audits exist because:
 
 ### 3.1 At a Glance
 
-| Category | Count | Focus |
-|----------|-------|-------|
-| Core Development | 16 | Code quality, security, privacy, accessibility |
-| AI Governance | 7 | AI-specific controls and compliance |
-| Meta | 2 | Audit system governance |
-| **Total** | **25** | |
+| Category | Count | Auto-Fix | Focus |
+|----------|-------|----------|-------|
+| Documentation Health | 7 | 6 | Docs-code alignment, inventory, terminology |
+| Core Development | 16 | 3 | Code quality, security, privacy, accessibility |
+| AI Governance | 7 | 0 | AI-specific controls and compliance |
+| Meta | 2 | 0 | Audit system governance |
+| **Total** | **32** | **9** | |
 
 ### 3.2 Quick Reference
 
-| Audit | One-Line Description |
-|-------|----------------------|
-| 0808 | Permission problem mining (zugzwang violations, checkpoint tracking) |
-| 0824 | Permission friction analysis (find missing allows) |
-| 0809 | Application Security (OWASP, ASVS, extension) |
-| 0825 | AI Safety (LLM, Agentic, NIST AI RMF) |
-| 0810 | Privacy (GDPR-aware, data handling) |
-| 0811 | Accessibility |
-| 0812 | Performance |
-| 0813 | Code Quality |
-| 0814 | License Compliance |
-| 0817 | Wiki Alignment |
-| 0815 | Claude Code workflow compliance |
-| 0816 | Dependabot PR management |
-| 0818 | AI Management System (ISO 42001) |
-| 0819 | AI Supply Chain (OWASP LLM03, AIBOM) |
-| 0820 | Explainability (XAI) |
-| 0821 | Agentic AI Governance (OWASP Agentic) |
-| 0822 | Bias & Fairness |
-| 0823 | AI Incident Post-Mortem |
-| 0826 | Cross-Browser Testing (Firefox/Chrome parity) |
-| 0827 | Infrastructure Integration (Lambda, DynamoDB, API Gateway) |
-| 0828 | Build Artifact Freshness |
-| 0829 | Lambda Failure Remediation (proactive fix or draft issue) |
-| 0830 | Architecture Freshness (documentation completeness and currency) |
-| 0831 | Web Assets (icons, buttons, responsive design, accessibility) |
-| 0898 | Horizon Scanning Protocol |
-| 0899 | Meta-Audit (validation & execution) |
+| Audit | One-Line Description | Auto-Fix |
+|-------|----------------------|----------|
+| 0801 | Open issues currency (stale/complete issues) | No |
+| 0802 | Reports completeness (closed issues have reports) | **Yes** |
+| 0803 | LLD-to-code alignment verification | No |
+| 0804 | File inventory drift detection | **Yes** |
+| 0805 | Terminology consistency (deprecated terms) | **Yes** |
+| 0806 | Architecture drift (code vs docs) | **Yes** |
+| 0807 | AgentOS health check (system self-audit) | **Yes** |
+| 0808 | Permission problem mining (zugzwang violations, checkpoint tracking) | **Yes** |
+| 0824 | Permission friction analysis (find missing allows) | **Yes** |
+| 0809 | Application Security (OWASP, ASVS, extension) | No |
+| 0825 | AI Safety (LLM, Agentic, NIST AI RMF) | No |
+| 0810 | Privacy (GDPR-aware, data handling) | No |
+| 0811 | Accessibility | No |
+| 0812 | Performance | No |
+| 0813 | Code Quality | CI |
+| 0814 | License Compliance | No |
+| 0817 | Wiki Alignment | No |
+| 0815 | Claude Code workflow compliance | No |
+| 0816 | Dependabot PR management | Semi |
+| 0818 | AI Management System (ISO 42001) | No |
+| 0819 | AI Supply Chain (OWASP LLM03, AIBOM) | No |
+| 0820 | Explainability (XAI) | No |
+| 0821 | Agentic AI Governance (OWASP Agentic) | No |
+| 0822 | Bias & Fairness | No |
+| 0823 | AI Incident Post-Mortem | No |
+| 0826 | Cross-Browser Testing (Firefox/Chrome parity) | CI |
+| 0827 | Infrastructure Integration (Lambda, DynamoDB, API Gateway) | No |
+| 0828 | Build Artifact Freshness | **Yes** |
+| 0829 | Lambda Failure Remediation (proactive fix or draft issue) | No |
+| 0830 | Architecture Freshness (documentation completeness and currency) | **Yes** |
+| 0831 | Web Assets (icons, buttons, responsive design, accessibility) | No |
+| 0898 | Horizon Scanning Protocol | No |
+| 0899 | Meta-Audit (validation & execution) | No |
 
 ---
 
 ## 4. Audit Categories
 
+### 4.0 Documentation Health Audits
+
+Audits ensuring documentation stays aligned with code and complete.
+
+| Number | Name | Frequency | Auto-Fix |
+|--------|------|-----------|----------|
+| 0801 | Open Issues Currency | Weekly | No |
+| 0802 | Reports Completeness | Weekly | **Yes** |
+| 0803 | LLD-to-Code Alignment | On change | No |
+| 0804 | File Inventory Drift | Weekly | **Yes** |
+| 0805 | Terminology Consistency | On rename | **Yes** |
+| 0806 | Architecture Drift | Monthly | **Yes** |
+| 0807 | AgentOS Health Check | Monthly | **Yes** |
+
 ### 4.1 Core Development Audits
 
 Audits for code quality, security, and development practices.
 
-| Number | Name | Frequency | Automation |
-|--------|------|-----------|------------|
-| 0808 | Permission Problem Mining | Weekly / On friction | Manual |
-| 0824 | Permission Friction | On friction | Manual (/friction) |
-| 0809 | Security | Quarterly | Manual |
-| 0810 | Privacy | Quarterly | Manual |
-| 0811 | Accessibility | Monthly + on change | Manual |
-| 0812 | Performance | Quarterly | Manual |
+| Number | Name | Frequency | Auto-Fix |
+|--------|------|-----------|----------|
+| 0808 | Permission Problem Mining | Weekly / On friction | **Yes** |
+| 0824 | Permission Friction | On friction | **Yes** |
+| 0809 | Security | Quarterly | No |
+| 0810 | Privacy | Quarterly | No |
+| 0811 | Accessibility | Monthly + on change | No |
+| 0812 | Performance | Quarterly | No |
 | 0813 | Code Quality | Per PR | CI |
-| 0814 | License Compliance | Quarterly | Manual |
-| 0817 | Wiki Alignment | Monthly + on change | Manual |
-| 0815 | Claude Code Workflow | Monthly | Manual |
-| 0816 | Dependabot PRs | Weekly | Semi-auto |
+| 0814 | License Compliance | Quarterly | No |
+| 0817 | Wiki Alignment | Monthly + on change | No |
+| 0815 | Claude Code Workflow | Monthly | No |
+| 0816 | Dependabot PRs | Weekly | Semi |
 | 0826 | Cross-Browser Testing | On extension changes | CI |
-| 0827 | Infrastructure Integration | Quarterly | Manual |
-| 0828 | Build Artifact Freshness | On deploy | Manual |
-| 0829 | Lambda Failure Remediation | On-demand / cleanup --full | Manual |
-| 0830 | Architecture Freshness | Monthly + on change | Manual |
-| 0831 | Web Assets | On landing page change | Manual |
+| 0827 | Infrastructure Integration | Quarterly | No |
+| 0828 | Build Artifact Freshness | On deploy | **Yes** |
+| 0829 | Lambda Failure Remediation | On-demand / cleanup --full | No |
+| 0830 | Architecture Freshness | Monthly + on change | **Yes** |
+| 0831 | Web Assets | On landing page change | No |
 
 ### 4.2 AI Governance Audits
 
@@ -305,8 +327,18 @@ Standard format for all audits:
 
 ### 10.1 By Number
 
-- [0808 - Permission Permissiveness](0808-audit-permission-permissiveness.md)
-- [0824 - Permission Friction](0824-audit-permission-friction.md)
+**Documentation Health (0801-0807)**
+- [0801 - Open Issues Currency](0801-open-issues-audit.md)
+- [0802 - Reports Completeness](0802-reports-completeness-audit.md) ✨
+- [0803 - LLD-to-Code Alignment](0803-lld-code-audit.md)
+- [0804 - File Inventory Drift](0804-inventory-audit.md) ✨
+- [0805 - Terminology Consistency](0805-terminology-audit.md) ✨
+- [0806 - Architecture Drift](0806-architecture-audit.md) ✨
+- [0807 - AgentOS Health Check](0807-agentos-audit.md) ✨
+
+**Core Development (0808-0831)**
+- [0808 - Permission Permissiveness](0808-audit-permission-permissiveness.md) ✨
+- [0824 - Permission Friction](0824-audit-permission-friction.md) ✨
 - [0809 - Security](0809-audit-security.md)
 - [0810 - Privacy](0810-audit-privacy.md)
 - [0811 - Accessibility](0811-audit-accessibility.md)
@@ -316,6 +348,14 @@ Standard format for all audits:
 - [0817 - Wiki Alignment](0817-audit-wiki-alignment.md)
 - [0815 - Claude Code Capabilities](0815-audit-claude-capabilities.md)
 - [0816 - Dependabot PRs](0816-audit-dependabot-prs.md)
+- [0826 - Cross-Browser Testing](0826-audit-cross-browser-testing.md)
+- [0827 - Infrastructure Integration](0827-audit-infrastructure-integration.md)
+- [0828 - Build Artifact Freshness](0828-audit-build-artifact-freshness.md) ✨
+- [0829 - Lambda Failure Remediation](0829-audit-lambda-failure-remediation.md)
+- [0830 - Architecture Freshness](0830-audit-architecture-freshness.md) ✨
+- [0831 - Web Assets](0831-audit-web-assets.md)
+
+**AI Governance (0818-0825)**
 - [0818 - AI Management System](0818-audit-ai-management-system.md)
 - [0819 - AI Supply Chain](0819-audit-ai-supply-chain.md)
 - [0820 - Explainability](0820-audit-explainability.md)
@@ -323,14 +363,12 @@ Standard format for all audits:
 - [0822 - Bias & Fairness](0822-audit-bias-fairness.md)
 - [0823 - AI Incident Post-Mortem](0823-audit-ai-incident-post-mortem.md)
 - [0825 - AI Safety](0825-audit-ai-safety.md)
-- [0826 - Cross-Browser Testing](0826-audit-cross-browser-testing.md)
-- [0827 - Infrastructure Integration](0827-audit-infrastructure-integration.md)
-- [0828 - Build Artifact Freshness](0828-audit-build-artifact-freshness.md)
-- [0829 - Lambda Failure Remediation](0829-audit-lambda-failure-remediation.md)
-- [0830 - Architecture Freshness](0830-audit-architecture-freshness.md)
-- [0831 - Web Assets](0831-audit-web-assets.md)
+
+**Meta (0898-0899)**
 - [0898 - Horizon Scanning Protocol](0898-horizon-scanning-protocol.md)
 - [0899 - Meta-Audit](0899-meta-audit.md)
+
+✨ = Auto-fix capability (audit automatically fixes findings rather than just reporting)
 
 ### 10.2 By Topic
 
@@ -431,6 +469,7 @@ By using appropriate models instead of Opus for all audits:
 
 | Date | Change |
 |------|--------|
+| 2026-01-12 | Added auto-fix capability to 9 audits (0802, 0804, 0805, 0806, 0807, 0808, 0824, 0828, 0830). Added Documentation Health category (0801-0807) to index. Total audits: 32. |
 | 2026-01-11 | Renumbered 0827-audit-web-assets.md to 0831 (resolved duplicate with 0827-infrastructure-integration). Total audits: 25. |
 | 2026-01-11 | Created 0830 (Architecture Freshness) for documentation completeness and currency. Part of Architectural Depth Model (#308). Total audits: 24. |
 | 2026-01-10 | Created 0829 (Lambda Failure Remediation) for proactive CloudWatch error detection and fix-or-draft workflow. Total audits: 23. |

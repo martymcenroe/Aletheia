@@ -72,7 +72,23 @@ Before uploading to stores:
 
 ---
 
-## 4. Decision Tree
+## 4. Auto-Fix (Default Behavior)
+
+**This audit auto-fixes stale artifacts rather than just reporting them.**
+
+### 4.1 Auto-Fix Procedure
+
+```markdown
+When check_artifact_freshness.py returns non-zero:
+1. Log: "Stale artifacts detected, initiating auto-rebuild"
+2. Run: `poetry run python tools/build_release.py`
+3. Verify build success (exit code 0)
+4. Re-run: `poetry run python tools/check_artifact_freshness.py`
+5. If still stale: Flag as FAIL (build issue, needs investigation)
+6. If fresh: Log: "Auto-fixed: rebuilt {browser} artifacts"
+```
+
+### 4.2 Decision Tree (with Auto-Fix)
 
 ```
 Run check_artifact_freshness.py
@@ -82,10 +98,27 @@ Run check_artifact_freshness.py
  FRESH         STALE/MISSING
     │             │
     ▼             ▼
- Safe to      Run build_release.py
- submit       then re-run check
-              until FRESH
+ PASS         AUTO-FIX: Run build_release.py
+              │
+              ▼
+         Re-run check
+              │
+       ┌──────┴──────┐
+       │             │
+    FRESH         STILL STALE
+       │             │
+       ▼             ▼
+    PASS         FAIL (needs investigation)
 ```
+
+### 4.3 Cannot Auto-Fix
+
+| Condition | Reason |
+|-----------|--------|
+| Build script fails | Requires debugging |
+| Lint errors | Requires code fix |
+| Version mismatch | Requires manual version decision |
+| Missing source files | Requires investigation |
 
 ---
 
