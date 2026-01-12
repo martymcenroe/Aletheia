@@ -45,6 +45,41 @@ Audits exist because:
 
 **Rationale:** Architecture evolves. What was N/A last quarter (e.g., "no fine-tuning") may not be N/A now. Blind N/A checkboxes become security debt.
 
+### 2.3 Fix-First Mandate (NON-NEGOTIABLE)
+
+> "An audit that finds the same error twice is a broken audit."
+
+**Audits MUST fix errors, not just document them.**
+
+| Wrong | Right |
+|-------|-------|
+| "Finding: stale artifact. Noted as exception." | "Finding: stale artifact. Auto-fixed via `build_release.py`." |
+| "Finding: missing permission. Added to issues." | "Finding: missing permission. Auto-added to `settings.local.json`." |
+| "npm audit found 3 vulns. Documented." | "npm audit found 3 vulns. Ran `npm audit fix`. Now 0." |
+
+**Fix-First Hierarchy:**
+
+1. **Auto-fix immediately** - If the fix is mechanical (add entry, update file, run command), do it
+2. **Auto-fix with rebuild** - If fix requires a build/test cycle, run it (e.g., `build_release.py`)
+3. **Create GitHub issue** - Only if fix requires human judgment, design discussion, or code changes
+4. **Exception** - Only if fix is impossible (external dependency, third-party bug)
+
+**The goal:** The next audit run should find ZERO of the same errors.
+
+**Audit Record Requirement:**
+
+```markdown
+### Auto-Fixed
+- [x] Rebuilt stale Chrome artifact
+- [x] Added `Bash(new-tool:*)` to allowlist
+
+### Requires Human Decision
+- [ ] Version bump: 1.0 → 1.1? (needs product decision)
+
+### Exceptions (Truly Unfixable)
+- [ ] Claude Code permission bug #17637 (upstream)
+```
+
 ---
 
 ## 3. Audit Suite Overview

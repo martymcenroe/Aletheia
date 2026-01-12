@@ -48,10 +48,23 @@ Application security audit covering web application, browser extension, and AWS 
 
 ### A03: Software Supply Chain Failures (Expanded)
 
-The 2025 framework expands A06 "Vulnerable Components" into broader supply chain concerns:
+The 2025 framework expands A06 "Vulnerable Components" into broader supply chain concerns.
+
+> **Executive Order 14028 (May 2021):** "Improving the Nation's Cybersecurity" requires SBOM (Software Bill of Materials) for federal software supply chain transparency. While Aletheia is not federal software, we adopt these practices proactively.
+
+#### Dependency Scanning
+
+| Ecosystem | Command | Frequency | Current Status |
+|-----------|---------|-----------|----------------|
+| npm | `npm audit` | Every audit | 0 vulnerabilities |
+| Python | `pip-audit` or manual review | Quarterly | poetry.lock pinned |
+| Dependabot | GitHub alerts | Continuous | 0 open alerts |
+
+#### Supply Chain Checklist
 
 | Check | Requirement | Status |
 |-------|-------------|--------|
+| **npm audit** | 0 high/critical vulnerabilities | ✅ Pass |
 | Dependency pinning | poetry.lock, package-lock.json committed | ✅ Pass |
 | Dependency scanning | Dependabot configured, 0 open alerts | ✅ Pass |
 | AI model provenance | Bedrock Claude (AWS-managed, Anthropic source) | ✅ Pass |
@@ -59,7 +72,7 @@ The 2025 framework expands A06 "Vulnerable Components" into broader supply chain
 | Build integrity | No untrusted build plugins | ✅ Pass |
 | Denylist source | Wikipedia via trusted GitHub Gist (#121) | ✅ Pass |
 
-Cross-reference: See 0819 AI Supply Chain Audit for AIBOM details.
+Cross-reference: See 0819 AI Supply Chain Audit for AIBOM (AI Bill of Materials) details.
 
 ### A10: Mishandling of Exceptional Conditions (NEW)
 
