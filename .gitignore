@@ -121,3 +121,6 @@ claude-staging/
 
 # Claude Code local settings (machine-specific, prevent merge overwrites)
 .claude/settings.local.json
+
+# Claude Code temporary files
+tmpclaude-*
