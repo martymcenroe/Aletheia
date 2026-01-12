@@ -1,5 +1,5 @@
-// extensions/firefox/service-worker.js
-// Firefox Manifest V3 version
+// extensions/chrome/service-worker.js
+// Chrome Manifest V3 version
 
 // [CV-7] CONSTANTS - WIRED TO CLOUDFRONT (WAF-protected)
 // Direct Lambda URL: https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/
@@ -23,6 +23,9 @@ const TabState = {
 // In-memory tab states (no persistence - privacy by design)
 const tabStates = new Map();
 
+// Issue #162: Store noarchive signals per tab
+const tabNoArchive = new Map();
+
 /**
  * Check if a URL should be checked for age-restricted content.
  * Only check navigable web pages (http/https).
@@ -33,24 +36,33 @@ function shouldCheckTab(url) {
 }
 
 /**
- * Check a tab for age-restricted content by injecting content-check.js
+ * Check a tab for age-restricted content and noarchive signal by injecting content-check.js
+ * Issue #104: Age-Restricted Blocking
+ * Issue #162: NoArchive Transform Layer
  */
 async function checkTabForAgeRestriction(tabId, url) {
     if (!shouldCheckTab(url)) {
         // Non-web pages are allowed (chrome://, file://, etc.)
         tabStates.set(tabId, TabState.ALLOWED);
+        tabNoArchive.set(tabId, false);
         return;
     }
 
     try {
         // Inject and execute content-check.js
-        const results = await browser.scripting.executeScript({
+        const results = await chrome.scripting.executeScript({
             target: { tabId },
             files: ['content-check.js']
         });
 
-        // The script returns the result from checkPageRating()
+        // The script returns the result from checkPageSignals()
         const result = results?.[0]?.result;
+
+        // Issue #162: Store noarchive signal
+        tabNoArchive.set(tabId, result?.noarchive || false);
+        if (result?.noarchive) {
+            console.log(`[Aletheia] NoArchive signal detected on tab ${tabId}`);
+        }
 
         if (result?.isRestricted) {
             tabStates.set(tabId, TabState.RESTRICTED);
@@ -63,6 +75,7 @@ async function checkTabForAgeRestriction(tabId, url) {
     } catch (error) {
         // FAIL OPEN: If we can't inject (CSP, etc.), allow the tab
         tabStates.set(tabId, TabState.ALLOWED);
+        tabNoArchive.set(tabId, false);
         console.log(`[Aletheia] Tab ${tabId} check failed (fail open):`, error.message);
     }
 }
@@ -73,8 +86,8 @@ async function checkTabForAgeRestriction(tabId, url) {
 async function setRestrictedBadge(tabId) {
     try {
         // Red prohibition badge
-        await browser.action.setBadgeText({ tabId, text: '⊘' });
-        await browser.action.setBadgeBackgroundColor({ tabId, color: '#DC2626' });
+        await chrome.action.setBadgeText({ tabId, text: '⊘' });
+        await chrome.action.setBadgeBackgroundColor({ tabId, color: '#DC2626' });
     } catch (error) {
         console.error('[Aletheia] Failed to set restricted badge:', error);
     }
@@ -86,7 +99,7 @@ async function setRestrictedBadge(tabId) {
  */
 async function _clearRestrictedBadge(tabId) {
     try {
-        await browser.action.setBadgeText({ tabId, text: '' });
+        await chrome.action.setBadgeText({ tabId, text: '' });
     } catch (_err) {
         // Tab may have closed - ignore
     }
@@ -115,8 +128,9 @@ function isTabRestricted(tabId) {
 // See ADR 0201: Privacy-First Extension Permissions.
 
 // Clean up state when tabs close (memory hygiene)
-browser.tabs.onRemoved.addListener((tabId) => {
+chrome.tabs.onRemoved.addListener((tabId) => {
     tabStates.delete(tabId);
+    tabNoArchive.delete(tabId);  // Issue #162
 });
 
 // =============================================================================
@@ -124,11 +138,11 @@ browser.tabs.onRemoved.addListener((tabId) => {
 // Security: ADR 0213 - Validate sender.id to prevent message spoofing
 // =============================================================================
 
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Security: Validate message comes from our extension (not a hostile page/extension)
     // sender.id is the extension ID for extension messages, undefined for content scripts
     // We accept messages from our own extension (popup) or our own content scripts
-    if (sender.id && sender.id !== browser.runtime.id) {
+    if (sender.id && sender.id !== chrome.runtime.id) {
         console.warn('[Aletheia] Rejected message from unknown sender:', sender.id);
         return false;
     }
@@ -143,7 +157,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Async operation - need to return true and call sendResponse later
         (async () => {
             try {
-                const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
                 if (tab && tab.url) {
                     await checkTabForAgeRestriction(tab.id, tab.url);
                 }
@@ -151,6 +165,50 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             } catch (error) {
                 console.error('[Aletheia] Recheck failed:', error);
                 sendResponse({ success: false, error: error.message });
+            }
+        })();
+        return true; // Will respond asynchronously
+    }
+
+    // Issue #310: Handle deep poetic analysis request from overlay
+    if (message.type === 'DEEP_POETIC_ANALYSIS') {
+        (async () => {
+            try {
+                const payload = message.payload;
+                console.log('[Aletheia] Deep poetic analysis request:', payload.text);
+
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Aletheia-Client-Version': CLIENT_VERSION
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                console.log('[Aletheia] Deep poetic analysis response:', data.status);
+
+                if (data.status === 'success') {
+                    sendResponse({
+                        status: 'success',
+                        synthesis: data.synthesis,
+                        dimensions: data.dimensions,
+                        resonance_strength: data.resonance_strength,
+                        latency_ms: data.latency_ms
+                    });
+                } else {
+                    sendResponse({
+                        status: 'error',
+                        error: 'Analysis failed'
+                    });
+                }
+            } catch (error) {
+                console.error('[Aletheia] Deep poetic analysis error:', error);
+                sendResponse({
+                    status: 'error',
+                    error: error.message || 'Network error'
+                });
             }
         })();
         return true; // Will respond asynchronously
@@ -175,13 +233,13 @@ function extractDomain(url) {
 async function showFeedback(tabId, message, type) {
     try {
         // 1. Inject Library (Idempotent)
-        await browser.scripting.executeScript({
+        await chrome.scripting.executeScript({
             target: { tabId },
             files: ['overlay.js']
         });
 
         // 2. Call Function
-        await browser.scripting.executeScript({
+        await chrome.scripting.executeScript({
             target: { tabId },
             func: (m, t) => window.showAletheiaOverlay(m, t),
             args: [message, type]
@@ -191,25 +249,25 @@ async function showFeedback(tabId, message, type) {
         const badgeText = type === 'success' ? '✓' : (type === 'error' ? '✗' : '!');
         const badgeColor = type === 'success' ? '#22C55E' : (type === 'error' ? '#EF4444' : '#FBBF24');
 
-        browser.action.setBadgeText({ tabId, text: badgeText });
-        browser.action.setBadgeBackgroundColor({ tabId, color: badgeColor });
+        chrome.action.setBadgeText({ tabId, text: badgeText });
+        chrome.action.setBadgeBackgroundColor({ tabId, color: badgeColor });
 
-        setTimeout(() => browser.action.setBadgeText({ tabId, text: '' }), 3000);
+        setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 3000);
 
     } catch (e) {
         console.error("Overlay Injection Failed:", e);
     }
 }
 
-browser.runtime.onInstalled.addListener(() => {
-  browser.contextMenus.create({
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
     id: "explain-with-ai",
     title: "Explain with AI",
     contexts: ["selection"],
   });
 });
 
-browser.contextMenus.onClicked.addListener(async (info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "explain-with-ai") {
     const domain = extractDomain(info.pageUrl);
 
@@ -220,7 +278,7 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     // Helper to inject overlay (returns success boolean)
     const injectOverlayPromise = (async () => {
         try {
-            await browser.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ['overlay.js']
             });
@@ -233,7 +291,7 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
 
     // Helper to check allowlist
     const allowlistPromise = (async () => {
-        const { allowlist = [] } = await browser.storage.local.get('allowlist');
+        const { allowlist = [] } = await chrome.storage.local.get('allowlist');
         return allowlist.includes(domain);
     })();
 
@@ -253,7 +311,7 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         console.log(`[Aletheia] Blocked: Age-restricted content on tab ${tab.id}`);
         if (overlayInjected) {
             // Overlay was injected optimistically, show error message
-            await browser.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 func: () => window.showAletheiaOverlay("Not permitted on this site", "error")
             });
@@ -268,14 +326,14 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         console.log(`[Aletheia] Blocked: ${domain} not in allowlist`);
         if (overlayInjected) {
             // Overlay was injected optimistically, show warning message
-            await browser.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 func: () => window.showAletheiaOverlay("Enable Aletheia for this site", "warning")
             });
             // [FIX] Also set the warning badge (was missing when overlay pre-injected)
-            browser.action.setBadgeText({ tabId: tab.id, text: '!' });
-            browser.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#FBBF24' });
-            setTimeout(() => browser.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
+            chrome.action.setBadgeText({ tabId: tab.id, text: '!' });
+            chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#FBBF24' });
+            setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 3000);
         } else {
             await showFeedback(tab.id, "Enable Aletheia for this site", "warning");
         }
@@ -286,34 +344,40 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         // [#125] MUSEUM LABEL UI - Show loading state
         console.log("[Aletheia] Showing loading overlay...");
         if (overlayInjected) {
-            await browser.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 func: () => window.showAletheiaLoading()
             });
         } else {
             // Fallback: inject and show (shouldn't happen often)
-            await browser.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ['overlay.js']
             });
-            await browser.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 func: () => window.showAletheiaLoading()
             });
         }
 
-        const injectionResults = await browser.scripting.executeScript({
+        const injectionResults = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => document.body.innerText,
         });
 
         const fullPageText = injectionResults[0].result;
 
+        // Issue #162: Include noarchive signal in payload
+        const hasNoArchive = tabNoArchive.get(tab.id) || false;
+
         const payload = {
             text: info.selectionText,
             url: info.pageUrl,
             title: tab.title,
-            domContext: fullPageText
+            domContext: fullPageText,
+            signals: {
+                noarchive: hasNoArchive
+            }
         };
 
         console.log("[Aletheia] Sending payload to AWS:", payload.text);
@@ -340,8 +404,12 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
 
         console.log("[Aletheia] Response:", httpStatus, responseData);
 
+        // Issue #310: Add selectedText and domContext for deep poetic analysis
+        responseData.selectedText = info.selectionText;
+        responseData.domContext = fullPageText;
+
         // Show Museum Label overlay with structured data
-        await browser.scripting.executeScript({
+        await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: (data, status) => window.showAletheiaResult(data, status),
             args: [responseData, httpStatus]
@@ -350,9 +418,9 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         // Set badge based on status
         const badgeText = response.ok ? '✓' : (httpStatus === 403 ? '⊘' : '✗');
         const badgeColor = response.ok ? '#22C55E' : '#EF4444';
-        browser.action.setBadgeText({ tabId: tab.id, text: badgeText });
-        browser.action.setBadgeBackgroundColor({ tabId: tab.id, color: badgeColor });
-        setTimeout(() => browser.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);
+        chrome.action.setBadgeText({ tabId: tab.id, text: badgeText });
+        chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: badgeColor });
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);
 
     } catch (error) {
         console.error("[Aletheia] Error:", error);
@@ -362,14 +430,14 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
             gem: "Could not reach the server. Please try again.",
             context: ""
         };
-        await browser.scripting.executeScript({
+        await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: (data) => window.showAletheiaResult(data, 500),
             args: [errorResponse]
         });
-        browser.action.setBadgeText({ tabId: tab.id, text: '✗' });
-        browser.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
-        setTimeout(() => browser.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);
+        chrome.action.setBadgeText({ tabId: tab.id, text: '✗' });
+        chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
+        setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);
     }
   }
 });

@@ -170,6 +170,50 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // Will respond asynchronously
     }
 
+    // Issue #310: Handle deep poetic analysis request from overlay
+    if (message.type === 'DEEP_POETIC_ANALYSIS') {
+        (async () => {
+            try {
+                const payload = message.payload;
+                console.log('[Aletheia] Deep poetic analysis request:', payload.text);
+
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Aletheia-Client-Version': CLIENT_VERSION
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                console.log('[Aletheia] Deep poetic analysis response:', data.status);
+
+                if (data.status === 'success') {
+                    sendResponse({
+                        status: 'success',
+                        synthesis: data.synthesis,
+                        dimensions: data.dimensions,
+                        resonance_strength: data.resonance_strength,
+                        latency_ms: data.latency_ms
+                    });
+                } else {
+                    sendResponse({
+                        status: 'error',
+                        error: 'Analysis failed'
+                    });
+                }
+            } catch (error) {
+                console.error('[Aletheia] Deep poetic analysis error:', error);
+                sendResponse({
+                    status: 'error',
+                    error: error.message || 'Network error'
+                });
+            }
+        })();
+        return true; // Will respond asynchronously
+    }
+
     return false;
 });
 
@@ -359,6 +403,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         }
 
         console.log("[Aletheia] Response:", httpStatus, responseData);
+
+        // Issue #310: Add selectedText and domContext for deep poetic analysis
+        responseData.selectedText = info.selectionText;
+        responseData.domContext = fullPageText;
 
         // Show Museum Label overlay with structured data
         await chrome.scripting.executeScript({

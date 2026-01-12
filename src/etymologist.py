@@ -135,7 +135,32 @@ CLASSIFICATION TAXONOMY (FOLLOW EXACTLY):
 Example outputs:
 {"signal": "Archaic Medical Term", "gem": "Once clinical, now outdated and considered offensive.", "context": "First used in 18th century medicine. Fell out of clinical use by 1950. Now recognized as dehumanizing."}
 {"signal": "Formal Academic Term", "gem": "A precise term still used in economic and academic discourse.", "context": "Derived from Latin roots in the 19th century. Regularly appears in quality journalism and scholarly papers. Not archaic despite low frequency in casual speech."}
-{"signal": "Prompt Injection Attempt", "gem": "Input contained instructions attempting to override system behavior.", "context": "Prompt injection is a technique where malicious text tries to manipulate AI systems. Modern LLMs are trained to recognize and resist such attempts. This input has been flagged rather than processed."}"""
+{"signal": "Prompt Injection Attempt", "gem": "Input contained instructions attempting to override system behavior.", "context": "Prompt injection is a technique where malicious text tries to manipulate AI systems. Modern LLMs are trained to recognize and resist such attempts. This input has been flagged rather than processed."}
+
+ADDITIONAL OUTPUT FIELDS (REQUIRED FOR POETIC RESONANCE - Issue #310):
+You MUST also include these two fields in your JSON response:
+
+- "poetic_potential": A score from 0.0 to 1.0 indicating how likely this word has layered/metaphorical meaning in the given context.
+  - 0.0-0.3: Common word with literal meaning (e.g., "hello", "table", "computer")
+  - 0.4-0.5: Word has some figurative potential but not strongly activated by context
+  - 0.6-0.8: Word has clear poetic resonance with context (e.g., "ascension" in text about elderly care)
+  - 0.9-1.0: Word is deeply metaphorical with multiple activated dimensions
+
+- "potential_dimensions": An array of dimension labels where the word's meaning resonates with context. Choose from:
+  ["religious", "literary", "architectural", "artistic", "political", "scientific"]
+  If a novel dimension emerges not in this list, use format "novel:{description}" (e.g., "novel:internet_culture")
+  Return empty array [] if poetic_potential < 0.4
+
+POETIC SCORING RULES:
+- Consider the SURROUNDING CONTEXT when scoring poetic_potential
+- A word in isolation has LOW poetic potential (context needed for resonance)
+- A word whose etymology/connotations ECHO the context topic has HIGH poetic potential
+- Example: "ascension" in text about nursing homes/elderly → HIGH (religious + life cycle resonance)
+- Example: "hello" in any context → LOW (no layered meaning, purely functional)
+- Example: "foundation" in text about charity → MEDIUM-HIGH (architectural + organizational resonance)
+
+Example output with poetic fields:
+{"signal": "Formal Academic Term", "gem": "A precise term still used in economic discourse.", "context": "Derived from Latin roots. Regularly appears in scholarly papers.", "poetic_potential": 0.72, "potential_dimensions": ["religious", "architectural"]}"""
 
 
 def validate_model_id(model_id: str) -> bool:
@@ -162,6 +187,9 @@ class EtymologistResponse(TypedDict):
     signal: str  # 2-4 word classification
     gem: str  # Single sentence, max 25 words
     context: str  # 3 sentences, max 100 words
+    # Issue #310: Poetic Resonance Detection
+    poetic_potential: float  # 0.0-1.0 score indicating layered meaning potential
+    potential_dimensions: list[str]  # Dimension labels (religious, literary, etc.)
 
 
 class AnalysisResult(TypedDict):
@@ -177,6 +205,9 @@ FALLBACK_RESPONSE: EtymologistResponse = {
     "signal": "Analysis Failed",
     "gem": "Could not parse response for this term.",
     "context": "The system encountered an issue processing this request. Please try again. If the problem persists, the term may be outside the scope of analysis.",
+    # Issue #310: Default poetic fields for fallback
+    "poetic_potential": 0.0,
+    "potential_dimensions": [],
 }
 
 
@@ -530,6 +561,22 @@ def validate_response_schema(response: dict) -> tuple[bool, list[str]]:
             f"Field 'context' exceeds 150 words ({count_words(response['context'])} words)"
         )
 
+    # Issue #310: Check poetic_potential (optional for backward compat - default to 0.0)
+    if "poetic_potential" in response:
+        pp = response["poetic_potential"]
+        if not isinstance(pp, (int, float)):
+            errors.append("Field 'poetic_potential' must be a number")
+        elif pp < 0.0 or pp > 1.0:
+            errors.append(f"Field 'poetic_potential' must be 0.0-1.0 (got {pp})")
+
+    # Issue #310: Check potential_dimensions (optional for backward compat - default to [])
+    if "potential_dimensions" in response:
+        pd = response["potential_dimensions"]
+        if not isinstance(pd, list):
+            errors.append("Field 'potential_dimensions' must be a list")
+        elif not all(isinstance(d, str) for d in pd):
+            errors.append("Field 'potential_dimensions' must contain only strings")
+
     return len(errors) == 0, errors
 
 
@@ -606,11 +653,14 @@ def process_bedrock_response(raw_response: str) -> tuple[EtymologistResponse, Li
         return get_fallback_response(), "fallback", validation_errors
 
     # Step 3: Return validated response
+    # Issue #310: Include poetic fields with defaults for backward compat
     return (
         EtymologistResponse(
             signal=extracted["signal"],
             gem=extracted["gem"],
             context=extracted["context"],
+            poetic_potential=extracted.get("poetic_potential", 0.0),
+            potential_dimensions=extracted.get("potential_dimensions", []),
         ),
         "success",
         [],
