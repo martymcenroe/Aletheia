@@ -118,3 +118,6 @@ web-ext-artifacts/
 
 # Claude Code staging directory (local development, not deployed)
 claude-staging/
+
+# Claude Code local settings (machine-specific, prevent merge overwrites)
+.claude/settings.local.json
