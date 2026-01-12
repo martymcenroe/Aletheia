@@ -49,6 +49,12 @@
             "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-commit-report-check.sh",
             "timeout": 5,
             "description": "PRE-COMMIT GATE: Report Existence"
+          },
+          {
+            "type": "command",
+            "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/pre-store-submit.sh",
+            "timeout": 30,
+            "description": "Build Freshness Gate (0828)"
           }
         ]
       }
@@ -62,6 +68,18 @@
             "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/post-edit-lint.sh",
             "timeout": 30,
             "description": "Security Lint (eslint/ruff)"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/stop-session-log.sh",
+            "timeout": 15,
+            "description": "Session Log Guarantee"
           }
         ]
       }

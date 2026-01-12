@@ -19,6 +19,15 @@
 | `.claude/commands/full-cleanup.md` | **Skill** | 🟢 **Stable** | - | Full cleanup skill (20-30 min). |
 | `.claude/commands/audit.md` | **Skill** | 🟢 **Stable** | - | Full 08xx audit suite skill (1-2 hrs). |
 | `.claude/commands/onboard.md` | **Skill** | 🟢 **Stable** | - | Agent onboarding skill (quick/full mode). |
+| `.claude/hooks/bash-gate.sh` | **Hook** | 🟢 **Stable** | - | PreToolUse: Blocks `&&`, `\|`, `;` in Bash commands. |
+| `.claude/hooks/path-gate.sh` | **Hook** | 🟢 **Stable** | - | PreToolUse: Blocks `~` tilde paths (Windows). |
+| `.claude/hooks/pre-edit-check.sh` | **Hook** | 🟢 **Stable** | - | PreToolUse: Worktree isolation (blocks code on main). |
+| `.claude/hooks/pre-edit-security-warn.sh` | **Hook** | 🟢 **Stable** | - | PreToolUse: OWASP security pattern warnings. |
+| `.claude/hooks/pre-commit-report-check.sh` | **Hook** | 🟢 **Stable** | - | PreToolUse: Blocks commits without reports. |
+| `.claude/hooks/post-edit-lint.sh` | **Hook** | 🟢 **Stable** | - | PostToolUse: ESLint/Ruff after edits. |
+| `.claude/hooks/pre-store-submit.sh` | **Hook** | 🟢 **Stable** | - | PreToolUse: Build freshness gate (0828). |
+| `.claude/hooks/stop-session-log.sh` | **Hook** | 🟢 **Stable** | - | Stop: Session log guarantee. |
+| `.claude/settings.json` | **Config** | 🟢 **Stable** | - | Hook configuration (project-level). |
 | `.gitignore` | **Config** | 🟢 **Stable** | - | Git ignore rules. |
 | `.print-history.json` | **Log** | 🚫 **Gitignored** | - | Print tracking for markdown files (mtime + timestamp). |
 | `.session-log.md` | **Log** | 🚫 **Gitignored** | - | AI session continuity log. |
