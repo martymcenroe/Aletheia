@@ -418,6 +418,19 @@ def lambda_handler(
 
         text = body["text"]
 
+        # Issue #106: Determine analysis mode and log for cost monitoring
+        full_article = body.get("full_article")
+        analysis_mode = "full_article" if full_article else "selection"
+        input_text = full_article if full_article else text
+        input_chars = len(input_text)
+
+        # Log mode for CloudWatch Insights cost analysis
+        logger.info(json.dumps({
+            "action": "analysis_request",
+            "mode": analysis_mode,
+            "input_chars": input_chars,
+        }))
+
         # 2. Guardrails (MUST be sequential: Denylist → Semantic)
         # Issue #126: Returns block_type for nuanced handling
         t0 = time.time()
@@ -442,8 +455,14 @@ def lambda_handler(
         thread_id = generate_thread_id(body)
         timings["thread_id_ms"] = int((time.time() - t0) * 1000)
 
-        # Issue #177: Extract domContext (truncate to 100KB for DynamoDB safety)
-        dom_context = (body.get("domContext", "") or "")[:100000]
+        # Issue #177 + #106: Extract context (prefer full_article, fallback to domContext)
+        # Truncate to 100KB for DynamoDB safety
+        if full_article:
+            # Full article mode - use cleaned, PII-scrubbed article text
+            dom_context = full_article[:100000]
+        else:
+            # Selection mode - use raw domContext
+            dom_context = (body.get("domContext", "") or "")[:100000]
 
         # Issue #162: Extract noarchive signal - skip persistence if publisher requests
         signals = body.get("signals", {})
