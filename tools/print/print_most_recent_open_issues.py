@@ -224,6 +224,8 @@ def main():
                       help='Print single-sided (overrides default)')
     group.add_argument('-ds', '--double-sided', action='store_true',
                       help='Print double-sided (default - uses printer duplex setting)')
+    parser.add_argument('--no-print', action='store_true',
+                      help='Generate markdown and PDF only, do not send to printer')
 
     args = parser.parse_args()
 
@@ -239,17 +241,24 @@ def main():
     markdown_path = save_markdown(markdown_content)
 
     pdf_path = generate_pdf(markdown_path, duplex)
-    print_pdf(pdf_path, duplex)
 
-    # Clean up PDF after successful print
-    if pdf_path.exists():
-        pdf_path.unlink()
+    if args.no_print:
+        print("")
+        print("Complete! (--no-print mode)")
+        print(f"   Markdown: {markdown_path}")
+        print(f"   PDF: {pdf_path}")
+    else:
+        print_pdf(pdf_path, duplex)
 
-    print("")
-    print("Complete!")
-    print(f"   Markdown: {markdown_path}")
-    print(f"   PDF: {pdf_path} (deleted after print)")
-    print(f"   Printed to: {PRINTER_NAME} ({mode_str})")
+        # Clean up PDF after successful print
+        if pdf_path.exists():
+            pdf_path.unlink()
+
+        print("")
+        print("Complete!")
+        print(f"   Markdown: {markdown_path}")
+        print(f"   PDF: {pdf_path} (deleted after print)")
+        print(f"   Printed to: {PRINTER_NAME} ({mode_str})")
 
 
 if __name__ == "__main__":

@@ -120,7 +120,7 @@ gh issue list --state open --repo martymcenroe/Aletheia
 
 **Phase 2 - Doc Sync:**
 ```bash
-poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py
+poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/print/print_most_recent_open_issues.py --no-print
 ```
 
 **Phase 3 - Session Log:**
