@@ -1,4 +1,10 @@
-# 0015 - Agent Prohibited Actions
+# 10015 - Aletheia Agent Prohibited Actions (Local Extension)
+
+> **Extends:** [AgentOS 0003 - Agent Prohibited Actions](C:\Users\mcwiz\Projects\AgentOS\docs\standards\0003-agent-prohibited-actions.md)
+>
+> This document contains Aletheia-specific prohibited actions that supplement the generic AgentOS rules.
+
+---
 
 ## 1. Overview
 

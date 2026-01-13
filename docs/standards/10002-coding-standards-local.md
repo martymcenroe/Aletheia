@@ -1,4 +1,10 @@
-# 0002 - Coding Standards & Operational Procedures
+# 10002 - Aletheia Coding Standards (Local Extension)
+
+> **Extends:** [AgentOS 0002 - Coding Standards](C:\Users\mcwiz\Projects\AgentOS\docs\standards\0002-coding-standards.md)
+>
+> This document contains Aletheia-specific coding standards that supplement the generic AgentOS standards.
+
+---
 
 ## 1. Prime Directives for AI Agents
 * **Plan Before Execute:** Discuss multi-step plans with the Orchestrator BEFORE running commands. Never batch destructive operations without explicit approval.

@@ -1,4 +1,10 @@
-# 0005 - Testing Strategy & Protocols
+# 10005 - Aletheia Testing Strategy (Local Extension)
+
+> **Extends:** [AgentOS 0007 - Testing Strategy](C:\Users\mcwiz\Projects\AgentOS\docs\standards\0007-testing-strategy.md)
+>
+> This document contains Aletheia-specific testing protocols that supplement the generic AgentOS testing strategy.
+
+---
 
 ## 1. Philosophy: "Trust but Verify"
 
