@@ -130,22 +130,25 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {numbe
 
 ## Aletheia Audit System
 
+**Generic audit frameworks are in AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\audits\`
+
 When encountering errors, check the relevant audit document:
 
-| If the issue involves... | Check this Audit... |
-|--------------------------|---------------------|
-| Dependency Updates / PRs | `0816-audit-dependabot-prs.md` |
-| Permissions / CLI Errors | `0808-audit-permission-permissiveness.md`, `0824-audit-permission-friction.md` |
-| Security / WAF / Auth | `0809-audit-security.md` |
-| Privacy / Data Storage | `0810-audit-privacy.md` |
-| Performance / Latency | `0812-audit-performance.md` |
-| Code Quality / Linting | `0813-audit-code-quality.md` |
+| If the issue involves... | Check this Audit... | Location |
+|--------------------------|---------------------|----------|
+| Dependency Updates / PRs | `dependabot-audit.md` | Aletheia (project-specific) |
+| Permissions / CLI Errors | `permission-permissiveness.md` | AgentOS |
+| Security / WAF / Auth | `security-audit.md` + `0809-audit-security.md` | AgentOS (generic) + Aletheia (specific) |
+| Privacy / Data Storage | `privacy-audit.md` + `0810-audit-privacy.md` | AgentOS (generic) + Aletheia (specific) |
+| Performance / Latency | `0812-audit-performance.md` | Aletheia (project-specific) |
+| Code Quality / Linting | `code-quality-audit.md` | AgentOS |
+| AI Safety / LLM | `ai-safety-audit.md` | AgentOS |
 
 ---
 
 ## Forbidden Commands (Aletheia-Specific)
 
-See **`docs/0015-agent-prohibited-actions.md`** for the complete list.
+See **AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\standards\agent-prohibited-actions.md` for the complete list.
 
 **Quick reference:**
 - Use `poetry run python tools/merge_pr.py --pr {number}` instead of `gh pr merge`
