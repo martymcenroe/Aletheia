@@ -2,103 +2,39 @@
 
 You are a team member on the Aletheia project, not a tool.
 
-## STOP - MANDATORY PRE-TOOL CHECKLIST
+## FIRST: Read AgentOS Core Rules
 
-**BEFORE calling ANY tool (Read, Write, Edit, Glob, Bash), you MUST complete this checklist OUT LOUD:**
+**Before doing any work, read the AgentOS core rules:**
+`C:\Users\mcwiz\Projects\AgentOS\CLAUDE.md`
 
-```
-PRE-TOOL CHECK:
-1. Tool I'm about to use: [Read/Write/Edit/Glob/Bash]
-2. Path I'm about to use: [write the full path]
-3. Does path start with ~? → IF YES, STOP. Rewrite as C:\Users\mcwiz\Projects\...
-4. Does path start with C:\ ? → IF YES for Read/Write/Edit/Glob, PROCEED
-5. Does path start with /c/ ? → IF YES for Bash, PROCEED
-6. Does Bash command contain && or | or ; ? → IF YES, STOP. Split into separate commands.
-```
-
-**IF YOU SKIP THIS CHECKLIST, YOU WILL CAUSE PERMISSION PROMPTS.**
-
----
-
-## PATH FORMAT RULES
-
-| Tool | MUST Start With | Example |
-|------|-----------------|---------|
-| Read, Write, Edit, Glob | `C:\Users\mcwiz\Projects\` | `C:\Users\mcwiz\Projects\Aletheia\file.md` |
-| Bash | `/c/Users/mcwiz/Projects/` | `/c/Users/mcwiz/Projects/Aletheia/file.md` |
-
-**THE TILDE CHARACTER (~) DOES NOT EXIST. NEVER USE IT.**
-
-Windows does not support `~` for home directory. If you use `~`, you WILL trigger permission prompts.
-
-**BANNED PATTERNS - MEMORIZE THESE:**
-- `~\anything` - BANNED (tilde + backslash = ALWAYS WRONG)
-- `~/anything` - BANNED (tilde + forward slash = ALWAYS WRONG on Windows)
-- `&& ` in Bash - BANNED (split into separate commands)
-- `| ` in Bash - BANNED (use dedicated tools instead)
-- `; ` in Bash - BANNED (split into separate commands)
-
-**YOUR WORKING DIRECTORY:**
-- If in Aletheia: `C:\Users\mcwiz\Projects\Aletheia`
-- If in Aletheia-106: `C:\Users\mcwiz\Projects\Aletheia-106`
-- If in Aletheia-310: `C:\Users\mcwiz\Projects\Aletheia-310`
-
-Use YOUR working directory as the base for all paths.
-
----
-
-## WORKTREE PATH CONSTRUCTION (CRITICAL)
-
-**When accessing worktrees (Aletheia-{ID}), the ONLY valid paths are:**
-
-| Worktree | For Glob/Read/Write/Edit | For Bash |
-|----------|--------------------------|----------|
-| Aletheia-106 | `C:\Users\mcwiz\Projects\Aletheia-106` | `/c/Users/mcwiz/Projects/Aletheia-106` |
-| Aletheia-310 | `C:\Users\mcwiz\Projects\Aletheia-310` | `/c/Users/mcwiz/Projects/Aletheia-310` |
-| Any worktree | `C:\Users\mcwiz\Projects\Aletheia-{ID}` | `/c/Users/mcwiz/Projects/Aletheia-{ID}` |
-
-**WORKTREES ARE NOT AT:**
-- `~/Projects/Aletheia-{ID}` ← WRONG
-- `~\Projects\Aletheia-{ID}` ← WRONG
-- `~\Projects\...` ← WRONG
-
-**BEFORE constructing ANY worktree path, STOP and verify:**
-1. Does the path start with `C:\Users\mcwiz\Projects\` (for Read/Glob)?
-2. Does the path start with `/c/Users/mcwiz/Projects/` (for Bash)?
-3. If NO to both → you are constructing the path WRONG
-
----
-
-## SECOND: Read Parent CLAUDE.md
-
-**Before reading this file, read the parent AgentOS rules:**
-`C:\Users\mcwiz\Projects\CLAUDE.md`
-
-That file contains core AgentOS rules that apply to ALL projects:
+That file contains core rules that apply to ALL projects:
 - Bash command rules (no &&, |, ;)
 - Visible self-check protocol
 - Worktree isolation rules
-- Path format rules
+- Path format rules (Windows vs Unix)
 - Decision-making protocol
 
 **This file adds Aletheia-specific rules ON TOP of those core rules.**
 
 ---
 
+## Project Identifiers
+
+- **Repository:** `martymcenroe/Aletheia`
+- **Project Root (Windows):** `C:\Users\mcwiz\Projects\Aletheia`
+- **Project Root (Unix):** `/c/Users/mcwiz/Projects/Aletheia`
+- **Worktree Pattern:** `Aletheia-{IssueID}` (e.g., `Aletheia-45`)
+- **Doc Numbering:** 10xxx series (project-specific implementations of AgentOS 0xxx)
+
+---
+
 ## Aletheia First Action
 
-Read `docs/0000-GUIDE.md`. It contains the filing system, prime directives, and pointers to all standards. Do this before any work.
+Read `docs/10000-GUIDE.md`. It contains the filing system, prime directives, and pointers to all standards. Do this before any work.
 
 ---
 
 ## Aletheia-Specific Workflow Rules
-
-### Project Identifiers
-
-- **Repository:** `martymcenroe/Aletheia`
-- **Project Root (Windows - for Read/Glob):** `C:\Users\mcwiz\Projects\Aletheia`
-- **Project Root (Unix - for Bash):** `/c/Users/mcwiz/Projects/Aletheia`
-- **Worktree Pattern:** `Aletheia-{IssueID}` (e.g., `Aletheia-45`, located at `C:\Users\mcwiz\Projects\Aletheia-45`)
 
 ### Required Workflow
 
@@ -128,27 +64,43 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {numbe
 
 ---
 
+## Documentation Structure
+
+Aletheia uses the **10xxx numbering scheme** (project-specific implementations):
+
+| Directory | Range | Contents |
+|-----------|-------|----------|
+| `docs/` | 10000 | Main project guide |
+| `docs/architecture/` | 10001 | C4 architecture views |
+| `docs/standards/` | 100xx | Project-specific standards |
+| `docs/templates/` | 101xx | Project-specific templates |
+| `docs/adrs/` | 102xx | Project ADRs |
+| `docs/skills/` | 106xx | Gemini integration skills |
+| `docs/audits/` | 108xx | Project audit reports |
+| `docs/runbooks/` | 109xx | Project runbooks |
+
+**Generic frameworks** are in AgentOS (`C:\Users\mcwiz\Projects\AgentOS\docs\`).
+**Project implementations** are here with the `1` prefix.
+
+---
+
 ## Aletheia Audit System
 
-**Generic audit frameworks are in AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\audits\`
-
-When encountering errors, check the relevant audit document:
-
-| If the issue involves... | Check this Audit... | Location |
-|--------------------------|---------------------|----------|
-| Dependency Updates / PRs | `dependabot-audit.md` | Aletheia (project-specific) |
-| Permissions / CLI Errors | `permission-permissiveness.md` | AgentOS |
-| Security / WAF / Auth | `security-audit.md` + `0809-audit-security.md` | AgentOS (generic) + Aletheia (specific) |
-| Privacy / Data Storage | `privacy-audit.md` + `0810-audit-privacy.md` | AgentOS (generic) + Aletheia (specific) |
-| Performance / Latency | `0812-audit-performance.md` | Aletheia (project-specific) |
-| Code Quality / Linting | `code-quality-audit.md` | AgentOS |
-| AI Safety / LLM | `ai-safety-audit.md` | AgentOS |
+| If the issue involves... | Check... |
+|--------------------------|----------|
+| Dependency Updates / PRs | `docs/audits/10816-audit-dependabot-prs.md` |
+| Permissions / CLI Errors | AgentOS `0816-permission-permissiveness.md` |
+| Security / WAF / Auth | AgentOS `0801` + Aletheia `10809` |
+| Privacy / Data Storage | AgentOS `0802` + Aletheia `10810` |
+| Performance / Latency | `docs/audits/10812-audit-performance.md` |
+| Code Quality / Linting | AgentOS `0803-code-quality-audit.md` |
+| AI Safety / LLM | AgentOS `0808-ai-safety-audit.md` |
 
 ---
 
 ## Forbidden Commands (Aletheia-Specific)
 
-See **AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\standards\agent-prohibited-actions.md` for the complete list.
+See **AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\standards\0003-agent-prohibited-actions.md`
 
 **Quick reference:**
 - Use `poetry run python tools/merge_pr.py --pr {number}` instead of `gh pr merge`
@@ -157,42 +109,26 @@ See **AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\standards\agent-prohibite
 
 ---
 
-## Mermaid Diagram Auto-Inspection (MANDATORY)
+## Mermaid Diagram Auto-Inspection
 
 **Before committing ANY Mermaid diagram, you MUST visually inspect it.**
 
-You are a multimodal LLM. You can render and view diagrams using mermaid.ink:
+See AgentOS `docs/standards/0004-mermaid-diagrams.md` for full rules.
 
-```bash
-# 1. Base64 encode the diagram
-DIAGRAM=$(cat <<'EOF' | base64 -w 0
-graph TB
-    A --> B
-EOF
-)
-
-# 2. Download rendered PNG
-curl -s -o /tmp/diagram.png "https://mermaid.ink/img/$DIAGRAM"
-
-# 3. Use Read tool to view the image
-```
-
-**Inspection Checklist:**
+**Quick checklist:**
 - [ ] No touching/overlapping elements
 - [ ] No lines hidden behind boxes
 - [ ] All labels readable (not truncated)
 - [ ] Flow direction clear
-
-**If ANY check fails:** Fix the diagram and re-inspect before committing.
-
-**Reference:** `docs/0006-mermaid-diagrams.md` §8 Visual Quality Rules
 
 ---
 
 ## Session Cleanup (MANDATORY)
 
 **Every session must end with the `/cleanup` command.**
-- See `docs/0009-session-closeout-protocol.md` for full procedure
+
+See AgentOS `docs/standards/0005-session-closeout-protocol.md` for full procedure.
+
 - `/cleanup --quick` — Minimal ~2 min
 - `/cleanup` — Normal ~5 min (default)
 - `/cleanup --full` — Comprehensive ~12 min
@@ -202,7 +138,7 @@ curl -s -o /tmp/diagram.png "https://mermaid.ink/img/$DIAGRAM"
 At end of session, append a summary to `docs/session-logs/YYYY-MM-DD.md`.
 - **Day boundary:** 3:00 AM CT to following day 2:59 AM CT
 - **Timestamp command:** `powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd HH:mm'"`
-- See `docs/0100-TEMPLATE-GUIDE.md` for the full entry template
+- See `docs/templates/10100-TEMPLATE-GUIDE.md` for the full entry template
 
 ---
 
