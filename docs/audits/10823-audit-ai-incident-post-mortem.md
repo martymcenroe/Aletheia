@@ -462,9 +462,9 @@ After each SEV-1 or SEV-2:
 - [OECD AI Incidents Monitor](https://oecd.ai/en/incidents)
 
 ### Internal
-- docs/0809-audit-security.md - Security testing
-- docs/0821-audit-agentic-ai-governance.md - Agent incidents
-- docs/0899-meta-audit.md - Audit coverage tracking
+- AgentOS:audits/0801-security-audit - Security testing
+- AgentOS:audits/0812-agentic-ai-governance - Agent incidents
+- AgentOS:audits/0899-meta-audit - Audit coverage tracking
 
 ---
 

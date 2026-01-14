@@ -90,7 +90,7 @@ if result["blocked"]:
 **Impact:** Implementation is complete but not usable without additional work (#119 RSDB utility).
 
 **Process Improvements:**
-1. Created `docs/0108-lld-pre-implementation-review.md` - reviewer checklist for data sources
+1. Created `AgentOS:templates/0108-lld-pre-impl-review` - reviewer checklist for data sources
 2. LLD template should require a "Data & Fixtures" section
 3. Added entries to `docs/9000-lessons-learned.md`
 

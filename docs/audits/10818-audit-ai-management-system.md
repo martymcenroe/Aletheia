@@ -251,8 +251,8 @@ ISO 42001 defines 38 controls across 9 control objectives. This audit maps each 
 
 ### Internal
 - ADR 0201 - Privacy-First Extension Permissions
-- docs/0809-audit-security.md - Security Audit
-- docs/0810-audit-privacy.md - Privacy Audit
+- AgentOS:audits/0801-security-audit - Security Audit
+- AgentOS:audits/0802-privacy-audit - Privacy Audit
 
 ---
 

@@ -72,7 +72,7 @@ Stop guessing what you are reading. Aletheia brings the power of Large Language 
 
 ## 5. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md*](https://www.google.com/search?q=../0005-testing-strategy-and-protocols.md)
+*Ref: [AgentOS:standards/0007-testing-strategy*](AgentOS:standards/0007-testing-strategy)
 
 ### 5.1 Test Modules
 

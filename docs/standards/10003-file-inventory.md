@@ -60,33 +60,33 @@
 | `docs/0001f-deployment-view.md` | **Spec** | 🟢 **Stable** | #308 | AWS and CI/CD overview. |
 | `docs/0001g-glossary.md` | **Spec** | 🟢 **Stable** | #308 | Key terms and concepts. |
 | `docs/0001-system-architecture.md` | **Redirect** | ⚫ **Legacy** | #308 | Redirect stub to new 0001-architecture.md. |
-| `docs/0002-coding-standards.md` | **Standard** | 🟢 **Stable** | #36 | Python, Git, and Documentation standards. |
+| `AgentOS:standards/0002-coding-standards` | **Standard** | 🟢 **Stable** | #36 | Python, Git, and Documentation standards. |
 | `docs/0003-file-inventory.md` | **Register** | 🟡 **Beta** | #70 | This file. Requires regular audit (0009 Full Mode §F9). |
-| `docs/0004-orchestration-protocol.md` | **Protocol** | 🟢 **Stable** | #50 | Rules for AI-User collaboration and mini-sprints. |
-| `docs/0005-testing-strategy-and-protocols.md` | **Protocol** | 🟢 **Stable** | #69 | Testing strategy and modular verification. |
-| `docs/0006-mermaid-diagrams.md` | **Standard** | 🟢 **Stable** | - | Mermaid JS diagramming standards and patterns. |
+| `AgentOS:standards/0001-orchestration-protocol` | **Protocol** | 🟢 **Stable** | #50 | Rules for AI-User collaboration and mini-sprints. |
+| `AgentOS:standards/0007-testing-strategy` | **Protocol** | 🟢 **Stable** | #69 | Testing strategy and modular verification. |
+| `AgentOS:standards/0004-mermaid-diagrams` | **Standard** | 🟢 **Stable** | - | Mermaid JS diagramming standards and patterns. |
 | `docs/0007-signal-handling.md` | **Standard** | 🟢 **Stable** | #112 | Signal handling strategy (noai, noarchive, robots.txt). |
 | `docs/0008-orchestrator-instructions.md` | **Guide** | 🟢 **Stable** | - | Rules for human orchestrator managing AI sessions. |
-| `docs/0009-session-closeout-protocol.md` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions (Session Mode + Full Mode). |
-| `docs/0010-standard-labels.md` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
+| `AgentOS:standards/0005-session-closeout-protocol` | **Protocol** | 🟢 **Stable** | - | Checklist for ending sessions (Session Mode + Full Mode). |
+| `AgentOS:standards/0006-standard-labels` | **Standard** | 🟢 **Stable** | - | Label taxonomy for Issues and PRs. |
 | `docs/0012-devops-architecture.md` | **Standard** | 🟢 **Stable** | - | CI/CD pipeline, GitHub Actions, deployment, quality gates. |
 | `docs/0013-testing-architecture.md` | **Standard** | 🟢 **Stable** | #105 | Test pyramid, Playwright, coverage strategy. |
 | `docs/0014-cost-architecture.md` | **Standard** | 🟢 **Stable** | #137 | AWS cost model, budgets, optimization, abuse prevention. |
-| `docs/0015-agent-prohibited-actions.md` | **Policy** | 🟢 **Stable** | - | Agent prohibited actions and permission philosophy. |
+| `AgentOS:standards/0003-agent-prohibited-actions` | **Policy** | 🟢 **Stable** | - | Agent prohibited actions and permission philosophy. |
 
 ### 01xx Templates & Style Guides
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/0100-TEMPLATE-GUIDE.md` | **Index** | 🟢 **Stable** | - | Index of all templates and their purposes. |
-| `docs/0101-TEMPLATE-issue.md` | **Template** | 🟢 **Stable** | - | GitHub Issue template for features. |
-| `docs/0102-TEMPLATE-feature-lld.md` | **Template** | 🟢 **Stable** | - | Low-Level Design doc template for features. |
-| `docs/0103-TEMPLATE-implementation-report.md` | **Template** | 🟢 **Stable** | #77 | Implementation report template for completed features. |
-| `docs/0104-TEMPLATE-adr.md` | **Template** | 🟢 **Stable** | #111 | Architecture Decision Record template. |
-| `docs/0105-TEMPLATE-implementation-plan.md` | **Template** | 🟢 **Stable** | #275 | Implementation plan template for process/config changes. |
-| `docs/0108-lld-pre-implementation-review.md` | **Protocol** | 🟢 **Stable** | - | LLD pre-implementation review checklist. |
-| `docs/0111-TEMPLATE-test-script.md` | **Template** | 🟢 **Stable** | - | Manual test script template (generic). |
+| `AgentOS:templates/0100-template-index` | **Index** | 🟢 **Stable** | - | Index of all templates and their purposes. |
+| `AgentOS:templates/0101-issue-template` | **Template** | 🟢 **Stable** | - | GitHub Issue template for features. |
+| `AgentOS:templates/0102-lld-template` | **Template** | 🟢 **Stable** | - | Low-Level Design doc template for features. |
+| `AgentOS:templates/0103-implementation-report-template` | **Template** | 🟢 **Stable** | #77 | Implementation report template for completed features. |
+| `AgentOS:templates/0104-adr-template` | **Template** | 🟢 **Stable** | #111 | Architecture Decision Record template. |
+| `AgentOS:templates/0105-implementation-plan-template` | **Template** | 🟢 **Stable** | #275 | Implementation plan template for process/config changes. |
+| `AgentOS:templates/0108-lld-pre-impl-review` | **Protocol** | 🟢 **Stable** | - | LLD pre-implementation review checklist. |
+| `AgentOS:templates/0106-test-script-template` | **Template** | 🟢 **Stable** | - | Manual test script template (generic). |
 | `docs/0112-TEMPLATE-browser-extension-test-script.md` | **Template** | 🟢 **Stable** | #77 | Browser extension test script template for non-technical users. |
-| `docs/0113-TEMPLATE-test-report.md` | **Template** | 🟢 **Stable** | - | Test report template for recording test execution results. |
+| `AgentOS:templates/0107-test-report-template` | **Template** | 🟢 **Stable** | - | Test report template for recording test execution results. |
 
 ### 02xx Architecture Decision Records
 | File | Role | Status | Linked Issue | Description |
@@ -98,41 +98,41 @@
 | `docs/0204-ADR-defense-funnel.md` | **ADR** | 🟢 **Stable** | #111 | Decision: Ordered defense layers (fail fast). |
 | `docs/0205-ADR-langgraph-orchestration.md` | **ADR** | ⚫ **Legacy** | #111 | Decision: LangGraph for agent orchestration. Superseded by 0211. |
 | `docs/0206-ADR-streaming-sse.md` | **ADR** | 🟢 **Stable** | #111 | Decision: SSE for streaming responses. |
-| `docs/0207-ADR-single-identity-orchestration.md` | **ADR** | 🟢 **Stable** | - | Decision: Single human committer identity. |
+| `AgentOS:adrs/0201-single-identity-orchestration` | **ADR** | 🟢 **Stable** | - | Decision: Single human committer identity. |
 | `docs/0208-ADR-client-side-preference-storage.md` | **ADR** | 🟢 **Stable** | - | Decision: chrome.storage.local for persistence. |
 | `docs/0209-ADR-static-compliance-hosting.md` | **ADR** | 🟢 **Stable** | - | Decision: GitHub Pages for legal docs. |
-| `docs/0210-ADR-git-worktree-isolation.md` | **ADR** | 🟢 **Stable** | - | Decision: Worktrees for feature isolation. |
+| `AgentOS:adrs/0202-git-worktree-isolation` | **ADR** | 🟢 **Stable** | - | Decision: Worktrees for feature isolation. |
 | `docs/0211-ADR-naked-python-architecture.md` | **ADR** | 🟢 **Stable** | #113 | Decision: Remove LangGraph, use boto3 directly. |
 | `docs/0212-ADR-unified-v3-secure-dom.md` | **ADR** | 🟢 **Stable** | #193, #194 | Decision: Manifest V3 + DOM methods for security. |
 
 ### 06xx Skill Instructions
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/0600-skill-instructions-index.md` | **Index** | 🟢 **Stable** | - | Index of all skill instructions. |
-| `docs/0601-skill-gemini-lld-review.md` | **Skill** | 🟢 **Stable** | - | Gemini LLD review procedure with priority tiers. |
+| `AgentOS:skills/0600-skill-index` | **Index** | 🟢 **Stable** | - | Index of all skill instructions. |
+| `AgentOS:skills/0601-gemini-lld-review` | **Skill** | 🟢 **Stable** | - | Gemini LLD review procedure with priority tiers. |
 
 ### 08xx Audit Procedures (Numbered by Execution Order)
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/0800-common-audits.md` | **Index** | 🟢 **Stable** | - | Master index of all audit procedures. |
+| `AgentOS:audits/AgentOS:audits/0800-audit-index` | **Index** | 🟢 **Stable** | - | Master index of all audit procedures. |
 | `docs/0801-open-issues-audit.md` | **Protocol** | 🟢 **Stable** | - | Check for complete/deprecated/stale issues. |
 | `docs/0802-reports-completeness-audit.md` | **Protocol** | 🟢 **Stable** | - | Verify closed issues have reports. |
 | `docs/0803-lld-code-audit.md` | **Protocol** | 🟢 **Stable** | - | Verify implementation matches LLD. |
 | `docs/0804-inventory-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect file inventory drift. |
 | `docs/0805-terminology-audit.md` | **Protocol** | 🟢 **Stable** | - | Detect stale terminology after renaming. |
 | `docs/0806-architecture-audit.md` | **Protocol** | 🟢 **Stable** | - | Architecture drift detection (strategic). |
-| `docs/0807-agentos-audit.md` | **Protocol** | 🟢 **Stable** | - | AgentOS health check (system self-audit). |
-| `docs/0808-audit-permission-permissiveness.md` | **Protocol** | 🟢 **Stable** | - | Agent permission maximization audit. |
-| `docs/0809-audit-security.md` | **Protocol** | 🟢 **Stable** | - | Security audit (OWASP, LLM, Agentic, Extension). |
-| `docs/0810-audit-privacy.md` | **Protocol** | 🟢 **Stable** | - | Privacy audit (IAPP, IEEE, NIST). |
-| `docs/0811-audit-accessibility.md` | **Protocol** | 🟢 **Stable** | - | Accessibility audit (WCAG 2.1). |
+| `AgentOS:audits/0807-agentos-health-audit` | **Protocol** | 🟢 **Stable** | - | AgentOS health check (system self-audit). |
+| `AgentOS:audits/0816-permission-permissiveness` | **Protocol** | 🟢 **Stable** | - | Agent permission maximization audit. |
+| `AgentOS:audits/0801-security-audit` | **Protocol** | 🟢 **Stable** | - | Security audit (OWASP, LLM, Agentic, Extension). |
+| `AgentOS:audits/0802-privacy-audit` | **Protocol** | 🟢 **Stable** | - | Privacy audit (IAPP, IEEE, NIST). |
+| `AgentOS:audits/0804-accessibility-audit` | **Protocol** | 🟢 **Stable** | - | Accessibility audit (WCAG 2.1). |
 | `docs/0812-audit-performance.md` | **Protocol** | 🟢 **Stable** | - | Performance audit (latency, memory, cost). |
-| `docs/0813-audit-code-quality.md` | **Protocol** | 🟢 **Stable** | - | Code quality audit (SOLID, complexity). |
-| `docs/0814-audit-license-compliance.md` | **Protocol** | 🟢 **Stable** | - | License compliance audit (SPDX). |
-| `docs/0815-audit-claude-capabilities.md` | **Protocol** | 🟢 **Stable** | - | Claude Code capabilities audit (weekly). |
+| `AgentOS:audits/0803-code-quality-audit` | **Protocol** | 🟢 **Stable** | - | Code quality audit (SOLID, complexity). |
+| `AgentOS:audits/0805-license-compliance` | **Protocol** | 🟢 **Stable** | - | License compliance audit (SPDX). |
+| `AgentOS:audits/0806-claude-capabilities` | **Protocol** | 🟢 **Stable** | - | Claude Code capabilities audit (weekly). |
 | `docs/0816-audit-dependabot-prs.md` | **Protocol** | 🟢 **Stable** | - | Dependabot PR audit with regression detection. Prerequisite for 0809. |
 | `docs/0817-audit-wiki-alignment.md` | **Protocol** | 🟢 **Stable** | - | Wiki alignment audit. Part of 0009 Full Mode. |
-| `docs/0899-meta-audit.md` | **Protocol** | 🟢 **Stable** | - | Meta-audit (audit of audits). |
+| `AgentOS:audits/0899-meta-audit` | **Protocol** | 🟢 **Stable** | - | Meta-audit (audit of audits). |
 
 ### Audit State (docs/audit-state/)
 | File | Role | Status | Linked Issue | Description |

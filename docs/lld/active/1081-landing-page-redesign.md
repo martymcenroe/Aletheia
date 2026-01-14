@@ -450,7 +450,7 @@ body {
 
 ## 11. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+*Ref: [AgentOS:standards/0007-testing-strategy](AgentOS:standards/0007-testing-strategy)*
 
 **Testing Philosophy:** Maximize automated testing. Visual design approval requires human judgment.
 

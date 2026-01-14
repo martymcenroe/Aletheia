@@ -402,8 +402,8 @@ Found working sites after WSJ blocked bots:
 - **"After you merge"**: Merged PR #135 directly (user does not merge)
 
 ### Closeout Protocol Improvements
-- **0102-TEMPLATE-feature-lld.md**: Updated to emphasize automation over manual tests
-- **0009-session-closeout-protocol.md**: Added "Section 0: Issue Completion Reports"
+- **AgentOS:templates/0102-lld-template**: Updated to emphasize automation over manual tests
+- **AgentOS:standards/0005-session-closeout-protocol**: Added "Section 0: Issue Completion Reports"
 - **9000-lessons-learned.md**: Added 2 lessons (automation, poetry run)
 
 ### Reports Created
@@ -431,8 +431,8 @@ Found working sites after WSJ blocked bots:
 
 ### Files Modified
 - `docs/1084-signal-inspector.md` (status→Complete)
-- `docs/0102-TEMPLATE-feature-lld.md` (testing philosophy)
-- `docs/0009-session-closeout-protocol.md` (Section 0 reports)
+- `AgentOS:templates/0102-lld-template` (testing philosophy)
+- `AgentOS:standards/0005-session-closeout-protocol` (Section 0 reports)
 - `docs/0003-file-inventory.md` (added #84 files + reports)
 - `docs/9000-lessons-learned.md` (2 new lessons)
 - `pyproject.toml` (added requests, beautifulsoup4, colorama, responses)
@@ -559,7 +559,7 @@ Completed Firefox MV2 extension support and Chrome/Firefox extension separation.
 - Replaced Unicode checkmarks with ASCII "OK" for Windows cp1252 console
 
 ### Documentation Updates
-- **0002-coding-standards.md:** Added Section 9.3 Dual-Extension Requirement
+- **AgentOS:standards/0002-coding-standards:** Added Section 9.3 Dual-Extension Requirement
 - **0003-file-inventory.md:** Updated for dual-extension structure
 - **GEMINI-HANDOFF-OVERLAY-TIMING.md:** Created for Gemini collaboration
 
@@ -575,7 +575,7 @@ Completed Firefox MV2 extension support and Chrome/Firefox extension separation.
 - `extension-firefox-V2/overlay.js` (timer management)
 - `extension-firefox-V2/service-worker.js` (browser.* API)
 - `deploy.sh` (UTF-8 encoding, ASCII output)
-- `docs/0002-coding-standards.md` (Section 9.3)
+- `AgentOS:standards/0002-coding-standards` (Section 9.3)
 - `docs/0003-file-inventory.md` (dual-extension inventory)
 
 ### Issues
@@ -608,7 +608,7 @@ Completed Firefox MV2 extension support and Chrome/Firefox extension separation.
 ## 2026-01-01 19:30-19:36 CT | Claude Opus 4.5
 
 ### Summary
-Continuation session to verify Issue #95 closeout was complete. Re-executed full 0009-session-closeout-protocol from beginning. All steps verified complete. Committed pending permissions update and regenerated 6000-open-issues.md. Turned Lambda OFF for cost control.
+Continuation session to verify Issue #95 closeout was complete. Re-executed full AgentOS:standards/0005-session-closeout-protocol from beginning. All steps verified complete. Committed pending permissions update and regenerated 6000-open-issues.md. Turned Lambda OFF for cost control.
 
 ### 0009 Protocol Verification
 | Step | Status | Notes |
@@ -949,7 +949,7 @@ Re-implemented #104 age-gate feature in fresh branch after merge conflicts made 
 - PR #140 merged, issue #104 closed
 
 ### Documentation
-- Consolidated `0009-session-closeout-protocol.md` and `0011-environment-cleanup-checklist.md` into single document
+- Consolidated `AgentOS:standards/0005-session-closeout-protocol` and `0011-environment-cleanup-checklist.md` into single document
 - Two modes: Session Mode (5-10 min) and Full Mode (20-30 min)
 - Updated all references in 0000-GUIDE, 0003, 0800, 0805
 - Deleted 0011
@@ -998,12 +998,12 @@ Comprehensive audit framework session. Created 6 new audit types (0811-0815, 089
 - **Dependabot:** Configured `.github/dependabot.yml` for Python, npm, GitHub Actions
 
 ### New Audit Documents Created
-- `docs/0811-audit-accessibility.md` - WCAG 2.1 compliance
+- `AgentOS:audits/0804-accessibility-audit` - WCAG 2.1 compliance
 - `docs/0812-audit-performance.md` - Lambda/extension benchmarks
-- `docs/0813-audit-code-quality.md` - SOLID, complexity metrics
-- `docs/0814-audit-license-compliance.md` - SPDX compatibility
-- `docs/0815-audit-claude-capabilities.md` - Weekly Claude Code tracking
-- `docs/0899-meta-audit.md` - Audit of audits
+- `AgentOS:audits/0803-code-quality-audit` - SOLID, complexity metrics
+- `AgentOS:audits/0805-license-compliance` - SPDX compatibility
+- `AgentOS:audits/0806-claude-capabilities` - Weekly Claude Code tracking
+- `AgentOS:audits/0899-meta-audit` - Audit of audits
 
 ### Code Fixes
 - `src/guardrails/semantic.py` - Added `<user_text>` XML wrapping (F1 fix)
@@ -1117,7 +1117,7 @@ Tested 0009 closeout procedure autonomy. Discovered two permission blockers: (1)
 ### Documentation Fixes
 - **0000-GUIDE.md:** Added missing 0006-0015 standards, added missing 01xx templates
 - **CLAUDE.md:** Added mandatory Session Closeout section referencing 0009
-- **0807-agentos-audit.md:** Added Step 7 - verify 0000-GUIDE lists all actual files
+- **AgentOS:audits/0807-agentos-health-audit:** Added Step 7 - verify 0000-GUIDE lists all actual files
 - **9000-lessons-learned.md:** Added "never guess filenames" lesson
 
 ### Commits

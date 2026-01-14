@@ -65,9 +65,9 @@ This is a documentation audit, not code. Standard Willison Protocol (automated t
 
 | File | Classification | Rationale Valid? | Notes |
 |------|----------------|------------------|-------|
-| `0899-meta-audit.md` | a-core | TBD | Generic meta-audit |
+| `AgentOS:audits/0899-meta-audit` | a-core | TBD | Generic meta-audit |
 | `0001-architecture.md` | a-tmpl | TBD | C4 structure reusable |
-| `0809-audit-security.md` | a-split | TBD | OWASP generic, browser specific |
+| `AgentOS:audits/0801-security-audit` | a-split | TBD | OWASP generic, browser specific |
 | `0201-ADR-privacy-first-permissions.md` | proj | TBD | Chrome extension specific |
 
 ## 5. Known Issues

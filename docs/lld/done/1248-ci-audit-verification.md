@@ -292,7 +292,7 @@ r"08(\d{2})\s+(?:Security|Privacy|Performance|Accessibility|Code Quality).*?(PAS
 **Context Filtering (per Gemini G1.HIGH):**
 Claims are only extracted when the parser is inside a `### Summary` section. This prevents false positives from general discussion text mentioning audit IDs.
 
-### Audit Record Format (from 0800-audit-index.md)
+### Audit Record Format (from AgentOS:audits/0800-audit-index)
 
 ```markdown
 | Date | Auditor | Findings Summary | Issues Created |

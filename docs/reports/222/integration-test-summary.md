@@ -124,7 +124,7 @@ ACK. State determination complete. Model: gemini-3-pro-preview.
 
 **Quality Assessment:**
 - ✓ Specific, actionable feedback
-- ✓ References project standards (docs/0102-TEMPLATE-feature-lld.md)
+- ✓ References project standards (AgentOS:templates/0102-lld-template)
 - ✓ Security analysis included
 - ✓ Correct priority markers used
 - ✓ No implementation offers (filtered correctly)
@@ -231,7 +231,7 @@ and the Definition of Done requires alignment with project governance standards 
 - Template includes all required placeholders
 - One-shot context added to prevent handshake
 - Output instructions clear: "Return ONLY the formatted session log entry"
-- Template references docs/0100-TEMPLATE-GUIDE.md
+- Template references AgentOS:templates/0100-template-index
 
 **Status:** ✓ PASS (Template ready for use)
 

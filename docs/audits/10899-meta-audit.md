@@ -237,8 +237,8 @@ Registry/index files must stay synchronized with actual files.
 |------------|---------|---------------------|
 | `0003-file-inventory.md` | All project files | `git ls-files` comparison |
 | `0200-ADR-index.md` | ADR documents | Glob `docs/02*-ADR-*.md` |
-| `0800-audit-index.md` | Audit documents | Glob `docs/08*-audit-*.md` |
-| `0100-TEMPLATE-GUIDE.md` | Template files | Glob `docs/01*-TEMPLATE-*.md` |
+| `AgentOS:audits/0800-audit-index` | Audit documents | Glob `docs/08*-audit-*.md` |
+| `AgentOS:templates/0100-template-index` | Template files | Glob `docs/01*-TEMPLATE-*.md` |
 
 **Verification Procedure:**
 
@@ -333,8 +333,8 @@ Registry/index files must stay synchronized with actual files.
 ## 12. References
 
 ### Internal
-- docs/0800-audit-index.md - Audit suite overview
-- docs/0898-horizon-scanning-protocol.md - Gap discovery
+- AgentOS:audits/0800-audit-index - Audit suite overview
+- AgentOS:audits/0815-horizon-scanning - Gap discovery
 - All 08xx audit documents
 
 ### External

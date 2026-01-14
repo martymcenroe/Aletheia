@@ -12,15 +12,15 @@ One-liner summaries of all Architecture Decision Records. Click through for full
 | [0204](0204-ADR-defense-funnel.md) | Defense Funnel (Fail Fast) | 4-layer ordered pipeline: Selection → Denylist → Semantic → Transform | Final |
 | [0205](0205-ADR-langgraph-orchestration.md) | LangGraph for Agent Orchestration | *Superseded by ADR-0211* | Superseded |
 | [0206](0206-ADR-streaming-sse.md) | Server-Sent Events for Streaming | SSE via Lambda streaming for <500ms TTFB | Final |
-| [0207](0207-ADR-single-identity-orchestration.md) | Single-Identity Orchestration | One orchestrator (human) coordinates all AI agents | Final |
+| [0207](AgentOS:adrs/0201-single-identity-orchestration) | Single-Identity Orchestration | One orchestrator (human) coordinates all AI agents | Final |
 | [0208](0208-ADR-client-side-preference-storage.md) | Client-Side Preference Storage | User preferences stored in browser, never sent to backend | Final |
 | [0209](0209-ADR-static-compliance-hosting.md) | Static Compliance Hosting | Privacy policy/ToS on static S3/CloudFront, not in extension | Final |
-| [0210](0210-ADR-git-worktree-isolation.md) | Git Worktree Isolation | Each feature gets isolated worktree, never commit to main | Final |
+| [0210](AgentOS:adrs/0202-git-worktree-isolation) | Git Worktree Isolation | Each feature gets isolated worktree, never commit to main | Final |
 | [0211](0211-ADR-naked-python-architecture.md) | Naked Python Architecture | Replace LangChain with direct boto3 for minimal cold start | Final |
 | [0212](0212-ADR-unified-v3-secure-dom.md) | Unified Manifest V3 & Secure DOM | Single codebase for Chrome MV3 and Firefox MV2 | Accepted |
-| [0213](0213-ADR-adversarial-audit-philosophy.md) | Adversarial Audit Philosophy | Audits assume attacker mindset; verify, don't trust | Proposed |
-| [0214](0214-ADR-claude-staging-pattern.md) | Claude-Staging Pattern | Stage changes, get approval, then commit (never auto-commit) | Final |
-| [0215](0215-ADR-test-first-philosophy.md) | Test-First Philosophy | Tests specify behavior before implementation | Accepted |
+| [0213](AgentOS:adrs/0203-adversarial-audit-philosophy) | Adversarial Audit Philosophy | Audits assume attacker mindset; verify, don't trust | Proposed |
+| [0214](AgentOS:adrs/0204-claude-staging-pattern) | Claude-Staging Pattern | Stage changes, get approval, then commit (never auto-commit) | Final |
+| [0215](AgentOS:adrs/0205-test-first-philosophy) | Test-First Philosophy | Tests specify behavior before implementation | Accepted |
 
 ## By Category
 
@@ -28,7 +28,7 @@ One-liner summaries of all Architecture Decision Records. Click through for full
 - [0201](0201-ADR-privacy-first-permissions.md) - Minimal extension permissions
 - [0202](0202-ADR-shadow-dom-isolation.md) - DOM isolation
 - [0208](0208-ADR-client-side-preference-storage.md) - No server-side user data
-- [0213](0213-ADR-adversarial-audit-philosophy.md) - Security-first audits
+- [0213](AgentOS:adrs/0203-adversarial-audit-philosophy) - Security-first audits
 
 ### Architecture & Performance
 - [0203](0203-ADR-stateful-serverless.md) - State management
@@ -38,10 +38,10 @@ One-liner summaries of all Architecture Decision Records. Click through for full
 - [0212](0212-ADR-unified-v3-secure-dom.md) - Cross-browser architecture
 
 ### Process & Governance
-- [0207](0207-ADR-single-identity-orchestration.md) - AI agent coordination
-- [0210](0210-ADR-git-worktree-isolation.md) - Git workflow
-- [0214](0214-ADR-claude-staging-pattern.md) - Change management
-- [0215](0215-ADR-test-first-philosophy.md) - Testing approach
+- [0207](AgentOS:adrs/0201-single-identity-orchestration) - AI agent coordination
+- [0210](AgentOS:adrs/0202-git-worktree-isolation) - Git workflow
+- [0214](AgentOS:adrs/0204-claude-staging-pattern) - Change management
+- [0215](AgentOS:adrs/0205-test-first-philosophy) - Testing approach
 
 ### Infrastructure
 - [0209](0209-ADR-static-compliance-hosting.md) - Static hosting

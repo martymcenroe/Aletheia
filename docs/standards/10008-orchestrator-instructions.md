@@ -1,7 +1,7 @@
 # 0008 - Orchestrator Instructions
 
 > **DEPRECATED (2026-01-09):** This document is superseded by the **09xx Operational Runbooks** namespace.
-> See `docs/0900-runbook-index.md` for the new structure.
+> See `AgentOS:runbooks/0900-runbook-index` for the new structure.
 > This file is retained for historical reference per WORM policy.
 
 ---
@@ -60,7 +60,7 @@ When switching between agents:
 - [ ] Inventory updated if new files created
 
 ### 3.2 Before Ending Any Session
-- [ ] Follow `0009-session-closeout-protocol.md`
+- [ ] Follow `AgentOS:standards/0005-session-closeout-protocol`
 
 ## 4. Cost Optimization
 

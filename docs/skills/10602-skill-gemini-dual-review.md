@@ -104,7 +104,7 @@ Before using this skill, ensure:
 - OR: File saved matching pattern `docs/lld/active/*.md`
 
 **Process:**
-1. Claude writes LLD using template `docs/0102-TEMPLATE-feature-lld.md`
+1. Claude writes LLD using template `AgentOS:templates/0102-lld-template`
 2. Claude saves LLD to `docs/lld/active/{issue-id}-{feature-name}.md`
 3. **AUTO-INVOKE GEMINI:**
    - Load prompt from `gemini-prompts/lld-review.txt`
@@ -197,7 +197,7 @@ Before using this skill, ensure:
 
 **Process:**
 1. **Claude Drafts Issue:**
-   - Load template: `docs/0101-TEMPLATE-issue.md`
+   - Load template: `AgentOS:templates/0101-issue-template`
    - Populate sections based on user request
 2. **AUTO-INVOKE GEMINI:**
    - Load prompt from `gemini-prompts/issue-review.txt`
@@ -245,7 +245,7 @@ Before using this skill, ensure:
    - Gemini writes directly to `docs/session-logs/YYYY-MM-DD.md`
 4. **VALIDATE FORMAT:**
    - Claude reads session log file
-   - Check structure matches template from `docs/0100-TEMPLATE-GUIDE.md`
+   - Check structure matches template from `AgentOS:templates/0100-template-index`
    - If invalid → Warn user + offer to rewrite
 5. **COMMIT:**
    - `git add docs/session-logs/YYYY-MM-DD.md`
@@ -341,7 +341,7 @@ All prompts use `{{PLACEHOLDER}}` syntax for variable replacement:
 You are reviewing a Low-Level Design document for the Aletheia project.
 
 CRITICAL INSTRUCTIONS:
-1. Follow the review process in docs/0601-skill-gemini-lld-review.md
+1. Follow the review process in AgentOS:skills/0601-gemini-lld-review
 2. Use the three-tier priority system:
    - [BLOCKING] - Must fix before implementation
    - [HIGH] - Should fix before implementation
@@ -641,12 +641,12 @@ Prompts are versioned in git for audit trail:
 
 ## References
 
-- **0004-orchestration-protocol.md** - 12-step workflow, review gates
-- **0601-skill-gemini-lld-review.md** - Gemini's LLD review procedure (3-tier priority system)
-- **0100-TEMPLATE-GUIDE.md** - Session log format specification
-- **0102-TEMPLATE-feature-lld.md** - LLD template structure
-- **0101-TEMPLATE-issue.md** - Issue template structure
-- **0009-session-closeout-protocol.md** - Session cleanup procedure
+- **AgentOS:standards/0001-orchestration-protocol** - 12-step workflow, review gates
+- **AgentOS:skills/0601-gemini-lld-review** - Gemini's LLD review procedure (3-tier priority system)
+- **AgentOS:templates/0100-template-index** - Session log format specification
+- **AgentOS:templates/0102-lld-template** - LLD template structure
+- **AgentOS:templates/0101-issue-template** - Issue template structure
+- **AgentOS:standards/0005-session-closeout-protocol** - Session cleanup procedure
 
 ---
 

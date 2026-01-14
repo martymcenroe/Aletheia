@@ -40,7 +40,7 @@ Key capabilities:
 | `extensions/chrome/overlay.js` | +50 lines | Added score display CSS and rendering logic |
 | `extensions/firefox/overlay.js` | +50 lines | Mirror of Chrome changes |
 | `tests/unit/test_lambda_handler.py` | +80 lines | Added `TestProcessScoresForDisplay` test class |
-| `docs/0009-session-closeout-protocol.md` | +10 lines | Added Gemini auth restore to full cleanup |
+| `AgentOS:standards/0005-session-closeout-protocol` | +10 lines | Added Gemini auth restore to full cleanup |
 | `CLAUDE.md` | +20 lines | Documented Gemini quota exhaustion handling |
 
 ## 5. Deviations from LLD

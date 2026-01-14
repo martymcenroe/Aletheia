@@ -64,7 +64,7 @@ No code tests required. Verification is by completeness check:
 ## 8. Lessons Learned
 
 - **Duplicate file number discovered:** 0827 is used for both `audit-infrastructure-integration.md` and `audit-web-assets.md`. This should be corrected.
-- **Classification is subjective at boundaries:** Some files (like `0002-coding-standards.md`) contain mostly generic content with a few project-specific references. The "split" category captures this ambiguity well.
+- **Classification is subjective at boundaries:** Some files (like `AgentOS:standards/0002-coding-standards`) contain mostly generic content with a few project-specific references. The "split" category captures this ambiguity well.
 - **The 7xxx series is unused:** Good choice for migration/transition documents.
 
 ## 9. Open Issues

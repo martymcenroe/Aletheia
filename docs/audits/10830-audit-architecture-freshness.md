@@ -173,9 +173,9 @@ Check all audit links in quality attributes resolve:
 
 ```bash
 # Verify linked audits exist
-ls docs/0809-audit-security.md
-ls docs/0810-audit-privacy.md
-ls docs/0811-audit-accessibility.md
+ls AgentOS:audits/0801-security-audit
+ls AgentOS:audits/0802-privacy-audit
+ls AgentOS:audits/0804-accessibility-audit
 ls docs/0812-audit-performance.md
 ```
 
@@ -297,7 +297,7 @@ This audit is triggered by:
 
 - `/audit` command (runs all audits including this)
 - `/cleanup --full` (comprehensive cleanup)
-- Monthly schedule per [0800-audit-index.md](0800-audit-index.md)
+- Monthly schedule per [0800-audit-index.md](AgentOS:audits/0800-audit-index)
 
 ---
 

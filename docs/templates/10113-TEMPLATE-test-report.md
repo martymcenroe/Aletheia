@@ -17,7 +17,7 @@ After completing implementation and testing:
 3. Record manual smoke test results from orchestrator
 4. Optionally save raw pytest output to `test-output.log`
 
-**This is the Willison Protocol evidence.** See `docs/0005-testing-strategy-and-protocols.md` Section 5.
+**This is the Willison Protocol evidence.** See `AgentOS:standards/0007-testing-strategy` Section 5.
 
 ---
 

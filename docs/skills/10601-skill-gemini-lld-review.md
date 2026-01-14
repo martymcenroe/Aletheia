@@ -11,9 +11,9 @@
 
 ## Phase 2: Context Loading
 
-1. Read `docs/0102-TEMPLATE-feature-lld.md` - the LLD template (baseline for evaluation)
-2. Read `docs/0108-lld-pre-implementation-review.md` - the review checklist
-3. Read `docs/0005-testing-strategy-and-protocols.md` - testing requirements
+1. Read `AgentOS:templates/0102-lld-template` - the LLD template (baseline for evaluation)
+2. Read `AgentOS:templates/0108-lld-pre-impl-review` - the review checklist
+3. Read `AgentOS:standards/0007-testing-strategy` - testing requirements
 
 ## Phase 3: LLD Review
 

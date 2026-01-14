@@ -32,7 +32,7 @@ Created the Cyber-Gothic Lambda branding assets for Aletheia. This includes the 
 |------|---------|-------------|
 | `extension/manifest.json` | +15 lines | Added icon references and privacy settings |
 | `docs/0001-system-architecture.md` | +1 line | Referenced branding |
-| `docs/0004-orchestration-protocol.md` | +39 lines | Mini-Sprint protocol |
+| `AgentOS:standards/0001-orchestration-protocol` | +39 lines | Mini-Sprint protocol |
 
 ## 5. Deviations from LLD
 

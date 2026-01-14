@@ -32,7 +32,7 @@ When this feature is complete:
 
 ## 4. Data & Fixtures
 
-*Per [0108-lld-pre-implementation-review.md](0108-lld-pre-implementation-review.md)*
+*Per [AgentOS:templates/0108-lld-pre-impl-review](AgentOS:templates/0108-lld-pre-impl-review)*
 
 ### 4.1 Data Sources
 
@@ -274,7 +274,7 @@ def lambda_handler(event, context):
 
 ## 11. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+*Ref: [AgentOS:standards/0007-testing-strategy](AgentOS:standards/0007-testing-strategy)*
 
 ### 11.1 Test Scenarios
 

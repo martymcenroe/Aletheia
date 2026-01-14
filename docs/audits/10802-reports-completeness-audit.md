@@ -83,8 +83,8 @@ Manual steps:
 1. Read the LLD (`docs/lld/done/1{ISSUE_ID}-*.md`)
 2. Read session logs for implementation context
 3. Create reports using templates:
-   - `docs/0103-TEMPLATE-implementation-report.md`
-   - `docs/0113-TEMPLATE-test-report.md`
+   - `AgentOS:templates/0103-implementation-report-template`
+   - `AgentOS:templates/0107-test-report-template`
 4. Commit with message: `docs: add missing reports for Issue #{ID}`
 
 ## Exceptions
@@ -93,7 +93,7 @@ Manual steps:
 |------------|-------------------|-------|
 | Feature implementation | Yes | Both reports required |
 | Bug fix | Yes | Both reports required |
-| Implementation plan (process/config) | No | Plan is self-contained (see `0105-TEMPLATE-implementation-plan.md`) |
+| Implementation plan (process/config) | No | Plan is self-contained (see `AgentOS:templates/0105-implementation-plan-template`) |
 | Documentation only | No | No code = no test report |
 | Chore (deps, formatting) | No | Minor changes exempt |
 | Superseded/Deprecated | No | Closed without implementation |
@@ -121,5 +121,5 @@ Manual steps:
 ## Integration
 
 Referenced by:
-- `docs/0004-orchestration-protocol.md` §8.6
-- `docs/0009-session-closeout-protocol.md`
+- `AgentOS:standards/0001-orchestration-protocol` §8.6
+- `AgentOS:standards/0005-session-closeout-protocol`

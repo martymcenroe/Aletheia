@@ -27,7 +27,7 @@ Run the AgentOS Audit (0807) with extended analysis. Use ultrathink for deep con
 
 ## What It Does
 
-Invokes `docs/0807-agentos-audit.md` with extended analysis to detect:
+Invokes `AgentOS:audits/0807-agentos-health-audit` with extended analysis to detect:
 
 ### 1. Conflict Detection
 - Cross-reference all gate definitions (CLAUDE.md, 0000-GUIDE, 0002, 0004)
@@ -83,9 +83,9 @@ When Claude offers to create issues:
 
 ## Related Documents
 
-- `docs/0807-agentos-audit.md` - The audit procedure itself
-- `docs/0899-meta-audit.md` - Audits the audits
-- `docs/0900-runbook-index.md` - Index of all runbooks
+- `AgentOS:audits/0807-agentos-health-audit` - The audit procedure itself
+- `AgentOS:audits/0899-meta-audit` - Audits the audits
+- `AgentOS:runbooks/0900-runbook-index` - Index of all runbooks
 - `CLAUDE.md` - Agent operating procedures
 
 ## History

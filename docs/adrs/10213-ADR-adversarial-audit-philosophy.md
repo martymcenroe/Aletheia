@@ -214,7 +214,7 @@ Actively attempt these attacks during audit:
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/) - Adversarial testing methodology
 - [Red Team Handbook](https://www.mitre.org/publications/technical-papers/red-team-handbook) - MITRE adversarial operations
 - [Google's Bug Hunters](https://bughunters.google.com/) - Vulnerability reward program philosophy
-- [ADR 0210](0210-ADR-git-worktree-isolation.md) - Example of process ADR
+- [ADR 0210](AgentOS:adrs/0202-git-worktree-isolation) - Example of process ADR
 
 ---
 

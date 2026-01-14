@@ -60,7 +60,7 @@ Changed from `mode:'closed'` to `mode:'open'` to allow `updateAletheiaOverlay()`
 - `extension-chrome-V3/overlay.js` (timer management)
 - `extension-chrome-V3/service-worker.js` (30s timeout, context menu fix)
 - `deploy.sh` (UTF-8 encoding fix)
-- `docs/0002-coding-standards.md` (Section 9.3 dual-extension requirement)
+- `AgentOS:standards/0002-coding-standards` (Section 9.3 dual-extension requirement)
 - `docs/0003-file-inventory.md` (updated for new structure)
 
 ## 5. Deviations from LLD

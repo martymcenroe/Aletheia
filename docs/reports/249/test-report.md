@@ -52,7 +52,7 @@ Verified table parsing extracts correct fields:
 
 ```bash
 # Hook triggers on audit file changes
-git add docs/0811-audit-accessibility.md
+git add AgentOS:audits/0804-accessibility-audit
 git commit -m "test"
 # Output: "Audit Record Compliance...OK"
 ```
@@ -67,7 +67,7 @@ files: ^docs/08.*-audit-.*\.md$
 
 | File | Should Match | Result |
 |------|--------------|--------|
-| `docs/0811-audit-accessibility.md` | Yes | PASS |
+| `AgentOS:audits/0804-accessibility-audit` | Yes | PASS |
 | `docs/0001-system-architecture.md` | No | PASS |
 | `src/lambda_function.py` | No | PASS |
 

@@ -21,7 +21,7 @@
 
 ## 3. Diagram
 
-*Ref: [0006-mermaid-diagrams.md](0006-mermaid-diagrams.md)*
+*Ref: [AgentOS:standards/0004-mermaid-diagrams](AgentOS:standards/0004-mermaid-diagrams)*
 
 ```mermaid
 flowchart TD
@@ -209,7 +209,7 @@ A high-fidelity interactive React prototype was created during design review:
 
 ## 6. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+*Ref: [AgentOS:standards/0007-testing-strategy](AgentOS:standards/0007-testing-strategy)*
 
 ### 6.1 Test Scenarios
 

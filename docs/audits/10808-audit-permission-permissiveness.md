@@ -315,8 +315,8 @@ Path: C:\Users\mcwiz\.claude\projects\C--Users-mcwiz-Projects-Aletheia\archive
 
 ## 10. References
 
-- `docs/0824-audit-permission-friction.md` - Friction pattern analysis (complementary)
-- `docs/0015-agent-prohibited-actions.md` - Policy document
+- `AgentOS:audits/0817-permission-friction` - Friction pattern analysis (complementary)
+- `AgentOS:standards/0003-agent-prohibited-actions` - Policy document
 - `.claude/settings.local.json` - Permission implementation
 - `CLAUDE.md` - Workflow rules and friction prevention
 - `tools/archive_transcripts.py` - Archival script

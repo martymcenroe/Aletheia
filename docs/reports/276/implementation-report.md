@@ -6,7 +6,7 @@ Implemented transcript archival infrastructure and redesigned 0808 audit from a 
 
 ## Changes Made
 
-### 1. Redesigned 0808 Audit (`docs/0808-audit-permission-permissiveness.md`)
+### 1. Redesigned 0808 Audit (`AgentOS:audits/0816-permission-permissiveness`)
 
 **Before:** Static checklist verifying settings.local.json configuration.
 
@@ -48,7 +48,7 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/archive_transcripts.py
 
 ### 5. Updated Documentation
 
-- **`docs/0800-audit-index.md`**: Updated 0808 description from "permission policy" to "permission problem mining"
+- **`AgentOS:audits/0800-audit-index`**: Updated 0808 description from "permission policy" to "permission problem mining"
 - **`docs/0003-file-inventory.md`**: Added new files (checkpoint.json, archive_transcripts.py)
 
 ## Design Decisions
@@ -63,11 +63,11 @@ poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/archive_transcripts.py
 
 | File | Change |
 |------|--------|
-| `docs/0808-audit-permission-permissiveness.md` | Replaced (complete rewrite) |
+| `AgentOS:audits/0816-permission-permissiveness` | Replaced (complete rewrite) |
 | `docs/audit-state/0808-checkpoint.json` | Created |
 | `tools/archive_transcripts.py` | Created |
 | `.claude/commands/cleanup.md` | Modified (added archival step) |
-| `docs/0800-audit-index.md` | Modified (updated 0808 description) |
+| `AgentOS:audits/0800-audit-index` | Modified (updated 0808 description) |
 | `docs/0003-file-inventory.md` | Modified (added new files) |
 
 ## Verification

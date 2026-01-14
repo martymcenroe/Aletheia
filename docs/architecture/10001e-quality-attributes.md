@@ -28,7 +28,7 @@ Non-functional requirements with targets, current status, and evidence.
 
 | Metric | Target | Current | Evidence |
 |--------|--------|---------|----------|
-| PII storage | None | None | [0810 Privacy Audit](0810-audit-privacy.md) |
+| PII storage | None | None | [0810 Privacy Audit](AgentOS:audits/0802-privacy-audit) |
 | Data retention | <48h | 24h TTL | DynamoDB TTL configuration |
 | User tracking | None | None | No cookies, no analytics |
 
@@ -50,7 +50,7 @@ Non-functional requirements with targets, current status, and evidence.
 
 | Metric | Target | Current | Evidence |
 |--------|--------|---------|----------|
-| OWASP LLM Top 10 | Compliant | Passing | [0809 Security Audit](0809-audit-security.md) |
+| OWASP LLM Top 10 | Compliant | Passing | [0809 Security Audit](AgentOS:audits/0801-security-audit) |
 | Extension permissions | Minimal | `activeTab` only | [ADR-0201](0201-ADR-privacy-first-permissions.md) |
 | Prompt injection | Protected | XML wrapping | [LLD-1124 §6.3](lld/done/1124-digital-etymologist.md) |
 
@@ -65,7 +65,7 @@ Non-functional requirements with targets, current status, and evidence.
 - Strict permissions limit proactive features
 - Rate limiting may frustrate power users
 
-**Deep Dive:** [0825 AI Safety Audit](0825-audit-ai-safety.md), [LLD-1095 Security Hardening](lld/done/1095-security-hardening.md)
+**Deep Dive:** [0825 AI Safety Audit](AgentOS:audits/0808-ai-safety-audit), [LLD-1095 Security Hardening](lld/done/1095-security-hardening.md)
 
 ---
 
@@ -73,7 +73,7 @@ Non-functional requirements with targets, current status, and evidence.
 
 | Metric | Target | Current | Evidence |
 |--------|--------|---------|----------|
-| WCAG 2.1 | AA | Passing | [0811 Accessibility Audit](0811-audit-accessibility.md) |
+| WCAG 2.1 | AA | Passing | [0811 Accessibility Audit](AgentOS:audits/0804-accessibility-audit) |
 | Keyboard navigation | Full | Implemented | Overlay focusable, Escape closes |
 | Screen reader | Compatible | ARIA labels | `aria-live`, `aria-expanded` |
 

@@ -68,7 +68,7 @@ def analyze_context(word: str, raw_context: str) -> ComplianceReport:
 
 ## 6. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md*](https://www.google.com/search?q=../0005-testing-strategy-and-protocols.md)
+*Ref: [AgentOS:standards/0007-testing-strategy*](AgentOS:standards/0007-testing-strategy)
 
 ### 6.1 Test Modules
 

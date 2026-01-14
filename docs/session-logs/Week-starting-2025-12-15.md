@@ -9,7 +9,7 @@
 Cleaned up branch hygiene, audited docs, created testing strategy with Gemini.
 
 ### Files Modified
-- docs/0002-coding-standards.md (added naming conventions)
+- AgentOS:standards/0002-coding-standards (added naming conventions)
 - docs/0003-file-inventory.md (renamed entries)
 - docs/1041-1045 (added testing sections)
 
@@ -36,7 +36,7 @@ Created log inspector tool, established testing strategy doc.
 
 ### Files Modified
 - tools/log_viewer.py (new)
-- docs/0005-testing-strategy-and-protocols.md (new)
+- AgentOS:standards/0007-testing-strategy (new)
 - docs/0003-file-inventory.md (status overhaul)
 
 ### Issues Closed
@@ -50,7 +50,7 @@ Created log inspector tool, established testing strategy doc.
 ---
 ## 2025-12-21 11:38 CT | Gemini 3 Pro
 * **Summary:** Refactored Store Compliance spec (Issue #51) to standard; successfully registered Developer Dashboard account; defined "Multi-Model Verification Protocol" (Issue #50); formalized specs for Whitelist (#76) and Feedback Overlay (#77).
-* **Files Modified:** `docs/1051-store-compliance.md`, `docs/0004-orchestration-protocol.md`, `docs/1076-whitelist-popup.md`, `docs/1077-feedback-overlay.md`.
+* **Files Modified:** `docs/1051-store-compliance.md`, `AgentOS:standards/0001-orchestration-protocol`, `docs/1076-whitelist-popup.md`, `docs/1077-feedback-overlay.md`.
 * **Issues Closed/Created:** Created feature docs for #76 & #77. #51 remains Open (Hold for frontend assets).
 * **Open Questions:** Awaiting frontend implementation and assets from Claude for #76/#77 to unblock #51 submission.
 * **State on Exit:** Main branch clean. Prepared context files for "Great Audit" in fresh session.
@@ -59,7 +59,7 @@ Created log inspector tool, established testing strategy doc.
 
 ## 2025-12-21 13:46 CT | Gemini 3 Pro
 * **Summary:** Performed "Great Audit". Remedied "Zombie Features" by creating LLD for Compliance Engine (#14). Updated System Architecture (0001) with Component and Sequence diagrams to fix "Missing Big Picture". Updated Feature Template (0102) to include Diagrams. Parked Linting (Issue #58).
-* **Files Modified:** `docs/0001-system-architecture.md`, `docs/1014-compliance-engine.md`, `docs/0102-TEMPLATE-feature-lld.md`, `docs/9001-open-investigations.md`, `.gitignore`.
+* **Files Modified:** `docs/0001-system-architecture.md`, `docs/1014-compliance-engine.md`, `AgentOS:templates/0102-lld-template`, `docs/9001-open-investigations.md`, `.gitignore`.
 * **Issues Closed/Created:** Created Issue #79 (Wire Agent). Created Issue #78 (Firing Range).
 * **State on Exit:** Architecture documentation matches reality. Code (agent.py) identified as lagging.
 
@@ -110,10 +110,10 @@ N/A
 **Files Created:**
 - `docs/1076-allowlist-popup.md` (ready to commit)
 - `docs/prototypes/popup-prototype.jsx` (ready to commit)
-- `docs/0004-orchestration-protocol.md` (merged v1+v2, ready to commit)
+- `AgentOS:standards/0001-orchestration-protocol` (merged v1+v2, ready to commit)
 
 **Files Modified:**
-- `docs/0006-mermaid-diagrams.md` (renamed from 006)
+- `AgentOS:standards/0004-mermaid-diagrams` (renamed from 006)
 
 **Issues:**
 - #76: LLD approved, ready for implementation

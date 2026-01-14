@@ -26,7 +26,7 @@
 
 ## 4. Data & Fixtures
 
-*Per [0108-lld-pre-implementation-review.md](0108-lld-pre-implementation-review.md) - complete this section BEFORE implementation.*
+*Per [0108-lld-pre-implementation-review.md](AgentOS:templates/0108-lld-pre-impl-review) - complete this section BEFORE implementation.*
 
 ### 4.1 Data Sources
 
@@ -84,7 +84,7 @@ AI agents MUST render and view the diagram before committing:
 - Flow clarity: [ ] Clear / [ ] Issue: ___
 ```
 
-*Reference: [0006-mermaid-diagrams.md](0006-mermaid-diagrams.md)*
+*Reference: [AgentOS:standards/0004-mermaid-diagrams](AgentOS:standards/0004-mermaid-diagrams)*
 
 ### 5.2 Diagram
 
@@ -162,7 +162,7 @@ def function_name(param: Type) -> ReturnType:
 
 ## 11. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+*Ref: [AgentOS:standards/0007-testing-strategy](AgentOS:standards/0007-testing-strategy)*
 
 **Testing Philosophy:** Strive for 100% automated test coverage. Manual tests are a last resort for scenarios that genuinely cannot be automated (e.g., visual inspection, hardware interaction). Every scenario marked "Manual" requires justification.
 

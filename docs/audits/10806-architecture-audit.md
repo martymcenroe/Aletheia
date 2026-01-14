@@ -9,15 +9,15 @@
 
 1.  **Read Core Architecture:**
     - `docs/0001-architecture.md` (Landing Page) and sub-documents (0001a-g)
-    - `docs/0002-coding-standards.md` (The Rules)
-    - `docs/0004-orchestration-protocol.md` (The Process)
+    - `AgentOS:standards/0002-coding-standards` (The Rules)
+    - `AgentOS:standards/0001-orchestration-protocol` (The Process)
     - `docs/0200-ADR-index.md` (The Decisions)
 
 2.  **Read Feature Definitions (LLDs):**
     - Scan all `docs/1xxx-*.md` files. These are the promises we made.
 
 3.  **Read the Criteria:**
-    - `docs/0601-skill-gemini-lld-review.md` (Specifically the Tier 1/2/3 tables).
+    - `AgentOS:skills/0601-gemini-lld-review` (Specifically the Tier 1/2/3 tables).
 
 ## Phase 2: Code Inspection (The Territory)
 
@@ -29,7 +29,7 @@ Read the following critical paths to determine the "As-Built" reality:
 
 ## Phase 3: The Gap Analysis
 
-Compare **Code vs. Docs** using the specific categories from `docs/0601-skill-gemini-lld-review.md`.
+Compare **Code vs. Docs** using the specific categories from `AgentOS:skills/0601-gemini-lld-review`.
 
 ### Tier 1: Security & Correctness (Blocking)
 * **Auth/AuthZ:** Does `lambda_function.py` actually enforce the authentication gates described in `1025-linkedin-auth-gate.md`? Or are they bypassed?

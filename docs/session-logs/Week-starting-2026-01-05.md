@@ -11,8 +11,8 @@ Onboarding session followed by documentation improvements and 0009 Full Mode cle
 
 ### Documentation Updates
 - **Session log split:** `Week-starting-2025-12-29.md` split into part1 (Dec 29-31) and part2 (Jan 1-5)
-- **0100-TEMPLATE-GUIDE.md:** Added 75KB file size limit rule with split instructions
-- **0009-session-closeout-protocol.md:** Major rewrite for commit batching:
+- **AgentOS:templates/0100-template-index:** Added 75KB file size limit rule with split instructions
+- **AgentOS:standards/0005-session-closeout-protocol:** Major rewrite for commit batching:
   - Added "NO commits until final step" principle
   - Removed individual commits from S3, F9, F10
   - Added S5/F13 "Final Commit & Push" steps
@@ -372,7 +372,7 @@ We resolved the critical "Init Bug" in the deployment pipeline and successfully 
     * **Killed:** Issue #6 (RAG) deferred to v2.0.
     * **Scoped:** Issue #7 (Observability) downscoped to MVP X-Ray.
     * **Approved:** Issue #173 (Visual Regression) LLD approved.
-* **AgentOS Updates:** Updated `docs/0015-agent-prohibited-actions.md` to explicitly ban the creation of "Dummy Files" (Fail Closed policy).
+* **AgentOS Updates:** Updated `AgentOS:standards/0003-agent-prohibited-actions` to explicitly ban the creation of "Dummy Files" (Fail Closed policy).
 
 ### Issues
 * **Closed:** #125, #95 (Infra)
@@ -550,7 +550,7 @@ This session focused on hardening the extension for Chrome Web Store submission.
 * **LLD Approved:** `docs/1053-store-assets.md` (Build Script)
 * **LLD Approved:** `docs/1177-store-domcontext.md` (Data Analytics)
 * **LLD Approved:** `docs/1178-store-ai-response.md` (Data Analytics)
-* **Audit:** `docs/0810-audit-privacy.md` updated with X-Ray metadata disclosure.
+* **Audit:** `AgentOS:audits/0802-privacy-audit` updated with X-Ray metadata disclosure.
 * **Lessons Learned:** Documented Pre-Merge Gate violation on Issue #53.
 
 ### 6. Next Steps

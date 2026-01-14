@@ -41,7 +41,7 @@ The implementation follows the approved LLD `docs/1007-observability.md` with al
 | `src/lambda_function.py` | +43/-2 lines | Imported observability module, wrapped Bedrock calls with tracing |
 | `src/etymologist.py` | +10 lines | Extract token usage from Bedrock response |
 | `docs/0812-audit-performance.md` | +41 lines | Added Observability Tracing section |
-| `docs/0810-audit-privacy.md` | +36 lines | Added X-Ray Tracing Privacy section, updated Data Inventory |
+| `AgentOS:audits/0802-privacy-audit` | +36 lines | Added X-Ray Tracing Privacy section, updated Data Inventory |
 
 ## 5. Deviations from LLD
 

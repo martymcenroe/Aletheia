@@ -321,7 +321,7 @@ data_flows:
 
 ### Internal
 - docs/0816-audit-dependabot-prs.md - Dependency PR management
-- docs/0809-audit-security.md §5 - Extension supply chain
+- AgentOS:audits/0801-security-audit §5 - Extension supply chain
 - docs/1121-wikipedia-denylist.md - Denylist data source LLD
 
 ---

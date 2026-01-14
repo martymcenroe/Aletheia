@@ -19,7 +19,7 @@ Quick reference for the orchestrator (Marty) on how to run tools, commands, agen
 
 | ID | Runbook | Trigger | Frequency | Model |
 |----|---------|---------|-----------|-------|
-| 0901 | [Nightly AgentOS Audit](0901-runbook-nightly-agentos-audit.md) | PowerShell | Nightly | Opus + ultrathink |
+| 0901 | [Nightly AgentOS Audit](AgentOS:runbooks/AgentOS:runbooks/0901-nightly-agentos-audit-audit) | PowerShell | Nightly | Opus + ultrathink |
 
 ## Model Selection Guide
 
@@ -31,7 +31,7 @@ When running audits or tasks, use the appropriate model to balance cost and capa
 | **Sonnet** | $$ | Standard development work, web research, documentation |
 | **Haiku** | $ | Simple automation, metric aggregation, file inventory |
 
-See `docs/0800-common-audits.md` for per-audit model recommendations.
+See `AgentOS:audits/AgentOS:audits/0800-audit-index` for per-audit model recommendations.
 
 ## Ultrathink Mode
 
@@ -49,5 +49,5 @@ See `docs/0800-common-audits.md` for per-audit model recommendations.
 
 - `CLAUDE.md` - Agent operating procedures
 - `docs/0000-GUIDE.md` - AgentOS overview and filing system
-- `docs/0800-common-audits.md` - Audit index and procedures
+- `AgentOS:audits/AgentOS:audits/0800-audit-index` - Audit index and procedures
 - `docs/0008-orchestrator-instructions.md` - (Deprecated, see this index)

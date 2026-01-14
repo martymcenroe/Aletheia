@@ -17,11 +17,11 @@ Extended session spanning multiple days. Completed #77 implementation handoff, c
 - Conducted detailed security review of LLD 1080 (5 hardening recommendations)
 
 ### Tooling
-- Created `docs/0102-TEMPLATE-feature-lld.md` v2 with:
+- Created `AgentOS:templates/0102-lld-template` v2 with:
   - Section 4.6 Implementation Decisions (Q&A capture)
   - Section 5 Security Considerations
   - Improved Definition of Done
-- Created `docs/0103-TEMPLATE-implementation-report.md`
+- Created `AgentOS:templates/0103-implementation-report-template`
 - Created `docs/reports/` directory structure
 - Added Section 6 to 0008 (git worktree for parallel branch work)
 - Added ADR-001 (Privacy-First Permissions) to 0001
@@ -59,8 +59,8 @@ Emergency response to secure the AWS Lambda backend. We disabled the function (c
 - **Config:** Updated `.gitignore` to securely exclude test artifacts.
 
 ### Tooling
-- **Standards:** Created `docs/0010-standard-labels.md` to define strict label taxonomy.
-- **Protocol:** Documented "Git Worktree" usage in `docs/0002-coding-standards.md` (Section 10).
+- **Standards:** Created `AgentOS:standards/0006-standard-labels` to define strict label taxonomy.
+- **Protocol:** Documented "Git Worktree" usage in `AgentOS:standards/0002-coding-standards` (Section 10).
 - **Inventory:** Updated `docs/0003-file-inventory.md` with new security assets.
 - **Maintenance:** Updated `poetry.lock` to resolve Dependabot alert.
 
@@ -88,7 +88,7 @@ Created GitHub issue #94 for XSS test harness, then built comprehensive weekly s
 - Created `docs/session-logs/` directory with weekly file convention
 - Migrated historical session logs to `2025-12-16.md` and `2025-12-23.md`
 - Updated `.gitignore` to track session logs
-- Updated `docs/0100-TEMPLATE-GUIDE.md` with weekly file naming convention
+- Updated `AgentOS:templates/0100-template-index` with weekly file naming convention
 - Updated `docs/0008-orchestrator-instructions.md`:
   - Added Section 7 (Session Log Management) with edge cases
   - Fixed 3 stale `.session-log.md` references
@@ -167,7 +167,7 @@ Standardized session log naming convention to ISO 8601 Week-starting format, est
 - Fixed emoji rendering in Week-starting-2025-12-15.md (✅🚫🟡🟢)
 - Analyzed 3 branches (25-linkedin-auth-gate, 77-action-feedback, 80-wire-agent) to categorize docs as NEW vs MODIFIED
 - Cherry-picked 3 NEW files from branch 77-action-feedback to main:
-  - `docs/0103-TEMPLATE-implementation-report.md` (new template)
+  - `AgentOS:templates/0103-implementation-report-template` (new template)
   - `docs/1077-action-feedback.md` (10xx feature doc for #77)
   - `docs/reports/77-implementation-report.md` (implementation report)
 - Established policy: **ALL docs in main, never in branches** (for orchestrator planning visibility)
@@ -194,7 +194,7 @@ Standardized session log naming convention to ISO 8601 Week-starting format, est
   - `generate-branch-pdfs.sh` - Extract and PDF branch-specific docs
 
 - **Documentation Updates:**
-  - Updated `docs/0100-TEMPLATE-GUIDE.md` with new session log format
+  - Updated `AgentOS:templates/0100-template-index` with new session log format
   - Updated `CLAUDE.md` with ISO 8601 requirement
   - Updated `.gitignore` for temp PDF artifacts
 
@@ -228,7 +228,7 @@ Standardized session log naming convention to ISO 8601 Week-starting format, est
 - `BRANCH-ANALYSIS-NEW-vs-MODIFIED.md` - Comprehensive analysis of branch docs categorization
 - `BRANCH-PDF-GENERATION-REPORT.md` - Initial branch doc differences report
 - `gen-new-pdfs.sh` - Automated PDF generation for NEW files only
-- `docs/0103-TEMPLATE-implementation-report.md` - Cherry-picked from branch 77
+- `AgentOS:templates/0103-implementation-report-template` - Cherry-picked from branch 77
 - `docs/1077-action-feedback.md` - Cherry-picked from branch 77
 - `docs/reports/77-implementation-report.md` - Cherry-picked from branch 77
 - Various helper scripts (gitignored)
@@ -298,7 +298,7 @@ Standardized session log naming convention to ISO 8601 Week-starting format, est
 
 ### Key Decisions
 - **Documentation Workflow:** Established new policy that ALL docs (including 10xx feature docs) must be edited in main branch, never in feature branches. This ensures orchestrator can easily access all feature docs when building plans.
-- **Formalized in Coding Standards:** Added Section 7.2 "Documentation Lives in Main" policy to `docs/0002-coding-standards.md` (commit 20cdf2e)
+- **Formalized in Coding Standards:** Added Section 7.2 "Documentation Lives in Main" policy to `AgentOS:standards/0002-coding-standards` (commit 20cdf2e)
 - **Branch Hygiene:** Decided to delete stale branches 25 and 80 to reduce cognitive overhead. Fresh branches can be created from main when ready to implement.
 - **Testing Workflow:** AI agents must wait for human testing before closing issues (Section 6.5). This prevents false completion signals.
 
@@ -824,10 +824,10 @@ Completed comprehensive audit of 00xx documentation (Issue #89) based on 4 criti
   - **Files Modified:**
     - CLAUDE.md: Added "Critical Workflow Rules (NON-NEGOTIABLE)" section
     - docs/0000-GUIDE.md: Expanded Prime Directives from 7 to 10 items
-    - docs/0002-coding-standards.md: Added Section 2 (Forbidden Commands), updated Flip Turn
-    - docs/0004-orchestration-protocol.md: Updated Flip Turn table with rationales
+    - AgentOS:standards/0002-coding-standards: Added Section 2 (Forbidden Commands), updated Flip Turn
+    - AgentOS:standards/0001-orchestration-protocol: Updated Flip Turn table with rationales
     - docs/0008-orchestrator-instructions.md: Expanded Common Pitfalls, worktree cleanup
-    - docs/0009-session-closeout-protocol.md: Added remote branch checks, linked 0011
+    - AgentOS:standards/0005-session-closeout-protocol: Added remote branch checks, linked 0011
   - Committed with comprehensive message documenting all 16 fixes
   - Issue #89 auto-closed via `close #89` keyword
 

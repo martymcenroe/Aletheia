@@ -31,7 +31,7 @@ This feature adds a `ttl` attribute to all items saved by `save_state()` and ena
 | `src/lambda_function.py` | +5 lines | Added `TTL_SECONDS` constant and `ttl` attribute in `save_state()` |
 | `provision.sh` | +18 lines | Added idempotent TTL enablement step (1.5/5) |
 | `tests/test_lambda_handler.py` | +56 lines | Added `TestSaveStateTTL` test class with 3 tests |
-| `docs/0810-audit-privacy.md` | ~30 lines | Updated P1/P2 as resolved, changed CONDITIONAL PASS to PASS |
+| `AgentOS:audits/0802-privacy-audit` | ~30 lines | Updated P1/P2 as resolved, changed CONDITIONAL PASS to PASS |
 
 ## 5. Deviations from LLD
 

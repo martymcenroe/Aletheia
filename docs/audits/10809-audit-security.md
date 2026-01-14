@@ -101,7 +101,7 @@ This new category covers 24 CWEs related to error handling, edge cases, and unex
 
 ## 3. Browser Extension Security (Manifest V3)
 
-> **AI Safety:** LLM and Agentic security moved to [0825-audit-ai-safety.md](0825-audit-ai-safety.md)
+> **AI Safety:** LLM and Agentic security moved to [AgentOS:audits/0808-ai-safety-audit](AgentOS:audits/0808-ai-safety-audit)
 
 ### Chrome Extension Checks
 
@@ -182,7 +182,7 @@ This new category covers 24 CWEs related to error handling, edge cases, and unex
 
 ## 5. Claude Code Agent Permissions (CRITICAL)
 
-> **NIST AI RMF:** See [0825-audit-ai-safety.md](0825-audit-ai-safety.md) for AI governance alignment
+> **NIST AI RMF:** See [AgentOS:audits/0808-ai-safety-audit](AgentOS:audits/0808-ai-safety-audit) for AI governance alignment
 
 **The agent's permission model is a security boundary.** Overly permissive settings can bypass all other controls.
 
@@ -276,14 +276,14 @@ This ensures:
 - [OWASP Top 10:2025](https://owasp.org/Top10/2025/) (Updated Jan 2026)
 - [OWASP Top 10:2021](https://owasp.org/Top10/2021/) (Historical reference)
 
-> **AI Security:** See [0825-audit-ai-safety.md](0825-audit-ai-safety.md) for LLM and Agentic OWASP Top 10
+> **AI Security:** See [0825-audit-ai-safety.md](AgentOS:audits/0808-ai-safety-audit) for LLM and Agentic OWASP Top 10
 
 ### Browser Extension
 - [Chrome Extension Security](https://developer.chrome.com/docs/extensions/develop/migrate/improve-security)
 - [Manifest V3 CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)
 
 ### Internal
-- [0825-audit-ai-safety.md](0825-audit-ai-safety.md) - AI Safety audit (LLM, Agentic, NIST AI RMF)
+- [0825-audit-ai-safety.md](AgentOS:audits/0808-ai-safety-audit) - AI Safety audit (LLM, Agentic, NIST AI RMF)
 - ADR 0201 - Privacy-First Extension Permissions
 - ADR 0204 - Defense Funnel
 - ADR 0213 - Adversarial Audit Philosophy

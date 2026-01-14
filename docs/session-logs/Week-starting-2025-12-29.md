@@ -24,15 +24,15 @@ Created comprehensive ADR (Architecture Decision Record) infrastructure for Alet
 - **0206-ADR-streaming-sse.md** - SSE over WebSockets/long polling
 
 ### Template Overhaul
-- **0102-TEMPLATE-feature-lld.md** - Major revision:
+- **AgentOS:templates/0102-lld-template** - Major revision:
   - Added Section 3: Alternatives Considered
   - Added Section 7: Security Considerations
   - Added Section 8: Performance Considerations
   - Added Section 9: Risks & Mitigations
   - Renamed Section 5 to Interface Specification (signatures + pseudocode only)
   - Implementation code belongs in source files, not LLDs
-- **0111-TEMPLATE-test-script.md** - Added numbering convention (010, 020, 030...)
-- **0113-TEMPLATE-test-report.md** - New template for test execution results
+- **AgentOS:templates/0106-test-script-template** - Added numbering convention (010, 020, 030...)
+- **AgentOS:templates/0107-test-report-template** - New template for test execution results
 - **1080-wire-agent-logic.md** - Refactored to remove implementation code
 
 ### Layer Naming Decision
@@ -56,7 +56,7 @@ Created comprehensive ADR (Architecture Decision Record) infrastructure for Alet
 ### Documentation Updates
 - **0000-GUIDE.md** - Added 02xx series to filing system
 - **0003-file-inventory.md** - Added all new ADR files and 0104 template
-- **0100-TEMPLATE-GUIDE.md** - Marked 0104 and 0113 as Active
+- **AgentOS:templates/0100-template-index** - Marked 0104 and 0113 as Active
 
 ### Key Decisions
 - ADR format follows Michael Nygard's pattern (Context, Decision, Alternatives, Consequences)
@@ -65,8 +65,8 @@ Created comprehensive ADR (Architecture Decision Record) infrastructure for Alet
 - Test IDs use 3-digit numbers with gaps of 10 (010, 020, 030...) for insertability
 
 ### Files Created
-- `docs/0104-TEMPLATE-adr.md`
-- `docs/0113-TEMPLATE-test-report.md`
+- `AgentOS:templates/0104-adr-template`
+- `AgentOS:templates/0107-test-report-template`
 - `docs/0200-ADR-index.md`
 - `docs/0201-ADR-privacy-first-permissions.md`
 - `docs/0202-ADR-shadow-dom-isolation.md`
@@ -78,9 +78,9 @@ Created comprehensive ADR (Architecture Decision Record) infrastructure for Alet
 ### Files Modified
 - `docs/0000-GUIDE.md`
 - `docs/0003-file-inventory.md`
-- `docs/0100-TEMPLATE-GUIDE.md`
-- `docs/0102-TEMPLATE-feature-lld.md`
-- `docs/0111-TEMPLATE-test-script.md`
+- `AgentOS:templates/0100-template-index`
+- `AgentOS:templates/0102-lld-template`
+- `AgentOS:templates/0106-test-script-template`
 - `docs/1080-wire-agent-logic.md`
 
 ### State on Exit
@@ -214,7 +214,7 @@ Emergency recovery mission to restore lost Overlay functionality (Issue #114) an
 
 ### Meta-Lesson: Agent Orientation Failure
 - **Failure:** Agent failed to locate the session log header template by following the documentation path (`0000` → `0100`).
-- **Correction:** Reinforced adherence to `GEMINI.md` protocol and checking `0100-TEMPLATE-GUIDE.md` for artifact standards.
+- **Correction:** Reinforced adherence to `GEMINI.md` protocol and checking `AgentOS:templates/0100-template-index` for artifact standards.
 
 ### Feature Work
 - **Restored Overlay (Issue #114):** Recreated `overlay.js` with Verified V3 logic (Shadow DOM isolation).
@@ -292,7 +292,7 @@ Analyzed all 25 open issues and categorized:
 ### Files Modified
 - `docs/0001-system-architecture.md`
 - `docs/0003-file-inventory.md`
-- `docs/0005-testing-strategy-and-protocols.md`
+- `AgentOS:standards/0007-testing-strategy`
 - `docs/0007-signal-handling.md` (renamed from 0007-legal-compliance-strategy.md)
 - `docs/1010-semantic-guardrails.md`
 - `docs/1045-deterministic-hate-filter.md`
@@ -336,8 +336,8 @@ Added new section explaining why the CMS exists: eliminate orchestrator context 
 - Removed duplicate Section 10 from 0002
 
 ### Template Updates
-- **0103-TEMPLATE-implementation-report.md:** Now 10 sections including Deviations, Test Harness, Willison Protocol compliance, Orchestrator Review (In-Scope/New-Scope/Meta)
-- **0113-TEMPLATE-test-report.md:** Added Willison Protocol section, Manual Verification checklist for orchestrator
+- **AgentOS:templates/0103-implementation-report-template:** Now 10 sections including Deviations, Test Harness, Willison Protocol compliance, Orchestrator Review (In-Scope/New-Scope/Meta)
+- **AgentOS:templates/0107-test-report-template:** Added Willison Protocol section, Manual Verification checklist for orchestrator
 
 ### Lambda Status Scripts
 Created `tools/aws/` scripts with clear output:
@@ -390,12 +390,12 @@ Expanded from 70 to 216 lines with full template compliance:
 - `CLAUDE.md` (worktrees, forbidden commands, timestamp)
 - `IMMEDIATE-PLAN.md` (renamed)
 - `docs/0000-GUIDE.md` (CMS Philosophy)
-- `docs/0002-coding-standards.md` (worktrees, removed dup Section 10)
+- `AgentOS:standards/0002-coding-standards` (worktrees, removed dup Section 10)
 - `docs/0003-file-inventory.md` (sync + vague terms)
-- `docs/0004-orchestration-protocol.md` (worktrees, lifecycle, vague terms)
-- `docs/0005-testing-strategy-and-protocols.md` (Willison Protocol)
-- `docs/0103-TEMPLATE-implementation-report.md` (10-section overhaul)
-- `docs/0113-TEMPLATE-test-report.md` (Willison + Manual Verification)
+- `AgentOS:standards/0001-orchestration-protocol` (worktrees, lifecycle, vague terms)
+- `AgentOS:standards/0007-testing-strategy` (Willison Protocol)
+- `AgentOS:templates/0103-implementation-report-template` (10-section overhaul)
+- `AgentOS:templates/0107-test-report-template` (Willison + Manual Verification)
 - `docs/1045-deterministic-hate-filter.md` (full template compliance)
 
 ### Issues Referenced

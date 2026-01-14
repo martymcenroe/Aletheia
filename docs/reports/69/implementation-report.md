@@ -21,7 +21,7 @@ Implemented a CLI tool for inspecting DynamoDB telemetry data. The log viewer al
 |------|-------------|
 | `tools/log_viewer.py` | CLI log inspector (107 lines) |
 | `docs/1069-log-inspector.md` | LLD for the log inspector |
-| `docs/0005-testing-strategy-and-protocols.md` | Testing strategy document |
+| `AgentOS:standards/0007-testing-strategy` | Testing strategy document |
 | `test_holistic_data.json` | Sample test data |
 
 ## 4. Files Modified

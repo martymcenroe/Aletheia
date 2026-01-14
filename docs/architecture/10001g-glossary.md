@@ -26,10 +26,10 @@ Key terms and concepts used throughout Aletheia documentation.
 | Term | Definition | Deep Dive |
 |------|------------|-----------|
 | **AgentOS** | The documentation system that treats AI agents as team members requiring onboarding and SOPs. Docs are executable instructions, not just reference. | [0000-GUIDE](0000-GUIDE.md) |
-| **Claude-Staging Pattern** | Workflow where Claude stages changes for human approval before committing. Never auto-commits. | [ADR-0214](0214-ADR-claude-staging-pattern.md) |
+| **Claude-Staging Pattern** | Workflow where Claude stages changes for human approval before committing. Never auto-commits. | [ADR-0214](AgentOS:adrs/0204-claude-staging-pattern) |
 | **Dual-AI Review** | Review process using both Claude Code and Gemini CLI. Gemini reviews LLDs and implementations before merge. | [CLAUDE.md](../CLAUDE.md) |
-| **Pre-Merge Gate** | Mandatory checkpoint requiring implementation report, test report, and review approval before any merge. | [0004-orchestration-protocol](0004-orchestration-protocol.md) |
-| **Worktree Isolation** | Each feature gets its own git worktree. Code never committed directly to main. | [ADR-0210](0210-ADR-git-worktree-isolation.md) |
+| **Pre-Merge Gate** | Mandatory checkpoint requiring implementation report, test report, and review approval before any merge. | [AgentOS:standards/0001-orchestration-protocol](AgentOS:standards/0001-orchestration-protocol) |
+| **Worktree Isolation** | Each feature gets its own git worktree. Code never committed directly to main. | [ADR-0210](AgentOS:adrs/0202-git-worktree-isolation) |
 
 ## Security Terms
 

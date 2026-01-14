@@ -102,7 +102,7 @@ Added `AGENT_STATE_TABLE` to Auth Lambda environment:
 | Document | Changes |
 |----------|---------|
 | `docs/1147-gdpr-data-erasure.md` | Status BLOCKED → IMPLEMENTED, DoD updated |
-| `docs/0810-audit-privacy.md` | Added #147 audit record, GDPR/CCPA status updated |
+| `AgentOS:audits/0802-privacy-audit` | Added #147 audit record, GDPR/CCPA status updated |
 | `index.html` | Privacy policy updated with accurate data handling |
 
 ## 5. Security Considerations
@@ -120,7 +120,7 @@ Added `AGENT_STATE_TABLE` to Auth Lambda environment:
 |------|---------------|---------|
 | `src/lambda_auth_function.py` | +115 | DELETE endpoint + delete function |
 | `provision.sh` | +33 | GSI creation + IAM update |
-| `docs/0810-audit-privacy.md` | +72/-4 | Audit record |
+| `AgentOS:audits/0802-privacy-audit` | +72/-4 | Audit record |
 | `docs/1147-gdpr-data-erasure.md` | +20/-49 | Status update |
 | `index.html` | +5/-4 | Privacy policy |
 

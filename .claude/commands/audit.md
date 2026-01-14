@@ -39,7 +39,7 @@ Usage: `/audit [--help] [--deep] [NNNN] [NNNN] ...`
 
 ## Execution
 
-Execute all 08xx audits in sequence per @docs/0800-audit-index.md
+Execute all 08xx audits in sequence per @AgentOS:audits/0800-audit-index
 
 This is **explicit approval** to execute all audits autonomously.
 
@@ -148,7 +148,7 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 
 ### 0807 - AgentOS Health Check
 **Purpose:** Verify the documentation system itself is healthy.
-**Ref:** `docs/0807-agentos-audit.md`
+**Ref:** `AgentOS:audits/0807-agentos-health-audit`
 **Check:**
 1. All docs/0xxx files have correct formatting
 2. Cross-references resolve (grep for broken `docs/0xxx` refs)
@@ -156,14 +156,14 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 
 ### 0808 - Permission Permissiveness
 **Purpose:** Ensure agent permissions are maximally permissive within safety bounds.
-**Ref:** `docs/0808-audit-permission-permissiveness.md`
+**Ref:** `AgentOS:audits/0816-permission-permissiveness`
 **Check:** Read `.claude/settings.local.json`:
 1. Verify deny list contains only truly dangerous commands
 2. Identify patterns that cause frequent approval prompts
 
 ### 0809 - Security Audit
 **Purpose:** Comprehensive security audit.
-**Ref:** `docs/0809-audit-security.md`
+**Ref:** `AgentOS:audits/0801-security-audit`
 **Prerequisite:** 0816 (Dependabot PRs) must run first.
 **Check:**
 1. OWASP Top 10 (2021)
@@ -179,7 +179,7 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 
 ### 0810 - Privacy Audit
 **Purpose:** Verify data protection compliance.
-**Ref:** `docs/0810-audit-privacy.md`
+**Ref:** `AgentOS:audits/0802-privacy-audit`
 **Check:**
 1. Data collection inventory
 2. Storage duration
@@ -193,7 +193,7 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 
 ### 0811 - Accessibility Audit
 **Purpose:** WCAG 2.1 compliance for browser extension.
-**Ref:** `docs/0811-audit-accessibility.md`
+**Ref:** `AgentOS:audits/0804-accessibility-audit`
 **Check:**
 1. Keyboard navigation
 2. Screen reader compatibility
@@ -211,7 +211,7 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 
 ### 0813 - Code Quality Audit
 **Purpose:** Manual quality checks beyond linting.
-**Ref:** `docs/0813-audit-code-quality.md`
+**Ref:** `AgentOS:audits/0803-code-quality-audit`
 **Check:**
 1. SOLID principles
 2. Cyclomatic complexity
@@ -220,7 +220,7 @@ Should find: `allowlist`, `denylist`, `Selection Check`, `Denylist`, `Semantic`
 
 ### 0814 - License Compliance
 **Purpose:** Ensure MIT-compatible licenses.
-**Ref:** `docs/0814-audit-license-compliance.md`
+**Ref:** `AgentOS:audits/0805-license-compliance`
 **Check:**
 ```bash
 poetry show --tree
@@ -234,7 +234,7 @@ Verify all dependencies use: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0
 
 ### 0815 - Claude Capabilities
 **Purpose:** Track new Claude Code features.
-**Ref:** `docs/0815-audit-claude-capabilities.md`
+**Ref:** `AgentOS:audits/0806-claude-capabilities`
 **Standard mode:** SKIP (requires web search)
 **Deep mode:** ENABLED
 
@@ -262,7 +262,7 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 
 ### 0818 - AI Management System (ISO/IEC 42001)
 **Purpose:** AI governance per ISO/IEC 42001:2023.
-**Ref:** `docs/0818-audit-ai-management-system.md`
+**Ref:** `AgentOS:audits/0809-ai-management-system`
 **Check:**
 1. AI system inventory (Bedrock, Claude Code, Denylist)
 2. Risk classification
@@ -275,7 +275,7 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 
 ### 0819 - AI Supply Chain
 **Purpose:** Model provenance, dependency security, AIBOM.
-**Ref:** `docs/0819-audit-ai-supply-chain.md`
+**Ref:** `AgentOS:audits/0810-ai-supply-chain`
 **Check:**
 1. Model source verification (Bedrock/Anthropic)
 2. Model version pinning
@@ -289,7 +289,7 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 
 ### 0820 - Explainability (XAI)
 **Purpose:** Ensure AI outputs are understandable and traceable.
-**Ref:** `docs/0820-audit-explainability.md`
+**Ref:** `AgentOS:audits/0811-explainability`
 **Check:**
 1. AI disclosure to users
 2. Etymology output includes reasoning
@@ -302,7 +302,7 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 
 ### 0821 - Agentic AI Governance
 **Purpose:** OWASP Agentic Top 10 compliance for Claude Code/AgentOS.
-**Ref:** `docs/0821-audit-agentic-ai-governance.md`
+**Ref:** `AgentOS:audits/0812-agentic-ai-governance`
 **Check:**
 1. AA01 Agent Goal Hijacking - CLAUDE.md boundaries
 2. AA05 Tool Misuse - settings.local.json deny list
@@ -315,7 +315,7 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 
 ### 0822 - Bias & Fairness
 **Purpose:** Ensure fair, unbiased AI outputs.
-**Ref:** `docs/0822-audit-bias-fairness.md`
+**Ref:** `AgentOS:audits/0813-bias-fairness`
 **Check:**
 1. Cultural bias in etymology interpretation
 2. Linguistic fairness across language origins
@@ -324,7 +324,7 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 
 ### 0823 - AI Incident Post-Mortem
 **Purpose:** Structured process for AI failure analysis.
-**Ref:** `docs/0823-audit-ai-incident-post-mortem.md`
+**Ref:** `AgentOS:audits/0814-ai-incident-post-mortem`
 **Check:**
 1. Review any open/recent AI-related issues
 2. Verify incident classification process exists
@@ -354,7 +354,7 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 
 ### 0898 - Horizon Scanning
 **Purpose:** Discover emerging AI governance frameworks and threats.
-**Ref:** `docs/0898-horizon-scanning-protocol.md`
+**Ref:** `AgentOS:audits/0815-horizon-scanning`
 **Standard mode:** SKIP (requires web search)
 **Deep mode:** ENABLED - **This is the primary discovery audit**
 
@@ -364,14 +364,14 @@ gh pr list --state open --repo martymcenroe/Aletheia --author "app/dependabot"
 - WebSearch: "ISO 42001 updates" site:iso.org
 - WebSearch: "NIST AI RMF updates" site:nist.gov
 - WebSearch: "EU AI Act implementation guidance"
-- Compare findings against 0800-audit-index.md
+- Compare findings against AgentOS:audits/0800-audit-index
 - Flag new frameworks that need audit procedures
 
 ### 0899 - Meta-Audit
 **Purpose:** Audit the audit suite itself.
-**Ref:** `docs/0899-meta-audit.md`
+**Ref:** `AgentOS:audits/0899-meta-audit`
 **Check:**
-1. All 08xx procedures are indexed in 0800-audit-index.md
+1. All 08xx procedures are indexed in AgentOS:audits/0800-audit-index
 2. No stale audit procedures
 3. Audit triggers are appropriate
 4. Coverage gaps identified by 0898 addressed

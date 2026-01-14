@@ -149,7 +149,7 @@ Layer implementation:
 
 - [Defense in Depth (NIST)](https://csrc.nist.gov/glossary/term/defense_in_depth)
 - [Fail Fast Principle](https://en.wikipedia.org/wiki/Fail-fast)
-- `docs/0005-testing-strategy-and-protocols.md`
+- `AgentOS:standards/0007-testing-strategy`
 
 ---
 

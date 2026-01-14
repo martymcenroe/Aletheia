@@ -365,7 +365,7 @@ Every friction event gets documented. Volume demonstrates severity.
 
 ## 10. References
 
-- docs/0808-audit-permission-permissiveness.md - Permission policy audit
+- AgentOS:audits/0816-permission-permissiveness - Permission policy audit
 - .claude/settings.local.json - Permission implementation
 - CLAUDE.md - Bash command rules
 - docs/session-logs/ - Historical session data

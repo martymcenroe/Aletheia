@@ -27,7 +27,7 @@ Created `tools/audit_schedule_check.py` to parse audit records and enforce sched
 
 ### Audit Frequency Mapping
 
-From 0800-audit-index.md Section 5.1:
+From AgentOS:audits/0800-audit-index Section 5.1:
 
 | Frequency | Audits |
 |-----------|--------|

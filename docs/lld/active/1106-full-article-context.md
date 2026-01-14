@@ -336,7 +336,7 @@ async function handleFullPageClick(): void;
 
 ## 11. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+*Ref: [AgentOS:standards/0007-testing-strategy](AgentOS:standards/0007-testing-strategy)*
 
 **Testing Philosophy:** All scenarios are automated. CloudWatch verification requires live Lambda but is still automated.
 

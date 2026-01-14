@@ -309,8 +309,8 @@ If multi-agent architecture is adopted:
 ### Internal
 - CLAUDE.md - Agent workflow rules
 - .claude/settings.local.json - Permission model
-- docs/0015-agent-prohibited-actions.md - Policy document
-- docs/0808-audit-permission-permissiveness.md - Permission audit
+- AgentOS:standards/0003-agent-prohibited-actions - Policy document
+- AgentOS:audits/0816-permission-permissiveness - Permission audit
 
 ---
 

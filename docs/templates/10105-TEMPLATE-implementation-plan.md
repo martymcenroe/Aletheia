@@ -16,7 +16,7 @@ Implementation Plans are for **process and configuration changes** that don't re
 - Workflow improvements (CI/CD, hooks, commands)
 - Process refinements (audit procedures, templates)
 
-**Not for:** Feature implementations with code → Use `0102-TEMPLATE-feature-lld.md`
+**Not for:** Feature implementations with code → Use `AgentOS:templates/0102-lld-template`
 
 ---
 

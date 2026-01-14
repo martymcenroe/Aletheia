@@ -408,7 +408,7 @@ Implement the Denylist layer of the guardrail funnel: a deterministic, O(1) look
 
 ### Description
 
-Explicitly define the Single-Instruction Constraint in docs/0004-orchestration-protocol.md.
+Explicitly define the Single-Instruction Constraint in AgentOS:standards/0001-orchestration-protocol.
 
 ---
 
@@ -474,7 +474,7 @@ Review all open branches and docs/1xxx files to ensure they follow the conventio
 - Branch: `{IssueID}-short-description`
 - Doc: `1{IssueID}-short-description.md`
 
-Refs: 0002-coding-standards.md (naming convention section to be added)
+Refs: AgentOS:standards/0002-coding-standards (naming convention section to be added)
 
 ---
 
@@ -1068,7 +1068,7 @@ Refactor the codebase to reflect the 'Operation Glass House' strategy (Ref: `doc
 1. **System Architecture (`docs/0001`):**
    - Update **Component Diagram**: Replace 'Compliance Engine' node with 'Summarizer'.
    - Update **Sequence Diagram**: Reflect the 'Passthrough vs. Summarize' paths.
-   - **Constraint:** New diagrams MUST adhere to `docs/0006-mermaid-diagrams.md` (Theme, ClassDefs, Direction).
+   - **Constraint:** New diagrams MUST adhere to `AgentOS:standards/0004-mermaid-diagrams` (Theme, ClassDefs, Direction).
 
 ## Technical Approach
 - **Module:** `summarizer.py` (formerly `compliance.py`)
@@ -1139,11 +1139,11 @@ Docs evolved organically. Need a coherence pass now that the system is stabilizi
 ## Files to Review
 - 0000-GUIDE.md
 - 0001-system-architecture.md
-- 0002-coding-standards.md
+- AgentOS:standards/0002-coding-standards
 - 0003-file-inventory.md
-- 0004-orchestration-protocol.md
-- 0005-testing-strategy-and-protocols.md
-- 0006-mermaid-diagrams.md
+- AgentOS:standards/0001-orchestration-protocol
+- AgentOS:standards/0007-testing-strategy
+- AgentOS:standards/0004-mermaid-diagrams
 - 9000-lessons-learned.md
 
 ---
@@ -1409,7 +1409,7 @@ Prevent 'Documentation Drift' where new tooling (e.g., `docs/session-logs/`) exi
 When `main` receives structural updates (new folders, moved scripts), active feature branches (like `77-action-feedback`) become stale. AI agents attempting to run new protocols on old branches fail because the paths don't exist yet.
 
 ## Tasks
-- [ ] Create a 'Refresh' protocol in `docs/0002-coding-standards.md`.
+- [ ] Create a 'Refresh' protocol in `AgentOS:standards/0002-coding-standards`.
 - [ ] Investigate git hooks or scripts to auto-merge `docs/` changes (optional/future).
 - [ ] Immediate action: Merge `main` into all active feature branches.
 
@@ -2158,7 +2158,7 @@ Rename the L1/L2/L3/L4 filter layers to functional names and update all document
 - [ ] `docs/0001-system-architecture.md` - Main diagram and layer definitions
 - [ ] `docs/0007-legal-compliance-strategy.md` - Rename to Signal Handling only
 - [ ] `docs/1080-wire-agent-logic.md` - Fix L2 claims, update terminology
-- [ ] `docs/0005-testing-strategy-and-protocols.md` - Module names
+- [ ] `AgentOS:standards/0007-testing-strategy` - Module names
 - [ ] `docs/1010-semantic-guardrails.md` - L3 → Semantic
 - [ ] `docs/1011-local-guardrails.md` - L1 → Selection Check
 - [ ] `docs/1014-compliance-engine.md` - Rename to Transform
@@ -2739,7 +2739,7 @@ Update `docs/0008-orchestrator-instructions.md` to require **Plan-Referenced Pro
     - Domain Object (Specific terminology)
 
 ## Definition of Done
-- [ ] `docs/0004-orchestration-protocol.md` updated with 'Active Plan' requirement.
+- [ ] `AgentOS:standards/0001-orchestration-protocol` updated with 'Active Plan' requirement.
 - [ ] `docs/0008-orchestrator-instructions.md` updated with Prompting Templates.
 
 ---
@@ -2763,7 +2763,7 @@ The paper identifies a distinct split in Agent Suitability:
 Update our Issue Template and LLD process to split complex features into two distinct passes. We should not ask the agent to do both simultaneously.
 
 ## The Protocol Change
-Modify `docs/0102-TEMPLATE-feature-lld.md` or `docs/0004-orchestration-protocol.md` to define the **Two-Pass Implementation**:
+Modify `AgentOS:templates/0102-lld-template` or `AgentOS:standards/0001-orchestration-protocol` to define the **Two-Pass Implementation**:
 
 ### Pass 1: The Skeleton (High Agent Autonomy)
 - Create directory structures.
@@ -2779,7 +2779,7 @@ Modify `docs/0102-TEMPLATE-feature-lld.md` or `docs/0004-orchestration-protocol.
 
 ## Definition of Done
 - [ ] Documentation updated to reflect the Two-Pass workflow.
-- [ ] Example provided in `0004-orchestration-protocol.md`.
+- [ ] Example provided in `AgentOS:standards/0001-orchestration-protocol`.
 
 ---
 
@@ -2807,7 +2807,7 @@ Before coding begins, a separate Model (e.g., Gemini if Claude wrote the LLD) mu
 - **Prompt:** 'You are the Red Team. Attack this LLD. Find 3 ways it will fail in production. Find 1 dependency that doesn't exist.'
 
 ## Definition of Done
-- [ ] `docs/0004-orchestration-protocol.md` updated with the Red Team step.
+- [ ] `AgentOS:standards/0001-orchestration-protocol` updated with the Red Team step.
 - [ ] `docs/0109-gemini-lld-review-procedure.md` updated to include specific 'Red Team' attack vectors.
 
 ---
@@ -2970,7 +2970,7 @@ aws dynamodb update-time-to-live \
 
 ## References
 
-- Privacy Audit: `docs/0810-audit-privacy.md` (P1)
+- Privacy Audit: `AgentOS:audits/0802-privacy-audit` (P1)
 - ADR 0203: Stateful Serverless (mentions TTL)
 - Lambda handler: `src/lambda_function.py:119-124`
 - Provision script: `provision.sh:16-22`
@@ -3026,7 +3026,7 @@ Options to evaluate:
 ## References
 
 - [GDPR Article 17](https://gdpr-info.eu/art-17-gdpr/)
-- Privacy Audit: `docs/0810-audit-privacy.md`
+- Privacy Audit: `AgentOS:audits/0802-privacy-audit`
 - Related: #145 (DynamoDB TTL)
 - Related: #116 (LinkedIn Auth - enables user identification)
 
@@ -3063,7 +3063,7 @@ Per [AWS Bedrock FAQ](https://aws.amazon.com/bedrock/faqs/):
 
 ## Documentation Updates
 
-- [ ] Update `docs/0810-audit-privacy.md` with Bedrock verification
+- [ ] Update `AgentOS:audits/0802-privacy-audit` with Bedrock verification
 - [ ] Add to privacy policy: "We use AWS Bedrock which does not train on your data"
 - [ ] Reference AWS commitment in `docs/0001-system-architecture.md`
 
@@ -3076,7 +3076,7 @@ Per [AWS Bedrock FAQ](https://aws.amazon.com/bedrock/faqs/):
 ## References
 
 - [AWS Bedrock Privacy](https://aws.amazon.com/bedrock/faqs/#Security_and_Privacy)
-- Privacy Audit: `docs/0810-audit-privacy.md` §6 (AI/LLM Privacy)
+- Privacy Audit: `AgentOS:audits/0802-privacy-audit` §6 (AI/LLM Privacy)
 - [AWS Shared Responsibility Model](https://aws.amazon.com/compliance/shared-responsibility-model/)
 
 ---
@@ -3422,7 +3422,7 @@ Ensure `extension-chrome-V3/service-worker.js` includes parsed signals in the La
 ## References
 
 - Signal Handling Policy: `docs/0007-signal-handling.md`
-- Privacy Audit: `docs/0810-audit-privacy.md`
+- Privacy Audit: `AgentOS:audits/0802-privacy-audit`
 - Related: #145 (DynamoDB TTL)
 
 ---
@@ -3579,7 +3579,7 @@ git push
 ## References
 
 - 0817 Audit: `docs/0817-audit-wiki-alignment.md`
-- Privacy Audit: `docs/0810-audit-privacy.md`
+- Privacy Audit: `AgentOS:audits/0802-privacy-audit`
 - Related: #145 (TTL), #147 (GDPR), #148 (Bedrock no-training)
 
 ---
@@ -4084,8 +4084,8 @@ Change session log files from weekly to daily granularity while preserving the 3
 ## Files to Update
 - `CLAUDE.md` - Session logging instructions
 - `docs/0000-GUIDE.md` - If session log format is mentioned
-- `docs/0009-session-closeout-protocol.md` - Closeout procedure
-- `docs/0100-TEMPLATE-GUIDE.md` - Session log template
+- `AgentOS:standards/0005-session-closeout-protocol` - Closeout procedure
+- `AgentOS:templates/0100-template-index` - Session log template
 - `tools/generate_onboard_digest.py` - If it parses session logs
 
 ## Rationale
@@ -4329,7 +4329,7 @@ From Chrome to Firefox:
 ## References
 
 - Issue #116 - Original Chrome LinkedIn OAuth implementation
-- `docs/0002-coding-standards.md` §9.3 - Dual extension parity requirement
+- `AgentOS:standards/0002-coding-standards` §9.3 - Dual extension parity requirement
 
 ---
 

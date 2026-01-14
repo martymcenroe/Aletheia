@@ -182,7 +182,7 @@ Deny rules take precedence over allow rules.
 
 ## 8. Audit
 
-This document is audited by **0808-audit-permission-permissiveness.md** to ensure:
+This document is audited by **AgentOS:audits/0816-permission-permissiveness** to ensure:
 - Permissions are maximally permissive within safety bounds
 - No unnecessary restrictions causing workflow friction
 - Deny list remains minimal and justified

@@ -40,9 +40,9 @@ graph TB
 | Attribute | Target | Current | Evidence |
 |-----------|--------|---------|----------|
 | Latency | <2s | ~1.5s | [0812 Audit](0812-audit-performance.md) |
-| Privacy | No PII stored | TTL 24h | [0810 Audit](0810-audit-privacy.md) |
-| Security | OWASP compliant | Passing | [0809 Audit](0809-audit-security.md) |
-| Accessibility | WCAG 2.1 AA | Passing | [0811 Audit](0811-audit-accessibility.md) |
+| Privacy | No PII stored | TTL 24h | [0810 Audit](AgentOS:audits/0802-privacy-audit) |
+| Security | OWASP compliant | Passing | [0809 Audit](AgentOS:audits/0801-security-audit) |
+| Accessibility | WCAG 2.1 AA | Passing | [0811 Audit](AgentOS:audits/0804-accessibility-audit) |
 
 [Quality Details →](0001e-quality-attributes.md)
 

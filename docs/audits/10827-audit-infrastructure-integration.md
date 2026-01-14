@@ -190,7 +190,7 @@ Extension → API Gateway → Lambda → Bedrock
 ### Internal
 - docs/0001-architecture.md (and 0001a-g views)
 - docs/0014-cost-architecture.md
-- docs/0819-audit-ai-supply-chain.md
+- AgentOS:audits/0810-ai-supply-chain
 
 ### AWS
 - [Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)

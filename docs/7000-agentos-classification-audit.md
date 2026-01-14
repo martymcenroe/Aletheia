@@ -60,34 +60,34 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 | `0001e-quality-attributes.md` | `a-tmpl` | NFR table structure reusable; targets are project-specific |
 | `0001f-deployment-view.md` | `a-tmpl` | Deployment doc structure reusable; AWS details are project-specific |
 | `0001g-glossary.md` | `a-tmpl` | Glossary format reusable; terms are project-specific |
-| `0002-coding-standards.md` | `a-split` | Forbidden commands, poetry rules generic; worktree pattern refs Aletheia |
+| `AgentOS:standards/0002-coding-standards` | `a-split` | Forbidden commands, poetry rules generic; worktree pattern refs Aletheia |
 | `0003-file-inventory.md` | `a-tmpl` | Status taxonomy and table format reusable; file list is project-specific |
-| `0004-orchestration-protocol.md` | `a-core` | Generic orchestration workflow applicable to all AgentOS projects |
-| `0005-testing-strategy-and-protocols.md` | `a-split` | Trust-but-verify philosophy generic; DynamoDB, Bedrock refs project-specific |
-| `0006-mermaid-diagrams.md` | `a-core` | Generic diagram standards applicable to all projects |
+| `AgentOS:standards/0001-orchestration-protocol` | `a-core` | Generic orchestration workflow applicable to all AgentOS projects |
+| `AgentOS:standards/0007-testing-strategy` | `a-split` | Trust-but-verify philosophy generic; DynamoDB, Bedrock refs project-specific |
+| `AgentOS:standards/0004-mermaid-diagrams` | `a-core` | Generic diagram standards applicable to all projects |
 | `0007-signal-handling.md` | `proj` | Aletheia-specific policy on web signals (extension behavior) |
 | `0008-orchestrator-instructions.md` | `proj` | DEPRECATED - superseded by runbooks |
-| `0009-session-closeout-protocol.md` | `a-core` | Generic session cleanup protocol applicable to all projects |
-| `0010-standard-labels.md` | `a-core` | Generic GitHub label taxonomy applicable to all projects |
+| `AgentOS:standards/0005-session-closeout-protocol` | `a-core` | Generic session cleanup protocol applicable to all projects |
+| `AgentOS:standards/0006-standard-labels` | `a-core` | Generic GitHub label taxonomy applicable to all projects |
 | `0012-devops-architecture.md` | `proj` | Aletheia CI/CD with GitHub Actions - project-specific workflows |
 | `0013-testing-architecture.md` | `proj` | Aletheia test pyramid with Playwright, pytest - project-specific |
 | `0014-cost-architecture.md` | `proj` | AWS cost breakdown (Lambda, Bedrock, DynamoDB) - project-specific |
-| `0015-agent-prohibited-actions.md` | `a-split` | Generic forbidden commands + Aletheia-specific merge_pr.py reference |
+| `AgentOS:standards/0003-agent-prohibited-actions` | `a-split` | Generic forbidden commands + Aletheia-specific merge_pr.py reference |
 
 ### 01xx - Templates
 
 | File | Category | Rationale |
 |------|----------|-----------|
-| `0100-TEMPLATE-GUIDE.md` | `a-core` | Generic template index applicable to all projects |
-| `0101-TEMPLATE-issue.md` | `a-core` | Generic GitHub issue template applicable to all projects |
-| `0102-TEMPLATE-feature-lld.md` | `a-core` | Generic LLD template applicable to all projects |
-| `0103-TEMPLATE-implementation-report.md` | `a-core` | Generic implementation report template |
-| `0104-TEMPLATE-adr.md` | `a-core` | Generic ADR template following Nygard format |
-| `0105-TEMPLATE-implementation-plan.md` | `a-core` | Generic implementation plan template |
-| `0108-lld-pre-implementation-review.md` | `a-core` | Generic LLD review checklist |
-| `0111-TEMPLATE-test-script.md` | `a-core` | Generic manual test script template |
+| `AgentOS:templates/0100-template-index` | `a-core` | Generic template index applicable to all projects |
+| `AgentOS:templates/0101-issue-template` | `a-core` | Generic GitHub issue template applicable to all projects |
+| `AgentOS:templates/0102-lld-template` | `a-core` | Generic LLD template applicable to all projects |
+| `AgentOS:templates/0103-implementation-report-template` | `a-core` | Generic implementation report template |
+| `AgentOS:templates/0104-adr-template` | `a-core` | Generic ADR template following Nygard format |
+| `AgentOS:templates/0105-implementation-plan-template` | `a-core` | Generic implementation plan template |
+| `AgentOS:templates/0108-lld-pre-impl-review` | `a-core` | Generic LLD review checklist |
+| `AgentOS:templates/0106-test-script-template` | `a-core` | Generic manual test script template |
 | `0112-TEMPLATE-browser-extension-test-script.md` | `proj` | Browser extension specific test template |
-| `0113-TEMPLATE-test-report.md` | `a-core` | Generic test report template |
+| `AgentOS:templates/0107-test-report-template` | `a-core` | Generic test report template |
 
 ### 02xx - Architecture Decision Records
 
@@ -100,69 +100,69 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 | `0204-ADR-defense-funnel.md` | `proj` | Aletheia security pipeline - project-specific |
 | `0205-ADR-langgraph-orchestration.md` | `proj` | SUPERSEDED - Aletheia-specific |
 | `0206-ADR-streaming-sse.md` | `proj` | Lambda SSE streaming - Aletheia-specific |
-| `0207-ADR-single-identity-orchestration.md` | `a-core` | Generic single-user orchestration pattern |
+| `AgentOS:adrs/0201-single-identity-orchestration` | `a-core` | Generic single-user orchestration pattern |
 | `0208-ADR-client-side-preference-storage.md` | `proj` | Chrome storage.local - Aletheia-specific |
 | `0209-ADR-static-compliance-hosting.md` | `proj` | GitHub Pages for privacy policy - Aletheia-specific |
-| `0210-ADR-git-worktree-isolation.md` | `a-core` | Generic worktree pattern for feature branches |
+| `AgentOS:adrs/0202-git-worktree-isolation` | `a-core` | Generic worktree pattern for feature branches |
 | `0211-ADR-naked-python-architecture.md` | `proj` | boto3 direct vs LangChain - Aletheia-specific |
 | `0212-ADR-unified-v3-secure-dom.md` | `proj` | MV3 + innerHTML prohibition - Aletheia-specific |
-| `0213-ADR-adversarial-audit-philosophy.md` | `a-core` | Generic audit philosophy for all projects |
-| `0214-ADR-claude-staging-pattern.md` | `a-core` | Generic Claude Code staging pattern |
-| `0215-ADR-test-first-philosophy.md` | `a-core` | Generic test-first philosophy |
+| `AgentOS:adrs/0203-adversarial-audit-philosophy` | `a-core` | Generic audit philosophy for all projects |
+| `AgentOS:adrs/0204-claude-staging-pattern` | `a-core` | Generic Claude Code staging pattern |
+| `AgentOS:adrs/0205-test-first-philosophy` | `a-core` | Generic test-first philosophy |
 
 ### 06xx - Skill Instructions
 
 | File | Category | Rationale |
 |------|----------|-----------|
-| `0600-skill-instructions-index.md` | `a-core` | Generic skill index format |
-| `0601-skill-gemini-lld-review.md` | `a-core` | Generic Gemini LLD review procedure |
-| `0602-skill-gemini-dual-review.md` | `a-core` | Generic Claude-Gemini dual review system |
+| `AgentOS:skills/0600-skill-index` | `a-core` | Generic skill index format |
+| `AgentOS:skills/0601-gemini-lld-review` | `a-core` | Generic Gemini LLD review procedure |
+| `AgentOS:skills/0602-gemini-dual-review` | `a-core` | Generic Claude-Gemini dual review system |
 
 ### 08xx - Audits
 
 | File | Category | Rationale |
 |------|----------|-----------|
-| `0800-audit-index.md` | `a-core` | Generic audit index and philosophy |
+| `AgentOS:audits/0800-audit-index` | `a-core` | Generic audit index and philosophy |
 | `0801-open-issues-audit.md` | `a-tmpl` | Issue audit format reusable; GitHub repo is project-specific |
 | `0802-reports-completeness-audit.md` | `a-tmpl` | Report audit format reusable; paths are project-specific |
 | `0803-lld-code-audit.md` | `a-tmpl` | LLD-code alignment format reusable; LLDs are project-specific |
 | `0804-inventory-audit.md` | `a-tmpl` | Inventory audit format reusable; inventory is project-specific |
 | `0805-terminology-audit.md` | `a-tmpl` | Terminology audit format reusable; terms are project-specific |
 | `0806-architecture-audit.md` | `a-tmpl` | Architecture audit format reusable; docs are project-specific |
-| `0807-agentos-audit.md` | `a-core` | Generic AgentOS self-audit |
-| `0808-audit-permission-permissiveness.md` | `a-core` | Generic Claude Code permission audit |
-| `0809-audit-security.md` | `a-split` | OWASP Top 10 generic; browser/Lambda sections project-specific |
-| `0810-audit-privacy.md` | `a-split` | IAPP framework generic; Lambda/Bedrock sections project-specific |
-| `0811-audit-accessibility.md` | `a-split` | WCAG 2.1 generic; extension UI sections project-specific |
+| `AgentOS:audits/0807-agentos-health-audit` | `a-core` | Generic AgentOS self-audit |
+| `AgentOS:audits/0816-permission-permissiveness` | `a-core` | Generic Claude Code permission audit |
+| `AgentOS:audits/0801-security-audit` | `a-split` | OWASP Top 10 generic; browser/Lambda sections project-specific |
+| `AgentOS:audits/0802-privacy-audit` | `a-split` | IAPP framework generic; Lambda/Bedrock sections project-specific |
+| `AgentOS:audits/0804-accessibility-audit` | `a-split` | WCAG 2.1 generic; extension UI sections project-specific |
 | `0812-audit-performance.md` | `a-split` | Performance metrics framework generic; Lambda targets project-specific |
-| `0813-audit-code-quality.md` | `a-split` | Linting standards generic; CI gates project-specific |
-| `0814-audit-license-compliance.md` | `a-core` | Generic SPDX license audit |
-| `0815-audit-claude-capabilities.md` | `a-core` | Generic Claude Code feature tracking |
+| `AgentOS:audits/0803-code-quality-audit` | `a-split` | Linting standards generic; CI gates project-specific |
+| `AgentOS:audits/0805-license-compliance` | `a-core` | Generic SPDX license audit |
+| `AgentOS:audits/0806-claude-capabilities` | `a-core` | Generic Claude Code feature tracking |
 | `0816-audit-dependabot-prs.md` | `a-tmpl` | Dependabot process reusable; CI commands project-specific |
 | `0817-audit-wiki-alignment.md` | `a-tmpl` | Wiki audit format reusable; wiki URL is project-specific |
-| `0818-audit-ai-management-system.md` | `a-core` | Generic AI lifecycle management |
-| `0819-audit-ai-supply-chain.md` | `a-core` | Generic AI supply chain security |
-| `0820-audit-explainability.md` | `a-core` | Generic AI explainability audit |
-| `0821-audit-agentic-ai-governance.md` | `a-core` | Generic agentic AI governance |
-| `0822-audit-bias-fairness.md` | `a-core` | Generic AI bias/fairness audit |
-| `0823-audit-ai-incident-post-mortem.md` | `a-core` | Generic AI incident post-mortem |
-| `0824-audit-permission-friction.md` | `a-core` | Generic permission friction analysis |
-| `0825-audit-ai-safety.md` | `a-split` | AI safety framework generic; Bedrock/etymologist project-specific |
+| `AgentOS:audits/0809-ai-management-system` | `a-core` | Generic AI lifecycle management |
+| `AgentOS:audits/0810-ai-supply-chain` | `a-core` | Generic AI supply chain security |
+| `AgentOS:audits/0811-explainability` | `a-core` | Generic AI explainability audit |
+| `AgentOS:audits/0812-agentic-ai-governance` | `a-core` | Generic agentic AI governance |
+| `AgentOS:audits/0813-bias-fairness` | `a-core` | Generic AI bias/fairness audit |
+| `AgentOS:audits/0814-ai-incident-post-mortem` | `a-core` | Generic AI incident post-mortem |
+| `AgentOS:audits/0817-permission-friction` | `a-core` | Generic permission friction analysis |
+| `AgentOS:audits/0808-ai-safety-audit` | `a-split` | AI safety framework generic; Bedrock/etymologist project-specific |
 | `0826-audit-cross-browser-testing.md` | `proj` | Browser extension testing - Aletheia-specific |
 | `0827-audit-infrastructure-integration.md` | `proj` | Lambda/DynamoDB/Bedrock integration - Aletheia-specific |
 | `0831-audit-web-assets.md` | `proj` | Web assets for extension/landing page - Aletheia-specific |
 | `0828-audit-build-artifact-freshness.md` | `proj` | Build artifacts for extension - Aletheia-specific |
 | `0829-audit-lambda-failure-remediation.md` | `proj` | Lambda failure recovery - Aletheia-specific |
 | `0830-audit-architecture-freshness.md` | `a-tmpl` | Architecture freshness format reusable; docs are project-specific |
-| `0898-horizon-scanning-protocol.md` | `a-core` | Generic horizon scanning for emerging risks |
-| `0899-meta-audit.md` | `a-core` | Generic meta-audit of audit system |
+| `AgentOS:audits/0815-horizon-scanning` | `a-core` | Generic horizon scanning for emerging risks |
+| `AgentOS:audits/0899-meta-audit` | `a-core` | Generic meta-audit of audit system |
 
 ### 09xx - Runbooks
 
 | File | Category | Rationale |
 |------|----------|-----------|
-| `0900-runbook-index.md` | `a-core` | Generic runbook index format |
-| `0901-runbook-nightly-agentos-audit.md` | `a-core` | Generic AgentOS nightly audit procedure |
+| `AgentOS:runbooks/0900-runbook-index` | `a-core` | Generic runbook index format |
+| `AgentOS:runbooks/AgentOS:runbooks/0901-nightly-agentos-audit-audit` | `a-core` | Generic AgentOS nightly audit procedure |
 
 ### 6xxx - Reports (Generated)
 
@@ -199,10 +199,10 @@ This audit classifies all Aletheia documentation files to prepare for AgentOS ce
 ### High-Value Dependencies (files referenced by many others)
 
 1. **`0000-GUIDE.md`** - Referenced by CLAUDE.md, most onboarding docs
-2. **`0002-coding-standards.md`** - Referenced by all code-related docs
-3. **`0015-agent-prohibited-actions.md`** - Referenced by CLAUDE.md, coding standards
-4. **`0100-TEMPLATE-GUIDE.md`** - Referenced by all template users
-5. **`0800-audit-index.md`** - Referenced by all audit docs
+2. **`AgentOS:standards/0002-coding-standards`** - Referenced by all code-related docs
+3. **`AgentOS:standards/0003-agent-prohibited-actions`** - Referenced by CLAUDE.md, coding standards
+4. **`AgentOS:templates/0100-template-index`** - Referenced by all template users
+5. **`AgentOS:audits/0800-audit-index`** - Referenced by all audit docs
 
 ### Circular Dependencies
 
@@ -229,9 +229,9 @@ These need `{{VAR}}` placeholder versions:
 
 ### Phase 3: Split `a-split` Files (~9 files)
 These need extraction of generic framework:
-- `0002-coding-standards.md` - Extract generic rules, keep worktree pattern local
-- `0005-testing-strategy.md` - Extract philosophy, keep tool refs local
-- `0015-agent-prohibited-actions.md` - Extract generic bans, keep merge_pr.py local
+- `AgentOS:standards/0002-coding-standards` - Extract generic rules, keep worktree pattern local
+- `AgentOS:standards/0007-testing-strategy` - Extract philosophy, keep tool refs local
+- `AgentOS:standards/0003-agent-prohibited-actions` - Extract generic bans, keep merge_pr.py local
 - Security/privacy/accessibility audits - Extract framework, keep infrastructure local
 
 ### Phase 4: Leave `proj` Files (~20 files)

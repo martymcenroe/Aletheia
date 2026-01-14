@@ -97,4 +97,4 @@ poetry run pytest tests/ -v -m "not audit"
 ## References
 
 - [AWS Bedrock FAQ - Security & Privacy](https://aws.amazon.com/bedrock/faqs/#Security_and_Privacy)
-- Privacy Audit: `docs/0810-audit-privacy.md`
+- Privacy Audit: `AgentOS:audits/0802-privacy-audit`

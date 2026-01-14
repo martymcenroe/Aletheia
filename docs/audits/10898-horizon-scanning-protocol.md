@@ -482,8 +482,8 @@ Long-term goal: audits generate from CI/CD artifacts, not manual checklists.
 - [EU AI Act](https://artificialintelligenceact.eu/)
 
 ### Internal
-- docs/0899-meta-audit.md - Audit validation
-- docs/0800-audit-index.md - Audit suite index
+- AgentOS:audits/0899-meta-audit - Audit validation
+- AgentOS:audits/0800-audit-index - Audit suite index
 
 ---
 

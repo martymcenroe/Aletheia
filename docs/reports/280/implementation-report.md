@@ -17,7 +17,7 @@ Added tooling to verify extension build artifacts are fresh before store submiss
    - Includes procedure, checklist, and decision tree
    - Integrated into quarterly schedule
 
-3. **`docs/0800-audit-index.md`** (updated)
+3. **`AgentOS:audits/0800-audit-index`** (updated)
    - Added 0828 to all relevant sections
    - Updated total audit count to 23
 

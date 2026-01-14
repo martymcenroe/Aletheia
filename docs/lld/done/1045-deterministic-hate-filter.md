@@ -150,7 +150,7 @@ def check_denylist(text: str, denylist: set[str]) -> DenylistResult:
 
 ## 10. Verification & Testing
 
-*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md) - Willison Protocol*
+*Ref: [AgentOS:standards/0007-testing-strategy](AgentOS:standards/0007-testing-strategy) - Willison Protocol*
 
 ### 10.1 Test Scenarios
 

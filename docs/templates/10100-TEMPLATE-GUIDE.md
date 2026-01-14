@@ -6,7 +6,7 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 ## How to Use Templates
 1. Find the appropriate template below
 2. Copy the template file to the correct location
-3. Rename according to conventions (see `0002-coding-standards.md`)
+3. Rename according to conventions (see `AgentOS:standards/0002-coding-standards`)
 4. Fill in all sections; write "N/A" for sections that don't apply
 5. **Never delete numbered sections** - this breaks cross-document references
 
@@ -17,23 +17,23 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 ### 010x: Core Templates
 | File | Purpose | Status |
 |:-----|:--------|:-------|
-| `0100-TEMPLATE-GUIDE.md` | This file. Index of all templates. | Active |
-| `0101-TEMPLATE-issue.md` | GitHub Issue template for features | Active |
-| `0102-TEMPLATE-feature-lld.md` | Low-Level Design doc for features | Active |
-| `0103-TEMPLATE-implementation-report.md` | Post-implementation report for completed features | Active |
-| `0104-TEMPLATE-adr.md` | Architecture Decision Record | Active |
-| `0105-TEMPLATE-implementation-plan.md` | Implementation plan for process/config changes (not code) | Active |
-| `0108-lld-pre-implementation-review.md` | LLD review checklist (run BEFORE coding) | Active |
+| `AgentOS:templates/0100-template-index` | This file. Index of all templates. | Active |
+| `AgentOS:templates/0101-issue-template` | GitHub Issue template for features | Active |
+| `AgentOS:templates/0102-lld-template` | Low-Level Design doc for features | Active |
+| `AgentOS:templates/0103-implementation-report-template` | Post-implementation report for completed features | Active |
+| `AgentOS:templates/0104-adr-template` | Architecture Decision Record | Active |
+| `AgentOS:templates/0105-implementation-plan-template` | Implementation plan for process/config changes (not code) | Active |
+| `AgentOS:templates/0108-lld-pre-impl-review` | LLD review checklist (run BEFORE coding) | Active |
 
-**Note:** Gemini LLD review procedure moved to `docs/0601-skill-gemini-lld-review.md` (skill instructions series).
+**Note:** Gemini LLD review procedure moved to `AgentOS:skills/0601-gemini-lld-review` (skill instructions series).
 
 ### 011x: Testing Templates
 | File | Purpose | Status |
 |:-----|:--------|:-------|
 | `0110-TEMPLATE-test-plan.md` | Test strategy for a feature/release | Future |
-| `0111-TEMPLATE-test-script.md` | Generic manual test procedure (basic) | Active |
+| `AgentOS:templates/0106-test-script-template` | Generic manual test procedure (basic) | Active |
 | `0112-TEMPLATE-browser-extension-test-script.md` | Browser extension test script for non-technical users | Active |
-| `0113-TEMPLATE-test-report.md` | Results documentation after test run | Active |
+| `AgentOS:templates/0107-test-report-template` | Results documentation after test run | Active |
 
 ### 012x: Content & Tutorial Templates
 | File | Purpose | Status |

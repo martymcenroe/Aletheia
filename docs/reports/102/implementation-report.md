@@ -35,7 +35,7 @@ Reorganized browser extension directories from version-suffixed names to clean p
 Living documents updated to reflect new paths:
 - `docs/0000-GUIDE.md`
 - `docs/0000a-IMMEDIATE-PLAN.md`
-- `docs/0002-coding-standards.md`
+- `AgentOS:standards/0002-coding-standards`
 - `docs/0003-file-inventory.md`
 - `docs/6000-open-issues.md`
 - LLDs: 1104, 1154, 1155, 1156, 1157, 1160

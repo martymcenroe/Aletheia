@@ -1,6 +1,6 @@
 # 10002 - Aletheia Coding Standards (Local Extension)
 
-> **Extends:** [AgentOS 0002 - Coding Standards](C:\Users\mcwiz\Projects\AgentOS\docs\standards\0002-coding-standards.md)
+> **Extends:** [AgentOS 0002 - Coding Standards](AgentOS:standards/0002-coding-standards)
 >
 > This document contains Aletheia-specific coding standards that supplement the generic AgentOS standards.
 
@@ -10,11 +10,11 @@
 * **Plan Before Execute:** Discuss multi-step plans with the Orchestrator BEFORE running commands. Never batch destructive operations without explicit approval.
 * **Root-Relative Paths:** You must ALWAYS generate file paths relative to the project root (e.g., `src/guardrails/engine.py`).
 * **Explicit Handoff:** At the end of every code generation turn, you MUST provide a "Verification Block".
-* **Protocol Adherence:** Strictly follow the Orchestration Protocol defined in `docs/0004-orchestration-protocol.md`.
+* **Protocol Adherence:** Strictly follow the Orchestration Protocol defined in `AgentOS:standards/0001-orchestration-protocol`.
 
 ## 2. Forbidden Commands (NEVER USE)
 
-**Full policy:** See `docs/0015-agent-prohibited-actions.md` for complete list, rationale, and safe alternatives.
+**Full policy:** See `AgentOS:standards/0003-agent-prohibited-actions` for complete list, rationale, and safe alternatives.
 
 AI agents must NEVER use these commands under ANY circumstances:
 
@@ -147,7 +147,7 @@ gh issue close 93 --comment "Human testing verified. Closing."
 ## 7. Documentation Standards
 
 ### 7.0 Link Formatting
-* **Relative Paths Only:** All internal documentation links must use relative paths (e.g., `[0005-testing](0005-testing-strategy-and-protocols.md)`). Never use absolute URLs or search engine URLs.
+* **Relative Paths Only:** All internal documentation links must use relative paths (e.g., `[0005-testing](AgentOS:standards/0007-testing-strategy)`). Never use absolute URLs or search engine URLs.
 * **No Google Search Links:** Do not wrap file references in `https://www.google.com/search?q=...` — this is a known Gemini artifact that breaks links.
 * **Verify Links:** Before committing, grep for `google.com/search` to catch accidental search URL insertions.
 

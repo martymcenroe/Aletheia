@@ -39,7 +39,7 @@ JavaScript now has pre-commit enforcement like Python (ruff/mypy).
 
 Note: Removed `--max-warnings 0` from pre-commit to allow known false positives through. Use `npm run lint` for strict checks.
 
-### 3. docs/0813-audit-code-quality.md - Strengthened §6.1
+### 3. AgentOS:audits/0803-code-quality-audit - Strengthened §6.1
 
 Renamed from "Tool Execution Verification" to "Tool Integrity Verification".
 

@@ -287,7 +287,7 @@ aws xray get-trace-summaries --start-time ... | grep -i "prompt\|completion\|inp
 
 ### Documentation
 - [ ] 0812-audit-performance.md updated with tracing info
-- [ ] 0810-audit-privacy.md updated (trace retention policy)
+- [ ] AgentOS:audits/0802-privacy-audit updated (trace retention policy)
 
 ---
 

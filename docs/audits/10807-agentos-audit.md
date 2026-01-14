@@ -95,7 +95,7 @@ ls docs/01*TEMPLATE*.md
 ```bash
 for t in docs/01*TEMPLATE*.md; do
   basename="$(basename $t)"
-  grep -q "$basename" docs/0100-TEMPLATE-GUIDE.md || echo "NOT IN INDEX: $t"
+  grep -q "$basename" AgentOS:templates/0100-template-index || echo "NOT IN INDEX: $t"
 done
 ```
 
@@ -165,7 +165,7 @@ done
 | Finding | Auto-Fix Action |
 |---------|-----------------|
 | Broken doc reference | Update to correct path if target exists elsewhere |
-| Missing from template index (0100) | Add entry to 0100-TEMPLATE-GUIDE.md |
+| Missing from template index (0100) | Add entry to AgentOS:templates/0100-template-index |
 | Missing from file inventory (0003) | Add entry to 0003-file-inventory.md |
 | Missing from GUIDE filing system | Add entry to 0000-GUIDE.md §3 |
 | Orphaned doc (exists but not listed) | Add to appropriate index |
@@ -225,7 +225,7 @@ For each auto-fixable finding:
 
 When invoked with extended thinking (ultrathink), perform deep analysis beyond the standard checks above. This mode is used for nightly audits and major system reviews.
 
-See `docs/0901-runbook-nightly-agentos-audit.md` for invocation instructions.
+See `AgentOS:runbooks/AgentOS:runbooks/0901-nightly-agentos-audit-audit` for invocation instructions.
 
 ### Conflict Detection
 
@@ -267,7 +267,7 @@ Review model usage across audits:
 - Estimate savings from downgrades
 - Note tasks that genuinely require Opus
 
-**See:** `docs/0800-common-audits.md` for per-audit model recommendations
+**See:** `AgentOS:audits/AgentOS:audits/0800-audit-index` for per-audit model recommendations
 
 ### Stale Content Detection
 

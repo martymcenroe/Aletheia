@@ -159,4 +159,4 @@ This ensures future agents can identify automation opportunities.
 - [Test-Driven Development by Example](https://www.oreilly.com/library/view/test-driven-development/0321146530/) - Kent Beck
 - ADR 0212 - Unified V3 & Secure DOM (motivated by innerHTML testing gap)
 - Issue #194 - innerHTML removal without regression tests
-- docs/0004-orchestration-protocol.md §8.6 - Test report requirements
+- AgentOS:standards/0001-orchestration-protocol §8.6 - Test report requirements

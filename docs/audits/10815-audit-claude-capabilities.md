@@ -185,6 +185,6 @@ Review `.claude/settings.local.json`:
 
 - [Claude Code Documentation](https://docs.anthropic.com/claude-code)
 - [Anthropic Blog](https://www.anthropic.com/news)
-- docs/0004-orchestration-protocol.md (AgentOS)
-- docs/0015-agent-prohibited-actions.md
+- AgentOS:standards/0001-orchestration-protocol (AgentOS)
+- AgentOS:standards/0003-agent-prohibited-actions
 - .claude/settings.local.json

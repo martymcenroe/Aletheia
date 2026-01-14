@@ -489,4 +489,4 @@ The GitHub Pages privacy policy should be updated to document:
 ### Internal
 - ADR 0201 - Privacy-First Extension Permissions
 - ADR 0208 - Client-Side Preference Storage
-- docs/0809-audit-security.md - Security Audit
+- AgentOS:audits/0801-security-audit - Security Audit

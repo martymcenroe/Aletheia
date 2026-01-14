@@ -98,7 +98,7 @@ Documented and tested the automatic LLD review process:
 
 **None - Following plan exactly.**
 
-The implementation follows the Phase 1-2 specifications from `docs/0602-skill-gemini-dual-review.md` and the approved plan.
+The implementation follows the Phase 1-2 specifications from `AgentOS:skills/0602-gemini-dual-review` and the approved plan.
 
 ## Known Issues
 
@@ -139,7 +139,7 @@ The implementation follows the Phase 1-2 specifications from `docs/0602-skill-ge
 **Phase 3: Implementation Review** (In Progress)
 - Build dual approval gate logic
 - Test with real implementation reports
-- Update `docs/0004-orchestration-protocol.md`
+- Update `AgentOS:standards/0001-orchestration-protocol`
 
 **Phase 4: Issue Filing + Session Logs**
 - Enable Gemini direct write to session logs

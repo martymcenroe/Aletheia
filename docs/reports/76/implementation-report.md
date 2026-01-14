@@ -31,7 +31,7 @@ Implemented the domain allowlist popup UI for the Chrome extension. Users can en
 | `extension/icons/*.png` | Updated | Transparent background icons |
 | `tools/generate_icons.py` | +84 lines | Added `--transparent` and `--threshold` CLI options |
 | `docs/1076-allowlist-popup.md` | +36 lines | UX decisions and improved smoke test |
-| `docs/0002-coding-standards.md` | +28 lines | CSS custom properties standard |
+| `AgentOS:standards/0002-coding-standards` | +28 lines | CSS custom properties standard |
 
 ## 5. Deviations from LLD
 

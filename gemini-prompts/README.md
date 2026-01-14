@@ -77,10 +77,10 @@ Overall assessment
 
 ## Best Practices
 
-1. **Be Specific:** Prompts should reference exact documentation (e.g., "Follow docs/0601-skill-gemini-lld-review.md")
+1. **Be Specific:** Prompts should reference exact documentation (e.g., "Follow AgentOS:skills/0601-gemini-lld-review")
 2. **Set Boundaries:** Explicitly tell Gemini NOT to offer implementation or code snippets
 3. **Format Enforcement:** Require specific output markers like `[BLOCKING]`, `[HIGH]`, `[SUGGESTION]`
-4. **Context Loading:** Include references to templates and standards (e.g., "Check completeness per docs/0101-TEMPLATE-issue.md")
+4. **Context Loading:** Include references to templates and standards (e.g., "Check completeness per AgentOS:templates/0101-issue-template")
 
 ## Maintenance
 
@@ -94,4 +94,4 @@ Review and update prompts quarterly or when:
 
 **Last Updated:** 2026-01-09
 **Status:** Active
-**Related:** docs/0602-skill-gemini-dual-review.md (Issue #222)
+**Related:** AgentOS:skills/0602-gemini-dual-review (Issue #222)

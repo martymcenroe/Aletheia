@@ -149,5 +149,5 @@ echo "Inventory entries: $(grep -c '| `' docs/0003-file-inventory.md)"
 
 ## Integration
 
-- Referenced by `docs/0009-session-closeout-protocol.md` §F9 (Full Mode)
+- Referenced by `AgentOS:standards/0005-session-closeout-protocol` §F9 (Full Mode)
 - Run as part of 0009 Full Mode closeout

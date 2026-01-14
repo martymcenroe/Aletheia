@@ -22,9 +22,9 @@ poetry run python tools/audit_schedule_check.py
 ### 2. Audit Record Parsing
 
 Script correctly parsed dates from audit record tables in:
-- 0809-audit-security.md (2026-01-06)
-- 0810-audit-privacy.md (2026-01-06)
-- 0811-audit-accessibility.md (2026-01-10)
+- AgentOS:audits/0801-security-audit (2026-01-06)
+- AgentOS:audits/0802-privacy-audit (2026-01-06)
+- AgentOS:audits/0804-accessibility-audit (2026-01-10)
 - All other 08xx audit files
 
 **Result:** PASS - Dates extracted from markdown tables

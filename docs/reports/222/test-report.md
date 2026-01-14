@@ -176,7 +176,7 @@ ACK. State determination complete. Model: gemini-3-pro-preview.
 
 **Quality Assessment:**
 - Gemini identified specific, actionable issues
-- Referenced project standards (docs/0102-TEMPLATE-feature-lld.md)
+- Referenced project standards (AgentOS:templates/0102-lld-template)
 - Provided security analysis (input injection risk)
 - Used correct priority system
 - No implementation offers (filtered correctly)

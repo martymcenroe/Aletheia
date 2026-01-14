@@ -227,4 +227,4 @@ All TODOs are properly linked to Issue #116 (LinkedIn OAuth).
 
 - [ISO/IEC 25010 Software Quality](https://iso25000.com/index.php/en/iso-25000-standards/iso-25010)
 - [Clean Code Principles](https://www.oreilly.com/library/view/clean-code-a/9780136083238/)
-- docs/0002-coding-standards.md
+- AgentOS:standards/0002-coding-standards

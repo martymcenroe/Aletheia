@@ -47,7 +47,7 @@ Key capabilities:
 |------|---------|-------------|
 | `pyproject.toml` | +4 lines | Added requests, beautifulsoup4, colorama, responses deps |
 | `docs/0003-file-inventory.md` | +18 lines | Added all new #84 files to inventory |
-| `docs/0102-TEMPLATE-feature-lld.md` | ~30 lines | Updated testing philosophy (lesson from this implementation) |
+| `AgentOS:templates/0102-lld-template` | ~30 lines | Updated testing philosophy (lesson from this implementation) |
 
 ## 5. Deviations from LLD
 

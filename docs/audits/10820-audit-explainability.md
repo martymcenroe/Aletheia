@@ -256,7 +256,7 @@ Since Aletheia uses API-based models, explainability comes through prompt engine
 - [LIME (Local Interpretable Model-agnostic Explanations)](https://github.com/marcotcr/lime)
 
 ### Internal
-- docs/0809-audit-security.md §3 - LLM security (prompt injection defense)
+- AgentOS:audits/0801-security-audit §3 - LLM security (prompt injection defense)
 - src/guardrails/etymologist.py - Prompt engineering
 
 ---

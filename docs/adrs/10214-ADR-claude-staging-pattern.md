@@ -179,6 +179,6 @@ chmod +x .claude/hooks/*.sh
 ## 8. Related Documents
 
 - `claude-staging/README-DEPLOY.md` - Deployment instructions
-- `docs/0898-horizon-scanning-protocol.md` §4.3 - Triage analysis
+- `AgentOS:audits/0815-horizon-scanning` §4.3 - Triage analysis
 - ADR 0210 - Git Worktree Isolation (parent pattern)
 - ADR 0213 - Adversarial Audit Philosophy (motivation)

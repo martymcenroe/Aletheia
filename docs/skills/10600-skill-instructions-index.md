@@ -12,8 +12,8 @@ This document indexes all skill instructions in the `06xx` namespace. Skill inst
 | **Skill Instructions** | `06xx` | Procedures to execute | Read and follow verbatim |
 
 **Examples:**
-- Template: `0102-TEMPLATE-feature-lld.md` - Copy and fill in for your feature
-- Skill: `0601-skill-gemini-lld-review.md` - Gemini follows this to review LLDs
+- Template: `AgentOS:templates/0102-lld-template` - Copy and fill in for your feature
+- Skill: `AgentOS:skills/0601-gemini-lld-review` - Gemini follows this to review LLDs
 
 ---
 
@@ -23,9 +23,9 @@ This document indexes all skill instructions in the `06xx` namespace. Skill inst
 
 | File | Purpose | Target Agent | Status |
 |:-----|:--------|:-------------|:-------|
-| [0600-skill-instructions-index.md](0600-skill-instructions-index.md) | This file. Index of all skills. | Any | Active |
-| [0601-skill-gemini-lld-review.md](0601-skill-gemini-lld-review.md) | LLD review procedure with priority tiers | Gemini | Active |
-| [0602-skill-gemini-dual-review.md](0602-skill-gemini-dual-review.md) | Claude-Gemini dual review automation for LLD, implementation, and issue filing with model verification | Claude + Gemini | Planned |
+| [AgentOS:skills/0600-skill-index](AgentOS:skills/0600-skill-index) | This file. Index of all skills. | Any | Active |
+| [AgentOS:skills/0601-gemini-lld-review-review.md](AgentOS:skills/0601-gemini-lld-review) | LLD review procedure with priority tiers | Gemini | Active |
+| [AgentOS:skills/0602-gemini-dual-review](AgentOS:skills/0602-gemini-dual-review) | Claude-Gemini dual review automation for LLD, implementation, and issue filing with model verification | Claude + Gemini | Planned |
 
 ### 061x: Audit Skills
 
@@ -62,7 +62,7 @@ Skill instructions may be invoked via slash commands in `.claude/commands/`. The
 
 | Skill Doc | Slash Command | Notes |
 |-----------|---------------|-------|
-| `0601-skill-gemini-lld-review.md` | N/A | Manually assigned by orchestrator |
+| `AgentOS:skills/0601-gemini-lld-review` | N/A | Manually assigned by orchestrator |
 | Future audit skills | `/audit` | Could be linked |
 
 ---
