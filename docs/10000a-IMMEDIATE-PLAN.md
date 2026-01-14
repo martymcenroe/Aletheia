@@ -1,6 +1,6 @@
 # Immediate Plan: POST-MVP - Store Review Period
 
-**Updated:** 2026-01-11
+**Updated:** 2026-01-14
 **Status:** POST-MVP — Submitted to stores, awaiting approval
 
 ---
@@ -27,7 +27,7 @@ What "post-MVP" means:
 | #300 | aria-expanded fix | Accessibility compliance |
 | #301 | Mixed quote normalization | Bedrock JSON parsing reliability |
 
-**Backlog reduced to 3 open issues.**
+**Backlog cleared — 0 open issues.**
 
 ---
 
@@ -79,15 +79,15 @@ No open PRs. All feature work merged.
 
 ---
 
-## Open Issues (3)
+## Open Issues (0)
 
-| Issue | Feature | Status |
+All issues closed. Backlog is clear.
+
+| Issue | Feature | Closed |
 |-------|---------|--------|
-| #306 | Chrome E2E tests as CI blocking gate | testing/process |
-| #106 | Full article context retrieval | future enhancement |
-| #81 | Landing page redesign | post-mvp |
-
-**LLDs ready:** #81 and #106 have completed LLDs with Gemini review.
+| #306 | Chrome E2E tests as CI blocking gate | ✅ |
+| #106 | Full article context retrieval | ✅ |
+| #81 | Landing page redesign | ✅ |
 
 ---
 
@@ -95,4 +95,4 @@ No open PRs. All feature work merged.
 
 1. **Monitor store reviews** — Chrome and Firefox approvals pending
 2. **Orchestrator to file new issues** — Agents standing by
-3. **#306** available for implementation (no LLD needed - process change)
+3. **Backlog is clear** — All tracked issues closed
