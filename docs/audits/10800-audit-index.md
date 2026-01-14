@@ -1,4 +1,4 @@
-# 0800 - Audit Index
+# 10800 - Audit Index
 
 ## 1. Purpose
 
@@ -362,46 +362,46 @@ Standard format for all audits:
 
 ### 10.1 By Number
 
-**Documentation Health (0801-0807)**
-- [0801 - Open Issues Currency](0801-open-issues-audit.md)
-- [0802 - Reports Completeness](0802-reports-completeness-audit.md) ✨
-- [0803 - LLD-to-Code Alignment](0803-lld-code-audit.md)
-- [0804 - File Inventory Drift](0804-inventory-audit.md) ✨
-- [0805 - Terminology Consistency](0805-terminology-audit.md) ✨
-- [0806 - Architecture Drift](0806-architecture-audit.md) ✨
-- [0807 - AgentOS Health Check](AgentOS:audits/0807-agentos-health-audit) ✨
+**Documentation Health (10801-10807)**
+- [10801 - Open Issues Currency](10801-open-issues-audit.md)
+- [10802 - Reports Completeness](10802-reports-completeness-audit.md) ✨
+- [10803 - LLD-to-Code Alignment](10803-lld-code-audit.md)
+- [10804 - File Inventory Drift](10804-inventory-audit.md) ✨
+- [10805 - Terminology Consistency](10805-terminology-audit.md) ✨
+- [10806 - Architecture Drift](10806-architecture-audit.md) ✨
+- [10807 - AgentOS Health Check](10807-agentos-audit.md) ✨
 
-**Core Development (0808-0831)**
-- [0808 - Permission Permissiveness](AgentOS:audits/0816-permission-permissiveness) ✨
-- [0824 - Permission Friction](AgentOS:audits/0817-permission-friction) ✨
-- [0809 - Security](AgentOS:audits/0801-security-audit)
-- [0810 - Privacy](AgentOS:audits/0802-privacy-audit)
-- [0811 - Accessibility](AgentOS:audits/0804-accessibility-audit)
-- [0812 - Performance](0812-audit-performance.md)
-- [0813 - Code Quality](AgentOS:audits/0803-code-quality-audit)
-- [0814 - License Compliance](AgentOS:audits/0805-license-compliance)
-- [0817 - Wiki Alignment](0817-audit-wiki-alignment.md)
-- [0815 - Claude Code Capabilities](AgentOS:audits/0806-claude-capabilities)
-- [0816 - Dependabot PRs](0816-audit-dependabot-prs.md)
-- [0826 - Cross-Browser Testing](0826-audit-cross-browser-testing.md)
-- [0827 - Infrastructure Integration](0827-audit-infrastructure-integration.md)
-- [0828 - Build Artifact Freshness](0828-audit-build-artifact-freshness.md) ✨
-- [0829 - Lambda Failure Remediation](0829-audit-lambda-failure-remediation.md)
-- [0830 - Architecture Freshness](0830-audit-architecture-freshness.md) ✨
-- [0831 - Web Assets](0831-audit-web-assets.md)
+**Core Development (10808-10831)**
+- [10808 - Permission Permissiveness](10808-audit-permission-permissiveness.md) ✨
+- [10824 - Permission Friction](10824-audit-permission-friction.md) ✨
+- [10809 - Security](10809-audit-security.md)
+- [10810 - Privacy](10810-audit-privacy.md)
+- [10811 - Accessibility](10811-audit-accessibility.md)
+- [10812 - Performance](10812-audit-performance.md)
+- [10813 - Code Quality](10813-audit-code-quality.md)
+- [10814 - License Compliance](10814-audit-license-compliance.md)
+- [10815 - Claude Code Capabilities](10815-audit-claude-capabilities.md)
+- [10816 - Dependabot PRs](10816-audit-dependabot-prs.md)
+- [10817 - Wiki Alignment](10817-audit-wiki-alignment.md)
+- [10826 - Cross-Browser Testing](10826-audit-cross-browser-testing.md)
+- [10827 - Infrastructure Integration](10827-audit-infrastructure-integration.md)
+- [10828 - Build Artifact Freshness](10828-audit-build-artifact-freshness.md) ✨
+- [10829 - Lambda Failure Remediation](10829-audit-lambda-failure-remediation.md)
+- [10830 - Architecture Freshness](10830-audit-architecture-freshness.md) ✨
+- [10831 - Web Assets](10831-audit-web-assets.md)
 
-**AI Governance (0818-0825)**
-- [0818 - AI Management System](AgentOS:audits/0809-ai-management-system)
-- [0819 - AI Supply Chain](AgentOS:audits/0810-ai-supply-chain)
-- [0820 - Explainability](AgentOS:audits/0811-explainability)
-- [0821 - Agentic AI Governance](AgentOS:audits/0812-agentic-ai-governance)
-- [0822 - Bias & Fairness](AgentOS:audits/0813-bias-fairness)
-- [0823 - AI Incident Post-Mortem](AgentOS:audits/0814-ai-incident-post-mortem)
-- [0825 - AI Safety](AgentOS:audits/0808-ai-safety-audit)
+**AI Governance (10818-10825)**
+- [10818 - AI Management System](10818-audit-ai-management-system.md)
+- [10819 - AI Supply Chain](10819-audit-ai-supply-chain.md)
+- [10820 - Explainability](10820-audit-explainability.md)
+- [10821 - Agentic AI Governance](10821-audit-agentic-ai-governance.md)
+- [10822 - Bias & Fairness](10822-audit-bias-fairness.md)
+- [10823 - AI Incident Post-Mortem](10823-audit-ai-incident-post-mortem.md)
+- [10825 - AI Safety](10825-audit-ai-safety.md)
 
-**Meta (0898-0899)**
-- [0898 - Horizon Scanning Protocol](AgentOS:audits/0815-horizon-scanning)
-- [0899 - Meta-Audit](AgentOS:audits/0899-meta-audit)
+**Meta (10898-10899)**
+- [10898 - Horizon Scanning Protocol](10898-horizon-scanning-protocol.md)
+- [10899 - Meta-Audit](10899-meta-audit.md)
 
 ✨ = Auto-fix capability (audit automatically fixes findings rather than just reporting)
 

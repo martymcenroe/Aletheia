@@ -21,7 +21,7 @@ graph TB
         APIGW[API Gateway]
         Lambda[Lambda Function]
         DDB[(DynamoDB)]
-        Bedrock[Bedrock - Claude Haiku]
+        Bedrock[Bedrock - Nova Micro]
     end
 
     CS_C -->|message| SW_C
@@ -72,7 +72,7 @@ graph TB
 | File | Purpose |
 |------|---------|
 | `src/lambda_function.py` | Main handler and orchestration |
-| `src/guardrails/selection.py` | Layer 1: Syntactic validation |
+| `src/guardrails/validators.py` | Layer 1: Syntactic validation |
 | `src/guardrails/denylist.py` | Layer 2: Hash-based blocking |
 | `src/guardrails/semantic.py` | Layer 3: LLM-based classification |
 | `src/etymologist.py` | Digital Etymologist persona |
@@ -90,7 +90,7 @@ graph TB
 | **API Gateway** | AWS API Gateway | REST API with Lambda proxy |
 | **Lambda** | AWS Lambda | Python 3.12, 512MB, 30s timeout |
 | **DynamoDB** | AWS DynamoDB | On-demand capacity, TTL enabled |
-| **Bedrock** | Amazon Bedrock | Claude 3 Haiku model |
+| **Bedrock** | Amazon Bedrock | Amazon Nova Micro model |
 
 ### Key Files
 

@@ -18,8 +18,8 @@ Verify configuration integrity of cloud infrastructure, model versions, and syst
 
 | Component | Expected Model | Verification Command | Status |
 |-----------|----------------|---------------------|--------|
-| Etymologist | claude-3-haiku-20240307-v1:0 | `grep HAIKU_MODEL_ID src/etymologist.py` | |
-| Semantic Guard | claude-3-haiku-20240307-v1:0 | `grep MODEL_ID src/guardrails/semantic.py` | |
+| Etymologist | amazon.nova-micro-v1:0 | `grep NOVA_MICRO_MODEL_ID src/etymologist.py` | |
+| Semantic Guard | amazon.nova-micro-v1:0 | `grep MODEL_ID src/guardrails/semantic.py` | |
 | Lambda Env Override | BEDROCK_MODEL_ID | `aws lambda get-function-configuration` | |
 
 ### 2.2 Model Version Drift Detection
@@ -27,11 +27,11 @@ Verify configuration integrity of cloud infrastructure, model versions, and syst
 ```bash
 # Check if Lambda is using expected model
 MSYS_NO_PATHCONV=1 aws lambda get-function-configuration \
-    --function-name Aletheia \
+    --function-name AletheiaAgent \
     --query 'Environment.Variables.BEDROCK_MODEL_ID'
 
 # Compare against documented version
-grep -r "claude-" src/*.py
+grep -r "nova-micro\|NOVA_MICRO" src/*.py
 ```
 
 | Check | Requirement | Status |
@@ -67,7 +67,7 @@ grep -r "claude-" src/*.py
 ```bash
 # Lambda configuration
 MSYS_NO_PATHCONV=1 aws lambda get-function-configuration \
-    --function-name Aletheia \
+    --function-name AletheiaAgent \
     --query '{Timeout:Timeout,Memory:MemorySize,Runtime:Runtime}'
 
 # IAM policies (check for least privilege)

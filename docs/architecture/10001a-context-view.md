@@ -53,7 +53,7 @@ graph TB
 |--------|---------|-------------|
 | **Chrome Web Store** | Distribution for Chrome extension | Manual submission via developer dashboard |
 | **Firefox Add-ons** | Distribution for Firefox extension | Manual submission via AMO dashboard |
-| **Amazon Bedrock** | LLM inference (Claude 3 Haiku) | boto3 SDK, invoke_model API |
+| **Amazon Bedrock** | LLM inference (Amazon Nova Micro) | boto3 SDK, invoke_model API |
 | **AWS Cloud** | Hosting (Lambda, DynamoDB, API Gateway) | Infrastructure as Code via provision.sh |
 | **Wikipedia** | Source for denylist terms (803 terms) | One-time harvest, static JSON in Lambda |
 

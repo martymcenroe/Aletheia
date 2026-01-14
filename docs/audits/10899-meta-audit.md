@@ -235,10 +235,10 @@ Registry/index files must stay synchronized with actual files.
 
 | Index File | Indexes | Verification Method |
 |------------|---------|---------------------|
-| `0003-file-inventory.md` | All project files | `git ls-files` comparison |
-| `0200-ADR-index.md` | ADR documents | Glob `docs/02*-ADR-*.md` |
-| `AgentOS:audits/0800-audit-index` | Audit documents | Glob `docs/08*-audit-*.md` |
-| `AgentOS:templates/0100-template-index` | Template files | Glob `docs/01*-TEMPLATE-*.md` |
+| `docs/standards/10003-file-inventory.md` | All project files | `git ls-files` comparison |
+| `docs/adrs/10200-ADR-index.md` | ADR documents | Glob `docs/adrs/102*-ADR-*.md` |
+| `docs/audits/10800-audit-index.md` | Audit documents | Glob `docs/audits/108*-audit-*.md` |
+| `docs/templates/10100-TEMPLATE-GUIDE.md` | Template files | Glob `docs/templates/101*-TEMPLATE-*.md` |
 
 **Verification Procedure:**
 

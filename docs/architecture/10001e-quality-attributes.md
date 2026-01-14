@@ -11,13 +11,13 @@ Non-functional requirements with targets, current status, and evidence.
 | Cold start | <1s | ~800ms | CloudWatch INIT duration |
 
 **How Achieved:**
-- Claude 3 Haiku model (fastest in family)
+- Amazon Nova Micro model (optimized for low-latency inference)
 - SSE streaming via `@awslambda.streamify_response`
 - Shared boto3 client (eliminates duplicate initialization)
 - Naked Python architecture (no framework overhead)
 
 **Trade-offs:**
-- Chose Haiku over Sonnet/Opus for speed over depth
+- Chose Nova Micro over larger models for speed over depth
 - Sequential LLM calls (semantic + etymology) add ~1s but required for safety
 
 **Deep Dive:** [LLD-1137 Lambda Latency Investigation](lld/done/1137-lambda-latency-investigation.md)
@@ -117,7 +117,7 @@ Non-functional requirements with targets, current status, and evidence.
 **How Achieved:**
 - Lambda pay-per-invocation
 - DynamoDB on-demand capacity
-- Claude 3 Haiku (cheapest model)
+- Amazon Nova Micro (cost-effective model)
 - No always-on infrastructure
 
 ---

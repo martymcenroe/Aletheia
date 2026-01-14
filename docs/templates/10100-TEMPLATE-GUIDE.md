@@ -1,7 +1,7 @@
-# 0100 - Template Guide
+# 10100 - Template Guide
 
 ## Purpose
-This document indexes all templates in the `01xx` namespace. Templates provide consistent patterns for common artifacts.
+This document indexes all templates in the `101xx` namespace. Templates provide consistent patterns for common artifacts.
 
 ## How to Use Templates
 1. Find the appropriate template below
@@ -14,55 +14,55 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 
 ## Template Index
 
-### 010x: Core Templates
+### 101x: Core Templates
 | File | Purpose | Status |
 |:-----|:--------|:-------|
-| `AgentOS:templates/0100-template-index` | This file. Index of all templates. | Active |
-| `AgentOS:templates/0101-issue-template` | GitHub Issue template for features | Active |
-| `AgentOS:templates/0102-lld-template` | Low-Level Design doc for features | Active |
-| `AgentOS:templates/0103-implementation-report-template` | Post-implementation report for completed features | Active |
-| `AgentOS:templates/0104-adr-template` | Architecture Decision Record | Active |
-| `AgentOS:templates/0105-implementation-plan-template` | Implementation plan for process/config changes (not code) | Active |
-| `AgentOS:templates/0108-lld-pre-impl-review` | LLD review checklist (run BEFORE coding) | Active |
+| `10100-TEMPLATE-GUIDE.md` | This file. Index of all templates. | Active |
+| `10101-TEMPLATE-issue.md` | GitHub Issue template for features | Active |
+| `10102-TEMPLATE-feature-lld.md` | Low-Level Design doc for features | Active |
+| `10103-TEMPLATE-implementation-report.md` | Post-implementation report for completed features | Active |
+| `10104-TEMPLATE-adr.md` | Architecture Decision Record | Active |
+| `10105-TEMPLATE-implementation-plan.md` | Implementation plan for process/config changes (not code) | Active |
+| `10108-lld-pre-implementation-review.md` | LLD review checklist (run BEFORE coding) | Active |
 
-**Note:** Gemini LLD review procedure moved to `AgentOS:skills/0601-gemini-lld-review` (skill instructions series).
+**Note:** Gemini LLD review procedure moved to `docs/skills/10601-skill-gemini-lld-review.md` (skill instructions series).
 
-### 011x: Testing Templates
+### 1011x: Testing Templates
 | File | Purpose | Status |
 |:-----|:--------|:-------|
-| `0110-TEMPLATE-test-plan.md` | Test strategy for a feature/release | Future |
-| `AgentOS:templates/0106-test-script-template` | Generic manual test procedure (basic) | Active |
-| `0112-TEMPLATE-browser-extension-test-script.md` | Browser extension test script for non-technical users | Active |
-| `AgentOS:templates/0107-test-report-template` | Results documentation after test run | Active |
+| `10110-TEMPLATE-test-plan.md` | Test strategy for a feature/release | Future |
+| `10111-TEMPLATE-test-script.md` | Generic manual test procedure (basic) | Active |
+| `10112-TEMPLATE-browser-extension-test-script.md` | Browser extension test script for non-technical users | Active |
+| `10113-TEMPLATE-test-report.md` | Results documentation after test run | Active |
 
-### 012x: Content & Tutorial Templates
+### 1012x: Content & Tutorial Templates
 | File | Purpose | Status |
 |:-----|:--------|:-------|
-| `0120-TEMPLATE-tutorial-plan.md` | Outline for a tutorial video/doc | Future |
-| `0121-TEMPLATE-tutorial-script.md` | Shot-by-shot script for video recording | Future |
-| `0122-TEMPLATE-support-article.md` | FAQ/troubleshooting article format | Future |
+| `10120-TEMPLATE-tutorial-plan.md` | Outline for a tutorial video/doc | Future |
+| `10121-TEMPLATE-tutorial-script.md` | Shot-by-shot script for video recording | Future |
+| `10122-TEMPLATE-support-article.md` | FAQ/troubleshooting article format | Future |
 
-### 013x: Release & Operations Templates
+### 1013x: Release & Operations Templates
 | File | Purpose | Status |
 |:-----|:--------|:-------|
-| `0130-TEMPLATE-release-notes.md` | Changelog format for releases | Future |
-| `0131-TEMPLATE-incident-report.md` | Post-mortem for outages/bugs | Future |
-| `0132-TEMPLATE-sprint-retro.md` | Mini-sprint retrospective | Future |
+| `10130-TEMPLATE-release-notes.md` | Changelog format for releases | Future |
+| `10131-TEMPLATE-incident-report.md` | Post-mortem for outages/bugs | Future |
+| `10132-TEMPLATE-sprint-retro.md` | Mini-sprint retrospective | Future |
 
-### 014x: Style Guides
+### 1014x: Style Guides
 | File | Purpose | Status |
 |:-----|:--------|:-------|
-| `0140-STYLE-ui-copy.md` | Tone, voice, terminology for user-facing text | Future |
-| `0141-STYLE-error-messages.md` | How to write error messages | Future |
-| `0142-STYLE-commit-messages.md` | Expanded commit convention guide | Future |
+| `10140-STYLE-ui-copy.md` | Tone, voice, terminology for user-facing text | Future |
+| `10141-STYLE-error-messages.md` | How to write error messages | Future |
+| `10142-STYLE-commit-messages.md` | Expanded commit convention guide | Future |
 
-### 015x-018x: Reserved
+### 1015x-1018x: Reserved
 | Range | Category | Status |
 |:------|:---------|:-------|
-| `015x` | Security (threat models, reviews) | Future |
-| `016x` | Compliance (privacy, store submission) | Future |
-| `017x` | Integration (API docs, webhooks) | Future |
-| `018x` | Infrastructure (runbooks, deployment) | Future |
+| `1015x` | Security (threat models, reviews) | Future |
+| `1016x` | Compliance (privacy, store submission) | Future |
+| `1017x` | Integration (API docs, webhooks) | Future |
+| `1018x` | Infrastructure (runbooks, deployment) | Future |
 
 ---
 
@@ -70,9 +70,9 @@ This document indexes all templates in the `01xx` namespace. Templates provide c
 
 1. Choose the appropriate range from above
 2. Use the next available number in that range
-3. Name format: `01XX-TEMPLATE-{name}.md` or `01XX-STYLE-{name}.md`
+3. Name format: `101XX-TEMPLATE-{name}.md` or `101XX-STYLE-{name}.md`
 4. Update this guide with the new entry
-5. Update `0003-file-inventory.md`
+5. Update `docs/standards/10003-file-inventory.md`
 
 ## Session Logs
 

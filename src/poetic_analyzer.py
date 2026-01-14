@@ -26,24 +26,28 @@ OPUS_MODEL_ID = "anthropic.claude-3-opus-20240229-v1:0"
 MAX_TOKENS = 1000
 
 # Valid dimension labels
-VALID_DIMENSIONS = frozenset([
-    "religious",
-    "literary",
-    "architectural",
-    "artistic",
-    "political",
-    "scientific",
-])
+VALID_DIMENSIONS = frozenset(
+    [
+        "religious",
+        "literary",
+        "architectural",
+        "artistic",
+        "political",
+        "scientific",
+    ]
+)
 
 
 class DimensionAnalysis(TypedDict):
     """Analysis of a single dimension of meaning."""
+
     dimension: str
     explanation: str
 
 
 class PoeticAnalysisResult(TypedDict):
     """Result from poetic resonance analysis."""
+
     status: Literal["success", "error"]
     synthesis: str  # Multi-paragraph explanation of layered meaning
     dimensions: list[DimensionAnalysis]  # Per-dimension explanations
@@ -113,9 +117,9 @@ def build_poetic_prompt(
 <word>{word}</word>
 
 <etymology>
-Signal: {etymology.get('signal', 'Unknown')}
-Summary: {etymology.get('gem', '')}
-History: {etymology.get('context', '')}
+Signal: {etymology.get("signal", "Unknown")}
+Summary: {etymology.get("gem", "")}
+History: {etymology.get("context", "")}
 </etymology>
 
 <page_context>
@@ -123,7 +127,7 @@ History: {etymology.get('context', '')}
 </page_context>
 
 <detected_dimensions>
-{', '.join(dimensions) if dimensions else 'None detected'}
+{", ".join(dimensions) if dimensions else "None detected"}
 </detected_dimensions>
 
 Explain how this word's deeper meanings interact with the surrounding context to create layered meaning."""
@@ -157,7 +161,7 @@ def _extract_json_from_response(raw_text: str) -> dict | None:
         # Find the end of the opening fence
         first_newline = text.find("\n")
         if first_newline > 0:
-            text = text[first_newline + 1:]
+            text = text[first_newline + 1 :]
         # Remove closing fence
         if text.endswith("```"):
             text = text[:-3].strip()
@@ -170,7 +174,7 @@ def _extract_json_from_response(raw_text: str) -> dict | None:
         logger.warning(f"No valid JSON boundaries in Opus response: {text[:200]}")
         return None
 
-    json_str = text[first_brace:last_brace + 1]
+    json_str = text[first_brace : last_brace + 1]
 
     try:
         return json.loads(json_str)

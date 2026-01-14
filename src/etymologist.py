@@ -41,34 +41,31 @@ ALLOWED_MODELS = {
 # Single quote variants -> straight single quote
 QUOTE_NORMALIZATION_MAP = {
     # Double quote variants -> single quote (avoid breaking JSON structure)
-    '\u201C': "'",  # LEFT DOUBLE QUOTATION MARK "
-    '\u201D': "'",  # RIGHT DOUBLE QUOTATION MARK "
-    '\u201E': "'",  # DOUBLE LOW-9 QUOTATION MARK „
-    '\u201F': "'",  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK ‟
-    '\u2033': "'",  # DOUBLE PRIME ″
-    '\u2036': "'",  # REVERSED DOUBLE PRIME ‶
-    '\u00AB': "'",  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK «
-    '\u00BB': "'",  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK »
-
+    "\u201c": "'",  # LEFT DOUBLE QUOTATION MARK "
+    "\u201d": "'",  # RIGHT DOUBLE QUOTATION MARK "
+    "\u201e": "'",  # DOUBLE LOW-9 QUOTATION MARK „
+    "\u201f": "'",  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK ‟
+    "\u2033": "'",  # DOUBLE PRIME ″
+    "\u2036": "'",  # REVERSED DOUBLE PRIME ‶
+    "\u00ab": "'",  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK «
+    "\u00bb": "'",  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK »
     # Single quote variants -> straight single quote
-    '\u2018': "'",  # LEFT SINGLE QUOTATION MARK '
-    '\u2019': "'",  # RIGHT SINGLE QUOTATION MARK '
-    '\u201A': "'",  # SINGLE LOW-9 QUOTATION MARK ‚
-    '\u201B': "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK ‛
-    '\u2032': "'",  # PRIME ′
-    '\u2035': "'",  # REVERSED PRIME ‵
-    '\u2039': "'",  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK ‹
-    '\u203A': "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK ›
-
+    "\u2018": "'",  # LEFT SINGLE QUOTATION MARK '
+    "\u2019": "'",  # RIGHT SINGLE QUOTATION MARK '
+    "\u201a": "'",  # SINGLE LOW-9 QUOTATION MARK ‚
+    "\u201b": "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK ‛
+    "\u2032": "'",  # PRIME ′
+    "\u2035": "'",  # REVERSED PRIME ‵
+    "\u2039": "'",  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK ‹
+    "\u203a": "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK ›
     # Fullwidth variants -> ASCII equivalents
-    '\uFF02': '"',  # FULLWIDTH QUOTATION MARK ＂
-    '\uFF07': "'",  # FULLWIDTH APOSTROPHE ＇
-
+    "\uff02": '"',  # FULLWIDTH QUOTATION MARK ＂
+    "\uff07": "'",  # FULLWIDTH APOSTROPHE ＇
     # CJK brackets (rare but possible from multilingual models)
-    '\u300C': "'",  # LEFT CORNER BRACKET 「
-    '\u300D': "'",  # RIGHT CORNER BRACKET 」
-    '\u300E': "'",  # LEFT WHITE CORNER BRACKET 『
-    '\u300F': "'",  # RIGHT WHITE CORNER BRACKET 』
+    "\u300c": "'",  # LEFT CORNER BRACKET 「
+    "\u300d": "'",  # RIGHT CORNER BRACKET 」
+    "\u300e": "'",  # LEFT WHITE CORNER BRACKET 『
+    "\u300f": "'",  # RIGHT WHITE CORNER BRACKET 』
 }
 
 SYSTEM_PROMPT = """You are the Digital Etymologist, a neutral scholarly voice that explains the origins and cultural weight of words and phrases.
@@ -378,7 +375,7 @@ def fix_unescaped_inner_quotes(text: str) -> str:
     while i < len(text):
         char = text[i]
 
-        if char == '\\' and i + 1 < len(text):
+        if char == "\\" and i + 1 < len(text):
             # Escape sequence - copy both characters
             result.append(char)
             result.append(text[i + 1])
@@ -394,7 +391,7 @@ def fix_unescaped_inner_quotes(text: str) -> str:
                 # Could be end of string or unescaped inner quote
                 # Heuristic: If next non-whitespace is : , } ] or end, it's a delimiter
                 next_meaningful = _peek_next_meaningful_char(text, i + 1)
-                if next_meaningful in (':', ',', '}', ']', None):
+                if next_meaningful in (":", ",", "}", "]", None):
                     # This is a string delimiter
                     in_string = False
                     result.append(char)
@@ -406,7 +403,7 @@ def fix_unescaped_inner_quotes(text: str) -> str:
             result.append(char)
             i += 1
 
-    return ''.join(result)
+    return "".join(result)
 
 
 def _peek_next_meaningful_char(text: str, start: int) -> str | None:
@@ -433,19 +430,12 @@ def _log_unicode_diagnostics(text: str, context: str) -> None:
                 name = unicodedata.name(char)
             except ValueError:
                 name = "UNKNOWN"
-            non_ascii_chars.append({
-                "pos": i,
-                "char": char,
-                "codepoint": f"U+{codepoint:04X}",
-                "name": name
-            })
+            non_ascii_chars.append({"pos": i, "char": char, "codepoint": f"U+{codepoint:04X}", "name": name})
 
     if non_ascii_chars:
         logger.warning(f"UNICODE_DIAGNOSTIC [{context}]: Found {len(non_ascii_chars)} non-ASCII chars")
         for entry in non_ascii_chars[:10]:
-            logger.warning(
-                f"  Position {entry['pos']}: {entry['codepoint']} ({entry['name']}) = '{entry['char']}'"
-            )
+            logger.warning(f"  Position {entry['pos']}: {entry['codepoint']} ({entry['name']}) = '{entry['char']}'")
     else:
         logger.warning(f"UNICODE_DIAGNOSTIC [{context}]: No non-ASCII characters found in first 500 chars")
 
@@ -557,9 +547,7 @@ def validate_response_schema(response: dict) -> tuple[bool, list[str]]:
     elif not response["context"].strip():
         errors.append("Field 'context' cannot be empty")
     elif count_words(response["context"]) > 150:
-        errors.append(
-            f"Field 'context' exceeds 150 words ({count_words(response['context'])} words)"
-        )
+        errors.append(f"Field 'context' exceeds 150 words ({count_words(response['context'])} words)")
 
     # Issue #310: Check poetic_potential (optional for backward compat - default to 0.0)
     if "poetic_potential" in response:
@@ -629,7 +617,9 @@ def extract_token_usage(response_body: dict, model_id: str) -> tuple[int, int]:
         )
 
 
-def process_bedrock_response(raw_response: str) -> tuple[EtymologistResponse, Literal["success", "fallback", "error"], list[str]]:
+def process_bedrock_response(
+    raw_response: str,
+) -> tuple[EtymologistResponse, Literal["success", "fallback", "error"], list[str]]:
     """
     Process raw Bedrock response through extraction and validation.
 

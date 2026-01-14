@@ -27,7 +27,7 @@ Proactively detect and remediate Lambda failures from CloudWatch logs before use
 Get the Lambda's last deployment timestamp:
 
 ```bash
-MSYS_NO_PATHCONV=1 aws lambda get-function --function-name Aletheia --query 'Configuration.LastModified' --output text
+MSYS_NO_PATHCONV=1 aws lambda get-function --function-name AletheiaAgent --query 'Configuration.LastModified' --output text
 ```
 
 Record as `DEPLOY_TIMESTAMP`. All queries filter to errors **after** this timestamp.
@@ -39,7 +39,7 @@ Record as `DEPLOY_TIMESTAMP`. All queries filter to errors **after** this timest
 Query for all error patterns since deployment:
 
 ```bash
-MSYS_NO_PATHCONV=1 aws logs filter-log-events --log-group-name /aws/lambda/Aletheia --start-time <EPOCH_MS> --filter-pattern "ERROR" --query 'events[*].message' --output text
+MSYS_NO_PATHCONV=1 aws logs filter-log-events --log-group-name /aws/lambda/AletheiaAgent --start-time <EPOCH_MS> --filter-pattern "ERROR" --query 'events[*].message' --output text
 ```
 
 Also query for:
@@ -125,7 +125,7 @@ Draft an issue to `tmp/pending-issues/`:
 [How a human might fix this]
 
 ## Related
-- CloudWatch log group: /aws/lambda/Aletheia
+- CloudWatch log group: /aws/lambda/AletheiaAgent
 - Time range: [start] to [end]
 ```
 
@@ -216,7 +216,7 @@ All commands require `MSYS_NO_PATHCONV=1` prefix on Windows.
 
 ### Get Lambda deployment timestamp
 ```bash
-MSYS_NO_PATHCONV=1 aws lambda get-function --function-name Aletheia --query 'Configuration.LastModified' --output text
+MSYS_NO_PATHCONV=1 aws lambda get-function --function-name AletheiaAgent --query 'Configuration.LastModified' --output text
 ```
 
 ### Convert ISO timestamp to epoch milliseconds
@@ -227,7 +227,7 @@ date -d "2026-01-10T12:00:00Z" +%s000
 ### Query errors since timestamp
 ```bash
 MSYS_NO_PATHCONV=1 aws logs filter-log-events \
-    --log-group-name /aws/lambda/Aletheia \
+    --log-group-name /aws/lambda/AletheiaAgent \
     --start-time 1736510400000 \
     --filter-pattern "ERROR" \
     --query 'events[*].{time:timestamp,msg:message}' \
@@ -236,7 +236,7 @@ MSYS_NO_PATHCONV=1 aws logs filter-log-events \
 
 ### Get recent invocation errors
 ```bash
-MSYS_NO_PATHCONV=1 aws logs tail /aws/lambda/Aletheia --since 1h --filter-pattern "ERROR"
+MSYS_NO_PATHCONV=1 aws logs tail /aws/lambda/AletheiaAgent --since 1h --filter-pattern "ERROR"
 ```
 
 ---

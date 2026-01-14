@@ -65,17 +65,28 @@ See Issue #156 for optimization tracking.
 | Lambda cold start | < 500ms | ~2s | ❌ FAIL |
 | Warm invocation | < 100ms | ~100ms | ✅ PASS |
 
+### Cold Start Optimization Options
+
+| Option | Cost Impact | Latency Reduction | Recommendation |
+|--------|-------------|-------------------|----------------|
+| Provisioned Concurrency | ~$15/month per instance | Eliminates cold starts | Consider for production |
+| SnapStart | Free (Java/Python 3.12) | 50-90% reduction | Evaluate when available |
+| Reduced package size | None | 10-20% reduction | Already optimized |
+| ARM64 architecture | -20% cost | +10% speed | Already using |
+
+**Current Status:** Cold starts acceptable for MVP. Provisioned concurrency recommended when traffic justifies cost (~1000+ daily users).
+
 ### Bedrock Latency
 
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
-| Haiku response (semantic guard) | < 1s | ~1s | ✅ PASS |
+| Nova Micro response (semantic guard) | < 1s | ~1s | ✅ PASS |
 | Sonnet response (generation) | < 2s | ~2.5s | ⚠️ MARGINAL |
 | Total E2E latency | < 3s | **~5s** | ❌ FAIL |
 
 **Root Cause:** Now instrumented via Issue #7. Hypothesized breakdown:
 - Cold start: ~2s
-- Semantic guard (Haiku): ~1s
+- Semantic guard (Nova Micro): ~1s
 - DynamoDB write: ~0.1s
 - Bedrock generation (Sonnet): ~2s
 
