@@ -51,6 +51,16 @@
       "text": "The derivative of velocity is acceleration",
       "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
       "category": "None"
+    },
+    {
+      "text": "The article discusses misogyny and misogynists in modern society",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
+    },
+    {
+      "text": "Critics called him a misandrist for his views",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
     }
   ]
 }

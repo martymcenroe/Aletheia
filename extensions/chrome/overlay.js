@@ -736,7 +736,8 @@ function showResultOverlay(response, httpStatus = 200) {
     // Extract data (will be set via textContent for XSS safety)
     const signal = response?.signal || 'Analysis';
     const gem = response?.gem || '';
-    const blockedReason = response?.blocked || 'Content blocked by safety filter';
+    // Issue #339: Use message/reason fields, not the boolean blocked field
+    const blockedReason = response?.message || response?.reason || 'Content blocked by safety filter';
 
     // Card container
     const cardClass = `aletheia-card ${pos.position}${hardBlock ? ' hard-block' : ''}`;
