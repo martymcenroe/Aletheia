@@ -272,3 +272,78 @@ class TestHardSoftBlockingLogic:
         assert result["block_type"] == BLOCK_TYPE_SOFT
         assert result["is_fallback"] is True
         assert result["is_safe"] is False
+
+
+class TestDescriptiveTermsClassification:
+    """Tests for Issue #339: Descriptive terms should NOT be classified as Hate."""
+
+    def test_taxonomy_has_descriptive_term_examples(self):
+        """Verify few-shot examples include descriptive terms classified as None (safe)."""
+        with open(TAXONOMY_PATH) as f:
+            taxonomy = json.load(f)
+
+        examples = taxonomy["few_shot_examples"]
+
+        # Find examples containing descriptive terms
+        descriptive_terms = ["misogyn", "misandr"]
+        found_descriptive_safe = False
+
+        for example in examples:
+            text_lower = example["text"].lower()
+            if any(term in text_lower for term in descriptive_terms):
+                # Descriptive terms should be classified as "None" (safe), NOT "Hate"
+                assert example["category"] == "None", (
+                    f"Descriptive term in '{example['text']}' should be category 'None', "
+                    f"got '{example['category']}'"
+                )
+                found_descriptive_safe = True
+
+        assert found_descriptive_safe, (
+            "No descriptive term examples (misogynist/misandrist) found in taxonomy few-shot examples"
+        )
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_misogynist_returns_no_block(self, mock_boto_client):
+        """Descriptive term 'misogynist' should return BLOCK_TYPE_NONE, not HATE."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        # Mock Bedrock response: LLM correctly classifies as None (after seeing few-shot examples)
+        llm_output = json.dumps({"scores": {"None": 1.0}, "category": "None"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("The article discusses misogynists in modern society")
+
+        assert result["block_type"] == BLOCK_TYPE_NONE
+        assert result["category"] == "None"
+        assert result["is_safe"] is True
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_misandrist_returns_no_block(self, mock_boto_client):
+        """Descriptive term 'misandrist' should return BLOCK_TYPE_NONE, not HATE."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        # Mock Bedrock response: LLM correctly classifies as None
+        llm_output = json.dumps({"scores": {"None": 1.0}, "category": "None"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("Critics called him a misandrist for his views")
+
+        assert result["block_type"] == BLOCK_TYPE_NONE
+        assert result["category"] == "None"
+        assert result["is_safe"] is True
