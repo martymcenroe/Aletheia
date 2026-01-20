@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #125 |
 | **LLD** | `docs/1125-museum-label-ui.md` |
-| **Test Report** | `docs/reports/125/test-report.md` |
+| **Test Report** | `docs/reports/done/1125-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-06 |
 | **PR** | TBD (pending review) |
@@ -30,8 +30,8 @@ Key features implemented:
 |------|-------------|
 | `tests/e2e/museum-label.spec.js` | 16 E2E tests for Museum Label UI |
 | `tests/fixtures/html/test-museum-label.html` | Test fixture page |
-| `docs/reports/125/implementation-report.md` | This report |
-| `docs/reports/125/test-report.md` | Test evidence |
+| `docs/reports/done/1125-implementation-report.md` | This report |
+| `docs/reports/done/1125-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

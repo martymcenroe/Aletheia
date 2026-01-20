@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #312 |
 | **LLD** | N/A (audit task) |
-| **Implementation Report** | `docs/reports/312/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1312-implementation-report.md` |
 | **Raw Output** | N/A (documentation audit) |
 | **Date** | 2026-01-11 |
 

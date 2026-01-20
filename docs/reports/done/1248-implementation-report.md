@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #248 |
 | **LLD** | `docs/lld/active/1248-ci-audit-verification.md` |
-| **Test Report** | `docs/reports/248/test-report.md` |
+| **Test Report** | `docs/reports/done/1248-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-10 |
 | **PR** | TBD |
@@ -31,8 +31,8 @@ Key capabilities:
 | `tests/unit/test_verify_audits.py` | Unit tests covering 9 LLD scenarios (24 tests) |
 | `tests/__init__.py` | Package marker |
 | `tests/unit/__init__.py` | Package marker |
-| `docs/reports/248/implementation-report.md` | This file |
-| `docs/reports/248/test-report.md` | Test evidence |
+| `docs/reports/done/1248-implementation-report.md` | This file |
+| `docs/reports/done/1248-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

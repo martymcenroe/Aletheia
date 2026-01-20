@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #150 |
 | **LLD** | `docs/1150-dynamodb-data-hygiene.md` |
-| **Test Report** | `docs/reports/150/test-report.md` |
+| **Test Report** | `docs/reports/done/1150-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code CLI |
 | **Date** | 2026-01-05 |
 | **PR** | TBD (pending review gate) |
@@ -29,8 +29,8 @@ The tool defaults to dry-run mode for safety. All output shows actual word text,
 | `tools/data_hygiene.py` | CLI tool with --normalize, --backfill-ttl, --clean-common, --scan modes |
 | `tools/data/common_words.txt` | Google 10,000 English words (public domain) |
 | `tests/test_tools_smoke.py` | Regression tests for CLI tools |
-| `docs/reports/150/implementation-report.md` | This report |
-| `docs/reports/150/test-report.md` | Test evidence |
+| `docs/reports/done/1150-implementation-report.md` | This report |
+| `docs/reports/done/1150-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

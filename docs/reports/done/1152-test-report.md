@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #152 |
 | **LLD** | N/A (chore) |
-| **Implementation Report** | `docs/reports/152/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1152-implementation-report.md` |
 | **Raw Output** | N/A (GitHub Actions logs) |
 | **Date** | 2026-01-09 |
 

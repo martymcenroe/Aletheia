@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #95 |
 | **LLD** | `docs/1095-security-hardening.md` |
-| **Test Report** | `docs/reports/95/test-report.md` |
+| **Test Report** | `docs/reports/done/195-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-01 |
 | **PR** | #136 |

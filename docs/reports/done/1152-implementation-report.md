@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #152 |
 | **LLD** | N/A (chore - issue served as specification) |
-| **Test Report** | `docs/reports/152/test-report.md` |
+| **Test Report** | `docs/reports/done/1152-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-09 |
 | **PR** | #225 |
@@ -20,8 +20,8 @@ Enabled GitHub CodeQL static security analysis for Python and JavaScript code. T
 | File | Description |
 |------|-------------|
 | `.github/workflows/codeql.yml` | CodeQL workflow configuration |
-| `docs/reports/152/implementation-report.md` | This report |
-| `docs/reports/152/test-report.md` | Test evidence |
+| `docs/reports/done/1152-implementation-report.md` | This report |
+| `docs/reports/done/1152-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #121 |
 | **LLD** | `docs/1121-wikipedia-denylist.md` |
-| **Implementation Report** | `docs/reports/121/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1121-implementation-report.md` |
 | **Raw Output** | N/A (inline below) |
 | **Date** | 2026-01-01 |
 

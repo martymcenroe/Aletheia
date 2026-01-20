@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #82 |
 | **LLD** | N/A (asset creation, no formal LLD) |
-| **Test Report** | `docs/reports/82/test-report.md` |
+| **Test Report** | `docs/reports/done/182-test-report.md` |
 | **Implementer** | Claude via Claude Code |
 | **Date** | 2025-12-22 |
 | **PR** | #83 |

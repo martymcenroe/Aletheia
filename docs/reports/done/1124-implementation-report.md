@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #124 |
 | **LLD** | `docs/1124-digital-etymologist.md` |
-| **Test Report** | `docs/reports/124/test-report.md` |
+| **Test Report** | `docs/reports/done/1124-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-01 |
 | **PR** | #131 |

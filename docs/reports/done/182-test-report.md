@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #82 |
 | **LLD** | N/A (asset creation) |
-| **Implementation Report** | `docs/reports/82/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/182-implementation-report.md` |
 | **Raw Output** | N/A (visual tests) |
 | **Date** | 2025-12-22 |
 

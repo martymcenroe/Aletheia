@@ -407,8 +407,8 @@ Found working sites after WSJ blocked bots:
 - **9000-lessons-learned.md**: Added 2 lessons (automation, poetry run)
 
 ### Reports Created
-- `docs/reports/84/implementation-report.md`
-- `docs/reports/84/test-report.md`
+- `docs/reports/done/184-implementation-report.md`
+- `docs/reports/done/184-test-report.md`
 
 ### Issues
 - **Closed**: #84 (Signal Inspector CLI) via PR #135
@@ -426,8 +426,8 @@ Found working sites after WSJ blocked bots:
 - `tools/inspect_signals.py`
 - `tests/test_signal_inspector.py`
 - `tests/fixtures/signal_inspector/*.html/.txt` (7 files)
-- `docs/reports/84/implementation-report.md`
-- `docs/reports/84/test-report.md`
+- `docs/reports/done/184-implementation-report.md`
+- `docs/reports/done/184-test-report.md`
 
 ### Files Modified
 - `docs/1084-signal-inspector.md` (status→Complete)
@@ -501,8 +501,8 @@ Completed Issue #95 (Security Hardening via CloudFront + WAF). Deployed CloudFro
 - `tests/infra/verify_waf.sh` - Shell-based WAF verification (4 tests)
 - `tests/e2e/waf-integration.spec.js` - Playwright E2E tests (4 tests)
 - `package.json`, `playwright.config.js` - Node.js config for Playwright
-- `docs/reports/95/implementation-report.md`
-- `docs/reports/95/test-report.md`
+- `docs/reports/done/195-implementation-report.md`
+- `docs/reports/done/195-test-report.md`
 
 ### Files Modified
 - `extension/service-worker.js` - CloudFront URL, WAF header, `text` field
@@ -613,7 +613,7 @@ Continuation session to verify Issue #95 closeout was complete. Re-executed full
 ### 0009 Protocol Verification
 | Step | Status | Notes |
 |------|--------|-------|
-| 0. Reports | Verified | `docs/reports/95/` contains both reports |
+| 0. Reports | Verified | `docs/reports/done/195-` contains both reports |
 | 1. Git Hygiene | Verified | Clean tree, no #95 branches remain |
 | 2. Issue Audit | Verified | Issue #95 CLOSED |
 | 3. PR Audit | Verified | PR #136 MERGED |
@@ -649,7 +649,7 @@ Session continued from context summary. Initially executed 0009 closeout INCORRE
 1. Merged PR #138 (had to resolve merge conflict in inventory first)
 2. Removed worktree `Aletheia-53-100`
 3. Deleted branch `53-100-firefox-build` (local + remote)
-4. Created `docs/reports/100/` (implementation + test reports)
+4. Created `docs/reports/done/1100-` (implementation + test reports)
 5. Reopened #53 - was incorrectly auto-closed by PR (promotional tiles still needed)
 
 ### Lesson Learned
@@ -696,8 +696,8 @@ Session continued from context summary. Completed Issue #124 (Digital Etymologis
 - `src/etymologist.py` - Digital Etymologist module (336 lines)
 - `tests/test_etymologist.py` - 51 unit tests
 - `tests/data/etymology_golden_set.json` - 20 terms + edge cases
-- `docs/reports/124/implementation-report.md`
-- `docs/reports/124/test-report.md`
+- `docs/reports/done/1124-implementation-report.md`
+- `docs/reports/done/1124-test-report.md`
 
 ### Files Modified
 - `src/lambda_function.py` - Switched to buffered calls, Haiku model
@@ -788,8 +788,8 @@ Implemented Issue #104 (Age-Restricted Blocking) - the "Age Gate" to prevent Ale
 - `tests/unit/test_content_safety.js` (new)
 - `package.json` (new)
 - `docs/1105-test-site-infrastructure.md` (new)
-- `docs/reports/104/implementation-report.md` (new)
-- `docs/reports/104/test-report.md` (new)
+- `docs/reports/done/1104-implementation-report.md` (new)
+- `docs/reports/done/1104-test-report.md` (new)
 - `docs/0003-file-inventory.md` (updated)
 - `IMMEDIATE-PLAN.md` (updated)
 

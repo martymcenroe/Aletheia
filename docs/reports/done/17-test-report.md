@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #7 |
 | **LLD** | `docs/1007-observability.md` |
-| **Implementation Report** | `docs/reports/7/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/17-implementation-report.md` |
 | **Raw Output** | N/A (inline below) |
 | **Date** | 2026-01-06 |
 

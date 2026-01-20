@@ -599,8 +599,8 @@ Prompts are versioned in git for audit trail:
 1. Creates worktree: `git worktree add ../Aletheia-223 -b 223-user-auth`
 2. Implements per LLD specifications
 3. Generates reports:
-   - `docs/reports/223/implementation-report.md`
-   - `docs/reports/223/test-report.md`
+   - `docs/reports/done/1223-implementation-report.md`
+   - `docs/reports/done/1223-test-report.md`
 4. **AUTO-INVOKES GEMINI:**
    - Prompt includes: implementation report, test report, file diffs
    - Model check: ✓ Gemini 3 Pro confirmed

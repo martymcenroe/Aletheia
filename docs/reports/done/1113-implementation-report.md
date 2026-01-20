@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #113 |
 | **LLD** | `docs/1113-naked-python-architecture.md` |
-| **Test Report** | `docs/reports/113/test-report.md` |
+| **Test Report** | `docs/reports/done/1113-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2025-12-31 |
 | **PR** | #122 |
@@ -26,8 +26,8 @@ Key changes:
 | File | Description |
 |------|-------------|
 | `tests/test_lambda_handler.py` | 22 tests covering all LLD scenarios |
-| `docs/reports/113/implementation-report.md` | This report |
-| `docs/reports/113/test-report.md` | Test evidence |
+| `docs/reports/done/1113-implementation-report.md` | This report |
+| `docs/reports/done/1113-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

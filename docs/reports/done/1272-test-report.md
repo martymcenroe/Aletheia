@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #272 |
 | **LLD** | N/A - Tech debt fix |
-| **Implementation Report** | `docs/reports/272/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1272-implementation-report.md` |
 | **Raw Output** | Inline (short output) |
 | **Date** | 2026-01-10 |
 

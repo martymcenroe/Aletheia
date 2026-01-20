@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #84 |
 | **LLD** | `docs/1084-signal-inspector.md` |
-| **Implementation Report** | `docs/reports/84/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/184-implementation-report.md` |
 | **Raw Output** | (inline - see below) |
 | **Date** | 2026-01-01 |
 

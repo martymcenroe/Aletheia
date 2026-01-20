@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #69 |
 | **LLD** | `docs/1069-log-inspector.md` |
-| **Test Report** | `docs/reports/69/test-report.md` |
+| **Test Report** | `docs/reports/done/169-test-report.md` |
 | **Implementer** | Claude via Claude Code |
 | **Date** | 2025-12-20 |
 | **PR** | #70 |

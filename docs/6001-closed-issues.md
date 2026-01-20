@@ -4552,7 +4552,7 @@ Create `tests/unit/auth.test.js` using Vitest (same as popup.test.js).
 
 ## References
 
-- Report #116: `docs/reports/116/test-report.md`
+- Report #116: `docs/reports/done/1116-test-report.md`
 - LLD: `docs/1116-linkedin-oauth.md`
 - Existing JS test pattern: `tests/unit/popup.test.js`
 
@@ -4693,7 +4693,7 @@ def test_delete_user_data_success(mock_dynamodb):
 
 ## References
 
-- Report #147: `docs/reports/147/test-report.md`
+- Report #147: `docs/reports/done/1147-test-report.md`
 - Existing Lambda tests: `tests/unit/test_lambda_handler.py`
 
 ---

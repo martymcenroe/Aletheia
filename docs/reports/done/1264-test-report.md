@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #264 |
 | **LLD** | `docs/lld/active/1264-dynamodb-integration-fixtures.md` |
-| **Implementation Report** | `docs/reports/264/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1264-implementation-report.md` |
 | **Date** | 2026-01-10 |
 
 ## 2. Willison Protocol Compliance

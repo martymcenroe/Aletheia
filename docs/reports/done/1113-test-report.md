@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #113 |
 | **LLD** | `docs/1113-naked-python-architecture.md` |
-| **Implementation Report** | `docs/reports/113/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1113-implementation-report.md` |
 | **Tester** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2025-12-31 |
 

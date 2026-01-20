@@ -125,4 +125,4 @@ MSYS_NO_PATHCONV=1 aws dynamodb scan --table-name aletheia-users
 ## 10. References
 
 - LLD: `docs/1116-linkedin-oauth.md`
-- Implementation Report: `docs/reports/116/implementation-report.md`
+- Implementation Report: `docs/reports/done/1116-implementation-report.md`

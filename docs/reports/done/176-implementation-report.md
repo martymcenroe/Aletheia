@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #76 |
 | **LLD** | `docs/1076-allowlist-popup.md` |
-| **Test Report** | `docs/reports/76/test-report.md` |
+| **Test Report** | `docs/reports/done/176-test-report.md` |
 | **Implementer** | Claude Sonnet 3.5 via Claude Code |
 | **Date** | 2025-12-22 |
 | **PR** | #91 |

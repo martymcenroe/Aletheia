@@ -114,8 +114,8 @@ Manual steps:
 | #121 | Wikipedia Denylist | Both |
 
 ### Actions Taken
-- Created docs/reports/121/implementation-report.md
-- Created docs/reports/121/test-report.md
+- Created docs/reports/done/1121-implementation-report.md
+- Created docs/reports/done/1121-test-report.md
 ```
 
 ## Integration

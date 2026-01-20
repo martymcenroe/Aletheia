@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #76 |
 | **LLD** | `docs/1076-allowlist-popup.md` |
-| **Implementation Report** | `docs/reports/76/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/176-implementation-report.md` |
 | **Raw Output** | N/A (manual visual tests) |
 | **Date** | 2025-12-22 |
 

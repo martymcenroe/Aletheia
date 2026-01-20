@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #264 |
 | **LLD** | `docs/lld/active/1264-dynamodb-integration-fixtures.md` |
-| **Test Report** | `docs/reports/264/test-report.md` |
+| **Test Report** | `docs/reports/done/1264-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-10 |
 | **PR** | TBD |
@@ -30,8 +30,8 @@ Key capabilities:
 | `tests/integration/__init__.py` | Package marker |
 | `tests/integration/conftest.py` | DynamoDB fixtures (~250 lines) |
 | `tests/integration/test_dynamodb_ops.py` | 6 test scenarios (~200 lines) |
-| `docs/reports/264/implementation-report.md` | This file |
-| `docs/reports/264/test-report.md` | Test evidence |
+| `docs/reports/done/1264-implementation-report.md` | This file |
+| `docs/reports/done/1264-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

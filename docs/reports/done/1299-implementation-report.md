@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #299 |
 | **LLD** | N/A - Bug fix |
-| **Test Report** | `docs/reports/299/test-report.md` |
+| **Test Report** | `docs/reports/done/1299-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-10 |
 | **PR** | TBD |
@@ -24,8 +24,8 @@ This fixes test 140 (ARIA attributes update on expand) which was failing because
 
 | File | Description |
 |------|-------------|
-| `docs/reports/299/implementation-report.md` | This report |
-| `docs/reports/299/test-report.md` | Test results documentation |
+| `docs/reports/done/1299-implementation-report.md` | This report |
+| `docs/reports/done/1299-test-report.md` | Test results documentation |
 
 ## 4. Files Modified
 

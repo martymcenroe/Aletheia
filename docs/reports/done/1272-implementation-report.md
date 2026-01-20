@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #272 |
 | **LLD** | N/A - Tech debt fix, no LLD required |
-| **Test Report** | `docs/reports/272/test-report.md` |
+| **Test Report** | `docs/reports/done/1272-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-10 |
 | **PR** | TBD |
@@ -23,8 +23,8 @@ Before this fix, Chrome E2E tests were failing because they couldn't query eleme
 
 | File | Description |
 |------|-------------|
-| `docs/reports/272/implementation-report.md` | This report |
-| `docs/reports/272/test-report.md` | Test results documentation |
+| `docs/reports/done/1272-implementation-report.md` | This report |
+| `docs/reports/done/1272-test-report.md` | Test results documentation |
 
 ## 4. Files Modified
 

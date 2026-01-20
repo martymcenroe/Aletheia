@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #159 |
 | **LLD** | `docs/1150-dynamodb-data-hygiene.md` (Section 6.4) |
-| **Test Report** | `docs/reports/159/test-report.md` |
+| **Test Report** | `docs/reports/done/1159-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-05 |
 | **PR** | Pending |
@@ -25,8 +25,8 @@ Key features:
 
 | File | Description |
 |------|-------------|
-| `docs/reports/159/implementation-report.md` | This report |
-| `docs/reports/159/test-report.md` | Test evidence |
+| `docs/reports/done/1159-implementation-report.md` | This report |
+| `docs/reports/done/1159-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

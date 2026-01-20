@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #7 |
 | **LLD** | `docs/1007-observability.md` |
-| **Test Report** | `docs/reports/7/test-report.md` |
+| **Test Report** | `docs/reports/done/17-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-06 |
 | **PR** | #174 |
@@ -28,8 +28,8 @@ The implementation follows the approved LLD `docs/1007-observability.md` with al
 | File | Description |
 |------|-------------|
 | `src/observability.py` | X-Ray and CloudWatch integration module with init_xray(), trace_bedrock_call(), create_subsegment(), and log_bedrock_metrics() functions |
-| `docs/reports/7/implementation-report.md` | This report |
-| `docs/reports/7/test-report.md` | Test evidence |
+| `docs/reports/done/17-implementation-report.md` | This report |
+| `docs/reports/done/17-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

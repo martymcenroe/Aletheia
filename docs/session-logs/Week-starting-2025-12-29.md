@@ -347,7 +347,7 @@ Created `tools/aws/` scripts with clear output:
 Fixed function name from `aletheia-harvester` to `AletheiaAgent`.
 
 ### Retroactive Documentation
-- Created `docs/reports/80/` nested directory structure
+- Created `docs/reports/done/180-` nested directory structure
 - Wrote `implementation-report.md` for abandoned #80 (LangGraph wiring)
 - Documents lessons learned from the architectural pivot
 
@@ -384,7 +384,7 @@ Expanded from 70 to 216 lines with full template compliance:
 - `tools/aws/lambda-status.sh`
 - `tools/aws/lambda-on.sh`
 - `tools/aws/lambda-off.sh`
-- `docs/reports/80/implementation-report.md`
+- `docs/reports/done/180-implementation-report.md`
 
 ### Files Modified
 - `CLAUDE.md` (worktrees, forbidden commands, timestamp)

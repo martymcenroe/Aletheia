@@ -4,7 +4,7 @@
 * **Issue:** #262
 * **Objective:** Add unit tests for the `/auth/callback` OAuth endpoint used by Firefox extension.
 * **Status:** Draft
-* **Related Issues:** #256 (Firefox OAuth tabs-based flow), docs/reports/256/test-report.md
+* **Related Issues:** #256 (Firefox OAuth tabs-based flow), docs/reports/done/1256-test-report.md
 
 ### Open Questions
 *Questions that need clarification before or during implementation. Remove when resolved.*

@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #295 |
 | **LLD** | `docs/lld/active/1295-confidence-score-display.md` |
-| **Implementation Report** | `docs/reports/295/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1295-implementation-report.md` |
 | **Date** | 2026-01-10 |
 
 ## 2. Willison Protocol Compliance

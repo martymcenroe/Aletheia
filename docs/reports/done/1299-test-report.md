@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #299 |
 | **LLD** | N/A - Bug fix |
-| **Implementation Report** | `docs/reports/299/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1299-implementation-report.md` |
 | **Raw Output** | Inline |
 | **Date** | 2026-01-10 |
 

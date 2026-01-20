@@ -213,40 +213,157 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `docs/prototypes/popup-prototype.jsx` | **Prototype** | 🟢 **Stable** | #76 | React prototype for allowlist popup UI. |
 
-### Implementation Reports (Nested by Issue)
+### Implementation Reports (Flat Structure)
+
+Reports use flat naming: `docs/reports/done/{1}{IssueID}-{type}.md` where `{1}` is a prefix and `{IssueID}` is the issue number.
+
 | File | Role | Status | Linked Issue | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/reports/45/implementation-report.md` | **Report** | 🟢 **Stable** | #45 | Implementation report for denylist feature. |
-| `docs/reports/45/test-report.md` | **Report** | 🟢 **Stable** | #45 | Test report for denylist feature. |
-| `docs/reports/69/implementation-report.md` | **Report** | 🟢 **Stable** | #69 | Implementation report for log inspector tool. |
-| `docs/reports/69/test-report.md` | **Report** | 🟢 **Stable** | #69 | Test report for log inspector tool. |
-| `docs/reports/76/implementation-report.md` | **Report** | 🟢 **Stable** | #76 | Implementation report for allowlist popup. |
-| `docs/reports/76/test-report.md` | **Report** | 🟢 **Stable** | #76 | Test report for allowlist popup. |
-| `docs/reports/77/implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
-| `docs/reports/77/test-report.md` | **Report** | 🟢 **Stable** | #77 | Test report for action feedback feature. |
-| `docs/reports/80/implementation-report.md` | **Report** | 🟢 **Stable** | #80 | Retroactive report for abandoned LangGraph implementation. |
-| `docs/reports/82/implementation-report.md` | **Report** | 🟢 **Stable** | #82 | Implementation report for icon assets. |
-| `docs/reports/82/test-report.md` | **Report** | 🟢 **Stable** | #82 | Test report for icon assets. |
-| `docs/reports/113/implementation-report.md` | **Report** | 🟢 **Stable** | #113 | Implementation report for Naked Python architecture. |
-| `docs/reports/113/test-report.md` | **Report** | 🟢 **Stable** | #113 | Test report for Naked Python architecture. |
-| `docs/reports/114/implementation-report.md` | **Report** | 🟢 **Stable** | #114 | Implementation report for overlay restore (also closes #98). |
-| `docs/reports/114/test-report.md` | **Report** | 🟢 **Stable** | #114 | Test report for overlay restore. |
-| `docs/reports/121/implementation-report.md` | **Report** | 🟢 **Stable** | #121 | Implementation report for Wikipedia denylist integration. |
-| `docs/reports/121/test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
-| `docs/reports/84/implementation-report.md` | **Report** | 🟢 **Stable** | #84 | Implementation report for Signal Inspector CLI. |
-| `docs/reports/84/test-report.md` | **Report** | 🟢 **Stable** | #84 | Test report for Signal Inspector CLI. |
-| `docs/reports/95/implementation-report.md` | **Report** | 🟢 **Stable** | #95 | Implementation report for security hardening via CloudFront + WAF. |
-| `docs/reports/95/test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
-| `docs/reports/100/implementation-report.md` | **Report** | 🟢 **Stable** | #100 | Implementation report for Firefox compatibility. |
-| `docs/reports/100/test-report.md` | **Report** | 🟢 **Stable** | #100 | Test report for Firefox compatibility. |
-| `docs/reports/104/implementation-report.md` | **Report** | 🟢 **Stable** | #104 | Implementation report for age-restricted site blocking. |
-| `docs/reports/104/test-report.md` | **Report** | 🟢 **Stable** | #104 | Test report for age-restricted site blocking. |
-| `docs/reports/105/implementation-report.md` | **Report** | 🟢 **Stable** | #105 | Implementation report for test site infrastructure. |
-| `docs/reports/105/test-report.md` | **Report** | 🟢 **Stable** | #105 | Test report for test site infrastructure. |
-| `docs/reports/124/implementation-report.md` | **Report** | 🟢 **Stable** | #124 | Implementation report for Digital Etymologist. |
-| `docs/reports/124/test-report.md` | **Report** | 🟢 **Stable** | #124 | Test report for Digital Etymologist. |
-| `docs/reports/162/implementation-report.md` | **Report** | 🟢 **Stable** | #162 | Implementation report for NoArchive Transform layer. |
-| `docs/reports/162/test-report.md` | **Report** | 🟢 **Stable** | #162 | Test report for NoArchive Transform layer. |
+| `docs/reports/done/17-implementation-report.md` | **Report** | 🟢 **Stable** | #7 | Implementation report for observability. |
+| `docs/reports/done/17-test-report.md` | **Report** | 🟢 **Stable** | #7 | Test report for observability. |
+| `docs/reports/done/145-implementation-report.md` | **Report** | 🟢 **Stable** | #45 | Implementation report for denylist feature. |
+| `docs/reports/done/145-test-report.md` | **Report** | 🟢 **Stable** | #45 | Test report for denylist feature. |
+| `docs/reports/done/153-implementation-report.md` | **Report** | 🟢 **Stable** | #53 | Implementation report for store assets. |
+| `docs/reports/done/153-test-report.md` | **Report** | 🟢 **Stable** | #53 | Test report for store assets. |
+| `docs/reports/done/169-implementation-report.md` | **Report** | 🟢 **Stable** | #69 | Implementation report for log inspector tool. |
+| `docs/reports/done/169-test-report.md` | **Report** | 🟢 **Stable** | #69 | Test report for log inspector tool. |
+| `docs/reports/done/176-implementation-report.md` | **Report** | 🟢 **Stable** | #76 | Implementation report for allowlist popup. |
+| `docs/reports/done/176-test-report.md` | **Report** | 🟢 **Stable** | #76 | Test report for allowlist popup. |
+| `docs/reports/done/177-implementation-report.md` | **Report** | 🟢 **Stable** | #77 | Implementation report for action feedback feature. |
+| `docs/reports/done/177-test-report.md` | **Report** | 🟢 **Stable** | #77 | Test report for action feedback feature. |
+| `docs/reports/done/180-implementation-report.md` | **Report** | 🟢 **Stable** | #80 | Retroactive report for abandoned LangGraph implementation. |
+| `docs/reports/done/182-implementation-report.md` | **Report** | 🟢 **Stable** | #82 | Implementation report for icon assets. |
+| `docs/reports/done/182-test-report.md` | **Report** | 🟢 **Stable** | #82 | Test report for icon assets. |
+| `docs/reports/done/184-implementation-report.md` | **Report** | 🟢 **Stable** | #84 | Implementation report for Signal Inspector CLI. |
+| `docs/reports/done/184-test-report.md` | **Report** | 🟢 **Stable** | #84 | Test report for Signal Inspector CLI. |
+| `docs/reports/done/195-implementation-report.md` | **Report** | 🟢 **Stable** | #95 | Implementation report for security hardening via CloudFront + WAF. |
+| `docs/reports/done/195-test-report.md` | **Report** | 🟢 **Stable** | #95 | Test report for security hardening via CloudFront + WAF. |
+| `docs/reports/done/1100-implementation-report.md` | **Report** | 🟢 **Stable** | #100 | Implementation report for Firefox compatibility. |
+| `docs/reports/done/1100-test-report.md` | **Report** | 🟢 **Stable** | #100 | Test report for Firefox compatibility. |
+| `docs/reports/done/1102-implementation-report.md` | **Report** | 🟢 **Stable** | #102 | Implementation report for repo reorganization. |
+| `docs/reports/done/1102-test-report.md` | **Report** | 🟢 **Stable** | #102 | Test report for repo reorganization. |
+| `docs/reports/done/1104-implementation-report.md` | **Report** | 🟢 **Stable** | #104 | Implementation report for age-restricted site blocking. |
+| `docs/reports/done/1104-test-report.md` | **Report** | 🟢 **Stable** | #104 | Test report for age-restricted site blocking. |
+| `docs/reports/done/1105-implementation-report.md` | **Report** | 🟢 **Stable** | #105 | Implementation report for test site infrastructure. |
+| `docs/reports/done/1105-test-report.md` | **Report** | 🟢 **Stable** | #105 | Test report for test site infrastructure. |
+| `docs/reports/done/1106-implementation-report.md` | **Report** | 🟢 **Stable** | #106 | Implementation report for full article context. |
+| `docs/reports/done/1106-test-report.md` | **Report** | 🟢 **Stable** | #106 | Test report for full article context. |
+| `docs/reports/done/1108-implementation-report.md` | **Report** | 🟢 **Stable** | #108 | Implementation report for store compliance. |
+| `docs/reports/done/1108-test-report.md` | **Report** | 🟢 **Stable** | #108 | Test report for store compliance. |
+| `docs/reports/done/1113-implementation-report.md` | **Report** | 🟢 **Stable** | #113 | Implementation report for Naked Python architecture. |
+| `docs/reports/done/1113-test-report.md` | **Report** | 🟢 **Stable** | #113 | Test report for Naked Python architecture. |
+| `docs/reports/done/1114-implementation-report.md` | **Report** | 🟢 **Stable** | #114 | Implementation report for overlay restore (also closes #98). |
+| `docs/reports/done/1114-test-report.md` | **Report** | 🟢 **Stable** | #114 | Test report for overlay restore. |
+| `docs/reports/done/1116-implementation-report.md` | **Report** | 🟢 **Stable** | #116 | Implementation report for LinkedIn OAuth. |
+| `docs/reports/done/1116-test-report.md` | **Report** | 🟢 **Stable** | #116 | Test report for LinkedIn OAuth. |
+| `docs/reports/done/1121-implementation-report.md` | **Report** | 🟢 **Stable** | #121 | Implementation report for Wikipedia denylist integration. |
+| `docs/reports/done/1121-test-report.md` | **Report** | 🟢 **Stable** | #121 | Test report for Wikipedia denylist integration. |
+| `docs/reports/done/1124-implementation-report.md` | **Report** | 🟢 **Stable** | #124 | Implementation report for Digital Etymologist. |
+| `docs/reports/done/1124-test-report.md` | **Report** | 🟢 **Stable** | #124 | Test report for Digital Etymologist. |
+| `docs/reports/done/1125-implementation-report.md` | **Report** | 🟢 **Stable** | #125 | Implementation report for Museum Label UI. |
+| `docs/reports/done/1125-test-report.md` | **Report** | 🟢 **Stable** | #125 | Test report for Museum Label UI. |
+| `docs/reports/done/1126-implementation-report.md` | **Report** | 🟢 **Stable** | #126 | Implementation report for hard/soft blocking. |
+| `docs/reports/done/1126-test-report.md` | **Report** | 🟢 **Stable** | #126 | Test report for hard/soft blocking. |
+| `docs/reports/done/1137-implementation-report.md` | **Report** | 🟢 **Stable** | #137 | Implementation report for Lambda latency investigation. |
+| `docs/reports/done/1137-test-report.md` | **Report** | 🟢 **Stable** | #137 | Test report for Lambda latency investigation. |
+| `docs/reports/done/1145-implementation-report.md` | **Report** | 🟢 **Stable** | #145 | Implementation report for DynamoDB TTL. |
+| `docs/reports/done/1145-test-report.md` | **Report** | 🟢 **Stable** | #145 | Test report for DynamoDB TTL. |
+| `docs/reports/done/1147-implementation-report.md` | **Report** | 🟢 **Stable** | #147 | Implementation report for GDPR data erasure. |
+| `docs/reports/done/1147-test-report.md` | **Report** | 🟢 **Stable** | #147 | Test report for GDPR data erasure. |
+| `docs/reports/done/1148-implementation-report.md` | **Report** | 🟢 **Stable** | #148 | Implementation report for Bedrock no-training compliance. |
+| `docs/reports/done/1148-test-report.md` | **Report** | 🟢 **Stable** | #148 | Test report for Bedrock no-training compliance. |
+| `docs/reports/done/1150-implementation-report.md` | **Report** | 🟢 **Stable** | #150 | Implementation report for DynamoDB data hygiene. |
+| `docs/reports/done/1150-test-report.md` | **Report** | 🟢 **Stable** | #150 | Test report for DynamoDB data hygiene. |
+| `docs/reports/done/1152-implementation-report.md` | **Report** | 🟢 **Stable** | #152 | Implementation report. |
+| `docs/reports/done/1152-test-report.md` | **Report** | 🟢 **Stable** | #152 | Test report. |
+| `docs/reports/done/1153-implementation-report.md` | **Report** | 🟢 **Stable** | #153 | Implementation report for smoke test fixture fix. |
+| `docs/reports/done/1153-test-report.md` | **Report** | 🟢 **Stable** | #153 | Test report for smoke test fixture fix. |
+| `docs/reports/done/1154-implementation-report.md` | **Report** | 🟢 **Stable** | #154 | Implementation report for ARIA accessibility. |
+| `docs/reports/done/1154-test-report.md` | **Report** | 🟢 **Stable** | #154 | Test report for ARIA accessibility. |
+| `docs/reports/done/1156-implementation-report.md` | **Report** | 🟢 **Stable** | #156 | Implementation report for extension latency optimization. |
+| `docs/reports/done/1156-test-report.md` | **Report** | 🟢 **Stable** | #156 | Test report for extension latency optimization. |
+| `docs/reports/done/1157-implementation-report.md` | **Report** | 🟢 **Stable** | #157 | Implementation report for ESLint flat config. |
+| `docs/reports/done/1157-test-report.md` | **Report** | 🟢 **Stable** | #157 | Test report for ESLint flat config. |
+| `docs/reports/done/1159-implementation-report.md` | **Report** | 🟢 **Stable** | #159 | Implementation report. |
+| `docs/reports/done/1159-test-report.md` | **Report** | 🟢 **Stable** | #159 | Test report. |
+| `docs/reports/done/1161-implementation-report.md` | **Report** | 🟢 **Stable** | #161 | Implementation report for CI performance benchmarks. |
+| `docs/reports/done/1161-test-report.md` | **Report** | 🟢 **Stable** | #161 | Test report for CI performance benchmarks. |
+| `docs/reports/done/1162-implementation-report.md` | **Report** | 🟢 **Stable** | #162 | Implementation report for NoArchive Transform layer. |
+| `docs/reports/done/1162-test-report.md` | **Report** | 🟢 **Stable** | #162 | Test report for NoArchive Transform layer. |
+| `docs/reports/done/1173-implementation-report.md` | **Report** | 🟢 **Stable** | #173 | Implementation report for visual regression infrastructure. |
+| `docs/reports/done/1173-test-report.md` | **Report** | 🟢 **Stable** | #173 | Test report for visual regression infrastructure. |
+| `docs/reports/done/1177-implementation-report.md` | **Report** | 🟢 **Stable** | #177 | Implementation report for store domContext. |
+| `docs/reports/done/1177-test-report.md` | **Report** | 🟢 **Stable** | #177 | Test report for store domContext. |
+| `docs/reports/done/1189-213-implementation-report.md` | **Report** | 🟢 **Stable** | #189, #213 | Implementation report for combined issues. |
+| `docs/reports/done/1189-213-test-report.md` | **Report** | 🟢 **Stable** | #189, #213 | Test report for combined issues. |
+| `docs/reports/done/1193-194-implementation-report.md` | **Report** | 🟢 **Stable** | #193, #194 | Implementation report for Firefox manifest and innerHTML refactor. |
+| `docs/reports/done/1193-194-test-report.md` | **Report** | 🟢 **Stable** | #193, #194 | Test report for Firefox manifest and innerHTML refactor. |
+| `docs/reports/done/1197-implementation-report.md` | **Report** | 🟢 **Stable** | #197 | Implementation report for Shadow DOM hardening. |
+| `docs/reports/done/1197-test-report.md` | **Report** | 🟢 **Stable** | #197 | Test report for Shadow DOM hardening. |
+| `docs/reports/done/1204-implementation-report.md` | **Report** | 🟢 **Stable** | #204 | Implementation report. |
+| `docs/reports/done/1204-test-report.md` | **Report** | 🟢 **Stable** | #204 | Test report. |
+| `docs/reports/done/1206-implementation-report.md` | **Report** | 🟢 **Stable** | #206 | Implementation report for Firefox OAuth. |
+| `docs/reports/done/1206-test-report.md` | **Report** | 🟢 **Stable** | #206 | Test report for Firefox OAuth. |
+| `docs/reports/done/1211-implementation-report.md` | **Report** | 🟢 **Stable** | #211 | Implementation report. |
+| `docs/reports/done/1211-test-report.md` | **Report** | 🟢 **Stable** | #211 | Test report. |
+| `docs/reports/done/1212-implementation-report.md` | **Report** | 🟢 **Stable** | #212 | Implementation report. |
+| `docs/reports/done/1212-test-report.md` | **Report** | 🟢 **Stable** | #212 | Test report. |
+| `docs/reports/done/1214-implementation-report.md` | **Report** | 🟢 **Stable** | #214 | Implementation report. |
+| `docs/reports/done/1214-test-report.md` | **Report** | 🟢 **Stable** | #214 | Test report. |
+| `docs/reports/done/1218-implementation-report.md` | **Report** | 🟢 **Stable** | #218 | Implementation report. |
+| `docs/reports/done/1218-test-report.md` | **Report** | 🟢 **Stable** | #218 | Test report. |
+| `docs/reports/done/1222-implementation-report.md` | **Report** | 🟢 **Stable** | #222 | Implementation report. |
+| `docs/reports/done/1222-test-report.md` | **Report** | 🟢 **Stable** | #222 | Test report. |
+| `docs/reports/done/1231-implementation-report.md` | **Report** | 🟢 **Stable** | #231 | Implementation report. |
+| `docs/reports/done/1231-test-report.md` | **Report** | 🟢 **Stable** | #231 | Test report. |
+| `docs/reports/done/1245-implementation-report.md` | **Report** | 🟢 **Stable** | #245 | Implementation report. |
+| `docs/reports/done/1245-test-report.md` | **Report** | 🟢 **Stable** | #245 | Test report. |
+| `docs/reports/done/1248-implementation-report.md` | **Report** | 🟢 **Stable** | #248 | Implementation report. |
+| `docs/reports/done/1248-test-report.md` | **Report** | 🟢 **Stable** | #248 | Test report. |
+| `docs/reports/done/1249-implementation-report.md` | **Report** | 🟢 **Stable** | #249 | Implementation report. |
+| `docs/reports/done/1249-test-report.md` | **Report** | 🟢 **Stable** | #249 | Test report. |
+| `docs/reports/done/1250-implementation-report.md` | **Report** | 🟢 **Stable** | #250 | Implementation report. |
+| `docs/reports/done/1250-test-report.md` | **Report** | 🟢 **Stable** | #250 | Test report. |
+| `docs/reports/done/1251-implementation-report.md` | **Report** | 🟢 **Stable** | #251 | Implementation report. |
+| `docs/reports/done/1251-test-report.md` | **Report** | 🟢 **Stable** | #251 | Test report. |
+| `docs/reports/done/1256-implementation-report.md` | **Report** | 🟢 **Stable** | #256 | Implementation report. |
+| `docs/reports/done/1256-test-report.md` | **Report** | 🟢 **Stable** | #256 | Test report. |
+| `docs/reports/done/1259-implementation-report.md` | **Report** | 🟢 **Stable** | #259 | Implementation report. |
+| `docs/reports/done/1259-test-report.md` | **Report** | 🟢 **Stable** | #259 | Test report. |
+| `docs/reports/done/1260-implementation-report.md` | **Report** | 🟢 **Stable** | #260 | Implementation report. |
+| `docs/reports/done/1260-test-report.md` | **Report** | 🟢 **Stable** | #260 | Test report. |
+| `docs/reports/done/1262-implementation-report.md` | **Report** | 🟢 **Stable** | #262 | Implementation report. |
+| `docs/reports/done/1262-test-report.md` | **Report** | 🟢 **Stable** | #262 | Test report. |
+| `docs/reports/done/1264-implementation-report.md` | **Report** | 🟢 **Stable** | #264 | Implementation report. |
+| `docs/reports/done/1264-test-report.md` | **Report** | 🟢 **Stable** | #264 | Test report. |
+| `docs/reports/done/1265-implementation-report.md` | **Report** | 🟢 **Stable** | #265 | Implementation report for Firefox overlay E2E. |
+| `docs/reports/done/1265-test-report.md` | **Report** | 🟢 **Stable** | #265 | Test report for Firefox overlay E2E. |
+| `docs/reports/done/1272-implementation-report.md` | **Report** | 🟢 **Stable** | #272 | Implementation report. |
+| `docs/reports/done/1272-test-report.md` | **Report** | 🟢 **Stable** | #272 | Test report. |
+| `docs/reports/done/1276-implementation-report.md` | **Report** | 🟢 **Stable** | #276 | Implementation report. |
+| `docs/reports/done/1276-test-report.md` | **Report** | 🟢 **Stable** | #276 | Test report. |
+| `docs/reports/done/1277-implementation-report.md` | **Report** | 🟢 **Stable** | #277 | Implementation report. |
+| `docs/reports/done/1277-test-report.md` | **Report** | 🟢 **Stable** | #277 | Test report. |
+| `docs/reports/done/1280-implementation-report.md` | **Report** | 🟢 **Stable** | #280 | Implementation report. |
+| `docs/reports/done/1280-test-report.md` | **Report** | 🟢 **Stable** | #280 | Test report. |
+| `docs/reports/done/1282-implementation-report.md` | **Report** | 🟢 **Stable** | #282 | Implementation report. |
+| `docs/reports/done/1282-test-report.md` | **Report** | 🟢 **Stable** | #282 | Test report. |
+| `docs/reports/done/1288-implementation-report.md` | **Report** | 🟢 **Stable** | #288 | Implementation report. |
+| `docs/reports/done/1288-test-report.md` | **Report** | 🟢 **Stable** | #288 | Test report. |
+| `docs/reports/done/1294-implementation-report.md` | **Report** | 🟢 **Stable** | #294 | Implementation report. |
+| `docs/reports/done/1294-test-report.md` | **Report** | 🟢 **Stable** | #294 | Test report. |
+| `docs/reports/done/1295-implementation-report.md` | **Report** | 🟢 **Stable** | #295 | Implementation report. |
+| `docs/reports/done/1295-test-report.md` | **Report** | 🟢 **Stable** | #295 | Test report. |
+| `docs/reports/done/1299-implementation-report.md` | **Report** | 🟢 **Stable** | #299 | Implementation report. |
+| `docs/reports/done/1299-test-report.md` | **Report** | 🟢 **Stable** | #299 | Test report. |
+| `docs/reports/done/1306-implementation-report.md` | **Report** | 🟢 **Stable** | #306 | Implementation report. |
+| `docs/reports/done/1306-test-report.md` | **Report** | 🟢 **Stable** | #306 | Test report. |
+| `docs/reports/done/1310-implementation-report.md` | **Report** | 🟢 **Stable** | #310 | Implementation report. |
+| `docs/reports/done/1310-test-report.md` | **Report** | 🟢 **Stable** | #310 | Test report. |
+| `docs/reports/done/1312-implementation-report.md` | **Report** | 🟢 **Stable** | #312 | Implementation report. |
+| `docs/reports/done/1312-test-report.md` | **Report** | 🟢 **Stable** | #312 | Test report. |
+| `docs/reports/done/1audit-fix-implementation-report.md` | **Report** | 🟢 **Stable** | - | Audit fix implementation report. |
+| `docs/reports/done/1audit-fix-test-report.md` | **Report** | 🟢 **Stable** | - | Audit fix test report. |
 
 ### 90xx Journals & Logs
 | File | Role | Status | Linked Issue | Description |

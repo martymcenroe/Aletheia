@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #295 |
 | **LLD** | `docs/lld/active/1295-confidence-score-display.md` |
-| **Test Report** | `docs/reports/295/test-report.md` |
+| **Test Report** | `docs/reports/done/1295-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-10 |
 | **PR** | TBD |
@@ -27,8 +27,8 @@ Key capabilities:
 | File | Description |
 |------|-------------|
 | `docs/lld/active/1295-confidence-score-display.md` | Feature LLD |
-| `docs/reports/295/implementation-report.md` | This report |
-| `docs/reports/295/test-report.md` | Test evidence |
+| `docs/reports/done/1295-implementation-report.md` | This report |
+| `docs/reports/done/1295-test-report.md` | Test evidence |
 | `~/.gemini/use-apikey.sh` | Script to switch Gemini to API key mode |
 | `~/.gemini/use-oauth.sh` | Script to restore Gemini OAuth mode |
 

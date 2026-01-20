@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #95 |
 | **LLD** | `docs/1095-security-hardening.md` |
-| **Implementation Report** | `docs/reports/95/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/195-implementation-report.md` |
 | **Raw Output** | Inline below |
 | **Date** | 2026-01-01 |
 

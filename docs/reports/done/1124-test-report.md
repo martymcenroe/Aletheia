@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #124 |
 | **LLD** | `docs/1124-digital-etymologist.md` |
-| **Implementation Report** | `docs/reports/124/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1124-implementation-report.md` |
 | **Raw Output** | (inline - all tests passed) |
 | **Date** | 2026-01-01 |
 

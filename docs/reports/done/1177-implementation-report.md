@@ -43,5 +43,5 @@ Implemented data persistence features to store `domContext` (surrounding paragra
 |------|-------------|
 | `src/lambda_function.py` | Modified |
 | `tests/test_persistence.py` | Added |
-| `docs/reports/177/implementation-report.md` | Added |
-| `docs/reports/177/test-report.md` | Added |
+| `docs/reports/done/1177-implementation-report.md` | Added |
+| `docs/reports/done/1177-test-report.md` | Added |

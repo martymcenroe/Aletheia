@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #145 |
 | **LLD** | `docs/1145-dynamodb-ttl.md` |
-| **Implementation Report** | `docs/reports/145/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1145-implementation-report.md` |
 | **Raw Output** | See Section 3 |
 | **Date** | 2026-01-05 |
 

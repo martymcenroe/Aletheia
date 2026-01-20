@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #104 |
 | **LLD** | `docs/1104-age-restricted-blocking.md` |
-| **Test Report** | `docs/reports/104/test-report.md` |
+| **Test Report** | `docs/reports/done/1104-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-04 |
 | **PR** | #140 |

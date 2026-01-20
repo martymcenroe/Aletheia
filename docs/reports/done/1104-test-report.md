@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #104 |
 | **LLD** | `docs/1104-age-restricted-blocking.md` |
-| **Implementation Report** | `docs/reports/104/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1104-implementation-report.md` |
 | **Tester** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-04 |
 | **Test Framework** | Playwright + Jest |

@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #77 |
 | **LLD** | `docs/1077-action-feedback.md` |
-| **Implementation Report** | `docs/reports/77/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/177-implementation-report.md` |
 | **Raw Output** | N/A (manual visual tests) |
 | **Date** | 2025-12-29 |
 

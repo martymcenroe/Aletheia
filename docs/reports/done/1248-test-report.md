@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #248 |
 | **LLD** | `docs/lld/active/1248-ci-audit-verification.md` |
-| **Implementation Report** | `docs/reports/248/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1248-implementation-report.md` |
 | **Raw Output** | Inline (tests run in 0.10s) |
 | **Date** | 2026-01-10 |
 

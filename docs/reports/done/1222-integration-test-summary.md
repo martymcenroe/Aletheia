@@ -139,8 +139,8 @@ ACK. State determination complete. Model: gemini-3-pro-preview.
 **Objective:** Test implementation review workflow with real reports and diffs
 
 **Setup:**
-- Implementation report: `docs/reports/222/implementation-report.md`
-- Test report: `docs/reports/222/test-report.md`
+- Implementation report: `docs/reports/done/1222-implementation-report.md`
+- Test report: `docs/reports/done/1222-test-report.md`
 - Code changes: Summary of gemini-prompts/, tools/gemini-model-check.sh, CLAUDE.md, etc.
 - Prompt template: `gemini-prompts/implementation-review.txt`
 

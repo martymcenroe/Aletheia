@@ -75,8 +75,8 @@ After PR is created, the following will be validated:
 - [x] N/A (CI workflow is self-documenting)
 
 ### Reports
-- [x] `docs/reports/306/implementation-report.md` created
-- [x] `docs/reports/306/test-report.md` created
+- [x] `docs/reports/done/1306-implementation-report.md` created
+- [x] `docs/reports/done/1306-test-report.md` created
 
 ### Review
 - [x] LLD reviewed by Gemini (APPROVED after 2 rounds)

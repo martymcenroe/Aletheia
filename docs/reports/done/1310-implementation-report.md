@@ -18,8 +18,8 @@
 | `src/poetic_analyzer.py` | Opus-powered deep meaning extraction module |
 | `tests/unit/test_poetic_analyzer.py` | 36 unit tests for poetic analyzer |
 | `docs/lld/active/1310-poetic-resonance.md` | Low-Level Design document |
-| `docs/reports/310/implementation-report.md` | This file |
-| `docs/reports/310/test-report.md` | Test report |
+| `docs/reports/done/1310-implementation-report.md` | This file |
+| `docs/reports/done/1310-test-report.md` | Test report |
 
 ### Modified Files
 

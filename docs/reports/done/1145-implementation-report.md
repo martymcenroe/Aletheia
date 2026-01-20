@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #145 |
 | **LLD** | `docs/1145-dynamodb-ttl.md` |
-| **Test Report** | `docs/reports/145/test-report.md` |
+| **Test Report** | `docs/reports/done/1145-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code CLI |
 | **Date** | 2026-01-05 |
 | **PR** | TBD (pending review gate) |
@@ -21,8 +21,8 @@ This feature adds a `ttl` attribute to all items saved by `save_state()` and ena
 
 | File | Description |
 |------|-------------|
-| `docs/reports/145/implementation-report.md` | This report |
-| `docs/reports/145/test-report.md` | Test evidence |
+| `docs/reports/done/1145-implementation-report.md` | This report |
+| `docs/reports/done/1145-test-report.md` | Test evidence |
 
 ## 4. Files Modified
 

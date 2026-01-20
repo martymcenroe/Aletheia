@@ -14,8 +14,8 @@ Implemented full article context retrieval feature per LLD at `docs/lld/active/1
 | `extensions/firefox/article-extractor.js` | Firefox mirror of article extractor |
 | `tests/unit/chrome/article-extractor.test.js` | Unit tests for extraction, PII scrubbing, truncation |
 | `tests/e2e/full-article.spec.js` | E2E tests for noarchive Hard Stop |
-| `docs/reports/106/implementation-report.md` | This file |
-| `docs/reports/106/test-report.md` | Test coverage report |
+| `docs/reports/done/1106-implementation-report.md` | This file |
+| `docs/reports/done/1106-test-report.md` | Test coverage report |
 
 ### Modified Files
 

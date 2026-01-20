@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #121 |
 | **LLD** | `docs/1121-wikipedia-denylist.md` |
-| **Test Report** | `docs/reports/121/test-report.md` |
+| **Test Report** | `docs/reports/done/1121-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-01 |
 | **PR** | #130 |

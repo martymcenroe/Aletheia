@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #84 |
 | **LLD** | `docs/1084-signal-inspector.md` |
-| **Test Report** | `docs/reports/84/test-report.md` |
+| **Test Report** | `docs/reports/done/184-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-01 |
 | **PR** | #135 |

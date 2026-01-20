@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #125 |
 | **LLD** | `docs/1125-museum-label-ui.md` |
-| **Implementation Report** | `docs/reports/125/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1125-implementation-report.md` |
 | **Raw Output** | See Section 3 |
 | **Date** | 2026-01-06 |
 

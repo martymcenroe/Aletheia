@@ -279,8 +279,8 @@ N/A - All verification is automated via CI.
 - [ ] N/A (CI workflow is self-documenting)
 
 ### Reports
-- [ ] `docs/reports/306/implementation-report.md` created
-- [ ] `docs/reports/306/test-report.md` created
+- [ ] `docs/reports/done/1306-implementation-report.md` created
+- [ ] `docs/reports/done/1306-test-report.md` created
 
 ### Review
 - [ ] LLD reviewed by Gemini

@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #159 |
 | **LLD** | `docs/1150-dynamodb-data-hygiene.md` |
-| **Implementation Report** | `docs/reports/159/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/1159-implementation-report.md` |
 | **Raw Output** | Embedded below |
 | **Date** | 2026-01-05 |
 

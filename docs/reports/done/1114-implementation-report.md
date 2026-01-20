@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #114 (also closes #98) |
 | **LLD** | `docs/1077-action-feedback.md` (Section 4.4 Positioning) |
-| **Test Report** | `docs/reports/114/test-report.md` |
+| **Test Report** | `docs/reports/done/1114-test-report.md` |
 | **Implementer** | Gemini 3.0 Pro via Gemini |
 | **Date** | 2025-12-30 |
 | **PR** | #115 |

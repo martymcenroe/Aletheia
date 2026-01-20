@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #69 |
 | **LLD** | `docs/1069-log-inspector.md` |
-| **Implementation Report** | `docs/reports/69/implementation-report.md` |
+| **Implementation Report** | `docs/reports/done/169-implementation-report.md` |
 | **Raw Output** | N/A (CLI output) |
 | **Date** | 2025-12-20 |
 

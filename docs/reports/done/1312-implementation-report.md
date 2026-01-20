@@ -6,7 +6,7 @@
 |-------|-------|
 | **Issue** | #312 |
 | **LLD** | N/A (audit task, no LLD required) |
-| **Test Report** | `docs/reports/312/test-report.md` |
+| **Test Report** | `docs/reports/done/1312-test-report.md` |
 | **Implementer** | Claude Opus 4.5 via Claude Code |
 | **Date** | 2026-01-11 |
 | **PR** | TBD |
@@ -27,8 +27,8 @@ The audit provides migration recommendations for future phases.
 | File | Description |
 |------|-------------|
 | `docs/7000-agentos-classification-audit.md` | Classification table with rationale for each file |
-| `docs/reports/312/implementation-report.md` | This report |
-| `docs/reports/312/test-report.md` | Verification evidence |
+| `docs/reports/done/1312-implementation-report.md` | This report |
+| `docs/reports/done/1312-test-report.md` | Verification evidence |
 
 ## 4. Files Modified
 
