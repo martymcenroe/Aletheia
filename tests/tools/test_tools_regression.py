@@ -5,9 +5,9 @@ Ensures critical admin tools in tools/ don't break when shared libraries
 or schemas change. Tests import capability and --help invocation for each tool.
 
 Test Targets:
-- tools/log_viewer.py
+- tools/log_viewer.py (requires boto3)
 - tools/smoke_test.py
-- tools/data_hygiene.py (conditional - may not exist yet)
+- tools/data_hygiene.py (requires boto3)
 """
 
 import importlib.util
@@ -20,11 +20,6 @@ import pytest
 # Resolve paths relative to project root
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 TOOLS_DIR = PROJECT_ROOT / "tools"
-
-
-def tool_exists(name: str) -> bool:
-    """Check if a tool file exists."""
-    return (TOOLS_DIR / name).exists()
 
 
 def import_tool_module(tool_path: Path):
@@ -52,7 +47,16 @@ def run_tool_help(tool_path: Path) -> subprocess.CompletedProcess:
 # log_viewer.py Tests
 # =============================================================================
 
+# Check if boto3 is available (required by log_viewer.py and data_hygiene.py)
+try:
+    import boto3  # noqa: F401
 
+    BOTO3_AVAILABLE = True
+except ImportError:
+    BOTO3_AVAILABLE = False
+
+
+@pytest.mark.skipif(not BOTO3_AVAILABLE, reason="boto3 not installed")
 class TestLogViewer:
     """Regression tests for tools/log_viewer.py."""
 
@@ -99,23 +103,13 @@ class TestSmokeTest:
 
 
 # =============================================================================
-# data_hygiene.py Tests (Conditional - tool may not exist yet)
+# data_hygiene.py Tests
 # =============================================================================
 
-# Check if data_hygiene.py exists (it's in an active PR)
-DATA_HYGIENE_EXISTS = tool_exists("data_hygiene.py")
 
-
-@pytest.mark.skipif(
-    not DATA_HYGIENE_EXISTS,
-    reason="data_hygiene.py not yet merged (Issue #150 in progress)",
-)
+@pytest.mark.skipif(not BOTO3_AVAILABLE, reason="boto3 not installed")
 class TestDataHygiene:
-    """Regression tests for tools/data_hygiene.py.
-
-    These tests are skipped if the tool doesn't exist yet,
-    allowing this suite to merge before the hygiene tool lands.
-    """
+    """Regression tests for tools/data_hygiene.py."""
 
     tool_path = TOOLS_DIR / "data_hygiene.py"
 
