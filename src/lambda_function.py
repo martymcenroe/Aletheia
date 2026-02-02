@@ -174,9 +174,8 @@ def generate_thread_id(event: dict) -> str:
     """
     Generate a thread ID for DynamoDB persistence.
 
-    TODO: Issue #116 - Replace with authenticated user ID from LinkedIn Auth.
-
     Current strategy: hash of URL + text prefix for session-based identity.
+    Future: Use authenticated user ID when available.
     """
     url = event.get("url", "unknown")
     text_prefix = event.get("text", "")[:50]
@@ -219,7 +218,7 @@ def save_state(thread_id: str, data: dict) -> None:
     else:
         item["response"] = {"S": "null"}
 
-    # TODO: Issue #116 - Add user_id when LinkedIn Auth is implemented
+    # Store user_id if available from authenticated session
     if data.get("userId"):
         item["user_id"] = {"S": data["userId"]}
 
@@ -450,7 +449,6 @@ def lambda_handler(
             }
 
         # 3. Generate thread ID for persistence
-        # TODO: Issue #116 - Use authenticated user ID
         t0 = time.time()
         thread_id = generate_thread_id(body)
         timings["thread_id_ms"] = int((time.time() - t0) * 1000)

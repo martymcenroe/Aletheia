@@ -403,16 +403,16 @@ describe('View Rendering', () => {
       expect(statusLabel.textContent).toBe('INACTIVE');
     });
 
-    // TODO: Fix test harness - mockResolvedValueOnce is consumed by DOMContentLoaded init
-    // before the test's renderMainView() call. Needs mock reset or different setup pattern.
-    it.skip('should handle null domain gracefully', async () => {
+    it('should handle null domain gracefully', async () => {
       const { window } = env;
       const { document } = window;
 
-      // Make tabs.query return no URL
-      window.chrome.tabs.query.mockResolvedValueOnce([{ id: 1, url: null }]);
-
+      // Wait for DOMContentLoaded init to complete, then reset mock for our test
       await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Reset mock and set up null URL response for renderMainView call
+      window.chrome.tabs.query.mockReset();
+      window.chrome.tabs.query.mockResolvedValue([{ id: 1, url: null }]);
 
       await window.renderMainView();
 
