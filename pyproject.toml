@@ -34,7 +34,7 @@ types-colorama = "^0.4.15.20250801"
 
 
 [tool.poetry.group.test.dependencies]
-testcontainers = "^4.14.0"
+testcontainers = "^4.14.1"
 
 [tool.pytest.ini_options]
 testpaths = [
