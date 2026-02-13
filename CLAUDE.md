@@ -2,19 +2,7 @@
 
 You are a team member on the Aletheia project, not a tool.
 
-## FIRST: Read AgentOS Core Rules
-
-**Before doing any work, read the AgentOS core rules:**
-`C:\Users\mcwiz\Projects\AgentOS\CLAUDE.md`
-
-That file contains core rules that apply to ALL projects:
-- Bash command rules (no &&, |, ;)
-- Visible self-check protocol
-- Worktree isolation rules
-- Path format rules (Windows vs Unix)
-- Decision-making protocol
-
-**This file adds Aletheia-specific rules ON TOP of those core rules.**
+**Workflow:** This project uses the full AssemblyZero workflow. Read `C:\Users\mcwiz\Projects\AssemblyZero\WORKFLOW.md`.
 
 ---
 
@@ -24,7 +12,7 @@ That file contains core rules that apply to ALL projects:
 - **Project Root (Windows):** `C:\Users\mcwiz\Projects\Aletheia`
 - **Project Root (Unix):** `/c/Users/mcwiz/Projects/Aletheia`
 - **Worktree Pattern:** `Aletheia-{IssueID}` (e.g., `Aletheia-45`)
-- **Doc Numbering:** 10xxx series (project-specific implementations of AgentOS 0xxx)
+- **Doc Numbering:** 10xxx series (project-specific implementations of AssemblyZero 0xxx)
 
 ---
 
@@ -79,7 +67,7 @@ Aletheia uses the **10xxx numbering scheme** (project-specific implementations):
 | `docs/audits/` | 108xx | Project audit reports |
 | `docs/runbooks/` | 109xx | Project runbooks |
 
-**Generic frameworks** are in AgentOS (`C:\Users\mcwiz\Projects\AgentOS\docs\`).
+**Generic frameworks** are in AssemblyZero (`C:\Users\mcwiz\Projects\AssemblyZero\docs\`).
 **Project implementations** are here with the `1` prefix.
 
 ---
@@ -89,18 +77,18 @@ Aletheia uses the **10xxx numbering scheme** (project-specific implementations):
 | If the issue involves... | Check... |
 |--------------------------|----------|
 | Dependency Updates / PRs | `docs/audits/10816-audit-dependabot-prs.md` |
-| Permissions / CLI Errors | AgentOS `0816-permission-permissiveness.md` |
-| Security / WAF / Auth | AgentOS `0801` + Aletheia `10809` |
-| Privacy / Data Storage | AgentOS `0802` + Aletheia `10810` |
+| Permissions / CLI Errors | AssemblyZero `0816-permission-permissiveness.md` |
+| Security / WAF / Auth | AssemblyZero `0801` + Aletheia `10809` |
+| Privacy / Data Storage | AssemblyZero `0802` + Aletheia `10810` |
 | Performance / Latency | `docs/audits/10812-audit-performance.md` |
-| Code Quality / Linting | AgentOS `0803-code-quality-audit.md` |
-| AI Safety / LLM | AgentOS `0808-ai-safety-audit.md` |
+| Code Quality / Linting | AssemblyZero `0803-code-quality-audit.md` |
+| AI Safety / LLM | AssemblyZero `0808-ai-safety-audit.md` |
 
 ---
 
 ## Forbidden Commands (Aletheia-Specific)
 
-See **AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\standards\0003-agent-prohibited-actions.md`
+See **AssemblyZero:** `C:\Users\mcwiz\Projects\AssemblyZero\docs\standards\0003-agent-prohibited-actions.md`
 
 **Quick reference:**
 - Use `poetry run python tools/merge_pr.py --pr {number}` instead of `gh pr merge`
@@ -113,7 +101,7 @@ See **AgentOS:** `C:\Users\mcwiz\Projects\AgentOS\docs\standards\0003-agent-proh
 
 **Before committing ANY Mermaid diagram, you MUST visually inspect it.**
 
-See AgentOS `docs/standards/0004-mermaid-diagrams.md` for full rules.
+See AssemblyZero `docs/standards/0004-mermaid-diagrams.md` for full rules.
 
 **Quick checklist:**
 - [ ] No touching/overlapping elements
@@ -127,7 +115,7 @@ See AgentOS `docs/standards/0004-mermaid-diagrams.md` for full rules.
 
 **Every session must end with the `/cleanup` command.**
 
-See AgentOS `docs/standards/0005-session-closeout-protocol.md` for full procedure.
+See AssemblyZero `docs/standards/0005-session-closeout-protocol.md` for full procedure.
 
 - `/cleanup --quick` — Minimal ~2 min
 - `/cleanup` — Normal ~5 min (default)
