@@ -124,3 +124,6 @@ claude-staging/
 
 # Claude Code temporary files
 tmpclaude-*
+
+# Unleashed session transcripts (auto-generated, untracked)
+data/unleashed/
