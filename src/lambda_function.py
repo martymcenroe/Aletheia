@@ -358,12 +358,21 @@ def lambda_handler(
         API Gateway response dict.
     """
     try:
+        # Issue #351: Shared secret — reject requests not from CloudFlare Worker
         # Issue #349: Client version header check (replaces WAF rule)
         # Only applies to HTTP requests via Function URL (has requestContext),
         # not direct Lambda invocations (tests, SDK calls).
         if "requestContext" in event:
             method = event["requestContext"].get("http", {}).get("method", "")
             if method != "OPTIONS":
+                # Issue #351: Origin secret check (locks Lambda to CloudFlare-only)
+                expected_secret = os.environ.get("CLOUDFLARE_ORIGIN_SECRET")
+                if expected_secret:
+                    actual_secret = event.get("headers", {}).get("x-origin-secret", "")
+                    if actual_secret != expected_secret:
+                        return {"statusCode": 403, "body": json.dumps({"error": "Forbidden"})}
+
+                # Issue #349: Client version check
                 version = event.get("headers", {}).get("x-aletheia-client-version", "")
                 if not version.startswith("1."):
                     return {"statusCode": 403, "body": json.dumps({"error": "Missing or invalid client version"})}

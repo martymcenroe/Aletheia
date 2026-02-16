@@ -29,6 +29,9 @@ AUTH_FUNC_NAME="${APP_NAME}Auth"
 LINKEDIN_SECRET_NAME="aletheia/linkedin-oauth"
 LAYER_NAME="${APP_NAME}Dependencies"
 
+# Issue #351: Read CloudFlare origin secret from SSM Parameter Store (never in git)
+ORIGIN_SECRET=$(aws ssm get-parameter --name "/aletheia/cloudflare-origin-secret" --with-decryption --query Parameter.Value --output text --region "$REGION" 2>/dev/null || echo "")
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -316,7 +319,7 @@ if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/d
         --timeout 60 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Agent Lambda (X-Ray enabled)${NC}"
@@ -335,7 +338,7 @@ else
         --function-name "$FUNC_NAME" \
         --handler src.lambda_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
