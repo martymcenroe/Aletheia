@@ -374,7 +374,7 @@ async function updateUserBar() {
 // ============================================================================
 
 // API endpoint (same as service-worker.js)
-const API_ENDPOINT = "https://d1fkpkls2wesse.cloudfront.net/";
+const API_ENDPOINT = "https://api.aletheia.study/";
 const CLIENT_VERSION = "1.0";
 
 /**

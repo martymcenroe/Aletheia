@@ -358,6 +358,16 @@ def lambda_handler(
         API Gateway response dict.
     """
     try:
+        # Issue #349: Client version header check (replaces WAF rule)
+        # Only applies to HTTP requests via Function URL (has requestContext),
+        # not direct Lambda invocations (tests, SDK calls).
+        if "requestContext" in event:
+            method = event["requestContext"].get("http", {}).get("method", "")
+            if method != "OPTIONS":
+                version = event.get("headers", {}).get("x-aletheia-client-version", "")
+                if not version.startswith("1."):
+                    return {"statusCode": 403, "body": json.dumps({"error": "Missing or invalid client version"})}
+
         # Issue #137: Timing instrumentation for latency investigation
         timings = {}
         handler_start = time.time()

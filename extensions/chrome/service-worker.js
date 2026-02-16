@@ -1,12 +1,11 @@
 // extensions/chrome/service-worker.js
 // Chrome Manifest V3 version
 
-// [CV-7] CONSTANTS - WIRED TO CLOUDFRONT (WAF-protected)
+// [CV-7] CONSTANTS - WIRED TO CLOUDFLARE (Worker-proxied, rate-limited)
 // Direct Lambda URL: https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/
-const API_ENDPOINT = "https://d1fkpkls2wesse.cloudfront.net/";
+const API_ENDPOINT = "https://api.aletheia.study/";
 
-// [#95] Client version for WAF header validation
-// Must start with "1." to pass WAF rule (see docs/1095-security-hardening.md)
+// [#95] Client version for Lambda header validation (Issue #349: moved from WAF to Lambda)
 const CLIENT_VERSION = "1.0";
 
 // =============================================================================
