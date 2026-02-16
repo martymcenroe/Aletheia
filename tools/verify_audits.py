@@ -102,16 +102,13 @@ def parse_session_logs(
 
     Args:
         log_dir: Directory containing session log files
-        since: Only scan logs after this date (default: 4 weeks ago)
+        since: Only scan logs after this date (None = no filter)
         files: Explicit file list (overrides since)
 
     Returns:
         List of AuditClaim dictionaries
     """
     claims: list[AuditClaim] = []
-
-    if since is None:
-        since = datetime.now() - timedelta(weeks=4)
 
     # Get files to scan
     if files:
@@ -122,14 +119,15 @@ def parse_session_logs(
     for log_file in log_files:
         # Skip files older than since date based on filename
         # Filenames are either YYYY-MM-DD.md or Week-starting-YYYY-MM-DD.md
-        try:
-            date_match = re.search(r"(\d{4}-\d{2}-\d{2})", log_file.name)
-            if date_match:
-                file_date = datetime.strptime(date_match.group(1), "%Y-%m-%d")
-                if file_date < since:
-                    continue
-        except ValueError:
-            pass  # Can't parse date, include the file
+        if since is not None:
+            try:
+                date_match = re.search(r"(\d{4}-\d{2}-\d{2})", log_file.name)
+                if date_match:
+                    file_date = datetime.strptime(date_match.group(1), "%Y-%m-%d")
+                    if file_date < since:
+                        continue
+            except ValueError:
+                pass  # Can't parse date, include the file
 
         try:
             content = log_file.read_text(encoding="utf-8")
@@ -471,14 +469,18 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    # Parse since date
-    since = None
-    if args.since:
+    # Parse since date — default to 4 weeks ago for CLI usage
+    since: datetime | None = None
+    if args.files:
+        since = None  # Explicit file list overrides date filtering
+    elif args.since:
         try:
             since = datetime.strptime(args.since, "%Y-%m-%d")
         except ValueError:
             print(f"ERROR: Invalid date format: {args.since}", file=sys.stderr)
             return 2
+    else:
+        since = datetime.now() - timedelta(weeks=4)
 
     # Validate paths
     log_dir = args.docs_dir / "session-logs"
