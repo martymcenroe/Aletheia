@@ -31,6 +31,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 | [10213](10213-ADR-adversarial-audit-philosophy.md) | Adversarial Audit Philosophy | Proposed | Process, Security, Compliance | 2026-01-08 |
 | [10214](10214-ADR-claude-staging-pattern.md) | Claude-Staging Pattern | Implemented | Process, Governance, Security | 2026-01-08 |
 | [10215](10215-ADR-test-first-philosophy.md) | Test-First Philosophy | Accepted | Process, Testing, Quality | 2026-01-09 |
+| [10216](10216-ADR-cloudflare-migration.md) | CloudFront+WAF to CloudFlare Migration | Implemented | Security, Infrastructure, Cost Optimization | 2026-02-16 |
 
 ---
 
@@ -39,6 +40,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 ### Cost Optimization
 - [10207](10207-ADR-single-identity-orchestration.md)
 - [10209](10209-ADR-static-compliance-hosting.md)
+- [10216](10216-ADR-cloudflare-migration.md)
 
 ### Process
 - [10207](10207-ADR-single-identity-orchestration.md)
@@ -68,6 +70,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 - [10212](10212-ADR-unified-v3-secure-dom.md)
 - [10213](10213-ADR-adversarial-audit-philosophy.md)
 - [10214](10214-ADR-claude-staging-pattern.md)
+- [10216](10216-ADR-cloudflare-migration.md)
 
 ### Privacy
 - [10201](10201-ADR-privacy-first-permissions.md)
@@ -82,6 +85,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 - [10206](10206-ADR-streaming-sse.md)
 - [10209](10209-ADR-static-compliance-hosting.md)
 - [10210](10210-ADR-git-worktree-isolation.md)
+- [10216](10216-ADR-cloudflare-migration.md)
 
 ### Data
 - [10203](10203-ADR-stateful-serverless.md)

@@ -11,6 +11,7 @@ Quick reference for the orchestrator (Marty) on how to run tools, commands, agen
 | Category | Description | Examples |
 |----------|-------------|----------|
 | **Audit Runbooks** | How to invoke audits (ultrathink, model selection) | 0901 |
+| **Incident Runbooks** | How to respond to cost, security, or availability incidents | 10902 |
 | **Skill Runbooks** | How to use /cleanup, /onboard, /audit, etc. | (TBD) |
 | **Agent Runbooks** | How to invoke custom agents | (TBD) |
 | **Prompt Runbooks** | Standard prompts for common tasks | (TBD) |
@@ -20,6 +21,7 @@ Quick reference for the orchestrator (Marty) on how to run tools, commands, agen
 | ID | Runbook | Trigger | Frequency | Model |
 |----|---------|---------|-----------|-------|
 | 0901 | [Nightly AgentOS Audit](AgentOS:runbooks/AgentOS:runbooks/0901-nightly-agentos-audit-audit) | PowerShell | Nightly | Opus + ultrathink |
+| 10902 | [Cost Incident Response](10902-runbook-cost-incident-response.md) | Budget alert email, kill switch activation, or suspected attack | As needed | N/A (manual CLI) |
 
 ## Model Selection Guide
 

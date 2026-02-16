@@ -12,7 +12,9 @@ Application security audit covering web application, browser extension, and AWS 
 **Aletheia Context:**
 - Browser extension (Chrome MV3 / Firefox MV3)
 - AWS Lambda backend (Python)
-- AWS CloudFront + WAF
+- CloudFlare Free (proxy + rate limiting + DDoS) — replaced CloudFront+WAF per ADR 10216
+- CloudFlare Worker (`aletheia-api`) proxies to Lambda Function URL
+- Shared secret header locks Lambda to CloudFlare-only access (Issue #351)
 - DynamoDB persistence
 
 ---
@@ -35,10 +37,10 @@ Application security audit covering web application, browser extension, and AWS 
 
 | Risk | Aletheia Applicability | Check | Status |
 |------|------------------------|-------|--------|
-| **A01: Broken Access Control** | Lambda API endpoints | CloudFront + WAF protected, SSRF controls | ✅ Pass |
+| **A01: Broken Access Control** | Lambda API endpoints | CloudFlare proxy + shared secret header + Lambda header check (ADR 10216). Rate limiting at edge. Kill switch at >100 inv/5min. | ✅ Pass |
 | **A02: Security Misconfiguration** | AWS, extension | Minimal permissions, no debug endpoints | ✅ Pass |
 | **A03: Software Supply Chain Failures** | Dependencies + models | npm audit: 0 vulns, poetry.lock pinned, Bedrock managed | ✅ Pass |
-| **A04: Cryptographic Failures** | Data in transit | HTTPS only via CloudFront | ✅ Pass |
+| **A04: Cryptographic Failures** | Data in transit | HTTPS only via CloudFlare (SSL Full mode) | ✅ Pass |
 | **A05: Injection** | User input to Lambda | Input validation (20k limit), no eval() | ✅ Pass |
 | **A06: Insecure Design** | Architecture | ADRs document security decisions | ✅ Pass |
 | **A07: Auth Failures** | LinkedIn OAuth | CSRF protection, secure token storage | ✅ Pass |
