@@ -72,14 +72,16 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Allow assert in test files
-"tests/**/*.py" = ["S101"]
+# Allow assert and test-fixture secrets in test files
+"tests/**/*.py" = ["S101", "S105", "S106", "S108", "S110", "S310"]
 # Allow subprocess in tool tests (we control the input - test harness pattern)
 "tests/tools/**/*.py" = ["S603"]
 # Allow subprocess in print tools (internal developer tools, hardcoded commands)
 "tools/print/**/*.py" = ["S603"]
 # S105 false positive: URLs containing "Token" are flagged as passwords
 "src/lambda_auth_function.py" = ["S105"]
+"src/auth/linkedin_oauth.py" = ["S105"]
+"src/auth/token_manager.py" = ["S105"]
 # Smoke test intentionally uses subprocess for AWS CLI and opens URLs from CLI args
 "tools/smoke_test.py" = ["S603", "S607", "S310"]
 

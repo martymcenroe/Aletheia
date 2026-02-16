@@ -4,7 +4,10 @@ Lambda Auth Function - LinkedIn OAuth Token Exchange and Validation.
 Handles:
 - Token exchange (auth code → tokens)
 - Token refresh (refresh token → new tokens)
+- Token validation (stateless, via LinkedIn API)
 - User creation/lookup in DynamoDB
+- OAuth callback for Firefox (Issue #256)
+- GDPR data erasure (Issue #147)
 
 See: docs/1116-linkedin-oauth.md
 
@@ -182,6 +185,135 @@ def get_linkedin_user_info(access_token: str) -> dict | None:
     else:
         logger.error(f"LinkedIn userinfo error: {response.status_code}")
         return None
+
+
+def validate_token(event: dict, context: Any) -> dict:
+    """Validate a LinkedIn token by calling the LinkedIn API (stateless validation).
+
+    This function is designed for direct Lambda invocation from the CLI client.
+    It performs stateless validation by calling LinkedIn's userinfo endpoint
+    to verify the token is valid and extract the user profile.
+
+    Issue #116: Backend token validation for CLI OAuth flow.
+
+    Args:
+        event: Lambda event containing:
+            - access_token (str): The LinkedIn access token to validate.
+        context: Lambda context (unused).
+
+    Returns:
+        Dict with:
+            - statusCode: 200 if valid, 401 if invalid, 502 if LinkedIn error.
+            - body: JSON string with validation result and user profile,
+              or error details.
+    """
+    access_token = None
+
+    # Support multiple invocation patterns
+    if isinstance(event, dict):
+        # Direct invocation: {"access_token": "..."}
+        access_token = event.get("access_token")
+
+        # Also support body-wrapped format: {"body": "{\"access_token\": \"...\"}"}
+        if not access_token and event.get("body"):
+            try:
+                body = (
+                    json.loads(event["body"])
+                    if isinstance(event["body"], str)
+                    else event["body"]
+                )
+                access_token = body.get("access_token")
+            except (json.JSONDecodeError, AttributeError):
+                pass
+
+        # Also support Authorization header format
+        if not access_token:
+            headers = event.get("headers", {})
+            auth_header = headers.get(
+                "Authorization", headers.get("authorization", "")
+            )
+            if auth_header.startswith("Bearer "):
+                access_token = auth_header[7:]
+
+    if not access_token:
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": "Missing access_token"}),
+        }
+
+    try:
+        profile = fetch_linkedin_profile(access_token)
+    except Exception as e:
+        logger.error(f"LinkedIn API error during token validation: {e}")
+        return {
+            "statusCode": 502,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "error": "LinkedIn API error",
+                "message": str(e),
+            }),
+        }
+
+    if profile is None:
+        return {
+            "statusCode": 401,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": "Invalid token"}),
+        }
+
+    return {
+        "statusCode": 200,
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps({
+            "valid": True,
+            "user": {
+                "id": profile.get("sub", ""),
+                "name": profile.get("name", "Unknown"),
+                "email": profile.get("email", ""),
+                "picture": profile.get("picture"),
+            },
+        }),
+    }
+
+
+def fetch_linkedin_profile(access_token: str) -> dict | None:
+    """Call LinkedIn API to fetch user profile (stateless validation).
+
+    Makes a request to LinkedIn's OpenID Connect userinfo endpoint to
+    validate the access token and retrieve the user's profile claims.
+
+    Issue #116: Stateless backend token validation.
+
+    Args:
+        access_token: LinkedIn OAuth access token.
+
+    Returns:
+        Dict with LinkedIn profile claims (sub, name, email, picture, etc.)
+        if the token is valid, or None if the token is invalid (401).
+
+    Raises:
+        requests.exceptions.RequestException: If there is a network error
+            or LinkedIn returns a server error (5xx).
+    """
+    response = requests.get(
+        LINKEDIN_USERINFO_URL,
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=10,
+    )
+
+    if response.status_code == 200:
+        return response.json()
+    elif response.status_code == 401:
+        logger.warning("LinkedIn token validation failed: 401 Unauthorized")
+        return None
+    else:
+        # For server errors, raise so caller can return 502
+        logger.error(
+            f"LinkedIn API error: {response.status_code} - {response.text}"
+        )
+        response.raise_for_status()
+        return None  # pragma: no cover
 
 
 def get_or_create_user(user_info: dict) -> dict:
@@ -364,6 +496,8 @@ def handle_validate_token(headers: dict) -> dict:
     Handle GET /auth/validate - Validate access token.
 
     Expects Authorization header: Bearer <token>
+
+    Issue #116: Stateless validation via LinkedIn API.
     """
     auth_header = headers.get("Authorization", headers.get("authorization", ""))
 
@@ -374,9 +508,21 @@ def handle_validate_token(headers: dict) -> dict:
         }
 
     token = auth_header.replace("Bearer ", "")
-    user_info = get_linkedin_user_info(token)
 
-    if user_info is None:
+    try:
+        profile = fetch_linkedin_profile(token)
+    except Exception as e:
+        logger.error(f"LinkedIn API error during validation: {e}")
+        return {
+            "statusCode": 502,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "error": "LinkedIn API error",
+                "message": str(e),
+            }),
+        }
+
+    if profile is None:
         return {
             "statusCode": 401,
             "body": json.dumps({"error": "Invalid token"}),
@@ -388,8 +534,10 @@ def handle_validate_token(headers: dict) -> dict:
         "body": json.dumps({
             "valid": True,
             "user": {
-                "id": user_info["sub"],
-                "name": user_info.get("name", "Unknown"),
+                "id": profile["sub"],
+                "name": profile.get("name", "Unknown"),
+                "email": profile.get("email", ""),
+                "picture": profile.get("picture"),
             },
         }),
     }
@@ -576,6 +724,7 @@ def lambda_handler(event: dict, context: Any) -> dict:
     - POST /auth/refresh - Refresh access token
     - GET /auth/validate - Validate access token
     - GET /auth/callback - OAuth callback for Firefox (Issue #256)
+    - POST /auth/validate-token - Stateless token validation for CLI (Issue #116)
     - DELETE /my-data - GDPR erasure (Issue #147)
 
     See: docs/1116-linkedin-oauth.md, docs/1147-gdpr-data-erasure.md
@@ -612,6 +761,8 @@ def lambda_handler(event: dict, context: Any) -> dict:
             return handle_token_refresh(body)
         elif path == "/auth/validate" and http_method == "GET":
             return handle_validate_token(headers)
+        elif path == "/auth/validate-token" and http_method == "POST":
+            return validate_token(event, context)
         elif path == "/auth/callback" and http_method == "GET":
             return handle_oauth_callback(query_params)
         elif path == "/my-data" and http_method == "DELETE":
