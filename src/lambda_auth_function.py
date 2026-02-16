@@ -2,7 +2,7 @@
 Lambda Auth Function - LinkedIn OAuth Token Exchange and Validation.
 
 Handles:
-- Token exchange (auth code → tokens)
+- Token exchange (auth code → tokens + JWT issuance)
 - Token refresh (refresh token → new tokens)
 - Token validation (stateless, via LinkedIn API)
 - User creation/lookup in DynamoDB
@@ -12,6 +12,7 @@ Handles:
 See: docs/1116-linkedin-oauth.md
 
 Issue #116: LinkedIn OAuth Authentication
+Issue #341: JWT authentication and daily token cap
 """
 
 import html
@@ -25,6 +26,9 @@ import boto3
 import requests
 from botocore.exceptions import ClientError
 
+from auth.jwt_service import create_jwt, get_jwt_secret
+from auth.token_cap_service import check_and_increment_cap
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -32,6 +36,7 @@ logger.setLevel(logging.INFO)
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 USERS_TABLE = os.environ.get("USERS_TABLE", "aletheia-users")
 AGENT_STATE_TABLE = os.environ.get("AGENT_STATE_TABLE", "AletheiaAgentState")
+TOKEN_CAP_TABLE = os.environ.get("TOKEN_CAP_TABLE", "aletheia-token-cap")
 
 # LinkedIn OAuth endpoints
 LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
@@ -383,9 +388,20 @@ def get_or_create_user(user_info: dict) -> dict:
 
 def handle_token_exchange(body: dict) -> dict:
     """
-    Handle POST /auth/token - Exchange auth code for tokens.
+    Handle POST /auth/token - Exchange auth code for tokens and issue JWT.
+
+    Issue #341: After LinkedIn validation, check daily token cap and issue
+    a signed JWT for subsequent API authentication.
 
     Expected body: { "code": "...", "redirectUri": "..." }
+
+    Flow (per LLD §2.5 "Auth Lambda - Token Issuance"):
+    1. Exchange LinkedIn auth code for tokens
+    2. Validate token and get user info
+    3. Create or update user in DynamoDB
+    4. Check daily token cap (return 503 if exceeded)
+    5. Generate JWT with user_id, exp (24h), iat, jti
+    6. Return JWT + user info to client
     """
     code = body.get("code")
     redirect_uri = body.get("redirectUri")
@@ -415,7 +431,57 @@ def handle_token_exchange(body: dict) -> dict:
         # 3. Create or update user in DynamoDB
         user = get_or_create_user(user_info)
 
-        # 4. Return tokens and user info to extension
+        # 4. Check daily token cap (Issue #341)
+        try:
+            allowed, current_count = check_and_increment_cap(TOKEN_CAP_TABLE)
+        except Exception as e:
+            # Fail closed: if cap check fails, deny token issuance
+            logger.error(
+                json.dumps({
+                    "action": "token_denied",
+                    "reason": "cap_check_failed",
+                    "error": str(e),
+                    "user_id": user["user_id"],
+                })
+            )
+            return {
+                "statusCode": 503,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({
+                    "error": "Service temporarily unavailable",
+                }),
+            }
+
+        if not allowed:
+            logger.warning(
+                json.dumps({
+                    "action": "token_denied",
+                    "reason": "daily_cap_exceeded",
+                    "current_count": current_count,
+                    "user_id": user["user_id"],
+                })
+            )
+            return {
+                "statusCode": 503,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({
+                    "error": "Daily token limit exceeded. Please try again tomorrow.",
+                }),
+            }
+
+        # 5. Generate JWT (Issue #341)
+        try:
+            jwt_secret = get_jwt_secret()
+            jwt_token = create_jwt(user["user_id"], jwt_secret, expiry_hours=24)
+        except Exception as e:
+            logger.error(f"JWT generation failed: {e}")
+            return {
+                "statusCode": 500,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({"error": "Internal server error"}),
+            }
+
+        # 6. Return JWT + tokens and user info to extension
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
@@ -423,6 +489,7 @@ def handle_token_exchange(body: dict) -> dict:
                 "accessToken": tokens["access_token"],
                 "refreshToken": tokens.get("refresh_token"),
                 "expiresIn": tokens.get("expires_in", 3600),
+                "jwt": jwt_token,
                 "user": {
                     "id": user["user_id"],
                     "name": user["display_name"],
@@ -720,7 +787,7 @@ def lambda_handler(event: dict, context: Any) -> dict:
     Main entry point for auth Lambda.
 
     Routes:
-    - POST /auth/token - Exchange code for tokens
+    - POST /auth/token - Exchange code for tokens + issue JWT (Issue #341)
     - POST /auth/refresh - Refresh access token
     - GET /auth/validate - Validate access token
     - GET /auth/callback - OAuth callback for Firefox (Issue #256)
