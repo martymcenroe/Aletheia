@@ -121,7 +121,7 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `AgentOS:templates/0104-adr-template`
-2. Use next available number (currently 10216)
+2. Use next available number (currently 10217)
 3. Name format: `102xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
