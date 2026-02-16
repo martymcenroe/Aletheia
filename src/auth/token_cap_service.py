@@ -35,7 +35,7 @@ class TokenCapConfig(TypedDict):
 def _get_dynamodb_resource():
     """Get DynamoDB resource, respecting endpoint override for testing."""
     region = os.environ.get("AWS_REGION", "us-east-1")
-    endpoint_url = os.environ.get("DYNAMODB_ENDPOINT_URL")
+    endpoint_url = os.environ.get("DYNAMODB_ENDPOINT")
     kwargs = {"region_name": region}
     if endpoint_url:
         kwargs["endpoint_url"] = endpoint_url

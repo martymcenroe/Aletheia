@@ -5,7 +5,7 @@ set -e
 # Aletheia Infrastructure Provisioning Script
 # =============================================================================
 # This script provisions all AWS infrastructure for Aletheia:
-# - DynamoDB tables (agent state, users)
+# - DynamoDB tables (agent state, users, token cap)
 # - IAM role with appropriate permissions
 # - Lambda functions (Agent, Auth) with dependency layers
 # - Function URLs with CORS
@@ -23,10 +23,12 @@ REGION="us-east-1"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 TABLE_NAME="${APP_NAME}AgentState"
 USERS_TABLE="aletheia-users"
+TOKEN_CAP_TABLE="aletheia-token-cap"
 ROLE_NAME="${APP_NAME}LambdaRole"
 FUNC_NAME="${APP_NAME}Agent"
 AUTH_FUNC_NAME="${APP_NAME}Auth"
 LINKEDIN_SECRET_NAME="aletheia/linkedin-oauth"
+JWT_SECRET_NAME="aletheia/jwt-signing-key"
 LAYER_NAME="${APP_NAME}Dependencies"
 
 # Issue #351: Read CloudFlare origin secret from SSM Parameter Store (never in git)
@@ -45,7 +47,7 @@ echo ""
 # =============================================================================
 # Step 0: Validate Prerequisites
 # =============================================================================
-echo "[0/9] Validating prerequisites..."
+echo "[0/10] Validating prerequisites..."
 
 # Check for required Lambda source files
 AUTH_LAMBDA_SOURCE="src/lambda_auth_function.py"
@@ -69,7 +71,7 @@ echo -e "${GREEN}Found Lambda source files${NC}"
 # Step 1: DynamoDB Agent State Table
 # =============================================================================
 echo ""
-echo "[1/9] Checking DynamoDB Agent State Table..."
+echo "[1/10] Checking DynamoDB Agent State Table..."
 if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" >/dev/null 2>&1; then
     echo "Creating table: $TABLE_NAME"
     aws dynamodb create-table \
@@ -135,7 +137,7 @@ fi
 # Step 2: DynamoDB Users Table (Issue #116: LinkedIn OAuth)
 # =============================================================================
 echo ""
-echo "[2/9] Checking DynamoDB Users Table..."
+echo "[2/10] Checking DynamoDB Users Table..."
 if ! aws dynamodb describe-table --table-name "$USERS_TABLE" --region "$REGION" >/dev/null 2>&1; then
     echo "Creating users table: $USERS_TABLE"
     aws dynamodb create-table \
@@ -151,10 +153,48 @@ else
 fi
 
 # =============================================================================
-# Step 3: IAM Role with All Required Permissions
+# Step 3: DynamoDB Token Cap Table (Issue #341: JWT Auth + Daily Cap)
 # =============================================================================
 echo ""
-echo "[3/9] Configuring IAM Role..."
+echo "[3/10] Checking DynamoDB Token Cap Table..."
+if ! aws dynamodb describe-table --table-name "$TOKEN_CAP_TABLE" --region "$REGION" >/dev/null 2>&1; then
+    echo "Creating token cap table: $TOKEN_CAP_TABLE"
+    aws dynamodb create-table \
+        --table-name "$TOKEN_CAP_TABLE" \
+        --attribute-definitions AttributeName=PK,AttributeType=S AttributeName=SK,AttributeType=S \
+        --key-schema AttributeName=PK,KeyType=HASH AttributeName=SK,KeyType=RANGE \
+        --billing-mode PAY_PER_REQUEST \
+        --region "$REGION"
+    aws dynamodb wait table-exists --table-name "$TOKEN_CAP_TABLE" --region "$REGION"
+    echo -e "${GREEN}Created token cap table: $TOKEN_CAP_TABLE${NC}"
+else
+    echo "Token cap table already exists: $TOKEN_CAP_TABLE"
+fi
+
+# Enable TTL for 7-day auto-cleanup of daily counters
+echo "Checking Token Cap TTL..."
+TOKEN_CAP_TTL=$(aws dynamodb describe-time-to-live \
+    --table-name "$TOKEN_CAP_TABLE" \
+    --region "$REGION" \
+    --query 'TimeToLiveDescription.TimeToLiveStatus' \
+    --output text 2>/dev/null || echo "DISABLED")
+
+if [ "$TOKEN_CAP_TTL" != "ENABLED" ]; then
+    echo "Enabling TTL on $TOKEN_CAP_TABLE..."
+    aws dynamodb update-time-to-live \
+        --table-name "$TOKEN_CAP_TABLE" \
+        --region "$REGION" \
+        --time-to-live-specification "Enabled=true,AttributeName=ttl"
+    echo -e "${GREEN}TTL enabled on token cap table${NC}"
+else
+    echo "TTL already enabled on token cap table"
+fi
+
+# =============================================================================
+# Step 4: IAM Role with All Required Permissions
+# =============================================================================
+echo ""
+echo "[4/10] Configuring IAM Role..."
 TRUST_POLICY='{"Version": "2012-10-17","Statement": [{"Effect": "Allow","Principal": { "Service": "lambda.amazonaws.com" },"Action": "sts:AssumeRole"}]}'
 
 if ! aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
@@ -198,7 +238,8 @@ aws iam put-role-policy \
             "Resource": [
                 "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'",
                 "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'/index/*",
-                "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'"
+                "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'",
+                "arn:aws:dynamodb:*:*:table/'"$TOKEN_CAP_TABLE"'"
             ]
         },
         {
@@ -214,7 +255,10 @@ aws iam put-role-policy \
             "Action": [
                 "secretsmanager:GetSecretValue"
             ],
-            "Resource": "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$LINKEDIN_SECRET_NAME"'*"
+            "Resource": [
+                "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$LINKEDIN_SECRET_NAME"'*",
+                "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$JWT_SECRET_NAME"'*"
+            ]
         },
         {
             "Effect": "Allow",
@@ -247,10 +291,10 @@ echo "Waiting for IAM propagation (10 seconds)..."
 sleep 10
 
 # =============================================================================
-# Step 4: Lambda Dependency Layer (Cherry-Pick Strategy)
+# Step 5: Lambda Dependency Layer (Cherry-Pick Strategy)
 # =============================================================================
 echo ""
-echo "[4/9] Building Lambda Dependency Layer..."
+echo "[5/10] Building Lambda Dependency Layer..."
 
 # Clean up any previous build artifacts
 rm -rf build/python 2>/dev/null || true
@@ -260,9 +304,10 @@ rm -f dependencies.zip 2>/dev/null || true
 mkdir -p build/python
 
 # Install ONLY the required runtime dependencies (cherry-pick, not full poetry export)
-# Issue #7: Added aws-xray-sdk for observability tracing
-echo "Installing runtime dependencies: requests, python-jose, aws-xray-sdk..."
-pip install requests python-jose aws-xray-sdk -t build/python --no-cache-dir --quiet
+# Issue #7: aws-xray-sdk for observability tracing
+# Issue #341: PyJWT for JWT authentication
+echo "Installing runtime dependencies: requests, python-jose, aws-xray-sdk, PyJWT..."
+pip install requests python-jose aws-xray-sdk PyJWT -t build/python --no-cache-dir --quiet
 
 # Remove unnecessary files to reduce layer size
 echo "Cleaning up unnecessary files..."
@@ -284,7 +329,7 @@ echo "Layer size: $LAYER_SIZE"
 echo "Publishing Lambda Layer: $LAYER_NAME..."
 LAYER_VERSION_ARN=$(aws lambda publish-layer-version \
     --layer-name "$LAYER_NAME" \
-    --description "Runtime dependencies for Aletheia Lambdas (requests, python-jose, aws-xray-sdk)" \
+    --description "Runtime dependencies for Aletheia Lambdas (requests, python-jose, aws-xray-sdk, PyJWT)" \
     --zip-file fileb://dependencies.zip \
     --compatible-runtimes python3.12 python3.11 python3.10 \
     --compatible-architectures x86_64 \
@@ -298,10 +343,10 @@ echo -e "${GREEN}Published layer: $LAYER_VERSION_ARN${NC}"
 rm -rf build dependencies.zip
 
 # =============================================================================
-# Step 5: Deploy Agent Lambda (Real Code)
+# Step 6: Deploy Agent Lambda (Real Code)
 # =============================================================================
 echo ""
-echo "[5/9] Deploying Agent Lambda..."
+echo "[6/10] Deploying Agent Lambda..."
 
 # Create deployment package from real source (entire src/ package for relative imports)
 echo "Packaging src/ directory..."
@@ -319,7 +364,7 @@ if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/d
         --timeout 60 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Agent Lambda (X-Ray enabled)${NC}"
@@ -338,7 +383,7 @@ else
         --function-name "$FUNC_NAME" \
         --handler src.lambda_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
@@ -348,15 +393,15 @@ fi
 rm -f agent_lambda.zip
 
 # =============================================================================
-# Step 6: Deploy Auth Lambda (Real Code - No More "Init"!)
+# Step 7: Deploy Auth Lambda (Issue #341: Now uses src/ package imports)
 # =============================================================================
 echo ""
-echo "[6/9] Deploying Auth Lambda..."
+echo "[7/10] Deploying Auth Lambda..."
 
-# Create deployment package from real source
-echo "Packaging $AUTH_LAMBDA_SOURCE..."
-cp "$AUTH_LAMBDA_SOURCE" lambda_auth_function.py
-zip -q auth_lambda.zip lambda_auth_function.py
+# Issue #362: Auth Lambda now imports from auth/ package (jwt_service, token_cap_service).
+# Must package entire src/ directory, same as Agent Lambda.
+echo "Packaging src/ directory for Auth Lambda..."
+zip -rq auth_lambda.zip src/
 
 if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION" >/dev/null 2>&1; then
     echo "Creating Lambda function: $AUTH_FUNC_NAME"
@@ -364,13 +409,13 @@ if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION
         --function-name "$AUTH_FUNC_NAME" \
         --runtime python3.12 \
         --role "arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}" \
-        --handler lambda_auth_function.lambda_handler \
+        --handler src.lambda_auth_function.lambda_handler \
         --zip-file fileb://auth_lambda.zip \
         --architectures x86_64 \
         --timeout 30 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Auth Lambda (X-Ray enabled)${NC}"
@@ -384,25 +429,24 @@ else
     # Wait for code update to complete before updating configuration
     aws lambda wait function-updated --function-name "$AUTH_FUNC_NAME" --region "$REGION"
 
-    # Update configuration including layer, handler, and X-Ray tracing (Issue #7)
     aws lambda update-function-configuration \
         --function-name "$AUTH_FUNC_NAME" \
-        --handler lambda_auth_function.lambda_handler \
+        --handler src.lambda_auth_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
     echo -e "${GREEN}Updated Auth Lambda (X-Ray enabled)${NC}"
 fi
 
-rm -f lambda_auth_function.py auth_lambda.zip
+rm -f auth_lambda.zip
 
 # =============================================================================
-# Step 7: Configure Function URLs
+# Step 8: Configure Function URLs
 # =============================================================================
 echo ""
-echo "[7/9] Configuring Function URLs..."
+echo "[8/10] Configuring Function URLs..."
 
 # Agent Function URL
 aws lambda create-function-url-config \
@@ -449,10 +493,10 @@ AUTH_FUNC_URL=$(aws lambda get-function-url-config \
 echo -e "${GREEN}Function URLs configured${NC}"
 
 # =============================================================================
-# Step 8: CloudWatch Log Groups with Retention
+# Step 9: CloudWatch Log Groups with Retention
 # =============================================================================
 echo ""
-echo "[8/9] Configuring CloudWatch Logs..."
+echo "[9/10] Configuring CloudWatch Logs..."
 
 # Create log groups if they don't exist
 # Note: MSYS_NO_PATHCONV=1 prevents Git Bash from converting /aws/lambda to C:/Program Files/Git/aws/lambda
@@ -482,23 +526,37 @@ done
 echo -e "${GREEN}CloudWatch logging configured with 14-day retention (Issue #7)${NC}"
 
 # =============================================================================
-# Step 9: Verify LinkedIn OAuth Secret
+# Step 10: Verify Secrets
 # =============================================================================
 echo ""
-echo "[9/9] Checking LinkedIn OAuth Secret..."
+echo "[10/10] Checking required secrets..."
+
+SECRETS_OK=true
+
+# LinkedIn OAuth secret
 if ! aws secretsmanager describe-secret --secret-id "$LINKEDIN_SECRET_NAME" --region "$REGION" >/dev/null 2>&1; then
     echo -e "${YELLOW}WARNING: LinkedIn OAuth secret '$LINKEDIN_SECRET_NAME' not found!${NC}"
-    echo ""
-    echo "Create it with:"
-    echo "  aws secretsmanager create-secret \\"
-    echo "    --name $LINKEDIN_SECRET_NAME \\"
-    echo "    --secret-string '{\"client_id\":\"YOUR_CLIENT_ID\",\"client_secret\":\"YOUR_CLIENT_SECRET\"}' \\"
-    echo "    --region $REGION"
-    echo ""
-    SECRET_EXISTS=false
+    echo "  Create it with:"
+    echo "    aws secretsmanager create-secret \\"
+    echo "      --name $LINKEDIN_SECRET_NAME \\"
+    echo "      --secret-string '{\"client_id\":\"YOUR_ID\",\"client_secret\":\"YOUR_SECRET\"}' \\"
+    echo "      --region $REGION"
+    SECRETS_OK=false
 else
     echo -e "${GREEN}LinkedIn secret exists: $LINKEDIN_SECRET_NAME${NC}"
-    SECRET_EXISTS=true
+fi
+
+# JWT signing secret (Issue #341)
+if ! aws secretsmanager describe-secret --secret-id "$JWT_SECRET_NAME" --region "$REGION" >/dev/null 2>&1; then
+    echo -e "${YELLOW}WARNING: JWT signing secret '$JWT_SECRET_NAME' not found!${NC}"
+    echo "  Create it with:"
+    echo "    python -c \"import secrets,base64; print(base64.urlsafe_b64encode(secrets.token_bytes(64)).decode())\" | \\"
+    echo "      xargs -I{} aws secretsmanager create-secret \\"
+    echo "        --name $JWT_SECRET_NAME --secret-string '{}' \\"
+    echo "        --region $REGION"
+    SECRETS_OK=false
+else
+    echo -e "${GREEN}JWT signing secret exists: $JWT_SECRET_NAME${NC}"
 fi
 
 # =============================================================================
@@ -549,6 +607,7 @@ echo "Resources:"
 echo "  DynamoDB Tables:"
 echo "    - $TABLE_NAME (TTL enabled)"
 echo "    - $USERS_TABLE"
+echo "    - $TOKEN_CAP_TABLE (TTL enabled)"
 echo "  IAM Role: $ROLE_NAME"
 echo "  Lambda Layer: $LAYER_NAME"
 echo ""
@@ -557,8 +616,8 @@ echo "  Agent Function URL: $FUNC_URL"
 echo "  Auth Function URL:  $AUTH_FUNC_URL"
 echo ""
 
-if [ "$SECRET_EXISTS" = false ]; then
-    echo -e "${YELLOW}Action Required: Create LinkedIn OAuth secret (see above)${NC}"
+if [ "$SECRETS_OK" = false ]; then
+    echo -e "${YELLOW}Action Required: Create missing secrets (see above)${NC}"
     echo ""
 fi
 
