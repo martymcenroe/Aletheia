@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-02-02T16:44:25.312284+00:00",
+  "last_updated": "2026-02-16T09:17:04.948487+00:00",
   "issues": {
     "341": {
       "lld_path": "docs\\lld\\active\\LLD-341.md",
@@ -9,6 +9,14 @@
       "final_verdict": "APPROVED",
       "last_review_date": "2026-02-02T16:44:25.312047+00:00",
       "review_count": 2
+    },
+    "116": {
+      "lld_path": "docs\\lld\\active\\LLD-116.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-16T09:17:04.948185+00:00",
+      "review_count": 3
     }
   }
 }
