@@ -343,7 +343,7 @@ jobs:
   # Infrastructure deployment - runs ONLY on push to main
   deploy-infra:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [test, policy-check]
+    needs: [test, integration-tests, policy-check]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
