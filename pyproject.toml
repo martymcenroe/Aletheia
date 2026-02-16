@@ -82,6 +82,10 @@ ignore = [
 "src/lambda_auth_function.py" = ["S105"]
 "src/auth/linkedin_oauth.py" = ["S105"]
 "src/auth/token_manager.py" = ["S105"]
+"src/auth/auth_middleware.py" = ["S105"]
+# E402: imports after sys.path.insert for src/ access
+"tests/integration/test_auth_flow.py" = ["S101", "S105", "S106", "E402"]
+"tools/admin_token_cap.py" = ["E402"]
 # Smoke test intentionally uses subprocess for AWS CLI and opens URLs from CLI args
 "tools/smoke_test.py" = ["S603", "S607", "S310"]
 

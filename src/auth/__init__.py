@@ -1,19 +1,36 @@
-"""Authentication package for LinkedIn OAuth.
+"""Auth package for JWT authentication and daily token cap.
 
-Implements LinkedIn OAuth 2.0 authentication flow for the Python CLI/Agent.
-Reference: LLD #116 - Feature: Authenticate users via LinkedIn OAuth
+Issue #341: Add JWT authentication to analysis endpoint with daily token cap.
 """
 
-from auth.types import (
-    AuthError,
-    AuthState,
-    LinkedInTokens,
-    UserProfile,
+from auth.jwt_service import (
+    create_jwt,
+    validate_jwt,
+    get_jwt_secret,
+    validate_jwt_dual_secret,
+)
+from auth.token_cap_service import (
+    check_and_increment_cap,
+    get_current_cap,
+    set_daily_cap,
+    get_today_key,
+)
+from auth.auth_middleware import (
+    require_auth,
+    extract_token,
+    log_auth_failure,
 )
 
 __all__ = [
-    "AuthError",
-    "AuthState",
-    "LinkedInTokens",
-    "UserProfile",
+    "create_jwt",
+    "validate_jwt",
+    "get_jwt_secret",
+    "validate_jwt_dual_secret",
+    "check_and_increment_cap",
+    "get_current_cap",
+    "set_daily_cap",
+    "get_today_key",
+    "require_auth",
+    "extract_token",
+    "log_auth_failure",
 ]

@@ -11,6 +11,9 @@ See: docs/1124-digital-etymologist.md
 
 Updated by Issue #7 to add X-Ray tracing and CloudWatch metrics.
 See: docs/1007-observability.md
+
+Updated by Issue #341 to add JWT authentication middleware.
+See: LLD #341 - JWT authentication and daily token cap.
 """
 import hashlib
 import json
@@ -22,6 +25,7 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 
+from .auth.auth_middleware import require_auth
 from .etymologist import HAIKU_MODEL_ID, AnalysisResult, analyze_term
 from .guardrails.denylist import check_denylist, load_denylist
 from .guardrails.semantic import (
@@ -341,11 +345,263 @@ def run_guardrails(
     )
 
 
+def _analysis_handler(
+    event: dict, context: Any, denylist: set[str] | None = None
+) -> dict:
+    """
+    Core analysis logic, called after JWT authentication succeeds.
+
+    Issue #341: Extracted from lambda_handler to work with require_auth decorator.
+    Orchestrates validation → guards → persist → generate.
+
+    See: docs/1113-naked-python-architecture.md
+
+    Args:
+        event: Lambda event payload (with auth_user_id injected by middleware).
+        context: Lambda context object.
+        denylist: Optional denylist for testing (dependency injection).
+
+    Returns:
+        API Gateway response dict.
+    """
+    # Issue #341: Extract authenticated user_id from middleware
+    auth_user_id = event.get("auth_user_id")
+
+    # Issue #137: Timing instrumentation for latency investigation
+    timings = {}
+    handler_start = time.time()
+
+    # Parse body if coming from API Gateway
+    t0 = time.time()
+    if "body" in event:
+        body = (
+            json.loads(event["body"])
+            if isinstance(event["body"], str)
+            else event["body"]
+        )
+    else:
+        body = event
+    timings["parse_body_ms"] = int((time.time() - t0) * 1000)
+
+    # Issue #310: Handle deep poetic analysis action (separate flow)
+    if body.get("action") == "deep_poetic_analysis":
+        from .poetic_analyzer import analyze_poetic_resonance
+
+        t0 = time.time()
+        poetic_result = analyze_poetic_resonance(
+            word=body.get("text", ""),
+            etymology=body.get("etymology", {}),
+            page_context=body.get("domContext", ""),
+            dimensions=body.get("dimensions", []),
+            bedrock_client=get_bedrock_client(),
+        )
+        timings["poetic_analysis_ms"] = int((time.time() - t0) * 1000)
+        timings["handler_total_ms"] = int((time.time() - handler_start) * 1000)
+
+        logger.info(f"POETIC_ANALYSIS: {json.dumps(timings)}")
+
+        response_dict = {
+            "status": poetic_result["status"],
+            "synthesis": poetic_result["synthesis"],
+            "dimensions": poetic_result["dimensions"],
+            "resonance_strength": poetic_result["resonance_strength"],
+            "latency_ms": poetic_result["latency_ms"],
+        }
+
+        if os.environ.get("ALETHEIA_ENV") == "dev":
+            response_dict["_debug_timings"] = timings
+
+        return {
+            "statusCode": 200 if poetic_result["status"] == "success" else 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(response_dict),
+        }
+
+    # 1. Validation
+    t0 = time.time()
+    valid, error = validate_input(body)
+    timings["validation_ms"] = int((time.time() - t0) * 1000)
+    if not valid:
+        return {"statusCode": 400, "body": json.dumps({"error": error})}
+
+    text = body["text"]
+
+    # Issue #106: Determine analysis mode and log for cost monitoring
+    full_article = body.get("full_article")
+    analysis_mode = "full_article" if full_article else "selection"
+    input_text = full_article if full_article else text
+    input_chars = len(input_text)
+
+    # Log mode for CloudWatch Insights cost analysis
+    logger.info(json.dumps({
+        "action": "analysis_request",
+        "mode": analysis_mode,
+        "input_chars": input_chars,
+        "user_id": auth_user_id,
+    }))
+
+    # 2. Guardrails (MUST be sequential: Denylist → Semantic)
+    # Issue #126: Returns block_type for nuanced handling
+    t0 = time.time()
+    block_type, category, metadata = run_guardrails(text, denylist)
+    timings["guardrails_total_ms"] = int((time.time() - t0) * 1000)
+
+    # Issue #126: Hard block → 403 Forbidden (no etymology)
+    if block_type == BLOCK_TYPE_HARD:
+        return {
+            "statusCode": 403,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "blocked": True,
+                "reason": category,
+                "message": "Blocked: Content not permitted",
+            }),
+        }
+
+    # 3. Generate thread ID for persistence
+    t0 = time.time()
+    thread_id = generate_thread_id(body)
+    timings["thread_id_ms"] = int((time.time() - t0) * 1000)
+
+    # Issue #177 + #106: Extract context (prefer full_article, fallback to domContext)
+    # Truncate to 100KB for DynamoDB safety
+    if full_article:
+        # Full article mode - use cleaned, PII-scrubbed article text
+        dom_context = full_article[:100000]
+    else:
+        # Selection mode - use raw domContext
+        dom_context = (body.get("domContext", "") or "")[:100000]
+
+    # Issue #162: Extract noarchive signal - skip persistence if publisher requests
+    signals = body.get("signals", {})
+    skip_persistence = signals.get("noarchive", False)
+
+    # 4. Generate etymology analysis (buffered, not streaming)
+    # Issue #124: Digital Etymologist returns structured JSON
+    # Issue #178: Wrapped in try/finally to ensure save_state always runs
+    response_data = None
+    result = None
+    generation_error = None
+
+    # Issue #341: Use authenticated user_id if available, fall back to body userId
+    persist_user_id = auth_user_id or body.get("userId")
+
+    try:
+        t0 = time.time()
+        result = generate_etymology(text, dom_context)
+        timings["etymology_generation_ms"] = int((time.time() - t0) * 1000)
+
+        # Extract response data for persistence
+        response_data = {
+            "signal": result["response"]["signal"],
+            "gem": result["response"]["gem"],
+            "context": result["response"]["context"],
+        }
+    except Exception as e:
+        # Issue #178: Capture error state for debugging
+        generation_error = e
+        response_data = {
+            "signal": "error",
+            "gem": str(e),
+            "context": "Generation failed",
+        }
+        logger.error(f"Etymology generation failed: {e}")
+    finally:
+        # Issue #162: Skip persistence if noarchive signal is present
+        if skip_persistence:
+            logger.info(
+                f"NOARCHIVE: Skipping persistence for thread_id={thread_id}"
+            )
+            timings["dynamodb_write_ms"] = 0  # No write performed
+        else:
+            # Issue #177 & #178: Save state for analysis
+            t0 = time.time()
+            save_state(
+                thread_id,
+                {
+                    "text": text,
+                    "domContext": dom_context,  # Issue #177
+                    "url": body.get("url", ""),
+                    "userId": persist_user_id,  # Issue #341: Use authenticated user_id
+                    "safety_score": metadata.get("scores", {}),
+                    "response": response_data,  # Issue #178
+                },
+            )
+            timings["dynamodb_write_ms"] = int((time.time() - t0) * 1000)
+
+    # If generation failed, return 500 after saving state
+    if generation_error is not None:
+        raise generation_error
+
+    # Type narrowing: if we reach here, generation succeeded and result is set
+    assert result is not None, "result should be set if no generation_error"
+
+    # Calculate total handler time
+    timings["handler_total_ms"] = int((time.time() - handler_start) * 1000)
+
+    # Issue #137: Log all timings for analysis
+    logger.info(f"LATENCY_BREAKDOWN: {json.dumps(timings)}")
+
+    # Issue #295: Get scores from semantic guardrail metadata
+    raw_scores = metadata.get("scores", {})
+    scores_display = process_scores_for_display(raw_scores)
+
+    # Build response with structured output
+    # Issue #295: Include both signal (backward compat) and scores (new)
+    # Issue #310: Include poetic resonance fields
+    poetic_potential = result["response"].get("poetic_potential", 0.0)
+    potential_dimensions = result["response"].get("potential_dimensions", [])
+
+    response_body: dict[str, Any] = {
+        "thread_id": thread_id,
+        "status": result["status"],
+        "signal": result["response"]["signal"],  # Backward compat for old extensions
+        "scores": raw_scores,  # Issue #295: Full scores object
+        "scores_display": scores_display,  # Issue #295: Pre-processed for display
+        "gem": result["response"]["gem"],
+        "context": result["response"]["context"],
+        # Issue #310: Poetic resonance detection
+        "poetic_potential": poetic_potential,
+        "potential_dimensions": potential_dimensions,
+    }
+
+    # Issue #126 + #295: Add warning flag
+    # Warning when: soft block OR provocative >= 50%
+    provocative_score = raw_scores.get("Provocative", 0.0)
+    if block_type == BLOCK_TYPE_SOFT or provocative_score >= 0.50:
+        response_body["warning"] = True
+        response_body["warning_category"] = category
+        # Include fallback flag if semantic check had an error
+        if metadata.get("is_fallback"):
+            response_body["fallback"] = True
+
+    # Include latency for monitoring
+    if result.get("metadata", {}).get("latency_ms"):
+        response_body["latency_ms"] = result["metadata"]["latency_ms"]
+
+    # Issue #137: Include timing breakdown in response only in dev mode
+    # CloudWatch logging (above) remains active for production observability
+    if os.environ.get("ALETHEIA_ENV") == "dev":
+        response_body["_debug_timings"] = timings
+        if metadata.get("timings"):
+            response_body["_debug_timings"]["guardrails"] = metadata["timings"]
+
+    return {
+        "statusCode": 200,
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(response_body),
+    }
+
+
 def lambda_handler(
     event: dict, context: Any, denylist: set[str] | None = None
 ) -> dict:
     """
     Main entry point. Orchestrates validation → guards → persist → generate.
+
+    Issue #341: Added JWT authentication middleware. Requests via HTTP
+    (with requestContext) require a valid JWT Bearer token. Direct Lambda
+    invocations (tests, SDK calls) bypass auth for backward compatibility.
 
     See: docs/1113-naked-python-architecture.md
 
@@ -377,226 +633,17 @@ def lambda_handler(
                 if not version.startswith("1."):
                     return {"statusCode": 403, "body": json.dumps({"error": "Missing or invalid client version"})}
 
-        # Issue #137: Timing instrumentation for latency investigation
-        timings = {}
-        handler_start = time.time()
+            # Issue #341: JWT authentication for HTTP requests
+            # Apply require_auth decorator logic inline for HTTP requests.
+            # The decorator wraps _analysis_handler, validating JWT and injecting auth_user_id.
+            @require_auth
+            def _authenticated_handler(auth_event: dict, auth_context: Any) -> dict:
+                return _analysis_handler(auth_event, auth_context, denylist)
 
-        # Parse body if coming from API Gateway
-        t0 = time.time()
-        if "body" in event:
-            body = (
-                json.loads(event["body"])
-                if isinstance(event["body"], str)
-                else event["body"]
-            )
+            return _authenticated_handler(event, context)
         else:
-            body = event
-        timings["parse_body_ms"] = int((time.time() - t0) * 1000)
-
-        # Issue #310: Handle deep poetic analysis action (separate flow)
-        if body.get("action") == "deep_poetic_analysis":
-            from .poetic_analyzer import analyze_poetic_resonance
-
-            t0 = time.time()
-            poetic_result = analyze_poetic_resonance(
-                word=body.get("text", ""),
-                etymology=body.get("etymology", {}),
-                page_context=body.get("domContext", ""),
-                dimensions=body.get("dimensions", []),
-                bedrock_client=get_bedrock_client(),
-            )
-            timings["poetic_analysis_ms"] = int((time.time() - t0) * 1000)
-            timings["handler_total_ms"] = int((time.time() - handler_start) * 1000)
-
-            logger.info(f"POETIC_ANALYSIS: {json.dumps(timings)}")
-
-            response_dict = {
-                "status": poetic_result["status"],
-                "synthesis": poetic_result["synthesis"],
-                "dimensions": poetic_result["dimensions"],
-                "resonance_strength": poetic_result["resonance_strength"],
-                "latency_ms": poetic_result["latency_ms"],
-            }
-
-            if os.environ.get("ALETHEIA_ENV") == "dev":
-                response_dict["_debug_timings"] = timings
-
-            return {
-                "statusCode": 200 if poetic_result["status"] == "success" else 500,
-                "headers": {"Content-Type": "application/json"},
-                "body": json.dumps(response_dict),
-            }
-
-        # 1. Validation
-        t0 = time.time()
-        valid, error = validate_input(body)
-        timings["validation_ms"] = int((time.time() - t0) * 1000)
-        if not valid:
-            return {"statusCode": 400, "body": json.dumps({"error": error})}
-
-        text = body["text"]
-
-        # Issue #106: Determine analysis mode and log for cost monitoring
-        full_article = body.get("full_article")
-        analysis_mode = "full_article" if full_article else "selection"
-        input_text = full_article if full_article else text
-        input_chars = len(input_text)
-
-        # Log mode for CloudWatch Insights cost analysis
-        logger.info(json.dumps({
-            "action": "analysis_request",
-            "mode": analysis_mode,
-            "input_chars": input_chars,
-        }))
-
-        # 2. Guardrails (MUST be sequential: Denylist → Semantic)
-        # Issue #126: Returns block_type for nuanced handling
-        t0 = time.time()
-        block_type, category, metadata = run_guardrails(text, denylist)
-        timings["guardrails_total_ms"] = int((time.time() - t0) * 1000)
-
-        # Issue #126: Hard block → 403 Forbidden (no etymology)
-        if block_type == BLOCK_TYPE_HARD:
-            return {
-                "statusCode": 403,
-                "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({
-                    "blocked": True,
-                    "reason": category,
-                    "message": "Blocked: Content not permitted",
-                }),
-            }
-
-        # 3. Generate thread ID for persistence
-        t0 = time.time()
-        thread_id = generate_thread_id(body)
-        timings["thread_id_ms"] = int((time.time() - t0) * 1000)
-
-        # Issue #177 + #106: Extract context (prefer full_article, fallback to domContext)
-        # Truncate to 100KB for DynamoDB safety
-        if full_article:
-            # Full article mode - use cleaned, PII-scrubbed article text
-            dom_context = full_article[:100000]
-        else:
-            # Selection mode - use raw domContext
-            dom_context = (body.get("domContext", "") or "")[:100000]
-
-        # Issue #162: Extract noarchive signal - skip persistence if publisher requests
-        signals = body.get("signals", {})
-        skip_persistence = signals.get("noarchive", False)
-
-        # 4. Generate etymology analysis (buffered, not streaming)
-        # Issue #124: Digital Etymologist returns structured JSON
-        # Issue #178: Wrapped in try/finally to ensure save_state always runs
-        response_data = None
-        result = None
-        generation_error = None
-
-        try:
-            t0 = time.time()
-            result = generate_etymology(text, dom_context)
-            timings["etymology_generation_ms"] = int((time.time() - t0) * 1000)
-
-            # Extract response data for persistence
-            response_data = {
-                "signal": result["response"]["signal"],
-                "gem": result["response"]["gem"],
-                "context": result["response"]["context"],
-            }
-        except Exception as e:
-            # Issue #178: Capture error state for debugging
-            generation_error = e
-            response_data = {
-                "signal": "error",
-                "gem": str(e),
-                "context": "Generation failed",
-            }
-            logger.error(f"Etymology generation failed: {e}")
-        finally:
-            # Issue #162: Skip persistence if noarchive signal is present
-            if skip_persistence:
-                logger.info(
-                    f"NOARCHIVE: Skipping persistence for thread_id={thread_id}"
-                )
-                timings["dynamodb_write_ms"] = 0  # No write performed
-            else:
-                # Issue #177 & #178: Save state for analysis
-                t0 = time.time()
-                save_state(
-                    thread_id,
-                    {
-                        "text": text,
-                        "domContext": dom_context,  # Issue #177
-                        "url": body.get("url", ""),
-                        "userId": body.get("userId"),  # May be None pre-#116
-                        "safety_score": metadata.get("scores", {}),
-                        "response": response_data,  # Issue #178
-                    },
-                )
-                timings["dynamodb_write_ms"] = int((time.time() - t0) * 1000)
-
-        # If generation failed, return 500 after saving state
-        if generation_error is not None:
-            raise generation_error
-
-        # Type narrowing: if we reach here, generation succeeded and result is set
-        assert result is not None, "result should be set if no generation_error"
-
-        # Calculate total handler time
-        timings["handler_total_ms"] = int((time.time() - handler_start) * 1000)
-
-        # Issue #137: Log all timings for analysis
-        logger.info(f"LATENCY_BREAKDOWN: {json.dumps(timings)}")
-
-        # Issue #295: Get scores from semantic guardrail metadata
-        raw_scores = metadata.get("scores", {})
-        scores_display = process_scores_for_display(raw_scores)
-
-        # Build response with structured output
-        # Issue #295: Include both signal (backward compat) and scores (new)
-        # Issue #310: Include poetic resonance fields
-        poetic_potential = result["response"].get("poetic_potential", 0.0)
-        potential_dimensions = result["response"].get("potential_dimensions", [])
-
-        response_body: dict[str, Any] = {
-            "thread_id": thread_id,
-            "status": result["status"],
-            "signal": result["response"]["signal"],  # Backward compat for old extensions
-            "scores": raw_scores,  # Issue #295: Full scores object
-            "scores_display": scores_display,  # Issue #295: Pre-processed for display
-            "gem": result["response"]["gem"],
-            "context": result["response"]["context"],
-            # Issue #310: Poetic resonance detection
-            "poetic_potential": poetic_potential,
-            "potential_dimensions": potential_dimensions,
-        }
-
-        # Issue #126 + #295: Add warning flag
-        # Warning when: soft block OR provocative >= 50%
-        provocative_score = raw_scores.get("Provocative", 0.0)
-        if block_type == BLOCK_TYPE_SOFT or provocative_score >= 0.50:
-            response_body["warning"] = True
-            response_body["warning_category"] = category
-            # Include fallback flag if semantic check had an error
-            if metadata.get("is_fallback"):
-                response_body["fallback"] = True
-
-        # Include latency for monitoring
-        if result.get("metadata", {}).get("latency_ms"):
-            response_body["latency_ms"] = result["metadata"]["latency_ms"]
-
-        # Issue #137: Include timing breakdown in response only in dev mode
-        # CloudWatch logging (above) remains active for production observability
-        if os.environ.get("ALETHEIA_ENV") == "dev":
-            response_body["_debug_timings"] = timings
-            if metadata.get("timings"):
-                response_body["_debug_timings"]["guardrails"] = metadata["timings"]
-
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(response_body),
-        }
+            # Direct Lambda invocation (tests, SDK calls) — no auth required
+            return _analysis_handler(event, context, denylist)
 
     except ClientError as e:
         # AWS SDK errors (IAM, throttling, etc.)
