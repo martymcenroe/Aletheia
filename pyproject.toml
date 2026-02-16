@@ -9,7 +9,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.12"
 boto3 = "^1.42"
-pillow = "^12.1.0"
+pillow = "^12.1.1"
 tzdata = "^2025.3"
 pywin32 = {version = "^311", markers = "sys_platform == 'win32'"}
 requests = "^2.32.5"
@@ -26,7 +26,7 @@ pytest = ">=9.0.1,<10.0.0"
 responses = ">=0.25.8,<0.26.0"
 pytest-cov = ">=7.0.0,<8.0.0"
 pytest-benchmark = ">=5.1.0,<6.0.0"  # Issue #161: Performance benchmarks
-ruff = ">=0.14.10,<0.15.0"
+ruff = ">=0.14.10,<0.16.0"
 mypy = ">=1.19.1,<2.0.0"
 pre-commit = ">=4.5.1,<5.0.0"
 types-requests = ">=2.32.4.20250913,<3.0.0.0"
