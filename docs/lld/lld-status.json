@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-02-16T09:17:04.948487+00:00",
+  "last_updated": "2026-02-17T02:31:03.775946+00:00",
   "issues": {
     "341": {
       "lld_path": "docs\\lld\\active\\LLD-341.md",
@@ -18,6 +18,70 @@
       "final_verdict": "APPROVED",
       "last_review_date": "2026-02-16T09:17:04.948185+00:00",
       "review_count": 3
+    },
+    "371": {
+      "lld_path": "docs\\lld\\active\\LLD-371.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:05:49.037584+00:00",
+      "review_count": 1
+    },
+    "370": {
+      "lld_path": "docs\\lld\\active\\LLD-370.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:08:20.660206+00:00",
+      "review_count": 2
+    },
+    "364": {
+      "lld_path": "docs\\lld\\active\\LLD-364.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:08:28.618744+00:00",
+      "review_count": 1
+    },
+    "366": {
+      "lld_path": "docs\\lld\\active\\LLD-366.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:17:49.361245+00:00",
+      "review_count": 1
+    },
+    "368": {
+      "lld_path": "docs\\lld\\active\\LLD-368.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:18:34.997957+00:00",
+      "review_count": 1
+    },
+    "369": {
+      "lld_path": "docs\\lld\\active\\LLD-369.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:18:39.552371+00:00",
+      "review_count": 1
+    },
+    "367": {
+      "lld_path": "docs\\lld\\active\\LLD-367.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:22:47.772959+00:00",
+      "review_count": 2
+    },
+    "365": {
+      "lld_path": "docs\\lld\\active\\LLD-365.md",
+      "status": "approved",
+      "has_gemini_review": true,
+      "final_verdict": "APPROVED",
+      "last_review_date": "2026-02-17T02:31:03.775602+00:00",
+      "review_count": 1
     }
   }
 }
