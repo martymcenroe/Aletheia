@@ -1,0 +1,579 @@
+# 341 - Feature: Add JWT authentication to analysis endpoint with daily token cap
+
+<!-- Template Metadata
+Last Updated: 2026-02-16
+Updated By: Issue #341 LLD creation
+Update Reason: Initial LLD for JWT authentication and daily token cap feature
+-->
+
+## 1. Context & Goal
+* **Issue:** #341
+* **Objective:** Secure the main analysis Lambda with JWT authentication and implement daily token cap to prevent abuse and control costs.
+* **Status:** Draft
+* **Related Issues:** None
+
+### Open Questions
+*Questions that need clarification before or during implementation. Remove when resolved.*
+
+- [ ] What secret management solution should be used for JWT signing key? (AWS Secrets Manager assumed)
+- [ ] Should the daily cap be per-user or global? (Assumed global based on issue description)
+- [ ] What timezone should be used for daily reset? (Assumed UTC midnight)
+
+## 2. Proposed Changes
+
+*This section is the **source of truth** for implementation. Describe exactly what will be built.*
+
+### 2.1 Files Changed
+
+| File | Change Type | Description |
+|------|-------------|-------------|
+| `lambda/auth/handler.py` | Modify | Add JWT issuance after LinkedIn validation |
+| `lambda/auth/jwt_service.py` | Add | JWT creation and validation service |
+| `lambda/auth/token_cap_service.py` | Add | Daily token cap tracking and enforcement |
+| `lambda/analysis/handler.py` | Modify | Add JWT validation middleware |
+| `lambda/analysis/auth_middleware.py` | Add | JWT validation middleware for analysis endpoint |
+| `tools/admin_token_cap.py` | Add | CLI tool to adjust daily token cap |
+| `tests/unit/test_jwt_service.py` | Add | Unit tests for JWT service |
+| `tests/unit/test_token_cap_service.py` | Add | Unit tests for token cap service |
+| `tests/unit/test_auth_middleware.py` | Add | Unit tests for auth middleware |
+| `tests/integration/test_auth_flow.py` | Add | Integration tests for full auth flow |
+
+### 2.1.1 Path Validation (Mechanical - Auto-Checked)
+
+*Issue #277: Before human or Gemini review, paths are verified programmatically.*
+
+Mechanical validation automatically checks:
+- All "Modify" files must exist in repository
+- All "Delete" files must exist in repository
+- All "Add" files must have existing parent directories
+- No placeholder prefixes (`src/`, `lib/`, `app/`) unless directory exists
+
+**If validation fails, the LLD is BLOCKED before reaching review.**
+
+### 2.2 Dependencies
+
+*New packages, APIs, or services required.*
+
+```toml
+# pyproject.toml additions
+PyJWT = "^2.8.0"
+```
+
+**AWS Services Required:**
+- AWS Secrets Manager (for JWT signing key)
+- DynamoDB (for token cap tracking)
+
+### 2.3 Data Structures
+
+```python
+# Pseudocode - NOT implementation
+
+class JWTPayload(TypedDict):
+    user_id: str        # LinkedIn user ID
+    exp: int            # Expiration timestamp (Unix epoch)
+    iat: int            # Issued at timestamp (Unix epoch)
+    jti: str            # JWT ID for tracking
+
+class TokenCapState(TypedDict):
+    date_key: str       # YYYY-MM-DD format (UTC)
+    tokens_issued: int  # Count of tokens issued today
+    daily_cap: int      # Maximum tokens allowed per day
+
+class AuthResult(TypedDict):
+    success: bool       # Whether auth succeeded
+    user_id: str | None # User ID if successful
+    error: str | None   # Error message if failed
+    reason: str | None  # Detailed reason code for logging
+
+class TokenCapConfig(TypedDict):
+    daily_cap: int      # Current daily cap value
+    updated_at: str     # ISO timestamp of last update
+    updated_by: str     # Admin who made the change
+```
+
+### 2.4 Function Signatures
+
+```python
+# lambda/auth/jwt_service.py
+def create_jwt(user_id: str, secret: str, expiry_hours: int = 24) -> str:
+    """Create a signed JWT token for the given user."""
+    ...
+
+def validate_jwt(token: str, secret: str) -> AuthResult:
+    """Validate a JWT token and extract user_id."""
+    ...
+
+def get_jwt_secret() -> str:
+    """Retrieve JWT signing secret from AWS Secrets Manager."""
+    ...
+
+# lambda/auth/token_cap_service.py
+def check_and_increment_cap(table_name: str) -> tuple[bool, int]:
+    """Check if under daily cap, increment if so. Returns (allowed, current_count)."""
+    ...
+
+def get_current_cap(table_name: str) -> int:
+    """Get the current daily cap setting."""
+    ...
+
+def set_daily_cap(table_name: str, new_cap: int, admin_id: str) -> bool:
+    """Admin function to update the daily cap."""
+    ...
+
+def get_today_key() -> str:
+    """Get today's date key in YYYY-MM-DD format (UTC)."""
+    ...
+
+# lambda/analysis/auth_middleware.py
+def require_auth(handler: Callable) -> Callable:
+    """Decorator to require valid JWT authentication."""
+    ...
+
+def extract_token(event: dict) -> str | None:
+    """Extract Bearer token from Authorization header."""
+    ...
+
+def log_auth_failure(user_id: str | None, reason: str, event: dict) -> None:
+    """Log authentication failure with structured data."""
+    ...
+```
+
+### 2.5 Logic Flow (Pseudocode)
+
+**Auth Lambda - Token Issuance:**
+```
+1. Receive LinkedIn OAuth callback
+2. Validate LinkedIn auth code (existing logic)
+3. IF validation fails THEN
+   - Return 401 with error details
+4. Check daily token cap
+   - Get current date key (UTC)
+   - Query DynamoDB for today's count
+   - IF count >= daily_cap THEN
+     - Log {action: "token_denied", reason: "daily_cap_exceeded"}
+     - Return 503 Service Unavailable
+5. Increment token count atomically (conditional write)
+   - IF increment fails (race condition) THEN
+     - Retry check (step 4)
+6. Generate JWT with user_id, exp (now + 24h), iat, jti
+7. Return JWT to client
+```
+
+**Analysis Lambda - JWT Validation:**
+```
+1. Extract Authorization header
+2. IF header missing THEN
+   - Log {action: "auth_failed", reason: "missing_header"}
+   - Return 401 Unauthorized
+3. IF header not "Bearer <token>" format THEN
+   - Log {action: "auth_failed", reason: "invalid_format"}
+   - Return 401 Unauthorized
+4. Validate JWT signature
+   - Retrieve secret from Secrets Manager (cached)
+   - Verify signature
+5. IF signature invalid THEN
+   - Log {action: "auth_failed", reason: "invalid_signature"}
+   - Return 401 Unauthorized
+6. Check expiration
+7. IF expired THEN
+   - Log {action: "auth_failed", reason: "token_expired"}
+   - Return 401 Unauthorized
+8. Extract user_id from payload
+9. Proceed to analysis handler with user_id
+```
+
+**Admin CLI - Cap Adjustment:**
+```
+1. Parse command line arguments (new_cap, admin_id)
+2. Validate new_cap is positive integer
+3. Update DynamoDB config record
+4. Log change with audit trail
+5. Print confirmation
+```
+
+### 2.6 Technical Approach
+
+* **Module:** `lambda/auth/`, `lambda/analysis/`, `tools/`
+* **Pattern:** Decorator-based middleware for clean separation of auth concerns
+* **Key Decisions:**
+  - JWT validation is local (no LinkedIn call per request) for performance
+  - DynamoDB atomic counters for race-safe cap tracking
+  - Secrets Manager for secure key storage with Lambda caching
+
+### 2.7 Architecture Decisions
+
+| Decision | Options Considered | Choice | Rationale |
+|----------|-------------------|--------|-----------|
+| JWT library | PyJWT, python-jose, authlib | PyJWT | Lightweight, well-maintained, simple API |
+| Token cap storage | DynamoDB, Redis, S3 | DynamoDB | Already in stack, atomic operations, low latency |
+| Secret storage | Env vars, Parameter Store, Secrets Manager | Secrets Manager | Automatic rotation support, encryption at rest |
+| Cap scope | Per-user, Global | Global | Simpler implementation, matches cost control goal |
+| Cap reset timing | Rolling 24h, Daily UTC midnight | Daily UTC midnight | Simpler to understand and implement |
+
+**Architectural Constraints:**
+- Must integrate with existing Lambda infrastructure
+- Cannot add new external services (use existing AWS services)
+- Must maintain sub-500ms response time for auth validation
+
+## 3. Requirements
+
+*What must be true when this is done. These become acceptance criteria.*
+
+1. Request without Authorization header returns 401 Unauthorized
+2. Request with invalid JWT (bad signature) returns 401 Unauthorized
+3. Request with expired JWT returns 401 Unauthorized
+4. Request with valid JWT proceeds to analysis
+5. User receives JWT after successful LinkedIn login
+6. JWT contains user_id, exp (24h from issuance), iat, and jti
+7. 21st token issuance of the day (when cap=20) receives 503 Service Unavailable
+8. Admin can adjust daily cap via CLI tool without redeployment
+9. All auth failures logged with action: "auth_failed" and reason field
+10. JWT signing secret stored securely in AWS Secrets Manager
+
+## 4. Alternatives Considered
+
+| Option | Pros | Cons | Decision |
+|--------|------|------|----------|
+| JWT with local validation | Fast, no network calls per request, scalable | Requires secret distribution | **Selected** |
+| API Gateway authorizer | Built-in, managed | Extra Lambda invocation, more complex | Rejected |
+| Session tokens in DynamoDB | Simple, easy revocation | Lookup per request, higher latency | Rejected |
+| Per-user daily cap | Fairer distribution | Complex tracking, harder to adjust | Rejected |
+| Global daily cap | Simple, single counter | One user could exhaust cap | **Selected** |
+| Rate limiting (requests/min) | Prevents bursts | Doesn't address daily cost control | Rejected |
+
+**Rationale:** JWT with local validation provides the best balance of security and performance. Global daily cap is simpler and matches the primary goal of cost control. Per-user limits can be added as a future enhancement if needed.
+
+## 5. Data & Fixtures
+
+### 5.1 Data Sources
+
+| Attribute | Value |
+|-----------|-------|
+| Source | DynamoDB (token cap state), Secrets Manager (JWT secret) |
+| Format | DynamoDB items (JSON), Secret string |
+| Size | ~1KB per day (cap tracking), 256-bit secret |
+| Refresh | Real-time (DynamoDB), Daily check (secret rotation) |
+| Copyright/License | N/A - internal data |
+
+### 5.2 Data Pipeline
+
+```
+LinkedIn OAuth ──validate──► Auth Lambda ──check cap──► DynamoDB
+                                    │
+                                    └──issue JWT──► Client
+
+Client ──JWT header──► Analysis Lambda ──validate──► Secrets Manager (cached)
+                              │
+                              └──proceed──► Analysis Logic
+```
+
+### 5.3 Test Fixtures
+
+| Fixture | Source | Notes |
+|---------|--------|-------|
+| Valid JWT | Generated | Test secret key, valid claims |
+| Expired JWT | Generated | exp set to past timestamp |
+| Invalid signature JWT | Generated | Signed with wrong key |
+| Malformed JWT | Hardcoded | Incomplete base64 segments |
+| Mock DynamoDB responses | Generated | Various cap states |
+
+### 5.4 Deployment Pipeline
+
+1. **Dev:** Local testing with mocked AWS services (moto)
+2. **Staging:** Deploy to staging Lambda, use staging DynamoDB table and Secrets Manager secret
+3. **Production:** Deploy via CI/CD after staging verification
+
+**Secret Management:**
+- JWT signing secret created manually in Secrets Manager before deployment
+- Secret rotation enabled with 90-day schedule (future enhancement)
+
+## 6. Diagram
+
+### 6.1 Mermaid Quality Gate
+
+Before finalizing any diagram, verify in [Mermaid Live Editor](https://mermaid.live) or GitHub preview:
+
+- [x] **Simplicity:** Similar components collapsed (per 0006 §8.1)
+- [x] **No touching:** All elements have visual separation (per 0006 §8.2)
+- [x] **No hidden lines:** All arrows fully visible (per 0006 §8.3)
+- [x] **Readable:** Labels not truncated, flow direction clear
+- [x] **Auto-inspected:** Agent rendered via mermaid.ink and viewed (per 0006 §8.5)
+
+**Agent Auto-Inspection (MANDATORY):**
+
+AI agents MUST render and view the diagram before committing:
+1. Base64 encode diagram → fetch PNG from `https://mermaid.ink/img/{base64}`
+2. Read the PNG file (multimodal inspection)
+3. Document results below
+
+**Auto-Inspection Results:**
+```
+- Touching elements: [x] None / [ ] Found: ___
+- Hidden lines: [x] None / [ ] Found: ___
+- Label readability: [x] Pass / [ ] Issue: ___
+- Flow clarity: [x] Clear / [ ] Issue: ___
+```
+
+*Reference: [0006-mermaid-diagrams.md](0006-mermaid-diagrams.md)*
+
+### 6.2 Diagram
+
+```mermaid
+sequenceDiagram
+    participant Ext as Browser Extension
+    participant Auth as Auth Lambda
+    participant DDB as DynamoDB
+    participant SM as Secrets Manager
+    participant Main as Analysis Lambda
+    participant LI as LinkedIn API
+
+    Note over Ext,Main: Token Issuance Flow
+    Ext->>Auth: LinkedIn OAuth callback
+    Auth->>LI: Validate auth code
+    LI-->>Auth: User profile
+    Auth->>DDB: Check daily cap
+    DDB-->>Auth: current_count, cap
+    alt count < cap
+        Auth->>DDB: Increment counter
+        Auth->>SM: Get JWT secret
+        SM-->>Auth: secret
+        Auth->>Auth: Generate JWT
+        Auth-->>Ext: 200 + JWT
+    else count >= cap
+        Auth-->>Ext: 503 Service Unavailable
+    end
+
+    Note over Ext,Main: Analysis Request Flow
+    Ext->>Main: POST /analyze + JWT
+    Main->>Main: Extract Bearer token
+    alt no token
+        Main-->>Ext: 401 Missing header
+    else has token
+        Main->>SM: Get JWT secret (cached)
+        SM-->>Main: secret
+        Main->>Main: Validate JWT
+        alt invalid/expired
+            Main-->>Ext: 401 Invalid token
+        else valid
+            Main->>Main: Proceed to analysis
+            Main-->>Ext: 200 + Analysis result
+        end
+    end
+```
+
+## 7. Security & Safety Considerations
+
+### 7.1 Security
+
+| Concern | Mitigation | Status |
+|---------|------------|--------|
+| JWT secret exposure | Store in Secrets Manager, never log | Addressed |
+| Token replay attacks | Short expiry (24h), jti for future revocation | Addressed |
+| User impersonation | Cryptographic signature verification | Addressed |
+| Brute force | Rate limiting at API Gateway level (existing) | Addressed |
+| Log injection | Sanitize user_id before logging | Addressed |
+| Timing attacks | Use constant-time comparison for signatures | Addressed |
+
+### 7.2 Safety
+
+| Concern | Mitigation | Status |
+|---------|------------|--------|
+| Cap counter race condition | DynamoDB conditional writes with retry | Addressed |
+| Secret rotation downtime | Support old+new secret during rotation window | Pending |
+| Clock skew issues | 5-minute leeway on expiration check | Addressed |
+| DynamoDB unavailability | Fail closed (deny auth), alert on repeated failures | Addressed |
+
+**Fail Mode:** Fail Closed - If Secrets Manager or DynamoDB is unavailable, deny authentication to prevent unauthorized access.
+
+**Recovery Strategy:**
+- DynamoDB: Automatic retry with exponential backoff
+- Secrets Manager: Cached secret valid for 5 minutes, alert if refresh fails
+- Cap counter: Reset automatically at UTC midnight
+
+## 8. Performance & Cost Considerations
+
+### 8.1 Performance
+
+| Metric | Budget | Approach |
+|--------|--------|----------|
+| JWT validation latency | < 10ms | Local validation, no network call |
+| Secret retrieval | < 50ms | Lambda caching (5-min TTL) |
+| Cap check latency | < 20ms | DynamoDB single-item read |
+| Total auth overhead | < 80ms | Combined above |
+
+**Bottlenecks:**
+- Cold start: First request may hit Secrets Manager
+- DynamoDB throttling: Unlikely with current scale, use on-demand capacity
+
+### 8.2 Cost Analysis
+
+| Resource | Unit Cost | Estimated Usage | Monthly Cost |
+|----------|-----------|-----------------|--------------|
+| Secrets Manager | $0.40/secret + $0.05/10K requests | 1 secret, ~60K requests | ~$0.70 |
+| DynamoDB reads | $0.25/1M RRU | ~60K reads (2K/day) | ~$0.02 |
+| DynamoDB writes | $1.25/1M WRU | ~600 writes (20/day) | ~$0.01 |
+| Total | - | - | ~$0.73 |
+
+**Cost Controls:**
+- [x] Daily token cap limits maximum Bedrock costs
+- [x] Rate limiting at API Gateway prevents runaway requests
+- [x] Budget alerts configured at $50 threshold
+
+**Worst-Case Scenario:**
+- 10x usage: Still under $10/month for auth infrastructure
+- 100x usage: ~$75/month; would hit cap immediately, limiting real cost (Bedrock)
+- The token cap ensures Bedrock costs are bounded regardless of request volume
+
+## 9. Legal & Compliance
+
+| Concern | Applies? | Mitigation |
+|---------|----------|------------|
+| PII/Personal Data | Yes | user_id is LinkedIn ID (pseudonymous), not stored long-term |
+| Third-Party Licenses | Yes | PyJWT is MIT licensed, compatible |
+| Terms of Service | Yes | LinkedIn OAuth usage within ToS |
+| Data Retention | Yes | Token cap counters auto-expire after 7 days |
+| Export Controls | No | N/A |
+
+**Data Classification:** Internal
+
+**Compliance Checklist:**
+- [x] No PII stored without consent (only pseudonymous LinkedIn IDs)
+- [x] All third-party licenses compatible with project license
+- [x] External API usage compliant with provider ToS
+- [x] Data retention policy documented (7-day TTL on cap data)
+
+## 10. Verification & Testing
+
+*Ref: [0005-testing-strategy-and-protocols.md](0005-testing-strategy-and-protocols.md)*
+
+**Testing Philosophy:** Strive for 100% automated test coverage. Manual tests are a last resort for scenarios that genuinely cannot be automated.
+
+### 10.0 Test Plan (TDD - Complete Before Implementation)
+
+**TDD Requirement:** Tests MUST be written and failing BEFORE implementation begins.
+
+| Test ID | Test Description | Expected Behavior | Status |
+|---------|------------------|-------------------|--------|
+| T010 | test_create_jwt_valid | JWT created with correct claims | RED |
+| T020 | test_validate_jwt_success | Valid JWT returns user_id | RED |
+| T030 | test_validate_jwt_expired | Expired JWT returns error | RED |
+| T040 | test_validate_jwt_invalid_signature | Bad signature returns error | RED |
+| T050 | test_validate_jwt_malformed | Malformed token returns error | RED |
+| T060 | test_check_cap_under_limit | Returns (True, count) when under | RED |
+| T070 | test_check_cap_at_limit | Returns (False, count) when at cap | RED |
+| T080 | test_check_cap_race_condition | Handles concurrent increments | RED |
+| T090 | test_middleware_missing_header | Returns 401 with reason | RED |
+| T100 | test_middleware_invalid_format | Returns 401 with reason | RED |
+| T110 | test_middleware_valid_token | Proceeds to handler | RED |
+| T120 | test_admin_set_cap | Updates cap in DynamoDB | RED |
+| T130 | test_log_auth_failure_format | Logs contain required fields | RED |
+
+**Coverage Target:** ≥95% for all new code
+
+**TDD Checklist:**
+- [ ] All tests written before implementation
+- [ ] Tests currently RED (failing)
+- [ ] Test IDs match scenario IDs in 10.1
+- [ ] Test files created at: `tests/unit/test_jwt_service.py`, `tests/unit/test_token_cap_service.py`, `tests/unit/test_auth_middleware.py`
+
+### 10.1 Test Scenarios
+
+| ID | Scenario | Type | Input | Expected Output | Pass Criteria |
+|----|----------|------|-------|-----------------|---------------|
+| 010 | JWT creation with valid inputs | Auto | user_id="u123" | Valid JWT string | JWT decodes with correct claims |
+| 020 | JWT validation success | Auto | Valid JWT | AuthResult(success=True, user_id="u123") | user_id extracted |
+| 030 | JWT validation - expired | Auto | Expired JWT | AuthResult(success=False, reason="token_expired") | 401 returned |
+| 040 | JWT validation - bad signature | Auto | Tampered JWT | AuthResult(success=False, reason="invalid_signature") | 401 returned |
+| 050 | JWT validation - malformed | Auto | "not.a.jwt" | AuthResult(success=False, reason="malformed") | 401 returned |
+| 060 | Token cap - under limit | Auto | count=5, cap=20 | (True, 6) | Request allowed, count incremented |
+| 070 | Token cap - at limit | Auto | count=20, cap=20 | (False, 20) | Request denied with 503 |
+| 080 | Token cap - race condition | Auto | Concurrent requests | One succeeds, one fails | Atomic increment verified |
+| 090 | Auth middleware - no header | Auto | {} | 401 + log | Log contains action, reason |
+| 100 | Auth middleware - wrong format | Auto | "Basic xyz" | 401 + log | Log contains action, reason |
+| 110 | Auth middleware - valid | Auto | "Bearer <valid>" | Handler called with user_id | Analysis proceeds |
+| 120 | Admin CLI - set cap | Auto | new_cap=30 | DynamoDB updated | Cap query returns 30 |
+| 130 | Auth failure logging | Auto | Any failure | Structured log | Contains action, reason, timestamp |
+
+### 10.2 Test Commands
+
+```bash
+# Run all automated tests
+poetry run pytest tests/unit/test_jwt_service.py tests/unit/test_token_cap_service.py tests/unit/test_auth_middleware.py -v
+
+# Run only fast/mocked tests (exclude live)
+poetry run pytest tests/ -v -m "not live"
+
+# Run integration tests with moto (mocked AWS)
+poetry run pytest tests/integration/test_auth_flow.py -v
+
+# Run with coverage
+poetry run pytest tests/ --cov=lambda/auth --cov=lambda/analysis --cov-report=term-missing
+```
+
+### 10.3 Manual Tests (Only If Unavoidable)
+
+N/A - All scenarios automated.
+
+## 11. Risks & Mitigations
+
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| Secret rotation causes auth failures | High | Low | Support dual-secret validation during rotation window |
+| DynamoDB throttling during traffic spike | Medium | Low | Use on-demand capacity mode |
+| Clock skew between Lambda and client | Medium | Low | 5-minute leeway on expiration checks |
+| Cap set too low, blocking legitimate users | Medium | Medium | Admin CLI for quick adjustment, monitoring alerts |
+| JWT library vulnerability | High | Low | Pin version, monitor CVE databases |
+
+## 12. Definition of Done
+
+### Code
+- [ ] Implementation complete and linted
+- [ ] Code comments reference this LLD (#341)
+
+### Tests
+- [ ] All test scenarios pass
+- [ ] Test coverage ≥95% for new code
+
+### Documentation
+- [ ] LLD updated with any deviations
+- [ ] Implementation Report (0103) completed
+- [ ] API documentation updated with auth requirements
+
+### Review
+- [ ] Code review completed
+- [ ] Security review for auth implementation
+- [ ] User approval before closing issue
+
+### 12.1 Traceability (Mechanical - Auto-Checked)
+
+*Issue #277: Cross-references are verified programmatically.*
+
+Mechanical validation automatically checks:
+- Every file mentioned in this section must appear in Section 2.1
+- Every risk mitigation in Section 11 should have a corresponding function in Section 2.4 (warning if not)
+
+**Traceability Matrix:**
+
+| Risk Mitigation | Function |
+|-----------------|----------|
+| Dual-secret validation | `validate_jwt()` (will check both secrets) |
+| Cap quick adjustment | `set_daily_cap()` |
+| Expiration leeway | `validate_jwt()` |
+
+**If files are missing from Section 2.1, the LLD is BLOCKED.**
+
+---
+
+## Appendix: Review Log
+
+*Track all review feedback with timestamps and implementation status.*
+
+<!-- Note: Timestamps are auto-generated by the workflow. Do not fill in manually. -->
+
+### Review Summary
+
+| Review | Date | Verdict | Key Issue |
+|--------|------|---------|-----------|
+| - | - | - | - |
+
+**Final Status:** PENDING

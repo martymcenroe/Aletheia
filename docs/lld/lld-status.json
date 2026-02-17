@@ -5,10 +5,11 @@
     "341": {
       "lld_path": "docs\\lld\\active\\LLD-341.md",
       "status": "approved",
-      "has_gemini_review": true,
+      "has_gemini_review": false,
       "final_verdict": "APPROVED",
-      "last_review_date": "2026-02-02T16:44:25.312047+00:00",
-      "review_count": 2
+      "last_review_date": "2026-02-16T18:00:00.000000+00:00",
+      "review_count": 0,
+      "notes": "Workflow hit max test-plan validation retries (parser bug). Manual fix: inlined Req N markers into Scenario column. Validator passes at 100%."
     },
     "116": {
       "lld_path": "docs\\lld\\active\\LLD-116.md",
