@@ -19,8 +19,8 @@ import logging
 from pathlib import Path
 from typing import Callable, Optional
 
-from auth.token_manager import get_stored_tokens, store_tokens
-from auth.types import AuthState
+from .token_manager import get_stored_tokens, store_tokens
+from .types import AuthState
 
 logger = logging.getLogger(__name__)
 

@@ -31,7 +31,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
 
-from auth.types import AuthError, LinkedInTokens
+from .types import AuthError, LinkedInTokens
 
 logger = logging.getLogger(__name__)
 

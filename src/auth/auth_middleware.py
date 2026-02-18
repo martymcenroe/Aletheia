@@ -15,7 +15,7 @@ import os
 import re
 from typing import Any, Callable
 
-from auth.jwt_service import (
+from .jwt_service import (
     AuthResult,
     get_jwt_secret,
     validate_jwt,

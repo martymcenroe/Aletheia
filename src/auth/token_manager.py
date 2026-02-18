@@ -30,7 +30,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 import base64
 
-from auth.types import AuthError, LinkedInTokens
+from .types import AuthError, LinkedInTokens
 
 logger = logging.getLogger(__name__)
 
