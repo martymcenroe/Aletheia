@@ -1,12 +1,16 @@
 """Unit tests for auth middleware.
 
 Issue: #341 - Add JWT authentication to analysis endpoint with daily token cap.
+Issue: #364 - Tiered rate limiting with multi-window caps.
 
 Tests cover:
 - T090: Auth middleware - missing header (REQ-1, REQ-9)
 - T100: Auth middleware - invalid format (REQ-1, REQ-9)
 - T110: Auth middleware - valid token (REQ-4)
 - T130: Auth failure logging format (REQ-9)
+- T070: JWT tier claim → rate limit with correct tier (#364)
+- T120: 429 response includes resets_at and resets_in_seconds (#364)
+- T140: Missing tier in JWT → free limits applied (#364)
 """
 
 from __future__ import annotations
@@ -22,6 +26,9 @@ import pytest
 
 from auth.auth_middleware import (
     _build_401_response,
+    _build_429_response,
+    build_rate_limit_error_response,
+    extract_tier_from_jwt,
     extract_token,
     log_auth_failure,
     require_auth,
@@ -30,6 +37,7 @@ from auth.jwt_service import (
     create_jwt,
     invalidate_secret_cache,
 )
+from auth.models.rate_limit import RateLimitResult, UserTier
 
 # --------------------------------------------------------------------------- #
 # Constants
@@ -342,6 +350,12 @@ class TestMiddlewareInvalidFormat:
 class TestMiddlewareValidToken:
     """T110: Request with valid JWT proceeds to handler with user_id."""
 
+    @pytest.fixture(autouse=True)
+    def _mock_rate_limit(self):
+        """Bypass rate limiting for valid-token tests."""
+        with patch("auth.auth_middleware.check_rate_limit", return_value=(True, None)):
+            yield
+
     def test_valid_token_calls_handler(self, valid_token: str):
         """REQ-4: Valid JWT → handler is invoked."""
         handler = MagicMock(return_value={"statusCode": 200, "body": "{}"})
@@ -618,6 +632,12 @@ class TestMiddlewareSecretUnavailable:
 class TestMiddlewareDualSecret:
     """Dual-secret rotation support in middleware."""
 
+    @pytest.fixture(autouse=True)
+    def _mock_rate_limit(self):
+        """Bypass rate limiting for dual-secret tests."""
+        with patch("auth.auth_middleware.check_rate_limit", return_value=(True, None)):
+            yield
+
     def test_secondary_secret_validates_old_token(self):
         """Token signed with old (secondary) secret validates during rotation."""
         old_token = create_jwt(TEST_USER_ID, TEST_SECRET_ALT)
@@ -838,3 +858,267 @@ class TestRequireAuthDecorator:
         """Decorated handler is callable."""
         protected = require_auth(_dummy_handler)
         assert callable(protected)
+
+
+# --------------------------------------------------------------------------- #
+# T070 - JWT tier claim → rate limit with correct tier (#364)
+# --------------------------------------------------------------------------- #
+
+
+class TestMiddlewareRateLimitWithTier:
+    """T070: JWT tier claim is used for rate limiting."""
+
+    def test_free_tier_rate_limited(self):
+        """Free tier JWT triggers rate limit check with free config."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET, tier="free")
+        protected = require_auth(_dummy_handler)
+        event = _make_event(f"Bearer {token}")
+
+        with (
+            patch("auth.auth_middleware.get_jwt_secret", return_value=TEST_SECRET),
+            patch("auth.auth_middleware.check_rate_limit", return_value=(True, None)) as mock_check,
+        ):
+            response = protected(event, None)
+
+        assert response["statusCode"] == 200
+        # Verify check_rate_limit was called with FREE tier
+        mock_check.assert_called_once()
+        call_args = mock_check.call_args
+        assert call_args[0][1] == UserTier.FREE
+
+    def test_subscriber_tier_rate_limited(self):
+        """Subscriber tier JWT triggers rate limit check with subscriber config."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET, tier="subscriber")
+        protected = require_auth(_dummy_handler)
+        event = _make_event(f"Bearer {token}")
+
+        with (
+            patch("auth.auth_middleware.get_jwt_secret", return_value=TEST_SECRET),
+            patch("auth.auth_middleware.check_rate_limit", return_value=(True, None)) as mock_check,
+        ):
+            response = protected(event, None)
+
+        assert response["statusCode"] == 200
+        call_args = mock_check.call_args
+        assert call_args[0][1] == UserTier.SUBSCRIBER
+
+    def test_rate_limit_exceeded_returns_429(self):
+        """Rate limit exceeded → 429 response."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET, tier="free")
+        protected = require_auth(_dummy_handler)
+        event = _make_event(f"Bearer {token}")
+
+        error_body = {
+            "error": "rate_limit_exceeded",
+            "window": "hourly",
+            "resets_at": "2026-02-16T15:00:00Z",
+            "resets_in_seconds": 1800,
+            "upgrade_url": "https://aletheia.study/upgrade",
+        }
+
+        with (
+            patch("auth.auth_middleware.get_jwt_secret", return_value=TEST_SECRET),
+            patch("auth.auth_middleware.check_rate_limit", return_value=(False, error_body)),
+        ):
+            response = protected(event, None)
+
+        assert response["statusCode"] == 429
+
+    def test_rate_limit_exceeded_handler_not_called(self):
+        """Handler is NOT invoked when rate limit exceeded."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET)
+        handler = MagicMock(return_value={"statusCode": 200})
+        protected = require_auth(handler)
+        event = _make_event(f"Bearer {token}")
+
+        error_body = {"error": "rate_limit_exceeded", "window": "daily"}
+
+        with (
+            patch("auth.auth_middleware.get_jwt_secret", return_value=TEST_SECRET),
+            patch("auth.auth_middleware.check_rate_limit", return_value=(False, error_body)),
+        ):
+            protected(event, None)
+
+        handler.assert_not_called()
+
+    def test_rate_limit_passes_billing_anchor_day(self):
+        """billing_anchor_day from JWT is passed to rate limit check."""
+        token = create_jwt(
+            TEST_USER_ID, TEST_SECRET, tier="subscriber", billing_anchor_day=15
+        )
+        protected = require_auth(_dummy_handler)
+        event = _make_event(f"Bearer {token}")
+
+        with (
+            patch("auth.auth_middleware.get_jwt_secret", return_value=TEST_SECRET),
+            patch("auth.auth_middleware.check_rate_limit", return_value=(True, None)) as mock_check,
+        ):
+            protected(event, None)
+
+        call_args = mock_check.call_args
+        assert call_args[0][2] == 15  # billing_anchor_day
+
+
+# --------------------------------------------------------------------------- #
+# T120 - 429 response includes resets_at and resets_in_seconds (#364)
+# --------------------------------------------------------------------------- #
+
+
+class TestRateLimitResponse:
+    """T120: 429 response body contains rate limit details."""
+
+    def test_429_response_has_error_field(self):
+        """429 body includes 'error' field."""
+        result = RateLimitResult(
+            allowed=False,
+            exceeded_window="hourly",
+            resets_at="2026-02-16T15:00:00Z",
+            resets_in_seconds=1800,
+            current_counts={},
+        )
+        body = build_rate_limit_error_response(result)
+        assert body["error"] == "rate_limit_exceeded"
+
+    def test_429_response_has_window(self):
+        """429 body includes 'window' field."""
+        result = RateLimitResult(
+            allowed=False,
+            exceeded_window="daily",
+            resets_at="2026-02-17T00:00:00Z",
+            resets_in_seconds=3600,
+            current_counts={},
+        )
+        body = build_rate_limit_error_response(result)
+        assert body["window"] == "daily"
+
+    def test_429_response_has_resets_at(self):
+        """429 body includes 'resets_at' ISO timestamp."""
+        result = RateLimitResult(
+            allowed=False,
+            exceeded_window="hourly",
+            resets_at="2026-02-16T15:00:00Z",
+            resets_in_seconds=1800,
+            current_counts={},
+        )
+        body = build_rate_limit_error_response(result)
+        assert body["resets_at"] == "2026-02-16T15:00:00Z"
+
+    def test_429_response_has_resets_in_seconds(self):
+        """429 body includes 'resets_in_seconds' integer."""
+        result = RateLimitResult(
+            allowed=False,
+            exceeded_window="hourly",
+            resets_at="2026-02-16T15:00:00Z",
+            resets_in_seconds=1800,
+            current_counts={},
+        )
+        body = build_rate_limit_error_response(result)
+        assert body["resets_in_seconds"] == 1800
+
+    def test_429_response_has_upgrade_url(self):
+        """429 body includes upgrade URL."""
+        result = RateLimitResult(
+            allowed=False,
+            exceeded_window="hourly",
+            resets_at="2026-02-16T15:00:00Z",
+            resets_in_seconds=1800,
+            current_counts={},
+        )
+        body = build_rate_limit_error_response(result)
+        assert "upgrade_url" in body
+        assert "aletheia.study" in body["upgrade_url"]
+
+    def test_service_unavailable_response(self):
+        """SERVICE_UNAVAILABLE produces retry message instead of 429 fields."""
+        result = RateLimitResult(
+            allowed=False,
+            exceeded_window="SERVICE_UNAVAILABLE",
+            resets_at=None,
+            resets_in_seconds=None,
+            current_counts={},
+        )
+        body = build_rate_limit_error_response(result)
+        assert "retry" in body["error"].lower()
+
+    def test_build_429_response_status_code(self):
+        """_build_429_response returns 429 status code."""
+        response = _build_429_response({"error": "rate_limit_exceeded"})
+        assert response["statusCode"] == 429
+
+    def test_build_429_response_json_content_type(self):
+        """_build_429_response has JSON content type."""
+        response = _build_429_response({"error": "rate_limit_exceeded"})
+        assert response["headers"]["Content-Type"] == "application/json"
+
+    def test_build_503_for_service_unavailable(self):
+        """SERVICE_UNAVAILABLE gets 503 status code, not 429."""
+        response = _build_429_response(
+            {"error": "Service temporarily unavailable, please retry"}
+        )
+        assert response["statusCode"] == 503
+
+
+# --------------------------------------------------------------------------- #
+# T140 - Missing tier in JWT → free limits applied (#364)
+# --------------------------------------------------------------------------- #
+
+
+class TestMissingTierDefaultsFree:
+    """T140: Missing tier in JWT defaults to free tier limits."""
+
+    def test_extract_tier_missing_defaults_free(self):
+        """Missing tier claim defaults to FREE."""
+        claims = {"user_id": "test", "exp": 999, "iat": 0, "jti": "x"}
+        tier = extract_tier_from_jwt(claims)
+        assert tier == UserTier.FREE
+
+    def test_extract_tier_invalid_value_defaults_free(self):
+        """Invalid tier string defaults to FREE."""
+        claims = {"tier": "premium_deluxe", "user_id": "test"}
+        tier = extract_tier_from_jwt(claims)
+        assert tier == UserTier.FREE
+
+    def test_extract_tier_free(self):
+        """tier='free' extracts correctly."""
+        claims = {"tier": "free"}
+        tier = extract_tier_from_jwt(claims)
+        assert tier == UserTier.FREE
+
+    def test_extract_tier_subscriber(self):
+        """tier='subscriber' extracts correctly."""
+        claims = {"tier": "subscriber"}
+        tier = extract_tier_from_jwt(claims)
+        assert tier == UserTier.SUBSCRIBER
+
+    def test_extract_tier_admin(self):
+        """tier='admin' extracts correctly."""
+        claims = {"tier": "admin"}
+        tier = extract_tier_from_jwt(claims)
+        assert tier == UserTier.ADMIN
+
+    def test_old_jwt_without_tier_gets_free_rate_limit(self):
+        """Pre-#364 JWT without tier claim is rate-limited as free."""
+        # Create a JWT without tier/billing_anchor_day (simulating old format)
+        import jwt as pyjwt
+        now = int(time.time())
+        old_payload = {
+            "user_id": TEST_USER_ID,
+            "exp": now + 86400,
+            "iat": now,
+            "jti": "old-format-jti",
+        }
+        old_token = pyjwt.encode(old_payload, TEST_SECRET, algorithm="HS256")
+
+        protected = require_auth(_dummy_handler)
+        event = _make_event(f"Bearer {old_token}")
+
+        with (
+            patch("auth.auth_middleware.get_jwt_secret", return_value=TEST_SECRET),
+            patch("auth.auth_middleware.check_rate_limit", return_value=(True, None)) as mock_check,
+        ):
+            response = protected(event, None)
+
+        assert response["statusCode"] == 200
+        call_args = mock_check.call_args
+        assert call_args[0][1] == UserTier.FREE  # tier
+        assert call_args[0][2] == 1  # billing_anchor_day default

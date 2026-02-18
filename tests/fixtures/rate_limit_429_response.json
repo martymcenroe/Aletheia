@@ -1,0 +1,7 @@
+{
+  "error": "rate_limit_exceeded",
+  "window": "hourly",
+  "resets_at": "2026-02-16T15:00:00Z",
+  "resets_in_seconds": 1800,
+  "upgrade_url": "https://aletheia.study/upgrade"
+}

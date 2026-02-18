@@ -1,6 +1,7 @@
 """Unit tests for JWT service.
 
 Issue: #341 - Add JWT authentication to analysis endpoint with daily token cap.
+Issue: #364 - Tiered rate limiting with multi-window caps.
 
 Tests cover:
 - T010: JWT creation with valid inputs (REQ-5, REQ-6)
@@ -10,6 +11,7 @@ Tests cover:
 - T050: JWT validation - malformed token (REQ-2)
 - T140: Secret retrieval from Secrets Manager (REQ-10)
 - T150: Dual-secret validation during rotation (REQ-10)
+- T220: Tier and billing_anchor_day embedded in JWT (#364)
 """
 
 from __future__ import annotations
@@ -514,3 +516,67 @@ class TestValidateJwtDualSecret:
         # Should get token_expired, not try secondary
         assert result["success"] is False
         assert result["reason"] == "token_expired"
+
+
+# --------------------------------------------------------------------------- #
+# T220 - Tier and billing_anchor_day in JWT (#364)
+# --------------------------------------------------------------------------- #
+
+
+class TestJwtTierClaims:
+    """T220: Tier and billing_anchor_day are embedded in JWT."""
+
+    def test_create_jwt_contains_tier(self):
+        """JWT contains tier claim."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET, tier="subscriber")
+        payload = pyjwt.decode(token, TEST_SECRET, algorithms=["HS256"])
+        assert payload["tier"] == "subscriber"
+
+    def test_create_jwt_contains_billing_anchor_day(self):
+        """JWT contains billing_anchor_day claim."""
+        token = create_jwt(
+            TEST_USER_ID, TEST_SECRET, billing_anchor_day=15
+        )
+        payload = pyjwt.decode(token, TEST_SECRET, algorithms=["HS256"])
+        assert payload["billing_anchor_day"] == 15
+
+    def test_default_tier_is_free(self):
+        """Default tier claim is 'free'."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET)
+        payload = pyjwt.decode(token, TEST_SECRET, algorithms=["HS256"])
+        assert payload["tier"] == "free"
+
+    def test_default_billing_anchor_day_is_1(self):
+        """Default billing_anchor_day is 1."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET)
+        payload = pyjwt.decode(token, TEST_SECRET, algorithms=["HS256"])
+        assert payload["billing_anchor_day"] == 1
+
+    def test_tier_roundtrip_through_validate(self):
+        """Tier survives create → validate roundtrip in claims."""
+        token = create_jwt(
+            TEST_USER_ID, TEST_SECRET, tier="admin", billing_anchor_day=20
+        )
+        result = validate_jwt(token, TEST_SECRET)
+        assert result["success"] is True
+        assert result["claims"]["tier"] == "admin"
+        assert result["claims"]["billing_anchor_day"] == 20
+
+    def test_validate_returns_claims_on_success(self, valid_token: str):
+        """Successful validation includes claims dict."""
+        result = validate_jwt(valid_token, TEST_SECRET)
+        assert result["claims"] is not None
+        assert "user_id" in result["claims"]
+        assert "exp" in result["claims"]
+
+    def test_validate_returns_none_claims_on_failure(self):
+        """Failed validation has claims=None."""
+        result = validate_jwt("invalid.token.here", TEST_SECRET)
+        assert result["success"] is False
+        assert result["claims"] is None
+
+    def test_admin_tier_in_jwt(self):
+        """Admin tier value embeds correctly."""
+        token = create_jwt(TEST_USER_ID, TEST_SECRET, tier="admin")
+        payload = pyjwt.decode(token, TEST_SECRET, algorithms=["HS256"])
+        assert payload["tier"] == "admin"
