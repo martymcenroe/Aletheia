@@ -33,7 +33,7 @@ from auth.token_manager import (
     refresh_token_if_needed,
     store_tokens,
 )
-from auth.types import LinkedInTokens
+from auth.types import AuthError, LinkedInTokens
 
 
 # ---------------------------------------------------------------------------
@@ -529,8 +529,7 @@ class TestTokenRefresh:
             refresh_token=None,
         )
 
-        with pytest.raises(TypeError):
-            # AuthError is a TypedDict — raising it causes TypeError
+        with pytest.raises(AuthError):
             refresh_token_if_needed(tokens)
 
     def test_refresh_failure_returns_original(

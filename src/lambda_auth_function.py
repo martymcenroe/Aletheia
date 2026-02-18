@@ -26,8 +26,12 @@ import boto3
 import requests
 from botocore.exceptions import ClientError
 
-from .auth.jwt_service import create_jwt, get_jwt_secret
-from .auth.token_cap_service import check_and_increment_cap
+try:
+    from .auth.jwt_service import create_jwt, get_jwt_secret
+    from .auth.token_cap_service import check_and_increment_cap
+except ImportError:
+    from auth.jwt_service import create_jwt, get_jwt_secret  # type: ignore[no-redef]
+    from auth.token_cap_service import check_and_increment_cap  # type: ignore[no-redef]
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

@@ -44,7 +44,7 @@ from auth.auth_state import (
     set_auth_state,
     subscribe_to_auth_changes,
 )
-from auth.types import AuthState, LinkedInTokens, UserProfile
+from auth.types import AuthError, AuthState, LinkedInTokens, UserProfile
 from lambda_auth_function import (
     fetch_linkedin_profile,
     validate_token,
@@ -154,8 +154,7 @@ class TestInitiateOAuthFlow:
         # Also clear the default that may have been read at module load
         monkeypatch.setattr("auth.linkedin_oauth.DEFAULT_CLIENT_ID", "")
 
-        with pytest.raises(TypeError):
-            # AuthError is a TypedDict, so raising it raises TypeError
+        with pytest.raises(AuthError):
             initiate_oauth_flow("http://localhost:8585/callback")
 
 
@@ -176,8 +175,7 @@ class TestStartLocalOAuthServer:
         port = blocker.getsockname()[1]
 
         try:
-            with pytest.raises(TypeError):
-                # AuthError is a TypedDict — raising it causes TypeError
+            with pytest.raises(AuthError):
                 start_local_oauth_server(port=port)
         finally:
             blocker.close()
@@ -248,8 +246,7 @@ class TestHandleOAuthCallback:
         )
         expected_state = "correct-state"
 
-        with pytest.raises(TypeError):
-            # AuthError is a TypedDict — raising it causes TypeError
+        with pytest.raises(AuthError):
             handle_oauth_callback(callback_url, expected_state)
 
     def test_120_csrf_state_mismatch(self, oauth_env):
@@ -258,7 +255,7 @@ class TestHandleOAuthCallback:
             "http://localhost:8585/callback?code=SOME_CODE&state=attacker-state"
         )
 
-        with pytest.raises(TypeError):
+        with pytest.raises(AuthError):
             handle_oauth_callback(callback_url, "legitimate-state")
 
     def test_020_oauth_canceled_by_user(self, oauth_env):
@@ -270,14 +267,14 @@ class TestHandleOAuthCallback:
         )
         expected_state = "some-state"
 
-        with pytest.raises(TypeError):
+        with pytest.raises(AuthError):
             handle_oauth_callback(callback_url, expected_state)
 
     def test_no_code_in_callback_raises(self, oauth_env):
         """Callback without authorization code raises AuthError."""
         callback_url = "http://localhost:8585/callback?state=expected-state"
 
-        with pytest.raises(TypeError):
+        with pytest.raises(AuthError):
             handle_oauth_callback(callback_url, "expected-state")
 
 
@@ -328,8 +325,7 @@ class TestExchangeCodeForTokens:
             mock_client.post.return_value = mock_response
             mock_client_cls.return_value = mock_client
 
-            with pytest.raises(TypeError):
-                # AuthError is a TypedDict, raising it raises TypeError
+            with pytest.raises(AuthError):
                 exchange_code_for_tokens(
                     "bad-code", "http://localhost:8585/callback"
                 )
@@ -343,7 +339,7 @@ class TestExchangeCodeForTokens:
             mock_client.post.side_effect = httpx.ConnectError("Connection refused")
             mock_client_cls.return_value = mock_client
 
-            with pytest.raises(TypeError):
+            with pytest.raises(AuthError):
                 exchange_code_for_tokens(
                     "code", "http://localhost:8585/callback"
                 )
@@ -354,7 +350,7 @@ class TestExchangeCodeForTokens:
         monkeypatch.delenv("LINKEDIN_CLIENT_SECRET", raising=False)
         monkeypatch.setattr("auth.linkedin_oauth.DEFAULT_CLIENT_ID", "")
 
-        with pytest.raises(TypeError):
+        with pytest.raises(AuthError):
             exchange_code_for_tokens("code", "http://localhost:8585/callback")
 
     def test_token_exchange_sends_correct_payload(self, oauth_env):
@@ -880,8 +876,7 @@ class TestTokenRefresh:
             refresh_token=None,
         )
 
-        with pytest.raises(TypeError):
-            # AuthError is a TypedDict — raising it causes TypeError
+        with pytest.raises(AuthError):
             refresh_token_if_needed(tokens)
 
     def test_refresh_failure_returns_original(
@@ -1017,7 +1012,7 @@ class TestHappyPathOAuthFlow:
                 lambda: None,  # No callback received
             )
 
-            with pytest.raises(TypeError):
+            with pytest.raises(AuthError):
                 run_oauth_login(port=8585)
 
 

@@ -60,7 +60,7 @@ class AuthState(TypedDict):
     last_validated: int
 
 
-class AuthError(TypedDict):
+class AuthError(Exception):
     """Structured authentication error.
 
     Attributes:
@@ -69,12 +69,19 @@ class AuthError(TypedDict):
         recoverable: Whether the error can be recovered from (e.g. retry).
     """
 
-    code: Literal[
-        "OAUTH_FAILED",
-        "TOKEN_EXPIRED",
-        "VALIDATION_FAILED",
-        "NETWORK_ERROR",
-        "PORT_IN_USE",
-    ]
-    message: str
-    recoverable: bool
+    def __init__(
+        self,
+        code: Literal[
+            "OAUTH_FAILED",
+            "TOKEN_EXPIRED",
+            "VALIDATION_FAILED",
+            "NETWORK_ERROR",
+            "PORT_IN_USE",
+        ],
+        message: str,
+        recoverable: bool,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.recoverable = recoverable

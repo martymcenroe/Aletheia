@@ -97,11 +97,8 @@ def initiate_oauth_flow(redirect_uri: str) -> str:
         should be directed to in their browser.
 
     Raises:
-        AuthError (via raise): With code ``OAUTH_FAILED`` if the client ID
-            is not configured.  Because :class:`AuthError` is a
-            :class:`TypedDict`, raising it directly will result in a
-            :class:`TypeError` at the call site — callers should catch
-            ``TypeError`` when testing this path.
+        AuthError: With code ``OAUTH_FAILED`` if the client ID
+            is not configured.
     """
     client_id = os.environ.get("LINKEDIN_CLIENT_ID", "") or DEFAULT_CLIENT_ID
 
@@ -146,9 +143,8 @@ def handle_oauth_callback(callback_url: str, expected_state: str) -> LinkedInTok
         A :class:`LinkedInTokens` dict on success.
 
     Raises:
-        AuthError (via raise): With code ``OAUTH_FAILED`` on state mismatch,
-            missing code, or OAuth error from LinkedIn.  Raises as
-            :class:`TypeError` because :class:`AuthError` is a TypedDict.
+        AuthError: With code ``OAUTH_FAILED`` on state mismatch,
+            missing code, or OAuth error from LinkedIn.
     """
     parsed = urlparse(callback_url)
     params = parse_qs(parsed.query)
