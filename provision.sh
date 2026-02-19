@@ -24,6 +24,7 @@ ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 TABLE_NAME="${APP_NAME}AgentState"
 USERS_TABLE="aletheia-users"
 TOKEN_CAP_TABLE="aletheia-token-cap"
+COUPONS_TABLE="aletheia-coupons"
 ROLE_NAME="${APP_NAME}LambdaRole"
 FUNC_NAME="${APP_NAME}Agent"
 AUTH_FUNC_NAME="${APP_NAME}Auth"
@@ -191,6 +192,25 @@ else
 fi
 
 # =============================================================================
+# Step 3b: DynamoDB Coupons Table (Issue #367: Manual Subscriptions)
+# =============================================================================
+echo ""
+echo "[3b/10] Checking DynamoDB Coupons Table..."
+if ! aws dynamodb describe-table --table-name "$COUPONS_TABLE" --region "$REGION" >/dev/null 2>&1; then
+    echo "Creating coupons table: $COUPONS_TABLE"
+    aws dynamodb create-table \
+        --table-name "$COUPONS_TABLE" \
+        --attribute-definitions AttributeName=code,AttributeType=S \
+        --key-schema AttributeName=code,KeyType=HASH \
+        --billing-mode PAY_PER_REQUEST \
+        --region "$REGION"
+    aws dynamodb wait table-exists --table-name "$COUPONS_TABLE" --region "$REGION"
+    echo -e "${GREEN}Created coupons table: $COUPONS_TABLE${NC}"
+else
+    echo "Coupons table already exists: $COUPONS_TABLE"
+fi
+
+# =============================================================================
 # Step 4: IAM Role with All Required Permissions
 # =============================================================================
 echo ""
@@ -239,7 +259,8 @@ aws iam put-role-policy \
                 "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'",
                 "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'/index/*",
                 "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'",
-                "arn:aws:dynamodb:*:*:table/'"$TOKEN_CAP_TABLE"'"
+                "arn:aws:dynamodb:*:*:table/'"$TOKEN_CAP_TABLE"'",
+                "arn:aws:dynamodb:*:*:table/'"$COUPONS_TABLE"'"
             ]
         },
         {
@@ -415,7 +436,7 @@ if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION
         --timeout 30 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Auth Lambda (X-Ray enabled)${NC}"
@@ -433,7 +454,7 @@ else
         --function-name "$AUTH_FUNC_NAME" \
         --handler src.lambda_auth_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
@@ -608,6 +629,7 @@ echo "  DynamoDB Tables:"
 echo "    - $TABLE_NAME (TTL enabled)"
 echo "    - $USERS_TABLE"
 echo "    - $TOKEN_CAP_TABLE (TTL enabled)"
+echo "    - $COUPONS_TABLE"
 echo "  IAM Role: $ROLE_NAME"
 echo "  Lambda Layer: $LAYER_NAME"
 echo ""

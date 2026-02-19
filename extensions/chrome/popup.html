@@ -68,6 +68,26 @@
         <div id="full-page-status" class="full-page-status" style="display: none;"></div>
       </div>
 
+      <!-- Issue #367: Coupon Redemption Section -->
+      <div class="coupon-section" id="coupon-section">
+        <div class="coupon-divider"></div>
+        <button id="coupon-toggle" class="coupon-toggle-button" aria-label="Redeem a coupon code">
+          <span>Have a coupon code?</span>
+          <span class="arrow" id="coupon-arrow" aria-hidden="true">→</span>
+        </button>
+        <div id="coupon-form" class="coupon-form" style="display: none;">
+          <input type="text" id="coupon-input" class="coupon-input"
+                 placeholder="Enter 16-character code" maxlength="16"
+                 autocomplete="off" spellcheck="false">
+          <input type="email" id="coupon-email" class="coupon-email-input"
+                 placeholder="Email (optional)" autocomplete="email">
+          <button id="coupon-submit" class="coupon-submit-button" disabled>
+            Redeem Coupon
+          </button>
+          <div id="coupon-status" class="coupon-status" style="display: none;"></div>
+        </div>
+      </div>
+
       <button id="manage-button" class="manage-button" aria-label="Manage Allowlist">
         <span>Manage Allowlist</span>
         <span class="arrow" aria-hidden="true">→</span>
