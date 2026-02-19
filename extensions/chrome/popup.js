@@ -745,6 +745,111 @@ function showCouponStatus(message, type) {
 }
 
 // ============================================================================
+// SUBSCRIPTION STATUS (Issue #366)
+// ============================================================================
+
+const SUBSCRIPTION_STATUS_URL = "https://api.aletheia.study/subscription-status";
+const CHECKOUT_URL = "https://api.aletheia.study/create-checkout-session";
+
+const subscriptionSection = document.getElementById('subscription-section');
+const subscriptionStatusEl = document.getElementById('subscription-status');
+const upgradeButton = document.getElementById('upgrade-button');
+const tierBadge = document.getElementById('user-tier-badge');
+
+/**
+ * Check and display subscription status.
+ */
+async function checkSubscriptionStatus() {
+  if (!subscriptionSection) return;
+
+  try {
+    const authState = await window.AletheiaAuth.getAuthState();
+    if (!authState || !authState.jwt) return;
+
+    const response = await fetch(SUBSCRIPTION_STATUS_URL, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authState.jwt}`
+      }
+    });
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+    subscriptionSection.style.display = 'block';
+
+    // Update tier badge
+    if (tierBadge && data.tier !== 'free') {
+      tierBadge.textContent = data.tier;
+      tierBadge.style.display = 'inline-block';
+    }
+
+    if (data.status === 'active') {
+      subscriptionStatusEl.textContent = 'Premium subscription active';
+      subscriptionStatusEl.className = 'subscription-status active';
+      if (upgradeButton) upgradeButton.style.display = 'none';
+    } else if (data.status === 'grace_period') {
+      const days = data.grace_period_days_remaining || 0;
+      subscriptionStatusEl.textContent = `Payment issue - ${days} day${days !== 1 ? 's' : ''} to resolve`;
+      subscriptionStatusEl.className = 'subscription-status grace';
+      if (upgradeButton) upgradeButton.style.display = 'none';
+    } else {
+      subscriptionStatusEl.textContent = 'Free tier';
+      subscriptionStatusEl.className = 'subscription-status free';
+      if (upgradeButton) upgradeButton.style.display = 'block';
+    }
+  } catch (_err) {
+    // Subscription status is non-critical, fail silently
+  }
+}
+
+/**
+ * Handle upgrade button click — redirect to Stripe Checkout.
+ */
+async function handleUpgradeClick() {
+  if (!upgradeButton) return;
+
+  upgradeButton.disabled = true;
+  upgradeButton.textContent = 'Redirecting...';
+
+  try {
+    const authState = await window.AletheiaAuth.getAuthState();
+    if (!authState || !authState.jwt) {
+      upgradeButton.textContent = 'Please sign in first';
+      return;
+    }
+
+    const response = await fetch(CHECKOUT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authState.jwt}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.checkout_url) {
+      // Open Stripe Checkout in a new tab
+      chrome.tabs.create({ url: data.checkout_url });
+      window.close();
+    } else {
+      upgradeButton.textContent = 'Upgrade failed';
+      setTimeout(() => {
+        upgradeButton.textContent = 'Upgrade to Premium';
+        upgradeButton.disabled = false;
+      }, 3000);
+    }
+  } catch (_err) {
+    upgradeButton.textContent = 'Network error';
+    setTimeout(() => {
+      upgradeButton.textContent = 'Upgrade to Premium';
+      upgradeButton.disabled = false;
+    }, 3000);
+  }
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
@@ -782,6 +887,11 @@ async function init() {
     couponSubmit.addEventListener('click', handleCouponSubmit);
   }
 
+  // Subscription upgrade (Issue #366)
+  if (upgradeButton) {
+    upgradeButton.addEventListener('click', handleUpgradeClick);
+  }
+
   // Check auth state first (Issue #116)
   let isAuthed = false;
   try {
@@ -801,6 +911,9 @@ async function init() {
   // Update user bar with name
   console.log('[Aletheia] User authenticated, updating user bar');
   await updateUserBar();
+
+  // Check subscription status (Issue #366) — non-blocking
+  checkSubscriptionStatus();
 
   // Age gate check, then render appropriate view
   await checkAgeGate();

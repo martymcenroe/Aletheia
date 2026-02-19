@@ -1,0 +1,81 @@
+{
+  "checkout_session_completed": {
+    "id": "evt_test_checkout_123",
+    "type": "checkout.session.completed",
+    "data": {
+      "object": {
+        "id": "cs_test_abc123",
+        "customer": "cus_test_xyz",
+        "subscription": "sub_test_456",
+        "metadata": {
+          "user_id": "user-123"
+        }
+      }
+    },
+    "created": 1700000000
+  },
+  "invoice_paid": {
+    "id": "evt_test_invoice_paid_123",
+    "type": "invoice.paid",
+    "data": {
+      "object": {
+        "id": "in_test_paid_123",
+        "customer": "cus_test_xyz",
+        "subscription": "sub_test_456",
+        "metadata": {}
+      }
+    },
+    "created": 1700000100
+  },
+  "invoice_payment_failed": {
+    "id": "evt_test_invoice_fail_123",
+    "type": "invoice.payment_failed",
+    "data": {
+      "object": {
+        "id": "in_test_fail_123",
+        "customer": "cus_test_xyz",
+        "subscription": "sub_test_456",
+        "metadata": {}
+      }
+    },
+    "created": 1700000200
+  },
+  "subscription_deleted": {
+    "id": "evt_test_sub_deleted_123",
+    "type": "customer.subscription.deleted",
+    "data": {
+      "object": {
+        "id": "sub_test_456",
+        "customer": "cus_test_xyz",
+        "metadata": {}
+      }
+    },
+    "created": 1700000300
+  },
+  "unknown_event": {
+    "id": "evt_test_unknown_123",
+    "type": "payment_intent.succeeded",
+    "data": {
+      "object": {
+        "id": "pi_test_123",
+        "metadata": {
+          "user_id": "user-123"
+        }
+      }
+    },
+    "created": 1700000400
+  },
+  "checkout_no_user": {
+    "id": "evt_test_no_user_123",
+    "type": "checkout.session.completed",
+    "data": {
+      "object": {
+        "id": "cs_test_no_user",
+        "customer": "cus_unknown",
+        "subscription": "sub_test_789",
+        "metadata": {}
+      }
+    },
+    "created": 1700000500
+  }
+}

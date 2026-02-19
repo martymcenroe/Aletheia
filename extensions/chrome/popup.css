@@ -641,6 +641,67 @@ body {
   background-color: rgba(107, 114, 128, 0.1);
 }
 
+/* SUBSCRIPTION SECTION (Issue #366 - Stripe Billing) */
+.subscription-section {
+  padding: 8px 0;
+  margin-bottom: 12px;
+}
+
+.subscription-status {
+  font-size: 12px;
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.subscription-status.active {
+  color: var(--color-primary);
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.subscription-status.grace {
+  color: #F59E0B;
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.subscription-status.free {
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+}
+
+.upgrade-button {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #6366F1;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.upgrade-button:hover:not(:disabled) {
+  background-color: #4F46E5;
+}
+
+.upgrade-button:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.tier-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #6366F1;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
 /* COUPON SECTION (Issue #367 - Manual Subscriptions) */
 .coupon-section {
   margin-bottom: 16px;
