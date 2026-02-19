@@ -2,12 +2,14 @@
 Observability Module - AWS X-Ray Tracing and CloudWatch Metrics.
 
 Issue #7: Add observability and tracing to Lambda functions.
+Issue #369: Add EMF structured logging for CloudWatch Usage Dashboard.
 See: docs/1007-observability.md
 
 PRIVACY RULES (STRICT):
 - NEVER log prompt or completion text
 - NEVER log user input or URLs
 - ONLY log: tokens_used, model_id, latency_ms, status_code, error_type
+- NEVER put user_id in metric dimensions (REQ-18)
 
 Safe metadata:
 - tokens_used (int)
@@ -17,8 +19,10 @@ Safe metadata:
 - error_type (str, if applicable)
 """
 
+import json as _json
 import logging
 import os
+import time
 from typing import Any
 
 # X-Ray SDK imports
@@ -197,6 +201,202 @@ def log_bedrock_metrics(
     except Exception as e:
         # Metrics logging should never break the main flow
         logger.warning(f"Failed to log CloudWatch metrics (non-fatal): {e}")
+
+
+# --------------------------------------------------------------------------- #
+# Issue #369: EMF Structured Logging for CloudWatch Usage Dashboard
+# --------------------------------------------------------------------------- #
+
+# EMF namespace (separate from the PutMetricData namespace above)
+EMF_NAMESPACE = "Aletheia/API"
+
+# Valid tiers for dimension safety (prevents injection)
+_VALID_TIERS = {"free", "subscriber", "admin", "pro", "enterprise"}
+
+
+def _build_emf_payload(
+    metrics: list[dict[str, str]],
+    dimensions: list[list[str]],
+    values: dict[str, Any],
+) -> dict[str, Any]:
+    """Build a CloudWatch EMF payload.
+
+    Args:
+        metrics: List of {"Name": ..., "Unit": ...} metric specs.
+        dimensions: List of dimension key groups, e.g. [["Tier"]].
+        values: Dict of metric/dimension values to include in payload.
+
+    Returns:
+        EMF-formatted dict ready for JSON serialization.
+    """
+    payload: dict[str, Any] = {
+        "_aws": {
+            "Timestamp": int(time.time() * 1000),
+            "CloudWatchMetrics": [
+                {
+                    "Namespace": EMF_NAMESPACE,
+                    "Dimensions": dimensions,
+                    "Metrics": metrics,
+                }
+            ],
+        }
+    }
+    payload.update(values)
+    return payload
+
+
+def _emit_emf_log(payload: dict[str, Any]) -> None:
+    """Write EMF-formatted JSON to stdout for CloudWatch Logs ingestion.
+
+    CloudWatch Logs agent parses the _aws block and extracts metrics
+    automatically. No HTTP call required.
+    """
+    print(_json.dumps(payload, separators=(",", ":")))
+
+
+def _safe_tier(tier: str) -> str:
+    """Validate tier value to prevent dimension injection."""
+    return tier if tier in _VALID_TIERS else "unknown"
+
+
+def emit_request_metric(tier: str) -> None:
+    """Emit RequestCount metric via EMF with Tier dimension.
+
+    Issue #369 (REQ-1): Fail-open — catches all exceptions.
+
+    Args:
+        tier: User subscription tier (free/subscriber/admin).
+    """
+    try:
+        payload = _build_emf_payload(
+            metrics=[{"Name": "RequestCount", "Unit": "Count"}],
+            dimensions=[["Tier"]],
+            values={"Tier": _safe_tier(tier), "RequestCount": 1},
+        )
+        _emit_emf_log(payload)
+    except Exception as e:
+        logger.warning(f"Metric emission failed (non-fatal): {e}")
+
+
+def emit_cap_utilization_metric(
+    tier: str, window: str, utilization_percent: float
+) -> None:
+    """Emit CapUtilization metric via EMF with Tier and Window dimensions.
+
+    Issue #369 (REQ-2): Fail-open — catches all exceptions.
+
+    Args:
+        tier: User subscription tier.
+        window: Rate limit window (hourly/daily/monthly).
+        utilization_percent: Cap usage percentage 0-100.
+    """
+    try:
+        payload = _build_emf_payload(
+            metrics=[{"Name": "CapUtilization", "Unit": "Percent"}],
+            dimensions=[["Tier", "Window"]],
+            values={
+                "Tier": _safe_tier(tier),
+                "Window": window,
+                "CapUtilization": utilization_percent,
+            },
+        )
+        _emit_emf_log(payload)
+    except Exception as e:
+        logger.warning(f"Metric emission failed (non-fatal): {e}")
+
+
+def emit_cap_denied_metric(tier: str) -> None:
+    """Emit CapDenied metric via EMF when request rejected.
+
+    Issue #369 (REQ-3): Fail-open — catches all exceptions.
+
+    Args:
+        tier: User subscription tier.
+    """
+    try:
+        payload = _build_emf_payload(
+            metrics=[{"Name": "CapDenied", "Unit": "Count"}],
+            dimensions=[["Tier"]],
+            values={"Tier": _safe_tier(tier), "CapDenied": 1},
+        )
+        _emit_emf_log(payload)
+    except Exception as e:
+        logger.warning(f"Metric emission failed (non-fatal): {e}")
+
+
+def emit_bedrock_cost_metric(estimated_cost_usd: float) -> None:
+    """Emit BedrockCostEstimate metric via EMF with USD value.
+
+    Issue #369 (REQ-4): Fail-open — catches all exceptions.
+
+    Args:
+        estimated_cost_usd: Estimated cost in USD.
+    """
+    try:
+        payload = _build_emf_payload(
+            metrics=[{"Name": "BedrockCostEstimate", "Unit": "None"}],
+            dimensions=[[]],
+            values={"BedrockCostEstimate": estimated_cost_usd},
+        )
+        _emit_emf_log(payload)
+    except Exception as e:
+        logger.warning(f"Metric emission failed (non-fatal): {e}")
+
+
+def emit_error_rate_metric(status_code: int) -> None:
+    """Emit ErrorRate metric via EMF for 4xx/5xx responses.
+
+    Issue #369 (REQ-5): Fail-open — catches all exceptions.
+
+    Args:
+        status_code: HTTP status code (4xx or 5xx).
+    """
+    try:
+        payload = _build_emf_payload(
+            metrics=[{"Name": "ErrorRate", "Unit": "Count"}],
+            dimensions=[["StatusCode"]],
+            values={"StatusCode": status_code, "ErrorRate": 1},
+        )
+        _emit_emf_log(payload)
+    except Exception as e:
+        logger.warning(f"Metric emission failed (non-fatal): {e}")
+
+
+def emit_latency_metric(latency_ms: float) -> None:
+    """Emit Latency metric via EMF in milliseconds.
+
+    Issue #369 (REQ-6): Fail-open — catches all exceptions.
+
+    Args:
+        latency_ms: Response time in milliseconds.
+    """
+    try:
+        payload = _build_emf_payload(
+            metrics=[{"Name": "Latency", "Unit": "Milliseconds"}],
+            dimensions=[[]],
+            values={"Latency": latency_ms},
+        )
+        _emit_emf_log(payload)
+    except Exception as e:
+        logger.warning(f"Metric emission failed (non-fatal): {e}")
+
+
+def log_anonymized_user(user_id: str) -> None:
+    """Log anonymized user ID to CloudWatch Logs for pattern analysis.
+
+    Issue #369 (REQ-14): Uses 12-char truncated SHA-256 hash.
+    Logged as structured JSON for Logs Insights queries.
+
+    Args:
+        user_id: Raw user ID to anonymize and log.
+    """
+    try:
+        from .auth.anonymize import anonymize_user_id
+
+        anon_id = anonymize_user_id(user_id)
+        logger.info(_json.dumps({"action": "request", "anon_user": anon_id}))
+    except Exception as e:
+        logger.warning(f"Anonymized user logging failed (non-fatal): {e}")
 
 
 # Initialize X-Ray on module import (Lambda cold start)

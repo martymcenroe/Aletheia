@@ -2,6 +2,7 @@
 
 Issue: #341 - Add JWT authentication to analysis endpoint with daily token cap.
 Issue: #364 - Tiered rate limiting with multi-window caps.
+Issue: #369 - CloudWatch Usage Dashboard (EMF metric emission).
 
 Provides a decorator-based middleware for clean separation of auth concerns.
 Fail mode: Fail Closed for auth, hybrid for rate limiting.
@@ -298,10 +299,25 @@ def require_auth(handler: Callable) -> Callable:
         billing_anchor_day = claims.get("billing_anchor_day", 1)
 
         user_id = str(auth_result["user_id"])  # guaranteed non-None after auth success
+
+        # Issue #369: Emit RequestCount metric and log anonymized user (fail-open)
+        try:
+            from ..observability import emit_request_metric, log_anonymized_user
+            emit_request_metric(tier.value)
+            log_anonymized_user(user_id)
+        except Exception as e:
+            logger.warning(f"Metric emission failed (non-fatal): {e}")
+
         allowed, error_response = check_rate_limit(
             user_id, tier, billing_anchor_day
         )
         if not allowed and error_response is not None:
+            # Issue #369: Emit CapDenied metric (fail-open)
+            try:
+                from ..observability import emit_cap_denied_metric
+                emit_cap_denied_metric(tier.value)
+            except Exception as e:
+                logger.warning(f"CapDenied metric failed (non-fatal): {e}")
             return _build_429_response(error_response)
 
         # Step 6: Inject user_id into event for downstream use
