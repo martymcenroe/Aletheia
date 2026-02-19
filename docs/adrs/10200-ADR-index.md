@@ -32,15 +32,23 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 | [10214](10214-ADR-claude-staging-pattern.md) | Claude-Staging Pattern | Implemented | Process, Governance, Security | 2026-01-08 |
 | [10215](10215-ADR-test-first-philosophy.md) | Test-First Philosophy | Accepted | Process, Testing, Quality | 2026-01-09 |
 | [10216](10216-ADR-cloudflare-migration.md) | CloudFront+WAF to CloudFlare Migration | Implemented | Security, Infrastructure, Cost Optimization | 2026-02-16 |
+| [10217](10217-ADR-jwt-authentication.md) | JWT Authentication Architecture | Implemented | Security, Authentication, Infrastructure | 2026-02-17 |
+| [10218](10218-ADR-daily-token-cap.md) | Multi-Window Rate Limiting | Implemented | Infrastructure, Security, Cost Optimization | 2026-02-17 |
+| [10219](10219-ADR-auth-middleware-pattern.md) | Decorator-Based Auth Middleware | Implemented | Architecture, Security, Patterns | 2026-02-17 |
 
 ---
 
 ## By Category
 
+### Authentication
+- [10217](10217-ADR-jwt-authentication.md)
+- [10219](10219-ADR-auth-middleware-pattern.md)
+
 ### Cost Optimization
 - [10207](10207-ADR-single-identity-orchestration.md)
 - [10209](10209-ADR-static-compliance-hosting.md)
 - [10216](10216-ADR-cloudflare-migration.md)
+- [10218](10218-ADR-daily-token-cap.md)
 
 ### Process
 - [10207](10207-ADR-single-identity-orchestration.md)
@@ -71,6 +79,9 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 - [10213](10213-ADR-adversarial-audit-philosophy.md)
 - [10214](10214-ADR-claude-staging-pattern.md)
 - [10216](10216-ADR-cloudflare-migration.md)
+- [10217](10217-ADR-jwt-authentication.md)
+- [10218](10218-ADR-daily-token-cap.md)
+- [10219](10219-ADR-auth-middleware-pattern.md)
 
 ### Privacy
 - [10201](10201-ADR-privacy-first-permissions.md)
@@ -86,6 +97,8 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 - [10209](10209-ADR-static-compliance-hosting.md)
 - [10210](10210-ADR-git-worktree-isolation.md)
 - [10216](10216-ADR-cloudflare-migration.md)
+- [10217](10217-ADR-jwt-authentication.md)
+- [10218](10218-ADR-daily-token-cap.md)
 
 ### Data
 - [10203](10203-ADR-stateful-serverless.md)
@@ -109,6 +122,10 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 ### Architecture
 - [10211](10211-ADR-naked-python-architecture.md)
 - [10212](10212-ADR-unified-v3-secure-dom.md)
+- [10219](10219-ADR-auth-middleware-pattern.md)
+
+### Patterns
+- [10219](10219-ADR-auth-middleware-pattern.md)
 
 ---
 
@@ -121,7 +138,7 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `AgentOS:templates/0104-adr-template`
-2. Use next available number (currently 10217)
+2. Use next available number (currently 10220)
 3. Name format: `102xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
