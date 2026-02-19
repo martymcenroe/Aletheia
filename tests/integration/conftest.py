@@ -49,6 +49,19 @@ USERS_TABLE_SCHEMA = {
     "BillingMode": "PAY_PER_REQUEST",
 }
 
+TOKEN_CAP_TABLE_SCHEMA = {
+    "TableName": "aletheia-token-cap",
+    "KeySchema": [
+        {"AttributeName": "PK", "KeyType": "HASH"},
+        {"AttributeName": "SK", "KeyType": "RANGE"},
+    ],
+    "AttributeDefinitions": [
+        {"AttributeName": "PK", "AttributeType": "S"},
+        {"AttributeName": "SK", "AttributeType": "S"},
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+}
+
 
 @pytest.fixture(scope="session")
 def dynamodb_endpoint() -> Generator[str, None, None]:
@@ -111,6 +124,8 @@ def dynamodb_client(dynamodb_endpoint: str):
     table_name: str = AGENT_STATE_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
     os.environ["DYNAMODB_TABLE"] = table_name
     os.environ["AGENT_STATE_TABLE"] = table_name
+    token_cap_name: str = TOKEN_CAP_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
+    os.environ["TOKEN_CAP_TABLE"] = token_cap_name
 
     client = boto3.client(
         "dynamodb",
@@ -127,6 +142,7 @@ def dynamodb_client(dynamodb_endpoint: str):
         del os.environ["DYNAMODB_ENDPOINT"]
     del os.environ["DYNAMODB_TABLE"]
     del os.environ["AGENT_STATE_TABLE"]
+    del os.environ["TOKEN_CAP_TABLE"]
 
 
 @pytest.fixture(scope="session")
@@ -166,8 +182,24 @@ def users_table(dynamodb_client) -> str:
     return table_name
 
 
+@pytest.fixture(scope="session")
+def token_cap_table(dynamodb_client) -> str:
+    """Create aletheia-token-cap table for rate limiting (Issue #364)."""
+    table_name: str = TOKEN_CAP_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
+
+    try:
+        dynamodb_client.create_table(**TOKEN_CAP_TABLE_SCHEMA)
+        waiter = dynamodb_client.get_waiter("table_exists")
+        waiter.wait(TableName=table_name, WaiterConfig={"Delay": 1, "MaxAttempts": 30})
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "ResourceInUseException":
+            raise
+
+    return table_name
+
+
 @pytest.fixture(autouse=True)
-def cleanup_tables(dynamodb_client, agent_state_table, users_table):
+def cleanup_tables(dynamodb_client, agent_state_table, users_table, token_cap_table):
     """
     Delete all items after each test.
 
@@ -221,6 +253,26 @@ def cleanup_tables(dynamodb_client, agent_state_table, users_table):
             )
     except ClientError:
         pass
+
+    # Cleanup token_cap_table (rate limit counters)
+    try:
+        response = dynamodb_client.scan(
+            TableName=token_cap_table,
+            ProjectionExpression="PK, SK",
+        )
+        for item in response.get("Items", []):
+            dynamodb_client.delete_item(
+                TableName=token_cap_table,
+                Key={"PK": item["PK"], "SK": item["SK"]},
+            )
+    except ClientError:
+        pass
+
+    # Reset rate limiter singletons so they pick up fresh DynamoDB clients
+    import src.auth.auth_middleware as _mw
+
+    _mw._tier_config_service = None  # noqa: SLF001
+    _mw._multi_window_counter = None  # noqa: SLF001
 
 
 @pytest.fixture

@@ -13,6 +13,7 @@ See: docs/1116-linkedin-oauth.md
 
 Issue #116: LinkedIn OAuth Authentication
 Issue #341: JWT authentication and daily token cap
+Issue #364: Tiered rate limiting with multi-window caps
 """
 
 import html
@@ -390,6 +391,34 @@ def get_or_create_user(user_info: dict) -> dict:
         raise
 
 
+def get_user_tier(user_id: str) -> tuple[str, int]:
+    """Look up user tier and billing anchor day from DynamoDB.
+
+    Issue #364: Embed tier in JWT for per-request rate limiting.
+
+    Args:
+        user_id: The user's unique identifier (LinkedIn sub).
+
+    Returns:
+        Tuple of (tier, billing_anchor_day). Defaults to ("free", 1)
+        if user record doesn't have these fields.
+    """
+    try:
+        client = get_dynamodb_client()
+        response = client.get_item(
+            TableName=USERS_TABLE,
+            Key={"user_id": {"S": user_id}},
+            ProjectionExpression="tier, billing_anchor_day",
+        )
+        item = response.get("Item", {})
+        tier = item.get("tier", {}).get("S", "free")
+        billing_anchor_day = int(item.get("billing_anchor_day", {}).get("N", "1"))
+        return tier, billing_anchor_day
+    except (ClientError, KeyError, ValueError) as e:
+        logger.warning(f"Failed to get user tier for {user_id}: {e}")
+        return "free", 1
+
+
 def handle_token_exchange(body: dict) -> dict:
     """
     Handle POST /auth/token - Exchange auth code for tokens and issue JWT.
@@ -473,10 +502,14 @@ def handle_token_exchange(body: dict) -> dict:
                 }),
             }
 
-        # 5. Generate JWT (Issue #341)
+        # 5. Generate JWT with tier (Issue #341, #364)
         try:
             jwt_secret = get_jwt_secret()
-            jwt_token = create_jwt(user["user_id"], jwt_secret, expiry_hours=24)
+            tier, billing_anchor_day = get_user_tier(user["user_id"])
+            jwt_token = create_jwt(
+                user["user_id"], jwt_secret, expiry_hours=24,
+                tier=tier, billing_anchor_day=billing_anchor_day,
+            )
         except Exception as e:
             logger.error(f"JWT generation failed: {e}")
             return {

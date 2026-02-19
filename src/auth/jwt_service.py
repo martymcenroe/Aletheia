@@ -1,6 +1,7 @@
 """JWT creation and validation service.
 
 Issue: #341 - Add JWT authentication to analysis endpoint with daily token cap.
+Issue: #364 - Tiered rate limiting with multi-window caps.
 """
 
 from __future__ import annotations
@@ -30,15 +31,24 @@ class AuthResult(TypedDict):
     user_id: str | None
     error: str | None
     reason: str | None
+    claims: dict | None
 
 
-def create_jwt(user_id: str, secret: str, expiry_hours: int = 24) -> str:
+def create_jwt(
+    user_id: str,
+    secret: str,
+    expiry_hours: int = 24,
+    tier: str = "free",
+    billing_anchor_day: int = 1,
+) -> str:
     """Create a signed JWT token for the given user.
 
     Args:
         user_id: The LinkedIn user ID to embed in the token.
         secret: The signing secret.
         expiry_hours: Token lifetime in hours (default 24).
+        tier: User subscription tier (default "free").
+        billing_anchor_day: Day of month for billing cycle (default 1).
 
     Returns:
         Encoded JWT string.
@@ -49,6 +59,8 @@ def create_jwt(user_id: str, secret: str, expiry_hours: int = 24) -> str:
         "exp": now + (expiry_hours * 3600),
         "iat": now,
         "jti": str(uuid.uuid4()),
+        "tier": tier,
+        "billing_anchor_day": billing_anchor_day,
     }
     return jwt.encode(payload, secret, algorithm="HS256")
 
@@ -79,6 +91,7 @@ def validate_jwt(token: str, secret: str, leeway_seconds: int = 300) -> AuthResu
             user_id=payload["user_id"],
             error=None,
             reason=None,
+            claims=payload,
         )
     except jwt.ExpiredSignatureError:
         return AuthResult(
@@ -86,6 +99,7 @@ def validate_jwt(token: str, secret: str, leeway_seconds: int = 300) -> AuthResu
             user_id=None,
             error="Token has expired",
             reason="token_expired",
+            claims=None,
         )
     except jwt.InvalidSignatureError:
         return AuthResult(
@@ -93,6 +107,7 @@ def validate_jwt(token: str, secret: str, leeway_seconds: int = 300) -> AuthResu
             user_id=None,
             error="Invalid token signature",
             reason="invalid_signature",
+            claims=None,
         )
     except jwt.DecodeError:
         return AuthResult(
@@ -100,6 +115,7 @@ def validate_jwt(token: str, secret: str, leeway_seconds: int = 300) -> AuthResu
             user_id=None,
             error="Malformed token",
             reason="malformed",
+            claims=None,
         )
     except jwt.InvalidTokenError as e:
         return AuthResult(
@@ -107,6 +123,7 @@ def validate_jwt(token: str, secret: str, leeway_seconds: int = 300) -> AuthResu
             user_id=None,
             error=str(e),
             reason="invalid_token",
+            claims=None,
         )
 
 

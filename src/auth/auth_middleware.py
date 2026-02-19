@@ -1,9 +1,10 @@
 """JWT validation middleware for analysis endpoint.
 
 Issue: #341 - Add JWT authentication to analysis endpoint with daily token cap.
+Issue: #364 - Tiered rate limiting with multi-window caps.
 
 Provides a decorator-based middleware for clean separation of auth concerns.
-Fail mode: Fail Closed - deny authentication if any component is unavailable.
+Fail mode: Fail Closed for auth, hybrid for rate limiting.
 """
 
 from __future__ import annotations
@@ -21,6 +22,9 @@ from .jwt_service import (
     validate_jwt,
     validate_jwt_dual_secret,
 )
+from .models.rate_limit import RateLimitResult, UserTier
+from .tier_config_service import TierConfigService
+from .token_cap_service import MultiWindowCounter
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +111,116 @@ def _build_401_response(error_message: str) -> dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------- #
+# Rate limiting (Issue #364)
+# --------------------------------------------------------------------------- #
+
+# Module-level singletons for rate limiting services
+_tier_config_service: TierConfigService | None = None
+_multi_window_counter: MultiWindowCounter | None = None
+
+# Upgrade URL for rate limit error responses
+_UPGRADE_URL = "https://aletheia.study/upgrade"
+
+
+def _get_tier_config_service() -> TierConfigService:
+    """Get or create the TierConfigService singleton."""
+    global _tier_config_service
+    if _tier_config_service is None:
+        _tier_config_service = TierConfigService()
+    return _tier_config_service
+
+
+def _get_multi_window_counter() -> MultiWindowCounter:
+    """Get or create the MultiWindowCounter singleton."""
+    global _multi_window_counter
+    if _multi_window_counter is None:
+        _multi_window_counter = MultiWindowCounter()
+    return _multi_window_counter
+
+
+def extract_tier_from_jwt(claims: dict) -> UserTier:
+    """Extract and validate user tier from JWT claims.
+
+    Args:
+        claims: Decoded JWT payload.
+
+    Returns:
+        UserTier enum value, defaults to FREE if missing or invalid.
+    """
+    tier_str = claims.get("tier", "free")
+    try:
+        return UserTier(tier_str)
+    except ValueError:
+        return UserTier.FREE
+
+
+def check_rate_limit(
+    user_id: str, tier: UserTier, billing_anchor_day: int = 1
+) -> tuple[bool, dict | None]:
+    """Check rate limits for a user request.
+
+    Args:
+        user_id: The user's unique identifier.
+        tier: The user's subscription tier.
+        billing_anchor_day: Day of month for billing cycle.
+
+    Returns:
+        Tuple of (allowed, error_response_dict_or_None).
+    """
+    config_service = _get_tier_config_service()
+    counter = _get_multi_window_counter()
+
+    tier_config = config_service.get_tier_config(tier)
+    result = counter.check_and_increment(user_id, tier_config, billing_anchor_day)
+
+    if result["allowed"]:
+        return True, None
+
+    error_body = build_rate_limit_error_response(result)
+    return False, error_body
+
+
+def build_rate_limit_error_response(result: RateLimitResult) -> dict:
+    """Build error response body for a rate limit violation.
+
+    Args:
+        result: The RateLimitResult from the counter check.
+
+    Returns:
+        Dict suitable for JSON serialization in a 429 response body.
+    """
+    if result.get("exceeded_window") == "SERVICE_UNAVAILABLE":
+        return {
+            "error": "Service temporarily unavailable, please retry",
+        }
+
+    return {
+        "error": "rate_limit_exceeded",
+        "window": result.get("exceeded_window", "unknown"),
+        "resets_at": result.get("resets_at", ""),
+        "resets_in_seconds": result.get("resets_in_seconds", 0),
+        "upgrade_url": _UPGRADE_URL,
+    }
+
+
+def _build_429_response(error_body: dict) -> dict[str, Any]:
+    """Build a 429 Too Many Requests response.
+
+    Args:
+        error_body: Error details dict.
+
+    Returns:
+        Lambda response dict with 429 status.
+    """
+    status = 503 if error_body.get("error") == "Service temporarily unavailable, please retry" else 429
+    return {
+        "statusCode": status,
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(error_body),
+    }
+
+
 def require_auth(handler: Callable) -> Callable:
     """Decorator to require valid JWT authentication.
 
@@ -178,10 +292,22 @@ def require_auth(handler: Callable) -> Callable:
             log_auth_failure(auth_result.get("user_id"), reason, event)
             return _build_401_response("Unauthorized")
 
-        # Step 5: Inject user_id into event for downstream use
+        # Step 5: Check rate limits (Issue #364)
+        claims = auth_result.get("claims") or {}
+        tier = extract_tier_from_jwt(claims)
+        billing_anchor_day = claims.get("billing_anchor_day", 1)
+
+        user_id = str(auth_result["user_id"])  # guaranteed non-None after auth success
+        allowed, error_response = check_rate_limit(
+            user_id, tier, billing_anchor_day
+        )
+        if not allowed and error_response is not None:
+            return _build_429_response(error_response)
+
+        # Step 6: Inject user_id into event for downstream use
         event["auth_user_id"] = auth_result["user_id"]
 
-        # Step 6: Proceed to the wrapped handler
+        # Step 7: Proceed to the wrapped handler
         return handler(event, context, **kwargs)
 
     return wrapper
