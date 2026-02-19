@@ -649,14 +649,18 @@ def lambda_handler(
                 if not version.startswith("1."):
                     return {"statusCode": 403, "body": json.dumps({"error": "Missing or invalid client version"})}
 
-            # Issue #341: JWT authentication for HTTP requests
-            # Apply require_auth decorator logic inline for HTTP requests.
-            # The decorator wraps _analysis_handler, validating JWT and injecting auth_user_id.
-            @require_auth
-            def _authenticated_handler(auth_event: dict, auth_context: Any) -> dict:
-                return _analysis_handler(auth_event, auth_context, denylist)
+            # Issue #341/#390: JWT authentication for HTTP requests
+            # Feature-flagged: AUTH_ENABLED env var controls whether JWT is required.
+            # Default false — auth infra not yet deployed. Flip to true when ready.
+            auth_enabled = os.environ.get("AUTH_ENABLED", "false").lower() == "true"
+            if auth_enabled:
+                @require_auth
+                def _authenticated_handler(auth_event: dict, auth_context: Any) -> dict:
+                    return _analysis_handler(auth_event, auth_context, denylist)
 
-            return _authenticated_handler(event, context)
+                return _authenticated_handler(event, context)
+            else:
+                return _analysis_handler(event, context, denylist)
         else:
             # Direct Lambda invocation (tests, SDK calls) — no auth required
             return _analysis_handler(event, context, denylist)
