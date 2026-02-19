@@ -438,7 +438,7 @@ if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/d
         --timeout 60 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=false}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Agent Lambda (X-Ray enabled)${NC}"
@@ -457,7 +457,7 @@ else
         --function-name "$FUNC_NAME" \
         --handler src.lambda_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=false}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 

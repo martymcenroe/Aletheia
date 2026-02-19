@@ -7,6 +7,7 @@ Tests use mocked AWS services and safe placeholder terms.
 No real slurs in test files (Willison Protocol).
 """
 import json
+import os
 from unittest.mock import MagicMock, patch
 
 
@@ -499,3 +500,56 @@ class TestProcessScoresForDisplay:
         scores = {"Archaic": 0.05, "Provocative": 0.05, "None": 0.04}
         result = process_scores_for_display(scores)
         assert result == []
+
+
+class TestAuthFeatureFlag:
+    """Tests for Issue #390: AUTH_ENABLED feature flag.
+
+    The auth gate at lambda_handler:652 should be controlled by the
+    AUTH_ENABLED env var. When disabled (default), HTTP requests bypass
+    JWT authentication. When enabled, @require_auth is applied.
+    """
+
+    MOCK_HTTP_EVENT = {
+        "body": json.dumps({"text": "apple"}),
+        "headers": {
+            "x-aletheia-client-version": "1.0",
+        },
+        "requestContext": {
+            "http": {
+                "method": "POST",
+                "sourceIp": "10.0.0.1",
+                "path": "/",
+            }
+        },
+    }
+
+    def test_auth_disabled_bypasses_jwt(self):
+        """HTTP request without JWT succeeds when AUTH_ENABLED=false (default)."""
+        mock_response = {"statusCode": 200, "body": json.dumps({"status": "success"})}
+
+        with patch.dict(os.environ, {"AUTH_ENABLED": "false"}, clear=False), patch(
+            "src.lambda_function._analysis_handler", return_value=mock_response
+        ):
+            result = lambda_handler(self.MOCK_HTTP_EVENT, None, denylist=MOCK_DENYLIST)
+
+        assert result["statusCode"] == 200
+
+    def test_auth_enabled_requires_jwt(self):
+        """HTTP request without JWT returns 401 when AUTH_ENABLED=true."""
+        with patch.dict(os.environ, {"AUTH_ENABLED": "true"}, clear=False):
+            result = lambda_handler(self.MOCK_HTTP_EVENT, None, denylist=MOCK_DENYLIST)
+
+        assert result["statusCode"] == 401
+
+    def test_direct_invocation_unaffected(self):
+        """Direct Lambda invocation (no requestContext) works regardless of flag."""
+        event = {"text": "apple"}
+        mock_response = {"statusCode": 200, "body": json.dumps({"status": "success"})}
+
+        with patch.dict(os.environ, {"AUTH_ENABLED": "true"}, clear=False), patch(
+            "src.lambda_function._analysis_handler", return_value=mock_response
+        ):
+            result = lambda_handler(event, None, denylist=MOCK_DENYLIST)
+
+        assert result["statusCode"] == 200
