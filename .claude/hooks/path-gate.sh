@@ -17,10 +17,12 @@ path="${CLAUDE_TOOL_INPUT_PATH:-$CLAUDE_TOOL_INPUT_FILE_PATH}"
 
 # Debug: write ALL env vars to file to find the right one
 debug_file="/c/Users/mcwiz/Projects/Aletheia/tmp/path-gate-debug.log"
-echo "$(date): === ALL ENVIRONMENT VARIABLES ===" >> "$debug_file"
-env >> "$debug_file"
-echo "=== END ENV ===" >> "$debug_file"
-echo "---" >> "$debug_file"
+{
+    echo "$(date): === ALL ENVIRONMENT VARIABLES ==="
+    env
+    echo "=== END ENV ==="
+    echo "---"
+} >> "$debug_file"
 
 # Skip if no path
 if [ -z "$path" ]; then
@@ -48,6 +50,7 @@ if [[ "$path" == *"~"* ]]; then
 
     # Try to construct the correct path
     # Replace ~ with C:\Users\mcwiz and fix slashes
+    # shellcheck disable=SC2088  # Intentional: checking for literal tilde in path string
     if [[ "$path" == "~\\"* ]] || [[ "$path" == "~/"* ]]; then
         suffix="${path:2}"  # Remove ~\ or ~/
         # Convert forward slashes to backslashes for Windows
