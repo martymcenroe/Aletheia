@@ -291,6 +291,13 @@ export function createChromeMock(options = {}) {
       })
     },
 
+    // Issue #391: Notifications API mock
+    notifications: {
+      create: vi.fn().mockImplementation((options, callback) => {
+        if (callback) callback('mock-notification-id');
+      })
+    },
+
     // =========================================================================
     // Test utilities (not part of Chrome API)
     // =========================================================================

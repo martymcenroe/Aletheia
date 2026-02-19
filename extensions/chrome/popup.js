@@ -915,8 +915,49 @@ async function init() {
   // Check subscription status (Issue #366) — non-blocking
   checkSubscriptionStatus();
 
+  // Issue #391 Phase 4: Load diagnostics — non-blocking
+  loadDiagnostics();
+
   // Age gate check, then render appropriate view
   await checkAgeGate();
+}
+
+// ============================================================================
+// DIAGNOSTICS (Issue #391 Phase 4)
+// ============================================================================
+
+/**
+ * Load last request diagnostics from chrome.storage.session and display in popup.
+ */
+async function loadDiagnostics() {
+  const section = document.getElementById('diagnostics-section');
+  if (!section) return;
+
+  try {
+    const result = await chrome.storage.session.get('aletheiaLastRequest');
+    const diag = result?.aletheiaLastRequest;
+    if (!diag) return;
+
+    section.style.display = 'block';
+
+    const statusEl = document.getElementById('diagnostics-status');
+    const latencyEl = document.getElementById('diagnostics-latency');
+    const timeEl = document.getElementById('diagnostics-time');
+    const errorEl = document.getElementById('diagnostics-error');
+
+    if (statusEl) statusEl.textContent = `Status: ${diag.lastRequestStatus}`;
+    if (latencyEl) latencyEl.textContent = `Latency: ${diag.lastRequestLatency}ms`;
+    if (timeEl && diag.lastRequestTimestamp) {
+      const date = new Date(diag.lastRequestTimestamp);
+      timeEl.textContent = `Time: ${date.toLocaleTimeString()}`;
+    }
+    if (errorEl && diag.lastError) {
+      errorEl.textContent = diag.lastError;
+      errorEl.style.display = 'block';
+    }
+  } catch (e) {
+    console.warn('[Aletheia] Failed to load diagnostics:', e);
+  }
 }
 
 // Start the popup

@@ -553,3 +553,116 @@ class TestAuthFeatureFlag:
             result = lambda_handler(event, None, denylist=MOCK_DENYLIST)
 
         assert result["statusCode"] == 200
+
+
+class TestHealthCheck:
+    """Tests for Issue #391 Phase 1: Health check endpoint.
+
+    GET /health returns status ok without auth or origin secret.
+    POST /health falls through to normal handler.
+    """
+
+    HEALTH_GET_EVENT = {
+        "headers": {},
+        "requestContext": {
+            "http": {
+                "method": "GET",
+                "path": "/health",
+                "sourceIp": "10.0.0.1",
+            }
+        },
+    }
+
+    def test_health_check_returns_200(self):
+        """GET /health returns 200 with status ok and version."""
+        result = lambda_handler(self.HEALTH_GET_EVENT, None)
+
+        assert result["statusCode"] == 200
+        body = json.loads(result["body"])
+        assert body["status"] == "ok"
+        assert body["version"] == "1.0"
+
+    def test_health_check_no_auth_required(self):
+        """GET /health succeeds without JWT even when AUTH_ENABLED=true."""
+        with patch.dict(os.environ, {"AUTH_ENABLED": "true"}, clear=False):
+            result = lambda_handler(self.HEALTH_GET_EVENT, None)
+
+        assert result["statusCode"] == 200
+        body = json.loads(result["body"])
+        assert body["status"] == "ok"
+
+    def test_health_check_post_falls_through(self):
+        """POST /health triggers normal handler, not health endpoint."""
+        event = {
+            "body": json.dumps({"text": "apple"}),
+            "headers": {"x-aletheia-client-version": "1.0"},
+            "requestContext": {
+                "http": {
+                    "method": "POST",
+                    "path": "/health",
+                    "sourceIp": "10.0.0.1",
+                }
+            },
+        }
+        mock_response = {"statusCode": 200, "body": json.dumps({"status": "success"})}
+
+        with patch.dict(os.environ, {"AUTH_ENABLED": "false"}, clear=False), patch(
+            "src.lambda_function._analysis_handler", return_value=mock_response
+        ):
+            result = lambda_handler(event, None, denylist=MOCK_DENYLIST)
+
+        assert result["statusCode"] == 200
+
+    def test_health_check_no_origin_secret_required(self):
+        """GET /health succeeds even without origin secret header."""
+        with patch.dict(os.environ, {"CLOUDFLARE_ORIGIN_SECRET": "test-secret"}, clear=False):
+            result = lambda_handler(self.HEALTH_GET_EVENT, None)
+
+        assert result["statusCode"] == 200
+
+
+class TestMetricsEndpoint:
+    """Tests for Issue #391 Phase 6: Admin metrics endpoint.
+
+    GET /metrics requires admin JWT and returns user/usage data.
+    """
+
+    METRICS_GET_EVENT = {
+        "headers": {},
+        "requestContext": {
+            "http": {
+                "method": "GET",
+                "path": "/metrics",
+                "sourceIp": "10.0.0.1",
+            }
+        },
+    }
+
+    def test_metrics_requires_auth(self):
+        """GET /metrics without JWT returns 401 when auth enabled."""
+        with patch.dict(os.environ, {"AUTH_ENABLED": "true"}, clear=False):
+            result = lambda_handler(self.METRICS_GET_EVENT, None)
+
+        assert result["statusCode"] == 401
+
+    def test_metrics_returns_expected_shape(self):
+        """GET /metrics returns JSON with users, usage, caps keys."""
+        mock_metrics = {
+            "statusCode": 200,
+            "body": json.dumps({
+                "users": {"total": 5, "by_tier": {"free": 3, "subscriber": 1, "admin": 1}},
+                "usage": {"requests_today": 42, "requests_this_month": 500},
+                "caps": {"denials_today": 2}
+            })
+        }
+
+        with patch.dict(os.environ, {"AUTH_ENABLED": "false"}, clear=False), patch(
+            "src.lambda_function._metrics_handler", return_value=mock_metrics
+        ):
+            result = lambda_handler(self.METRICS_GET_EVENT, None)
+
+        assert result["statusCode"] == 200
+        body = json.loads(result["body"])
+        assert "users" in body
+        assert "usage" in body
+        assert "caps" in body
