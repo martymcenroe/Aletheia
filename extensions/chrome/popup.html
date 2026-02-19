@@ -37,7 +37,16 @@
       <!-- User Info Bar (Issue #116) -->
       <div id="user-bar" class="user-bar">
         <span id="user-name" class="user-name">User</span>
+        <span id="user-tier-badge" class="tier-badge" style="display: none;"></span>
         <button id="logout-button" class="logout-button">Logout</button>
+      </div>
+
+      <!-- Issue #366: Subscription Status -->
+      <div id="subscription-section" class="subscription-section" style="display: none;">
+        <div id="subscription-status" class="subscription-status"></div>
+        <button id="upgrade-button" class="upgrade-button" style="display: none;">
+          Upgrade to Premium
+        </button>
       </div>
 
       <div class="logo-container">

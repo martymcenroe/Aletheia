@@ -1167,6 +1167,22 @@ files = [
 ]
 
 [[package]]
+name = "stripe"
+version = "7.14.0"
+description = "Python bindings for the Stripe API"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "stripe-7.14.0-py2.py3-none-any.whl", hash = "sha256:f39def4dec42b374a39b110ab809c8130e14b7027ee40e3111a658e0f46709cb"},
+    {file = "stripe-7.14.0.tar.gz", hash = "sha256:556bfa86f8b298b666ff2caa0d754ee19ece52159d12a45ed7ddb02daadd1799"},
+]
+
+[package.dependencies]
+requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
+typing-extensions = {version = ">=4.5.0", markers = "python_version >= \"3.7\""}
+
+[[package]]
 name = "testcontainers"
 version = "4.14.1"
 description = "Python library for throwaway instances of anything that can run in a Docker container"
@@ -1433,4 +1449,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "711e820fb40d063593d4790c5aa63918f72c3865527206006cc5f31487f95f33"
+content-hash = "3f6fe2811b3530b8a7ed390c1c985f4f0681badd4478ce94052ee58be3856a96"

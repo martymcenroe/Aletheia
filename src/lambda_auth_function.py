@@ -879,6 +879,18 @@ def lambda_handler(event: dict, context: Any) -> dict:
             # Issue #367: Manual subscriptions with coupons
             from .auth.coupon_handler import handle_redeem_coupon
             return handle_redeem_coupon(event, context)
+        elif path == "/create-checkout-session" and http_method == "POST":
+            # Issue #366: Stripe billing
+            from .auth.stripe_handler import handle_create_checkout
+            return handle_create_checkout(event, context)
+        elif path == "/stripe-webhook" and http_method == "POST":
+            # Issue #366: Stripe webhook (no JWT auth, uses signature)
+            from .auth.stripe_handler import handle_webhook
+            return handle_webhook(event, context)
+        elif path == "/subscription-status" and http_method == "GET":
+            # Issue #366: Subscription status
+            from .auth.stripe_handler import handle_subscription_status
+            return handle_subscription_status(event, context)
         else:
             return {
                 "statusCode": 404,
