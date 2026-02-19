@@ -1,0 +1,115 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "RequestVolume",
+        "metrics": [
+          ["Aletheia/API", "RequestCount", {"stat": "Sum", "period": 300}]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "TierBreakdown",
+        "metrics": [
+          ["Aletheia/API", "RequestCount", "Tier", "free", {"stat": "Sum", "period": 300}],
+          ["Aletheia/API", "RequestCount", "Tier", "subscriber", {"stat": "Sum", "period": 300}],
+          ["Aletheia/API", "RequestCount", "Tier", "admin", {"stat": "Sum", "period": 300}]
+        ],
+        "view": "timeSeries",
+        "stacked": true,
+        "region": "us-east-1",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "CapUtilization",
+        "metrics": [
+          ["Aletheia/API", "CapUtilization", "Tier", "free", "Window", "daily", {"stat": "Average", "period": 300}],
+          ["Aletheia/API", "CapUtilization", "Tier", "subscriber", "Window", "daily", {"stat": "Average", "period": 300}],
+          ["Aletheia/API", "CapDenied", "Tier", "free", {"stat": "Sum", "period": 300}]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "CostTrend",
+        "metrics": [
+          ["Aletheia/API", "BedrockCostEstimate", {"stat": "Sum", "period": 3600}]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "period": 3600
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "ErrorRate",
+        "metrics": [
+          ["Aletheia/API", "ErrorRate", "StatusCode", "400", {"stat": "Sum", "period": 300}],
+          ["Aletheia/API", "ErrorRate", "StatusCode", "403", {"stat": "Sum", "period": 300}],
+          ["Aletheia/API", "ErrorRate", "StatusCode", "429", {"stat": "Sum", "period": 300}],
+          ["Aletheia/API", "ErrorRate", "StatusCode", "500", {"stat": "Sum", "period": 300}]
+        ],
+        "view": "timeSeries",
+        "stacked": true,
+        "region": "us-east-1",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "LatencyPercentiles",
+        "metrics": [
+          ["Aletheia/API", "Latency", {"stat": "p50", "period": 300}],
+          ["Aletheia/API", "Latency", {"stat": "p90", "period": 300}],
+          ["Aletheia/API", "Latency", {"stat": "p99", "period": 300}]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "period": 300
+      }
+    }
+  ]
+}

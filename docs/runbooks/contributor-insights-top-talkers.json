@@ -1,0 +1,5 @@
+{
+  "RuleName": "Aletheia-TopTalkers",
+  "RuleState": "ENABLED",
+  "RuleDefinition": "{\"Schema\":{\"Name\":\"CloudWatchLogRule\",\"Version\":1},\"LogGroupNames\":[\"/aws/lambda/AletheiaAgent\",\"/aws/lambda/AletheiaAuth\"],\"LogFormat\":\"JSON\",\"Fields\":{\"anon_user\":\"$.anon_user\"},\"Contribution\":{\"Keys\":[\"anon_user\"],\"ValueOf\":\"1\",\"Filters\":[]},\"AggregateOn\":\"Sum\"}"
+}

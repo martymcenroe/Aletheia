@@ -38,6 +38,9 @@ from .guardrails.semantic import (
 # Issue #7: Observability tracing (imported after boto3 so patch_all works)
 from .observability import create_subsegment, log_bedrock_metrics, trace_bedrock_call
 
+# Issue #369: EMF metric emission for CloudWatch Usage Dashboard
+from .observability import emit_latency_metric, emit_error_rate_metric, emit_bedrock_cost_metric
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -586,6 +589,19 @@ def _analysis_handler(
         if metadata.get("timings"):
             response_body["_debug_timings"]["guardrails"] = metadata["timings"]
 
+    # Issue #369: Emit EMF metrics for CloudWatch Usage Dashboard (fail-open)
+    try:
+        emit_latency_metric(float(timings.get("handler_total_ms", 0)))
+        bedrock_metadata = result.get("metadata", {})
+        tokens = bedrock_metadata.get("tokens_used")
+        if tokens:
+            # Haiku pricing: ~$0.25/1M input + $1.25/1M output tokens
+            # Rough estimate using blended rate of $0.75/1M tokens
+            estimated_cost = tokens * 0.00000075
+            emit_bedrock_cost_metric(estimated_cost)
+    except Exception as e:
+        logger.warning(f"Response metric emission failed (non-fatal): {e}")
+
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json"},
@@ -649,11 +665,21 @@ def lambda_handler(
         # AWS SDK errors (IAM, throttling, etc.)
         error_code = e.response["Error"]["Code"]
         logger.error(f"AWS Error: {error_code}")
+        # Issue #369: Emit error metric (fail-open)
+        try:
+            emit_error_rate_metric(500)
+        except Exception:
+            logger.debug("Error metric emission failed in error handler")
         return {"statusCode": 500, "body": json.dumps({"error": "Service error"})}
 
     except Exception as e:
         # Catch-all: NEVER proceed to generation on unhandled error
         logger.error(f"CRITICAL: Unhandled exception: {type(e).__name__}: {e}")
+        # Issue #369: Emit error metric (fail-open)
+        try:
+            emit_error_rate_metric(500)
+        except Exception:
+            logger.debug("Error metric emission failed in error handler")
         return {"statusCode": 500, "body": json.dumps({"error": "Internal error"})}
 
 

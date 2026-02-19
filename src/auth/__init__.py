@@ -2,8 +2,10 @@
 
 Issue #341: Add JWT authentication to analysis endpoint with daily token cap.
 Issue #364: Tiered rate limiting with multi-window caps.
+Issue #369: CloudWatch Usage Dashboard - anonymization.
 """
 
+from .anonymize import anonymize_user_id
 from .jwt_service import (
     create_jwt,
     validate_jwt,
@@ -37,6 +39,7 @@ from .models import (
 )
 
 __all__ = [
+    "anonymize_user_id",
     "create_jwt",
     "validate_jwt",
     "get_jwt_secret",

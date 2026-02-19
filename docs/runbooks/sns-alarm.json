@@ -1,0 +1,19 @@
+{
+  "sns_topic": {
+    "Name": "Aletheia-CapDenialAlerts",
+    "TopicArn": "arn:aws:sns:us-east-1:ACCOUNT_ID:Aletheia-CapDenialAlerts"
+  },
+  "alarm": {
+    "AlarmName": "Aletheia-CapDenialSpike",
+    "AlarmDescription": "Triggers when CapDenied exceeds 10 in 1 hour, indicating widespread rate limiting",
+    "Namespace": "Aletheia/API",
+    "MetricName": "CapDenied",
+    "Statistic": "Sum",
+    "Period": 3600,
+    "EvaluationPeriods": 1,
+    "Threshold": 10,
+    "ComparisonOperator": "GreaterThanThreshold",
+    "TreatMissingData": "notBreaching",
+    "AlarmActions": ["arn:aws:sns:us-east-1:ACCOUNT_ID:Aletheia-CapDenialAlerts"]
+  }
+}
