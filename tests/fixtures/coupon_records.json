@@ -1,0 +1,52 @@
+{
+  "valid_coupon": {
+    "code": {"S": "ABCD1234EFGH5678"},
+    "tier": {"S": "subscriber"},
+    "expiry": {"N": "9999999999"},
+    "max_uses": {"N": "1"},
+    "uses": {"N": "0"},
+    "created_by": {"S": "admin-cli"},
+    "created_at": {"N": "1700000000"},
+    "revoked": {"BOOL": false}
+  },
+  "expired_coupon": {
+    "code": {"S": "EXPR1234EXPR5678"},
+    "tier": {"S": "subscriber"},
+    "expiry": {"N": "1000000000"},
+    "max_uses": {"N": "1"},
+    "uses": {"N": "0"},
+    "created_by": {"S": "admin-cli"},
+    "created_at": {"N": "1000000000"},
+    "revoked": {"BOOL": false}
+  },
+  "exhausted_coupon": {
+    "code": {"S": "USED1234USED5678"},
+    "tier": {"S": "premium"},
+    "expiry": {"N": "9999999999"},
+    "max_uses": {"N": "1"},
+    "uses": {"N": "1"},
+    "created_by": {"S": "admin-cli"},
+    "created_at": {"N": "1700000000"},
+    "revoked": {"BOOL": false}
+  },
+  "revoked_coupon": {
+    "code": {"S": "REVK1234REVK5678"},
+    "tier": {"S": "subscriber"},
+    "expiry": {"N": "9999999999"},
+    "max_uses": {"N": "1"},
+    "uses": {"N": "0"},
+    "created_by": {"S": "admin-cli"},
+    "created_at": {"N": "1700000000"},
+    "revoked": {"BOOL": true}
+  },
+  "multi_use_coupon": {
+    "code": {"S": "MULT1234MULT5678"},
+    "tier": {"S": "premium"},
+    "expiry": {"N": "0"},
+    "max_uses": {"N": "5"},
+    "uses": {"N": "2"},
+    "created_by": {"S": "admin-cli"},
+    "created_at": {"N": "1700000000"},
+    "revoked": {"BOOL": false}
+  }
+}
