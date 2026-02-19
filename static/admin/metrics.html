@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aletheia - Business Metrics</title>
+    <link rel="stylesheet" href="metrics.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Aletheia Business Metrics</h1>
+        <div id="status-bar">
+            <span id="last-updated">Loading...</span>
+            <span id="mock-indicator" class="hidden">MOCK MODE</span>
+            <span id="cached-indicator" class="hidden">CACHED</span>
+        </div>
+    </header>
+
+    <div id="error-banner" class="hidden">
+        <p id="error-message">Unable to load metrics. Retrying in 30 seconds...</p>
+    </div>
+
+    <main id="dashboard" class="grid">
+        <section class="card">
+            <h2>User Adoption</h2>
+            <canvas id="chart-adoption"></canvas>
+        </section>
+
+        <section class="card">
+            <h2>Tier Distribution</h2>
+            <canvas id="chart-tiers"></canvas>
+        </section>
+
+        <section class="card">
+            <h2>Conversion Rate</h2>
+            <canvas id="chart-conversion"></canvas>
+        </section>
+
+        <section class="card">
+            <h2>Revenue Projection</h2>
+            <canvas id="chart-revenue"></canvas>
+        </section>
+
+        <section class="card">
+            <h2>Retention</h2>
+            <canvas id="chart-retention"></canvas>
+        </section>
+
+        <section class="card">
+            <h2>Geography</h2>
+            <canvas id="chart-geography"></canvas>
+        </section>
+    </main>
+
+    <script src="metrics.js"></script>
+</body>
+</html>
