@@ -544,6 +544,8 @@ function stopTypewriter() {
  * Hard blocks occur on HTTP 403 or signal containing "block".
  */
 function isHardBlock(response, httpStatus) {
+    // Issue #391: 401 is a config error, NOT a hard block (distinct from 403)
+    if (httpStatus === 401) return false;
     if (httpStatus === 403) return true;
     if (!response || !response.signal) return false;
     const signalLower = response.signal.toLowerCase();

@@ -925,3 +925,36 @@ describe('Domain Parsing', () => {
     });
   });
 });
+
+// ============================================================================
+// Issue #391 Phase 4: VERSION AND DIAGNOSTICS TESTS
+// ============================================================================
+
+describe('Version Footer (Issue #391)', () => {
+  it('popup.html contains version footer element', () => {
+    expect(popupHtml).toContain('id="version-footer"');
+    expect(popupHtml).toContain('v1.0');
+  });
+
+  it('version footer displays v1.0', () => {
+    const dom = new JSDOM(popupHtml);
+    const footer = dom.window.document.getElementById('version-footer');
+    expect(footer).toBeTruthy();
+    expect(footer.textContent).toBe('v1.0');
+    dom.window.close();
+  });
+});
+
+describe('Diagnostics Panel (Issue #391)', () => {
+  it('popup.html contains diagnostics section', () => {
+    expect(popupHtml).toContain('id="diagnostics-section"');
+    expect(popupHtml).toContain('id="diagnostics-status"');
+    expect(popupHtml).toContain('id="diagnostics-latency"');
+    expect(popupHtml).toContain('id="diagnostics-time"');
+  });
+
+  it('popup.js contains loadDiagnostics function', () => {
+    expect(popupJs).toContain('function loadDiagnostics');
+    expect(popupJs).toContain('aletheiaLastRequest');
+  });
+});

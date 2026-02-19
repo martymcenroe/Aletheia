@@ -9,6 +9,70 @@ const API_ENDPOINT = "https://api.aletheia.study/";
 const CLIENT_VERSION = "1.0";
 
 // =============================================================================
+// Issue #391 Phase 2: Error Handling Helpers
+// =============================================================================
+
+/**
+ * Map HTTP status codes to user-friendly error messages.
+ * Returns a response object suitable for overlay display.
+ */
+function mapHttpStatusToMessage(status, responseBody) {
+    if (status === 401) {
+        return {
+            signal: "Configuration Error",
+            gem: "Service configuration error. This has been logged.",
+            context: "",
+            warning: true
+        };
+    }
+    if (status === 429) {
+        const resetSeconds = responseBody?.resets_in_seconds || 0;
+        const resetMinutes = Math.ceil(resetSeconds / 60);
+        const resetText = resetMinutes > 0 ? ` Resets in ${resetMinutes} minutes.` : "";
+        return {
+            signal: "Rate Limited",
+            gem: `Limit reached.${resetText}`,
+            context: "",
+            warning: true
+        };
+    }
+    if (status >= 500) {
+        return {
+            signal: "Server Error",
+            gem: "Server error. Try again shortly.",
+            context: "",
+            warning: true
+        };
+    }
+    // Other 4xx — return original response with fallback
+    return {
+        signal: responseBody?.signal || "Error",
+        gem: responseBody?.gem || responseBody?.error || `Request failed (${status}).`,
+        context: responseBody?.context || "",
+        warning: true
+    };
+}
+
+/**
+ * Store request diagnostics in chrome.storage.session.
+ * Cleared on browser restart. Non-blocking, fail-open.
+ */
+function storeDiagnostics(status, latencyMs, error) {
+    try {
+        chrome.storage.session.set({
+            aletheiaLastRequest: {
+                lastRequestStatus: status,
+                lastRequestLatency: latencyMs,
+                lastRequestTimestamp: new Date().toISOString(),
+                lastError: error || null
+            }
+        });
+    } catch (e) {
+        console.warn("[Aletheia] Failed to store diagnostics:", e);
+    }
+}
+
+// =============================================================================
 // AGE GATE - Tab State Management (Issue #104)
 // =============================================================================
 
@@ -388,14 +452,23 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         console.log("[Aletheia] Sending payload to AWS:", payload.text);
 
+        // Issue #391 Phase 2: AbortController with 30s timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const fetchStart = Date.now();
+
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Aletheia-Client-Version': CLIENT_VERSION  // [#95] WAF header validation
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
+
+        const latencyMs = Date.now() - fetchStart;
 
         // [#125] MUSEUM LABEL UI - Parse response and show structured result
         const httpStatus = response.status;
@@ -410,16 +483,45 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         console.log("[Aletheia] Response:", httpStatus, responseData);
 
+        // Issue #391 Phase 2: Map HTTP errors to user-friendly messages
+        if (httpStatus >= 400) {
+            responseData = mapHttpStatusToMessage(httpStatus, responseData);
+        }
+
+        // Issue #391 Phase 2: Validate response schema — must have signal/gem
+        if (httpStatus < 400 && (!responseData.signal || !responseData.gem)) {
+            responseData = {
+                signal: "Unexpected Response",
+                gem: "The server returned an unexpected response format.",
+                context: "",
+                warning: true
+            };
+        }
+
+        // Issue #391 Phase 2: Store diagnostics in chrome.storage.session
+        storeDiagnostics(httpStatus, latencyMs, httpStatus >= 400 ? responseData.gem : null);
+
         // Issue #310: Add selectedText and domContext for deep poetic analysis
         responseData.selectedText = info.selectionText;
         responseData.domContext = fullPageText;
 
         // Show Museum Label overlay with structured data
-        await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: (data, status) => window.showAletheiaResult(data, status),
-            args: [responseData, httpStatus]
-        });
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: (data, status) => window.showAletheiaResult(data, status),
+                args: [responseData, httpStatus]
+            });
+        } catch (cspError) {
+            // Issue #391 Phase 2: CSP fallback — use chrome.notifications
+            console.warn("[Aletheia] CSP blocked overlay injection, using notification fallback:", cspError);
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon128.png',
+                title: responseData.signal || 'Aletheia',
+                message: responseData.gem || 'Analysis complete.'
+            });
+        }
 
         // Set badge based on status
         const badgeText = response.ok ? '✓' : (httpStatus === 403 ? '⊘' : '✗');
@@ -430,17 +532,40 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     } catch (error) {
         console.error("[Aletheia] Error:", error);
-        // Show error in Museum Label format
-        const errorResponse = {
-            signal: "Connection Error",
-            gem: "Could not reach the server. Please try again.",
-            context: ""
-        };
-        await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: (data) => window.showAletheiaResult(data, 500),
-            args: [errorResponse]
-        });
+
+        // Issue #391 Phase 2: Distinguish timeout from other errors
+        let errorResponse;
+        if (error.name === 'AbortError') {
+            errorResponse = {
+                signal: "Timeout",
+                gem: "Request timed out. Try again.",
+                context: ""
+            };
+        } else {
+            errorResponse = {
+                signal: "Connection Error",
+                gem: "Could not reach the server. Please try again.",
+                context: ""
+            };
+        }
+
+        // Store error diagnostics
+        storeDiagnostics(0, 0, errorResponse.gem);
+
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: (data) => window.showAletheiaResult(data, 500),
+                args: [errorResponse]
+            });
+        } catch (_cspError) {
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon128.png',
+                title: errorResponse.signal,
+                message: errorResponse.gem
+            });
+        }
         chrome.action.setBadgeText({ tabId: tab.id, text: '✗' });
         chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
         setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);

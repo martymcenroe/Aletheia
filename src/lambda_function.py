@@ -609,6 +609,66 @@ def _analysis_handler(
     }
 
 
+def _metrics_handler(event: dict, context: Any) -> dict:
+    """
+    Issue #391 Phase 6: Admin metrics endpoint.
+
+    Returns user/tier/usage data for the admin dashboard.
+    Requires admin JWT when auth is enabled.
+    """
+    try:
+        dynamodb = get_dynamodb_client()
+        users_table = os.environ.get("USERS_TABLE", "aletheia-users")
+        cap_table = os.environ.get("TOKEN_CAP_TABLE", "aletheia-token-cap")
+
+        # Count users by tier
+        users_by_tier = {"free": 0, "subscriber": 0, "admin": 0}
+        total_users = 0
+        try:
+            scan_result = dynamodb.scan(
+                TableName=users_table,
+                Select="SPECIFIC_ATTRIBUTES",
+                ProjectionExpression="tier",
+            )
+            for item in scan_result.get("Items", []):
+                tier = item.get("tier", {}).get("S", "free")
+                users_by_tier[tier] = users_by_tier.get(tier, 0) + 1
+                total_users += 1
+        except Exception as e:
+            logger.warning(f"Failed to scan users table: {e}")
+
+        # Count denials today
+        denials_today = 0
+        try:
+            today = time.strftime("%Y-%m-%d")
+            scan_result = dynamodb.scan(
+                TableName=cap_table,
+                FilterExpression="contains(#pk, :today) AND #denied = :true",
+                ExpressionAttributeNames={"#pk": "pk", "#denied": "denied"},
+                ExpressionAttributeValues={
+                    ":today": {"S": today},
+                    ":true": {"BOOL": True},
+                },
+                Select="COUNT",
+            )
+            denials_today = scan_result.get("Count", 0)
+        except Exception as e:
+            logger.warning(f"Failed to count denials: {e}")
+
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "users": {"total": total_users, "by_tier": users_by_tier},
+                "usage": {"requests_today": 0, "requests_this_month": 0},
+                "caps": {"denials_today": denials_today},
+            }),
+        }
+    except Exception as e:
+        logger.error(f"Metrics handler error: {e}")
+        return {"statusCode": 500, "body": json.dumps({"error": "Metrics unavailable"})}
+
+
 def lambda_handler(
     event: dict, context: Any, denylist: set[str] | None = None
 ) -> dict:
@@ -636,6 +696,27 @@ def lambda_handler(
         # not direct Lambda invocations (tests, SDK calls).
         if "requestContext" in event:
             method = event["requestContext"].get("http", {}).get("method", "")
+            path = event["requestContext"].get("http", {}).get("path", "/")
+
+            # Issue #391 Phase 1: Health check — no auth, no secret, GET only
+            if path == "/health" and method == "GET":
+                return {
+                    "statusCode": 200,
+                    "headers": {"Content-Type": "application/json"},
+                    "body": json.dumps({"status": "ok", "version": "1.0"}),
+                }
+
+            # Issue #391 Phase 6: Metrics endpoint — GET /metrics
+            if path == "/metrics" and method == "GET":
+                auth_enabled = os.environ.get("AUTH_ENABLED", "false").lower() == "true"
+                if auth_enabled:
+                    @require_auth
+                    def _authed_metrics(auth_event: dict, auth_context: Any) -> dict:
+                        return _metrics_handler(auth_event, auth_context)
+                    return _authed_metrics(event, context)
+                else:
+                    return _metrics_handler(event, context)
+
             if method != "OPTIONS":
                 # Issue #351: Origin secret check (locks Lambda to CloudFlare-only)
                 expected_secret = os.environ.get("CLOUDFLARE_ORIGIN_SECRET")

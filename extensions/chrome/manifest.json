@@ -10,7 +10,8 @@
     "scripting",
     "contextMenus",
     "storage",
-    "identity"
+    "identity",
+    "notifications"
   ],
   "host_permissions": [],
   "background": {

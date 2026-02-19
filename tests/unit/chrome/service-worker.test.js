@@ -615,3 +615,78 @@ describe('Error Handling', () => {
     // This is tested via checkTabForAgeRestriction behavior
   });
 });
+
+// ============================================================================
+// Issue #391 Phase 2: ERROR HANDLING TESTS
+// ============================================================================
+
+describe('Error Handling (Issue #391)', () => {
+  let env;
+
+  beforeEach(() => {
+    env = createServiceWorkerEnvironment();
+  });
+
+  afterEach(() => {
+    cleanupEnvironment();
+  });
+
+  describe('mapHttpStatusToMessage', () => {
+    it('defines mapHttpStatusToMessage function', () => {
+      expect(serviceWorkerSource).toContain('function mapHttpStatusToMessage');
+    });
+
+    it('maps 401 to auth error message', () => {
+      expect(serviceWorkerSource).toContain('status === 401');
+      expect(serviceWorkerSource).toContain('Service configuration error');
+    });
+
+    it('maps 429 to rate limit with reset time', () => {
+      expect(serviceWorkerSource).toContain('status === 429');
+      expect(serviceWorkerSource).toContain('Limit reached');
+      expect(serviceWorkerSource).toContain('resets_in_seconds');
+    });
+
+    it('maps 500 to server error message', () => {
+      expect(serviceWorkerSource).toContain('status >= 500');
+      expect(serviceWorkerSource).toContain('Server error. Try again shortly.');
+    });
+
+    it('handles malformed response (missing signal/gem)', () => {
+      // Verify schema validation that checks for signal/gem
+      expect(serviceWorkerSource).toContain('!responseData.signal || !responseData.gem');
+      expect(serviceWorkerSource).toContain('Unexpected Response');
+    });
+  });
+
+  describe('storeDiagnostics', () => {
+    it('defines storeDiagnostics function', () => {
+      expect(serviceWorkerSource).toContain('function storeDiagnostics');
+    });
+
+    it('stores to chrome.storage.session', () => {
+      expect(serviceWorkerSource).toContain('chrome.storage.session.set');
+      expect(serviceWorkerSource).toContain('aletheiaLastRequest');
+    });
+
+    it('stores status, latency, timestamp, and error', () => {
+      expect(serviceWorkerSource).toContain('lastRequestStatus');
+      expect(serviceWorkerSource).toContain('lastRequestLatency');
+      expect(serviceWorkerSource).toContain('lastRequestTimestamp');
+      expect(serviceWorkerSource).toContain('lastError');
+    });
+  });
+
+  describe('fetch timeout', () => {
+    it('uses AbortController with 30s timeout', () => {
+      expect(serviceWorkerSource).toContain('new AbortController()');
+      expect(serviceWorkerSource).toContain('setTimeout(() => controller.abort(), 30000)');
+      expect(serviceWorkerSource).toContain('signal: controller.signal');
+    });
+
+    it('handles AbortError for timeout', () => {
+      expect(serviceWorkerSource).toContain("error.name === 'AbortError'");
+      expect(serviceWorkerSource).toContain('Request timed out. Try again.');
+    });
+  });
+});

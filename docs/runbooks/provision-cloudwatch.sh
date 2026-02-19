@@ -66,6 +66,77 @@ aws cloudwatch put-metric-alarm \
     --region "$REGION"
 echo -e "${GREEN}Alarm created: Aletheia-CapDenialSpike${NC}"
 
+# Issue #391 Phase 5: Create additional alarms
+echo "[3b/5] Creating observability alarms..."
+
+# Lambda Errors alarm — fires if any Lambda errors in 5 min
+aws cloudwatch put-metric-alarm \
+    --alarm-name "Aletheia-LambdaErrors" \
+    --alarm-description "Lambda Errors > 0 in 5 minutes" \
+    --namespace "AWS/Lambda" \
+    --metric-name "Errors" \
+    --dimensions Name=FunctionName,Value=AletheiaAgent \
+    --statistic "Sum" \
+    --period 300 \
+    --evaluation-periods 1 \
+    --threshold 0 \
+    --comparison-operator "GreaterThanThreshold" \
+    --treat-missing-data "notBreaching" \
+    --alarm-actions "$SNS_ARN" \
+    --region "$REGION"
+echo -e "${GREEN}Alarm created: Aletheia-LambdaErrors${NC}"
+
+# 4xx Rate alarm — fires if > 50% 4xx in 15 min
+aws cloudwatch put-metric-alarm \
+    --alarm-name "Aletheia-4xxRate" \
+    --alarm-description "4xx Error Rate > 50% in 15 minutes" \
+    --namespace "Aletheia/API" \
+    --metric-name "ErrorRate" \
+    --dimensions Name=StatusClass,Value=4xx \
+    --statistic "Average" \
+    --period 900 \
+    --evaluation-periods 1 \
+    --threshold 50 \
+    --comparison-operator "GreaterThanThreshold" \
+    --treat-missing-data "notBreaching" \
+    --alarm-actions "$SNS_ARN" \
+    --region "$REGION"
+echo -e "${GREEN}Alarm created: Aletheia-4xxRate${NC}"
+
+# 5xx Rate alarm — fires if > 10% 5xx in 15 min
+aws cloudwatch put-metric-alarm \
+    --alarm-name "Aletheia-5xxRate" \
+    --alarm-description "5xx Error Rate > 10% in 15 minutes" \
+    --namespace "Aletheia/API" \
+    --metric-name "ErrorRate" \
+    --dimensions Name=StatusClass,Value=5xx \
+    --statistic "Average" \
+    --period 900 \
+    --evaluation-periods 1 \
+    --threshold 10 \
+    --comparison-operator "GreaterThanThreshold" \
+    --treat-missing-data "notBreaching" \
+    --alarm-actions "$SNS_ARN" \
+    --region "$REGION"
+echo -e "${GREEN}Alarm created: Aletheia-5xxRate${NC}"
+
+# Lambda Throttles alarm — fires if any throttles in 5 min
+aws cloudwatch put-metric-alarm \
+    --alarm-name "Aletheia-LambdaThrottles" \
+    --alarm-description "Lambda Throttles > 0 in 5 minutes" \
+    --namespace "AWS/Lambda" \
+    --metric-name "Throttles" \
+    --dimensions Name=FunctionName,Value=AletheiaAgent \
+    --statistic "Sum" \
+    --period 300 \
+    --evaluation-periods 1 \
+    --threshold 0 \
+    --comparison-operator "GreaterThanThreshold" \
+    --treat-missing-data "notBreaching" \
+    --alarm-actions "$SNS_ARN" \
+    --region "$REGION"
+echo -e "${GREEN}Alarm created: Aletheia-LambdaThrottles${NC}"
+
 # Step 4: Create Contributor Insights rule
 echo "[4/4] Creating Contributor Insights rule..."
 RULE_DEF=$(python -c "import json; d=json.load(open('${SCRIPT_DIR}/contributor-insights-top-talkers.json')); print(d['RuleDefinition'])")
