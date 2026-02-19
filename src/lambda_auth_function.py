@@ -871,6 +871,10 @@ def lambda_handler(event: dict, context: Any) -> dict:
             return handle_oauth_callback(query_params)
         elif path == "/my-data" and http_method == "DELETE":
             return handle_delete_my_data(headers)
+        elif path == "/metrics" and http_method == "GET":
+            # Issue #368: Admin-only business metrics dashboard
+            from .auth.metrics_handler import handle_metrics_request
+            return handle_metrics_request(event, context)
         else:
             return {
                 "statusCode": 404,

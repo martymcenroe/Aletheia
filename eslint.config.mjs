@@ -109,6 +109,29 @@ export default [
     }
   },
 
+  // Static admin dashboard (browser JS, no extensions API)
+  {
+    files: ["static/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "script",
+      globals: {
+        ...globals.browser,
+        Chart: "readonly"
+      }
+    },
+    rules: {
+      "no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_"
+        }
+      ]
+    }
+  },
+
   // Ignore patterns
   {
     ignores: [

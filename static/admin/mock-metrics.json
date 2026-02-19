@@ -1,0 +1,56 @@
+{
+  "adoption": [
+    {"date": "2026-01-15", "count": 3},
+    {"date": "2026-01-16", "count": 5},
+    {"date": "2026-01-17", "count": 2},
+    {"date": "2026-01-18", "count": 7},
+    {"date": "2026-01-19", "count": 4},
+    {"date": "2026-01-20", "count": 6},
+    {"date": "2026-01-21", "count": 8},
+    {"date": "2026-02-01", "count": 12},
+    {"date": "2026-02-02", "count": 9},
+    {"date": "2026-02-03", "count": 15},
+    {"date": "2026-02-10", "count": 11},
+    {"date": "2026-02-15", "count": 18}
+  ],
+  "tiers": {
+    "free": 142,
+    "subscriber": 23,
+    "admin": 2
+  },
+  "conversion": {
+    "rate": 13.9,
+    "converted_count": 23,
+    "eligible_count": 165,
+    "window_days": 30
+  },
+  "coupons": {
+    "total_redeemed": 8,
+    "by_code": {
+      "BETA2026": {"redeemed": 5, "total_issued": 10, "rate": 50.0},
+      "LAUNCH25": {"redeemed": 3, "total_issued": 25, "rate": 12.0}
+    }
+  },
+  "revenue": {
+    "subscriber_count": 23,
+    "monthly_price": 9.99,
+    "projected_monthly": 229.77
+  },
+  "retention": {
+    "returning_users": 89,
+    "single_session_users": 78,
+    "retention_rate": 53.3,
+    "window_days": 30
+  },
+  "geography": {
+    "US": 95,
+    "GB": 28,
+    "DE": 15,
+    "CA": 12,
+    "AU": 8,
+    "FR": 5,
+    "IN": 4
+  },
+  "generated_at": "2026-02-18T12:00:00Z",
+  "cached": false
+}

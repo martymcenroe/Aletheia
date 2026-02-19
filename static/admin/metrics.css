@@ -1,0 +1,116 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+header {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+header h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+#status-bar {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    align-items: center;
+}
+
+#last-updated {
+    opacity: 0.8;
+}
+
+#mock-indicator {
+    background: #ff6b35;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+#cached-indicator {
+    background: #4ecdc4;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #1a1a2e;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#error-banner {
+    background: #e74c3c;
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+
+canvas {
+    width: 100% !important;
+    max-height: 250px;
+}
+
+@media (max-width: 375px) {
+    .grid {
+        grid-template-columns: 1fr;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    header h1 {
+        font-size: 1rem;
+    }
+
+    .card {
+        padding: 0.75rem;
+    }
+}
