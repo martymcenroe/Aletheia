@@ -30,6 +30,9 @@ FUNC_NAME="${APP_NAME}Agent"
 AUTH_FUNC_NAME="${APP_NAME}Auth"
 LINKEDIN_SECRET_NAME="aletheia/linkedin-oauth"
 JWT_SECRET_NAME="aletheia/jwt-signing-key"
+STRIPE_SECRET_NAME="aletheia/stripe-secret-key-test"
+STRIPE_WEBHOOK_SECRET_NAME="aletheia/stripe-webhook-secret-test"
+STRIPE_PRICE_ID="${STRIPE_PRICE_ID:-}"  # Set after Stripe price creation (#366)
 LAYER_NAME="${APP_NAME}Dependencies"
 
 # Issue #351: Read CloudFlare origin secret from SSM Parameter Store (never in git)
@@ -153,6 +156,34 @@ else
     echo "Users table already exists: $USERS_TABLE"
 fi
 
+# Issue #378: Add GSI on tier for admin metrics queries
+echo "Checking GSI on tier..."
+TIER_GSI_EXISTS=$(aws dynamodb describe-table \
+    --table-name "$USERS_TABLE" \
+    --region "$REGION" \
+    --query "Table.GlobalSecondaryIndexes[?IndexName=='tier-index'].IndexName" \
+    --output text 2>/dev/null || echo "")
+
+if [ -z "$TIER_GSI_EXISTS" ]; then
+    echo "Creating GSI on tier for admin metrics queries..."
+    aws dynamodb update-table \
+        --table-name "$USERS_TABLE" \
+        --region "$REGION" \
+        --attribute-definitions AttributeName=tier,AttributeType=S \
+        --global-secondary-index-updates '[{
+            "Create": {
+                "IndexName": "tier-index",
+                "KeySchema": [{"AttributeName": "tier", "KeyType": "HASH"}],
+                "Projection": {"ProjectionType": "KEYS_ONLY"}
+            }
+        }]'
+    echo "Waiting for GSI to become active..."
+    aws dynamodb wait table-exists --table-name "$USERS_TABLE" --region "$REGION"
+    echo -e "${GREEN}GSI tier-index created${NC}"
+else
+    echo "GSI tier-index already exists"
+fi
+
 # =============================================================================
 # Step 3: DynamoDB Token Cap Table (Issue #341: JWT Auth + Daily Cap)
 # =============================================================================
@@ -210,6 +241,25 @@ else
     echo "Coupons table already exists: $COUPONS_TABLE"
 fi
 
+# Issue #381: Enable TTL for coupon auto-expiry
+echo "Checking Coupons TTL..."
+COUPONS_TTL=$(aws dynamodb describe-time-to-live \
+    --table-name "$COUPONS_TABLE" \
+    --region "$REGION" \
+    --query 'TimeToLiveDescription.TimeToLiveStatus' \
+    --output text 2>/dev/null || echo "DISABLED")
+
+if [ "$COUPONS_TTL" != "ENABLED" ]; then
+    echo "Enabling TTL on $COUPONS_TABLE..."
+    aws dynamodb update-time-to-live \
+        --table-name "$COUPONS_TABLE" \
+        --region "$REGION" \
+        --time-to-live-specification "Enabled=true,AttributeName=expiry"
+    echo -e "${GREEN}TTL enabled on coupons table${NC}"
+else
+    echo "TTL already enabled on coupons table"
+fi
+
 # =============================================================================
 # Step 4: IAM Role with All Required Permissions
 # =============================================================================
@@ -259,6 +309,7 @@ aws iam put-role-policy \
                 "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'",
                 "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'/index/*",
                 "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'",
+                "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'/index/*",
                 "arn:aws:dynamodb:*:*:table/'"$TOKEN_CAP_TABLE"'",
                 "arn:aws:dynamodb:*:*:table/'"$COUPONS_TABLE"'"
             ]
@@ -278,7 +329,9 @@ aws iam put-role-policy \
             ],
             "Resource": [
                 "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$LINKEDIN_SECRET_NAME"'*",
-                "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$JWT_SECRET_NAME"'*"
+                "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$JWT_SECRET_NAME"'*",
+                "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$STRIPE_SECRET_NAME"'*",
+                "arn:aws:secretsmanager:'"$REGION"':'"$ACCOUNT_ID"':secret:'"$STRIPE_WEBHOOK_SECRET_NAME"'*"
             ]
         },
         {
@@ -327,8 +380,8 @@ mkdir -p build/python
 # Install ONLY the required runtime dependencies (cherry-pick, not full poetry export)
 # Issue #7: aws-xray-sdk for observability tracing
 # Issue #341: PyJWT for JWT authentication
-echo "Installing runtime dependencies: requests, python-jose, aws-xray-sdk, PyJWT..."
-pip install requests python-jose aws-xray-sdk PyJWT -t build/python --no-cache-dir --quiet
+echo "Installing runtime dependencies: requests, python-jose, aws-xray-sdk, PyJWT, stripe..."
+pip install requests python-jose aws-xray-sdk PyJWT stripe -t build/python --no-cache-dir --quiet
 
 # Remove unnecessary files to reduce layer size
 echo "Cleaning up unnecessary files..."
@@ -350,7 +403,7 @@ echo "Layer size: $LAYER_SIZE"
 echo "Publishing Lambda Layer: $LAYER_NAME..."
 LAYER_VERSION_ARN=$(aws lambda publish-layer-version \
     --layer-name "$LAYER_NAME" \
-    --description "Runtime dependencies for Aletheia Lambdas (requests, python-jose, aws-xray-sdk, PyJWT)" \
+    --description "Runtime dependencies for Aletheia Lambdas (requests, python-jose, aws-xray-sdk, PyJWT, stripe)" \
     --zip-file fileb://dependencies.zip \
     --compatible-runtimes python3.12 python3.11 python3.10 \
     --compatible-architectures x86_64 \
@@ -436,7 +489,7 @@ if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION
         --timeout 30 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Auth Lambda (X-Ray enabled)${NC}"
@@ -454,7 +507,7 @@ else
         --function-name "$AUTH_FUNC_NAME" \
         --handler src.lambda_auth_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
@@ -627,9 +680,9 @@ echo ""
 echo "Resources:"
 echo "  DynamoDB Tables:"
 echo "    - $TABLE_NAME (TTL enabled)"
-echo "    - $USERS_TABLE"
+echo "    - $USERS_TABLE (tier-index GSI)"
 echo "    - $TOKEN_CAP_TABLE (TTL enabled)"
-echo "    - $COUPONS_TABLE"
+echo "    - $COUPONS_TABLE (TTL enabled)"
 echo "  IAM Role: $ROLE_NAME"
 echo "  Lambda Layer: $LAYER_NAME"
 echo ""
