@@ -132,6 +132,29 @@ export default [
     }
   },
 
+  // Hermes admin dashboard (Issue #400 — browser JS, Chart.js)
+  {
+    files: ["hermes/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "script",
+      globals: {
+        ...globals.browser,
+        Chart: "readonly"
+      }
+    },
+    rules: {
+      "no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_"
+        }
+      ]
+    }
+  },
+
   // Ignore patterns
   {
     ignores: [

@@ -875,6 +875,10 @@ def lambda_handler(event: dict, context: Any) -> dict:
             # Issue #368: Admin-only business metrics dashboard
             from .auth.metrics_handler import handle_metrics_request
             return handle_metrics_request(event, context)
+        elif path == "/admin/status" and http_method == "GET":
+            # Issue #400: Hermes admin dashboard — protection status
+            from .auth.status_handler import handle_status_request
+            return handle_status_request(event, context)
         elif path == "/redeem-coupon" and http_method == "POST":
             # Issue #367: Manual subscriptions with coupons
             from .auth.coupon_handler import handle_redeem_coupon

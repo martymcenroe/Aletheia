@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes - Aletheia Admin</title>
+    <link rel="stylesheet" href="hermes.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Status banner -->
+    <header id="status-header" class="status-healthy">
+        <div class="header-content">
+            <div class="header-left">
+                <h1>HERMES</h1>
+                <span class="subtitle">Aletheia Protection Dashboard</span>
+            </div>
+            <div class="header-right">
+                <span id="overall-status" class="status-badge">LOADING</span>
+                <span id="last-updated" class="timestamp">--</span>
+                <span id="mock-indicator" class="indicator hidden">MOCK</span>
+                <span id="cached-indicator" class="indicator indicator-cached hidden">CACHED</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Error banner -->
+    <div id="error-banner" class="hidden">
+        <p id="error-message"></p>
+    </div>
+
+    <!-- Issues banner -->
+    <div id="issues-banner" class="hidden">
+        <ul id="issues-list"></ul>
+    </div>
+
+    <!-- Auth gate -->
+    <div id="auth-gate" class="hidden">
+        <div class="auth-card">
+            <h2>Admin Authentication</h2>
+            <p>Enter your admin JWT to access the dashboard.</p>
+            <input type="password" id="jwt-input" placeholder="Paste admin JWT here">
+            <button id="jwt-submit">Authenticate</button>
+        </div>
+    </div>
+
+    <main id="dashboard">
+        <!-- Protection state cards -->
+        <section class="section-header">Protection State</section>
+        <div class="grid grid-protection">
+            <div class="card card-indicator" id="card-deny-policy">
+                <div class="indicator-icon" id="icon-deny-policy"></div>
+                <div class="indicator-label">Deny Policy</div>
+                <div class="indicator-value" id="val-deny-policy">--</div>
+            </div>
+            <div class="card card-indicator" id="card-kill-switch">
+                <div class="indicator-icon" id="icon-kill-switch"></div>
+                <div class="indicator-label">Kill Switch</div>
+                <div class="indicator-value" id="val-kill-switch">--</div>
+            </div>
+            <div class="card card-indicator" id="card-auth">
+                <div class="indicator-icon" id="icon-auth"></div>
+                <div class="indicator-label">Auth</div>
+                <div class="indicator-value" id="val-auth">--</div>
+            </div>
+            <div class="card card-budget">
+                <div class="budget-header">Budget</div>
+                <div class="budget-bar-container">
+                    <div class="budget-bar" id="budget-bar"></div>
+                </div>
+                <div class="budget-values">
+                    <span id="budget-actual">$0</span>
+                    <span id="budget-limit">/ $0</span>
+                </div>
+                <div class="budget-forecast" id="budget-forecast">Forecast: --</div>
+            </div>
+        </div>
+
+        <!-- Alarm states -->
+        <section class="section-header">CloudWatch Alarms</section>
+        <div class="grid grid-alarms" id="alarms-grid">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Business metrics -->
+        <section class="section-header">Business Metrics</section>
+        <div class="grid grid-charts">
+            <div class="card card-chart">
+                <h3>User Adoption</h3>
+                <canvas id="chart-adoption"></canvas>
+            </div>
+            <div class="card card-chart">
+                <h3>Tier Distribution</h3>
+                <canvas id="chart-tiers"></canvas>
+            </div>
+            <div class="card card-chart">
+                <h3>Revenue Projection</h3>
+                <canvas id="chart-revenue"></canvas>
+            </div>
+            <div class="card card-chart">
+                <h3>Retention</h3>
+                <canvas id="chart-retention"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script src="hermes.js"></script>
+</body>
+</html>

@@ -355,6 +355,26 @@ aws iam put-role-policy \
                     "cloudwatch:namespace": "Aletheia"
                 }
             }
+        },
+        {
+            "Sid": "Issue400HermesStatusRead",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListAttachedRolePolicies",
+                "lambda:GetFunctionConcurrency",
+                "lambda:GetFunctionConfiguration",
+                "cloudwatch:DescribeAlarms",
+                "budgets:DescribeBudget"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "Issue400HermesSNSPublish",
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish"
+            ],
+            "Resource": "arn:aws:sns:'"$REGION"':'"$ACCOUNT_ID"':Aletheia*"
         }
     ]
 }'
@@ -515,6 +535,100 @@ else
 fi
 
 rm -f auth_lambda.zip
+
+# =============================================================================
+# Step 7b: Deploy Hermes Poller Lambda (Issue #400: State Change Alerting)
+# =============================================================================
+echo ""
+echo "[7b/10] Deploying Hermes Poller Lambda..."
+
+POLLER_FUNC_NAME="${APP_NAME}HermesPoller"
+POLLER_RULE_NAME="${APP_NAME}HermesPollerSchedule"
+SNS_TOPIC_ARN="arn:aws:sns:${REGION}:${ACCOUNT_ID}:Aletheia-CapDenialAlerts"
+
+# Package the poller (uses same src/ package)
+echo "Packaging src/ directory for Hermes Poller..."
+zip -rq hermes_poller.zip src/
+
+if ! aws lambda get-function --function-name "$POLLER_FUNC_NAME" --region "$REGION" >/dev/null 2>&1; then
+    echo "Creating Lambda function: $POLLER_FUNC_NAME"
+    aws lambda create-function \
+        --function-name "$POLLER_FUNC_NAME" \
+        --runtime python3.12 \
+        --role "arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}" \
+        --handler src.hermes_poller.lambda_handler \
+        --zip-file fileb://hermes_poller.zip \
+        --architectures x86_64 \
+        --timeout 30 \
+        --memory-size 128 \
+        --layers "$LAYER_VERSION_ARN" \
+        --environment "Variables={STATE_TABLE=$TABLE_NAME,SNS_TOPIC_ARN=$SNS_TOPIC_ARN,AWS_ACCOUNT_ID=$ACCOUNT_ID}" \
+        --region "$REGION"
+    echo -e "${GREEN}Created Hermes Poller Lambda${NC}"
+else
+    echo "Updating existing Lambda function: $POLLER_FUNC_NAME"
+    aws lambda update-function-code \
+        --function-name "$POLLER_FUNC_NAME" \
+        --zip-file fileb://hermes_poller.zip \
+        --region "$REGION" >/dev/null
+
+    aws lambda wait function-updated --function-name "$POLLER_FUNC_NAME" --region "$REGION"
+
+    aws lambda update-function-configuration \
+        --function-name "$POLLER_FUNC_NAME" \
+        --handler src.hermes_poller.lambda_handler \
+        --layers "$LAYER_VERSION_ARN" \
+        --environment "Variables={STATE_TABLE=$TABLE_NAME,SNS_TOPIC_ARN=$SNS_TOPIC_ARN,AWS_ACCOUNT_ID=$ACCOUNT_ID}" \
+        --region "$REGION" >/dev/null
+
+    echo -e "${GREEN}Updated Hermes Poller Lambda${NC}"
+fi
+
+rm -f hermes_poller.zip
+
+# Create EventBridge schedule (every 5 minutes)
+echo "Configuring EventBridge schedule..."
+aws events put-rule \
+    --name "$POLLER_RULE_NAME" \
+    --schedule-expression "rate(5 minutes)" \
+    --state ENABLED \
+    --description "Issue #400: Hermes protection state poller" \
+    --region "$REGION" >/dev/null 2>&1 || true
+
+# Add Lambda permission for EventBridge
+aws lambda add-permission \
+    --function-name "$POLLER_FUNC_NAME" \
+    --statement-id EventBridgeInvoke \
+    --action lambda:InvokeFunction \
+    --principal events.amazonaws.com \
+    --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/${POLLER_RULE_NAME}" \
+    --region "$REGION" 2>/dev/null || true
+
+# Add target
+aws events put-targets \
+    --rule "$POLLER_RULE_NAME" \
+    --targets "Id=HermesPollerTarget,Arn=arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:${POLLER_FUNC_NAME}" \
+    --region "$REGION" >/dev/null 2>&1
+
+echo -e "${GREEN}Hermes Poller scheduled (every 5 minutes)${NC}"
+
+# Create log group for poller
+POLLER_LOG_GROUP="/aws/lambda/$POLLER_FUNC_NAME"
+POLLER_LOG_EXISTS=$(MSYS_NO_PATHCONV=1 aws logs describe-log-groups \
+    --log-group-name-prefix "$POLLER_LOG_GROUP" \
+    --region "$REGION" \
+    --query "logGroups[?logGroupName=='$POLLER_LOG_GROUP'].logGroupName" \
+    --output text 2>/dev/null || echo "")
+
+if [ -z "$POLLER_LOG_EXISTS" ]; then
+    MSYS_NO_PATHCONV=1 aws logs create-log-group --log-group-name "$POLLER_LOG_GROUP" --region "$REGION" 2>/dev/null || true
+fi
+MSYS_NO_PATHCONV=1 aws logs put-retention-policy \
+    --log-group-name "$POLLER_LOG_GROUP" \
+    --retention-in-days 14 \
+    --region "$REGION"
+
+echo -e "${GREEN}Hermes Poller logging configured${NC}"
 
 # =============================================================================
 # Step 8: Configure Function URLs
@@ -685,6 +799,7 @@ echo "    - $TOKEN_CAP_TABLE (TTL enabled)"
 echo "    - $COUPONS_TABLE (TTL enabled)"
 echo "  IAM Role: $ROLE_NAME"
 echo "  Lambda Layer: $LAYER_NAME"
+echo "  Hermes Poller: $POLLER_FUNC_NAME (EventBridge: every 5 min)"
 echo ""
 echo "Endpoints:"
 echo "  Agent Function URL: $FUNC_URL"

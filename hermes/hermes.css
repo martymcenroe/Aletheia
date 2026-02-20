@@ -1,0 +1,376 @@
+/* Hermes Dashboard — Dark theme, card layout
+   Issue #400 */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #0f0f1a;
+    --bg-card: #1a1a2e;
+    --bg-card-hover: #222240;
+    --text: #e0e0e0;
+    --text-muted: #8888aa;
+    --accent: #4ecdc4;
+    --green: #2ecc71;
+    --amber: #f39c12;
+    --red: #e74c3c;
+    --border: #2a2a4a;
+    --radius: 8px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.hidden { display: none !important; }
+
+/* Header */
+header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s ease;
+}
+
+header.status-healthy { background: linear-gradient(135deg, #1a2e1a 0%, #0f0f1a 100%); border-bottom-color: var(--green); }
+header.status-degraded { background: linear-gradient(135deg, #2e2a1a 0%, #0f0f1a 100%); border-bottom-color: var(--amber); }
+header.status-down { background: linear-gradient(135deg, #2e1a1a 0%, #0f0f1a 100%); border-bottom-color: var(--red); }
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.header-left h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.healthy { background: var(--green); color: #0f0f1a; }
+.status-badge.degraded { background: var(--amber); color: #0f0f1a; }
+.status-badge.down { background: var(--red); color: #fff; }
+.status-badge.loading { background: var(--border); color: var(--text-muted); }
+
+.timestamp { color: var(--text-muted); }
+
+.indicator {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    background: #ff6b35;
+    color: #fff;
+}
+
+.indicator-cached { background: var(--accent); color: var(--bg); }
+
+/* Error & issues banners */
+#error-banner {
+    background: var(--red);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+#issues-banner {
+    background: rgba(243, 156, 18, 0.15);
+    border-bottom: 1px solid var(--amber);
+    padding: 0.5rem 1.5rem;
+    font-size: 0.8rem;
+}
+
+#issues-banner ul {
+    list-style: none;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+#issues-banner li {
+    padding: 0.25rem 0;
+    color: var(--amber);
+}
+
+#issues-banner li::before {
+    content: "\26A0\FE0F ";
+}
+
+/* Auth gate */
+#auth-gate {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.auth-card h2 {
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.auth-card p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.auth-card input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.auth-card input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.auth-card button {
+    width: 100%;
+    padding: 0.6rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.auth-card button:hover { opacity: 0.9; }
+
+/* Main content */
+main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 2rem;
+}
+
+.section-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 1.5rem 0 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Grids */
+.grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.grid-protection { grid-template-columns: repeat(4, 1fr); }
+.grid-alarms { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.grid-charts { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+
+/* Cards */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    transition: border-color 0.2s;
+}
+
+.card:hover { border-color: var(--accent); }
+
+/* Protection indicator cards */
+.card-indicator {
+    text-align: center;
+    padding: 1.25rem 1rem;
+}
+
+.indicator-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 0 auto 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.indicator-icon.ok { background: rgba(46, 204, 113, 0.2); border: 2px solid var(--green); }
+.indicator-icon.warning { background: rgba(243, 156, 18, 0.2); border: 2px solid var(--amber); }
+.indicator-icon.danger { background: rgba(231, 76, 60, 0.2); border: 2px solid var(--red); }
+
+.indicator-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.indicator-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Budget card */
+.card-budget {
+    padding: 1.25rem 1rem;
+}
+
+.budget-header {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+}
+
+.budget-bar-container {
+    background: var(--bg);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.budget-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s;
+    width: 0;
+}
+
+.budget-values {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.budget-forecast {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Alarm cards */
+.card-alarm {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+}
+
+.alarm-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.alarm-dot.ok { background: var(--green); }
+.alarm-dot.alarm { background: var(--red); animation: pulse 1.5s infinite; }
+.alarm-dot.unknown { background: var(--text-muted); }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.alarm-name {
+    font-size: 0.8rem;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.alarm-state {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+/* Chart cards */
+.card-chart { padding: 1rem; }
+
+.card-chart h3 {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+
+.card-chart canvas {
+    width: 100% !important;
+    max-height: 220px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .grid-protection { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+    .grid-protection { grid-template-columns: 1fr; }
+    .grid-charts { grid-template-columns: 1fr; }
+    .header-content { flex-direction: column; align-items: flex-start; }
+    main { padding: 0.75rem; }
+}
