@@ -2,7 +2,7 @@
   "taxonomy": {
     "Archaic": "Words that dropped out of common usage BEFORE 1950 (e.g., 'thou', 'forsooth', 'betwixt', 'prithee'). NOT formal/academic words still used in quality journalism—those are safe.",
     "Provocative": "Sexual slang or double entendres (e.g., 'swiving', 'tupping').",
-    "Hate": "Slurs or discriminatory language, even in compounds.",
+    "Hate": "Slurs that dehumanise a person or group based on identity (race, ethnicity, gender, sexuality, religion, disability). Political or ideological labels (e.g., 'technofascist', 'autocrat', 'ethnonationalist') are NOT hate—they describe systems or ideas, not people's identity.",
     "Neologism": "Newly coined words from the last 2 years (e.g., 'skibidi', 'fanum tax').",
     "None": "Standard, safe language. Includes rare but currently-used formal/academic terms (e.g., 'immiserate', 'ameliorate', 'efficacious')."
   },
@@ -59,6 +59,16 @@
     },
     {
       "text": "Critics called him a misandrist for his views",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
+    },
+    {
+      "text": "The article warns of a technofascist state",
+      "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
+      "category": "None"
+    },
+    {
+      "text": "Ethnonationalist movements are gaining traction in Europe",
       "scores": {"Archaic": 0.0, "Provocative": 0.0, "Hate": 0.0, "Neologism": 0.0, "None": 1.0},
       "category": "None"
     }
