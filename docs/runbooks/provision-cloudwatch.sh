@@ -11,7 +11,6 @@ set -e
 # =============================================================================
 
 REGION="us-east-1"
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 GREEN='\033[0;32m'

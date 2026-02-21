@@ -1,18 +1,19 @@
 // tests/e2e/waf-integration.spec.js
-// API tests for WAF integration (#95)
+// API tests for header enforcement (#95, updated for CloudFlare Worker #349)
 // Uses Playwright's request API (Node.js, no CORS issues)
-//
-// LLD: docs/1095-security-hardening.md
 
 const { test, expect } = require('@playwright/test');
 
-// CloudFront URL
-const CLOUDFRONT_URL = 'https://d1fkpkls2wesse.cloudfront.net/';
+// CloudFlare Worker URL (CloudFront deleted in #349)
+const API_URL = 'https://api.aletheia.study/';
 
-test.describe('WAF Integration (#95)', () => {
+test.describe('Header Enforcement (#95, #349)', () => {
 
-    test('020: CloudFront accepts request with valid header', async ({ request }) => {
-        const response = await request.post(CLOUDFRONT_URL, {
+    // CloudFlare rate limit: 3 req/10s/IP — run serial with delay to avoid 429
+    test.describe.configure({ mode: 'serial' });
+
+    test('020: API accepts request with valid header', async ({ request }) => {
+        const response = await request.post(API_URL, {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Aletheia-Client-Version': '1.0'
@@ -29,8 +30,8 @@ test.describe('WAF Integration (#95)', () => {
         expect(response.ok()).toBe(true);
     });
 
-    test('030: WAF blocks request without header', async ({ request }) => {
-        const response = await request.post(CLOUDFRONT_URL, {
+    test('030: Worker blocks request without header', async ({ request }) => {
+        const response = await request.post(API_URL, {
             headers: {
                 'Content-Type': 'application/json'
                 // Missing X-Aletheia-Client-Version
@@ -41,8 +42,8 @@ test.describe('WAF Integration (#95)', () => {
         expect(response.status()).toBe(403);
     });
 
-    test('040: WAF blocks invalid version', async ({ request }) => {
-        const response = await request.post(CLOUDFRONT_URL, {
+    test('040: Worker blocks invalid version', async ({ request }) => {
+        const response = await request.post(API_URL, {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Aletheia-Client-Version': '0.9' // Invalid
@@ -54,7 +55,9 @@ test.describe('WAF Integration (#95)', () => {
     });
 
     test('050: Future version accepted', async ({ request }) => {
-        const response = await request.post(CLOUDFRONT_URL, {
+        // Wait for CloudFlare rate-limit window to reset (3 req/10s)
+        await new Promise(r => setTimeout(r, 11_000));
+        const response = await request.post(API_URL, {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Aletheia-Client-Version': '1.99'

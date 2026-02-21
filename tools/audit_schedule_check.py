@@ -172,6 +172,33 @@ def check_audit_schedule(audit_num: str, file_path: Path, today: datetime) -> di
         }
 
 
+def _find_audit_file(audit_num: str, search_dirs: list[Path]) -> Path | None:
+    """
+    Find audit file across search directories with prefix mapping.
+
+    Handles both AssemblyZero (08xx) and Aletheia (108xx) numbering.
+    """
+    # Prefixes to try: original 08xx and Aletheia 108xx (replace leading 0 with 10)
+    prefixes = [audit_num]
+    if audit_num.startswith("0"):
+        prefixes.append(f"1{audit_num}")
+
+    for search_dir in search_dirs:
+        if not search_dir.exists():
+            continue
+        for prefix in prefixes:
+            # Standard pattern: {prefix}-audit-*.md
+            matches = list(search_dir.glob(f"{prefix}-audit-*.md"))
+            if matches:
+                return matches[0]
+            # Alternate pattern (e.g., horizon scanning, meta-audit)
+            matches = list(search_dir.glob(f"{prefix}-*.md"))
+            if matches:
+                return matches[0]
+
+    return None
+
+
 def main() -> int:
     """Run audit schedule compliance check."""
     print("=== Audit Schedule Compliance Check ===")
@@ -181,22 +208,19 @@ def main() -> int:
         print("  No docs/ directory found, skipping...")
         return 0
 
+    # Search both docs/ (AssemblyZero) and docs/audits/ (Aletheia)
+    search_dirs = [docs_dir, docs_dir / "audits"]
+
     today = datetime.now()
     blocks = []
     warns = []
     oks = []
 
     for audit_num, frequency in sorted(AUDIT_FREQUENCY.items()):
-        # Find the audit file
-        pattern = f"{audit_num}-audit-*.md"
-        matches = list(docs_dir.glob(pattern))
+        file_path = _find_audit_file(audit_num, search_dirs)
 
-        if not matches:
-            # Try alternate patterns (e.g., 0898 horizon scanning, 0899 meta-audit)
-            alt_pattern = f"{audit_num}-*.md"
-            matches = list(docs_dir.glob(alt_pattern))
-
-        if not matches:
+        if not file_path:
+            pattern = f"{audit_num}-audit-*.md"
             blocks.append({
                 "audit": audit_num,
                 "status": "block",
@@ -204,7 +228,6 @@ def main() -> int:
             })
             continue
 
-        file_path = matches[0]
         result = check_audit_schedule(audit_num, file_path, today)
         result["audit"] = audit_num
         result["file"] = file_path.name

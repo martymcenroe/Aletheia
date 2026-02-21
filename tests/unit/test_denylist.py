@@ -176,6 +176,26 @@ class TestCheckDenylist:
             assert result["blocked"] is True
 
 
+class TestFalsePositiveRegression:
+    """Regression tests for denylist false positives (#413)."""
+
+    def test_pan_white_tribalism_not_blocked(self):
+        """'pan-white tribalism' must NOT be blocked (Issue #413)."""
+        denylist = load_denylist()
+        result = check_denylist("pan-white tribalism", denylist)
+        assert result["blocked"] is False, (
+            "Bare 'white' should not be in the denylist — "
+            "it blocks legitimate analytical text"
+        )
+
+    def test_white_not_in_production_denylist(self):
+        """Bare 'white' must not appear in the production denylist."""
+        denylist = load_denylist()
+        assert "white" not in denylist, (
+            "Bare 'white' found in denylist — too broad, blocks legitimate text"
+        )
+
+
 class TestIntegration:
     """Integration tests using file-based denylist."""
 
