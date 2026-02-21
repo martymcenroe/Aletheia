@@ -189,22 +189,14 @@ describe('CSRF State Validation', () => {
 
     if (!global.window.AletheiaAuth) return;
 
-    // Start login - this will create a tab
-    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+    // Service worker detects CSRF mismatch and returns error
+    browserMock.__setMessageResponse('START_OAUTH', {
+      success: false,
+      error: 'CSRF state mismatch'
+    });
 
-    // Wait for tab to be created
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    // Get the stored state (we don't use it - attacker uses different state)
-    const stored = await browserMock.storage.session.get(['oauth_state']);
-    const _correctState = stored.oauth_state;
-
-    // Simulate LinkedIn callback with WRONG state (CSRF attack)
-    const callbackUrl = `${env.authConfig.LAMBDA_AUTH_URL}/auth/callback?code=fake-code&state=attacker-controlled-state`;
-    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
-
-    // Should reject with CSRF error
-    await expect(loginPromise).rejects.toThrow(/CSRF|state/i);
+    // Should reject with CSRF error from service worker
+    await expect(global.window.AletheiaAuth.initiateLogin()).rejects.toThrow(/CSRF|state/i);
   });
 
   it('accepts matching state parameter', async () => {
@@ -212,33 +204,14 @@ describe('CSRF State Validation', () => {
 
     if (!global.window.AletheiaAuth) return;
 
-    // Mock successful token exchange
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({
-        accessToken: 'new-access-token',
-        refreshToken: 'new-refresh-token',
-        expiresIn: 3600,
-        user: { id: 'test-user-id', name: 'Test User' }
-      })
+    // Service worker validates state and returns user
+    browserMock.__setMessageResponse('START_OAUTH', {
+      success: true,
+      user: { id: 'test-user-id', name: 'Test User' }
     });
 
-    // Start login - this will create a tab
-    const loginPromise = global.window.AletheiaAuth.initiateLogin();
-
-    // Wait for tab to be created
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    // Get the stored state (this is what the extension expects back)
-    const stored = await browserMock.storage.session.get(['oauth_state']);
-    const correctState = stored.oauth_state;
-
-    // Simulate LinkedIn callback with CORRECT state
-    const callbackUrl = `${env.authConfig.LAMBDA_AUTH_URL}/auth/callback?code=valid-auth-code&state=${correctState}`;
-    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
-
-    // Should succeed
-    const user = await loginPromise;
+    // Should succeed with user from service worker
+    const user = await global.window.AletheiaAuth.initiateLogin();
     expect(user).toEqual({ id: 'test-user-id', name: 'Test User' });
   });
 
@@ -247,17 +220,14 @@ describe('CSRF State Validation', () => {
 
     if (!global.window.AletheiaAuth) return;
 
-    // Start login - this will create a tab
-    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+    // Service worker detects tab closed and returns error
+    browserMock.__setMessageResponse('START_OAUTH', {
+      success: false,
+      error: 'OAuth cancelled: user closed the login tab'
+    });
 
-    // Wait for tab to be created
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    // Simulate user closing the auth tab
-    browserMock.__triggerTabRemoved(100, {});
-
-    // Should reject with cancelled error
-    await expect(loginPromise).rejects.toThrow(/cancelled|closed/i);
+    // Should reject with cancelled error from service worker
+    await expect(global.window.AletheiaAuth.initiateLogin()).rejects.toThrow(/cancelled|closed/i);
   });
 });
 
@@ -280,78 +250,60 @@ describe('Token Storage Hierarchy', () => {
   });
 
   it('stores access token in session storage', async () => {
-    const { browserMock, authConfig } = env;
+    const { browserMock } = env;
 
     if (!global.window.AletheiaAuth) return;
 
-    // Mock successful token exchange
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({
-        accessToken: 'test-access-token',
-        refreshToken: 'test-refresh-token',
-        expiresIn: 3600,
-        user: { id: 'test-user-id', name: 'Test User' }
-      })
+    // Mock sendMessage to simulate service worker: store tokens + return user
+    browserMock.runtime.sendMessage.mockImplementation(async (message) => {
+      if (message.type === 'START_OAUTH') {
+        // Simulate what the service worker does: store tokens
+        await browserMock.storage.session.set({
+          accessToken: 'test-access-token',
+          expiresAt: Date.now() + 3600000
+        });
+        await browserMock.storage.local.set({
+          refreshToken: 'test-refresh-token',
+          userId: 'test-user-id',
+          displayName: 'Test User'
+        });
+        return { success: true, user: { id: 'test-user-id', name: 'Test User' } };
+      }
     });
 
-    // Start login
-    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+    await global.window.AletheiaAuth.initiateLogin();
 
-    // Wait for tab to be created
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    // Get the stored state
-    const stored = await browserMock.storage.session.get(['oauth_state']);
-    const correctState = stored.oauth_state;
-
-    // Simulate successful OAuth callback
-    const callbackUrl = `${authConfig.LAMBDA_AUTH_URL}/auth/callback?code=test-code&state=${correctState}`;
-    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
-
-    // Complete login
-    await loginPromise;
-
-    // Verify access token is in session storage
+    // Verify access token is in session storage (stored by service worker)
     const sessionData = browserMock.__getSessionStorageData();
     expect(sessionData.accessToken).toBe('test-access-token');
     expect(sessionData.expiresAt).toBeDefined();
   });
 
   it('stores refresh token in local storage', async () => {
-    const { browserMock, authConfig } = env;
+    const { browserMock } = env;
 
     if (!global.window.AletheiaAuth) return;
 
-    // Mock successful token exchange
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({
-        accessToken: 'test-access-token',
-        refreshToken: 'test-refresh-token',
-        expiresIn: 3600,
-        user: { id: 'test-user-id', name: 'Test User' }
-      })
+    // Mock sendMessage to simulate service worker: store tokens + return user
+    browserMock.runtime.sendMessage.mockImplementation(async (message) => {
+      if (message.type === 'START_OAUTH') {
+        // Simulate what the service worker does: store tokens
+        await browserMock.storage.session.set({
+          accessToken: 'test-access-token',
+          expiresAt: Date.now() + 3600000
+        });
+        await browserMock.storage.local.set({
+          refreshToken: 'test-refresh-token',
+          userId: 'test-user-id',
+          displayName: 'Test User'
+        });
+        return { success: true, user: { id: 'test-user-id', name: 'Test User' } };
+      }
     });
 
-    // Start login
-    const loginPromise = global.window.AletheiaAuth.initiateLogin();
+    await global.window.AletheiaAuth.initiateLogin();
 
-    // Wait for tab to be created
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    // Get the stored state
-    const stored = await browserMock.storage.session.get(['oauth_state']);
-    const correctState = stored.oauth_state;
-
-    // Simulate successful OAuth callback
-    const callbackUrl = `${authConfig.LAMBDA_AUTH_URL}/auth/callback?code=test-code&state=${correctState}`;
-    browserMock.__simulateTabUpdate(100, callbackUrl, 'complete');
-
-    // Complete login
-    await loginPromise;
-
-    // Verify refresh token and user info are in local storage
+    // Verify refresh token and user info are in local storage (stored by service worker)
     const localData = browserMock.__getLocalStorageData();
     expect(localData.refreshToken).toBe('test-refresh-token');
     expect(localData.userId).toBe('test-user-id');

@@ -220,6 +220,118 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // Will respond asynchronously
     }
 
+    // Issue #396: OAuth flow — run in service worker so popup can close safely
+    if (message.type === 'START_OAUTH') {
+        (async () => {
+            try {
+                const { authUrl, callbackUrl, state } = message;
+
+                // 1. Open LinkedIn auth tab
+                const tab = await chrome.tabs.create({ url: authUrl });
+                console.log('[Aletheia Auth SW] Opened auth tab:', tab.id);
+
+                // 2. Wait for callback URL via tab listener (persists in service worker)
+                const result = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        chrome.tabs.onRemoved.removeListener(removedListener);
+                        reject(new Error('OAuth timeout: 5 minutes'));
+                    }, 5 * 60 * 1000);
+
+                    const removedListener = (removedTabId) => {
+                        if (removedTabId === tab.id) {
+                            clearTimeout(timeout);
+                            chrome.tabs.onUpdated.removeListener(listener);
+                            chrome.tabs.onRemoved.removeListener(removedListener);
+                            reject(new Error('OAuth cancelled: tab closed'));
+                        }
+                    };
+
+                    const listener = (updatedTabId, changeInfo, updatedTab) => {
+                        if (updatedTabId !== tab.id) return;
+                        if (changeInfo.status !== 'complete') return;
+                        if (!updatedTab.url || !updatedTab.url.startsWith(callbackUrl)) return;
+
+                        clearTimeout(timeout);
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        chrome.tabs.onRemoved.removeListener(removedListener);
+
+                        try {
+                            const url = new URL(updatedTab.url);
+                            const code = url.searchParams.get('code');
+                            const returnedState = url.searchParams.get('state');
+                            const error = url.searchParams.get('error');
+                            const errorDesc = url.searchParams.get('error_description');
+
+                            chrome.tabs.remove(tab.id).catch(() => {});
+
+                            if (error) {
+                                reject(new Error(errorDesc || error));
+                            } else if (!code) {
+                                reject(new Error('No authorization code received'));
+                            } else {
+                                resolve({ code, returnedState });
+                            }
+                        } catch (_e) {
+                            reject(new Error('Failed to parse callback URL'));
+                        }
+                    };
+
+                    chrome.tabs.onUpdated.addListener(listener);
+                    chrome.tabs.onRemoved.addListener(removedListener);
+                });
+
+                // 3. Validate CSRF state
+                if (result.returnedState !== state) {
+                    sendResponse({ success: false, error: 'CSRF detected: state mismatch' });
+                    return;
+                }
+
+                // 4. Exchange code for tokens
+                console.log('[Aletheia Auth SW] Exchanging code for tokens...');
+                const tokenResponse = await fetch(
+                    `${message.lambdaAuthUrl}/auth/token`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            code: result.code,
+                            redirectUri: callbackUrl
+                        })
+                    }
+                );
+
+                if (!tokenResponse.ok) {
+                    const errorData = await tokenResponse.json().catch(() => ({}));
+                    sendResponse({ success: false, error: errorData.error || `Token exchange failed: ${tokenResponse.status}` });
+                    return;
+                }
+
+                const tokenData = await tokenResponse.json();
+
+                // 5. Store tokens (service worker has access to storage APIs)
+                await chrome.storage.session.set({
+                    accessToken: tokenData.accessToken,
+                    expiresAt: Date.now() + (tokenData.expiresIn * 1000)
+                });
+
+                await chrome.storage.local.set({
+                    refreshToken: tokenData.refreshToken,
+                    userId: tokenData.user.id,
+                    displayName: tokenData.user.name
+                });
+
+                console.log('[Aletheia Auth SW] Login successful:', tokenData.user.name);
+                sendResponse({ success: true, user: tokenData.user });
+
+            } catch (error) {
+                console.error('[Aletheia Auth SW] OAuth failed:', error);
+                sendResponse({ success: false, error: error.message });
+            }
+        })();
+        return true; // Will respond asynchronously
+    }
+
     return false;
 });
 

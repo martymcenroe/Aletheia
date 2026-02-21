@@ -252,76 +252,11 @@ function buildAuthUrl(state) {
 }
 
 /**
- * Wait for OAuth callback by monitoring tab URL changes.
- * @param {number} tabId - The auth tab ID
- * @param {string} callbackUrl - The callback URL prefix to watch for
- * @returns {Promise<{code: string, state: string}>} The auth code and state
- */
-function waitForOAuthCallback(tabId, callbackUrl) {
-    return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-            browser.tabs.onUpdated.removeListener(listener);
-            browser.tabs.onRemoved.removeListener(removedListener);
-            reject(new Error('OAuth timeout: user did not complete login within 5 minutes'));
-        }, 5 * 60 * 1000); // 5 minute timeout
-
-        const removedListener = (removedTabId) => {
-            if (removedTabId === tabId) {
-                clearTimeout(timeout);
-                browser.tabs.onUpdated.removeListener(listener);
-                browser.tabs.onRemoved.removeListener(removedListener);
-                reject(new Error('OAuth cancelled: user closed the login tab'));
-            }
-        };
-
-        const listener = (updatedTabId, changeInfo, tab) => {
-            if (updatedTabId !== tabId) return;
-            if (changeInfo.status !== 'complete') return;
-            if (!tab.url || !tab.url.startsWith(callbackUrl)) return;
-
-            // We've reached the callback URL
-            clearTimeout(timeout);
-            browser.tabs.onUpdated.removeListener(listener);
-            browser.tabs.onRemoved.removeListener(removedListener);
-
-            try {
-                const url = new URL(tab.url);
-                const code = url.searchParams.get('code');
-                const state = url.searchParams.get('state');
-                const error = url.searchParams.get('error');
-                const errorDescription = url.searchParams.get('error_description');
-
-                // Close the auth tab
-                browser.tabs.remove(tabId).catch(() => {});
-
-                if (error) {
-                    reject(new Error(`LinkedIn OAuth error: ${errorDescription || error}`));
-                } else if (!code) {
-                    reject(new Error('No authorization code received'));
-                } else {
-                    resolve({ code, state });
-                }
-            } catch (e) {
-                reject(new Error(`Failed to parse callback URL: ${e.message}`));
-            }
-        };
-
-        browser.tabs.onUpdated.addListener(listener);
-        browser.tabs.onRemoved.addListener(removedListener);
-    });
-}
-
-/**
  * Initiate LinkedIn OAuth login flow.
  *
- * Firefox doesn't have browser.identity API, so we use a tabs-based flow:
- * 1. Open a new tab with LinkedIn OAuth page
- * 2. User authenticates with LinkedIn
- * 3. LinkedIn redirects to our Lambda callback
- * 4. We detect the callback URL and extract the auth code
- * 5. Exchange code for tokens via Lambda
- *
- * Includes CSRF protection via state parameter.
+ * Issue #396: Delegates to service worker via message passing.
+ * The service worker owns the tab listener and token storage,
+ * so the flow survives the popup closing when the auth tab opens.
  *
  * @returns {Promise<{id: string, name: string}>} User info on success
  * @throws {Error} On authentication failure
@@ -335,65 +270,27 @@ async function initiateLogin() {
     // 1. Generate CSRF state
     const state = generateState();
 
-    // 2. Store state for validation
-    await browser.storage.session.set({ oauth_state: state });
-
-    // 3. Build auth URL
+    // 2. Build auth URL and callback
     const authUrl = buildAuthUrl(state);
-    const redirectUri = getRedirectURL();
+    const callbackUrl = getRedirectURL();
 
-    console.log('[Aletheia Auth] Launching OAuth flow (tabs-based)...');
-    console.log('[Aletheia Auth] Redirect URI:', redirectUri);
+    console.log('[Aletheia Auth] Delegating OAuth flow to service worker...');
 
-    try {
-        // 4. Open auth tab
-        const tab = await browser.tabs.create({ url: authUrl });
-        console.log('[Aletheia Auth] Opened auth tab:', tab.id);
+    // 3. Send to service worker — it owns the tab lifecycle
+    const response = await browser.runtime.sendMessage({
+        type: 'START_OAUTH',
+        authUrl: authUrl,
+        callbackUrl: callbackUrl,
+        state: state,
+        lambdaAuthUrl: AUTH_CONFIG.LAMBDA_AUTH_URL
+    });
 
-        // 5. Wait for OAuth callback
-        const { code, state: returnedState } = await waitForOAuthCallback(tab.id, redirectUri);
-
-        // 6. Validate state (CSRF protection)
-        const stored = await browser.storage.session.get(['oauth_state']);
-        await browser.storage.session.remove(['oauth_state']);
-
-        if (returnedState !== stored.oauth_state) {
-            throw new Error('CSRF detected: state mismatch');
-        }
-
-        // 7. Exchange code for tokens via Lambda
-        console.log('[Aletheia Auth] Exchanging code for tokens...');
-        const tokenResponse = await fetch(`${AUTH_CONFIG.LAMBDA_AUTH_URL}/auth/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                code: code,
-                redirectUri: redirectUri
-            })
-        });
-
-        if (!tokenResponse.ok) {
-            const errorData = await tokenResponse.json().catch(() => ({}));
-            throw new Error(errorData.error || `Token exchange failed: ${tokenResponse.status}`);
-        }
-
-        const tokenData = await tokenResponse.json();
-
-        // 8. Store tokens
-        await storeTokens(
-            tokenData.accessToken,
-            tokenData.refreshToken,
-            tokenData.expiresIn,
-            tokenData.user
-        );
-
-        console.log('[Aletheia Auth] Login successful:', tokenData.user.name);
-        return tokenData.user;
-
-    } catch (error) {
-        console.error('[Aletheia Auth] Login failed:', error);
-        throw error;
+    if (!response || !response.success) {
+        throw new Error(response?.error || 'OAuth flow failed');
     }
+
+    console.log('[Aletheia Auth] Login successful:', response.user.name);
+    return response.user;
 }
 
 /**

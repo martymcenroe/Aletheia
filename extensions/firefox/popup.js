@@ -330,14 +330,24 @@ async function handleLoginClick() {
     loginButton.textContent = 'Signing in...';
     loginError.style.display = 'none';
 
+    // Issue #396: initiateLogin delegates to service worker.
+    // If the popup closes while LinkedIn tab is open, the service worker
+    // continues the flow. When popup reopens, init() will find stored tokens.
     const user = await window.AletheiaAuth.initiateLogin();
 
-    // Update user bar and proceed to main view
+    // If we get here, popup stayed open and flow completed
     userName.textContent = user.name;
     showView('main');
     await renderMainView();
 
   } catch (error) {
+    // If the error is about the message channel closing (popup closing),
+    // that's fine — the service worker will finish the flow
+    if (error.message && error.message.includes('disconnected')) {
+      console.log('[Aletheia] Popup closing — service worker will complete OAuth');
+      return;
+    }
+
     console.error('[Aletheia] Login failed:', error);
     loginError.textContent = error.message || 'Login failed. Please try again.';
     loginError.style.display = 'block';
