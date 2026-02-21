@@ -71,3 +71,53 @@ NEVER use `gh pr merge` directly.
 - Let changes accumulate — `/cleanup` will batch-commit them
 
 **Exception:** Code changes in worktrees follow normal PR workflow.
+
+---
+
+## Change Control (Mandatory)
+
+### Issue Before Code
+
+**NEVER change code, configuration, or infrastructure without a tracking GitHub issue.**
+
+This is non-negotiable. Before touching ANY of the following, an issue MUST exist:
+- Lambda environment variables (AUTH_ENABLED, etc.)
+- IAM policies or roles
+- CloudFlare Worker config
+- Extension manifest permissions
+- API endpoint behavior
+- provision.sh
+
+The issue MUST contain:
+1. **What** is being changed
+2. **Why** it's being changed
+3. **Blast radius** — what breaks if this goes wrong
+4. **Rollback plan** — exact commands to undo
+5. **Verification** — how to confirm it worked
+
+### No Bundling Config Changes
+
+**NEVER bundle configuration changes with feature work.**
+
+`AUTH_ENABLED=true` is a separate issue from "build Hermes dashboard." Config changes that affect all users get their own issue, their own PR, their own verification.
+
+### Post-Change Verification
+
+After ANY change to Lambda environment variables or extension code:
+1. Curl the production API and verify expected behavior
+2. If the change affects the extension, load the extension and verify the core flow: select text → analyze → overlay appears with content
+3. Document the verification in the issue
+
+### Smoke Test After Deploy
+
+After running `provision.sh` or any AWS CLI config change:
+```bash
+# Health check
+curl -s https://api.aletheia.study/health
+# Analysis (should return signal + gem, not an error)
+curl -s -X POST https://api.aletheia.study/ \
+  -H "Content-Type: application/json" \
+  -H "X-Aletheia-Client-Version: 1.0" \
+  -d '{"text":"test"}'
+```
+If either fails, STOP and revert immediately.

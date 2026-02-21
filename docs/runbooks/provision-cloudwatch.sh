@@ -23,12 +23,25 @@ echo "=== Provisioning CloudWatch Dashboard & Alarms ==="
 # Step 1: Validate JSON files
 echo "[1/4] Validating JSON files..."
 for f in cloudwatch-dashboard.json sns-alarm.json contributor-insights-top-talkers.json; do
-    if ! python -c "import json; json.load(open('${SCRIPT_DIR}/${f}'))" 2>/dev/null; then
+    if ! poetry run python -c "import json; json.load(open('${SCRIPT_DIR}/${f}'))" 2>/dev/null; then
         echo "ERROR: Invalid JSON in $f"
         exit 1
     fi
     echo "  $f - valid"
 done
+
+# Step 1b: Pre-flight — check if Bedrock deny policy is attached
+echo "[1b/4] Checking for Bedrock deny policy on AletheiaLambdaRole..."
+DENY_POLICY=$(MSYS_NO_PATHCONV=1 aws iam list-attached-role-policies \
+    --role-name AletheiaLambdaRole --region "$REGION" \
+    --query "AttachedPolicies[?PolicyName=='AletheiaDenyBedrock-BudgetBreach'].PolicyName" \
+    --output text 2>/dev/null || true)
+if [ -n "$DENY_POLICY" ]; then
+    echo -e "${YELLOW}WARNING: AletheiaDenyBedrock-BudgetBreach is attached to AletheiaLambdaRole!${NC}"
+    echo "  The budget 95% action has fired. Bedrock calls will fail."
+    echo "  See runbook 10902 Section 3 to reverse before provisioning."
+    echo "  Continuing anyway (alarms/dashboard don't require Bedrock)..."
+fi
 
 # Step 2: Create/update CloudWatch dashboard
 echo "[2/4] Creating CloudWatch dashboard: Aletheia-Usage..."
@@ -139,7 +152,7 @@ echo -e "${GREEN}Alarm created: Aletheia-LambdaThrottles${NC}"
 
 # Step 4: Create Contributor Insights rule
 echo "[4/4] Creating Contributor Insights rule..."
-RULE_DEF=$(python -c "import json; d=json.load(open('${SCRIPT_DIR}/contributor-insights-top-talkers.json')); print(d['RuleDefinition'])")
+RULE_DEF=$(poetry run python -c "import json; d=json.load(open('${SCRIPT_DIR}/contributor-insights-top-talkers.json')); print(d['RuleDefinition'])")
 MSYS_NO_PATHCONV=1 aws cloudwatch put-insight-rule \
     --rule-name "Aletheia-TopTalkers" \
     --rule-state "ENABLED" \

@@ -30,10 +30,10 @@ Layer 1: CloudWatch Alarms (real-time, 1-minute)
   └── KillSwitch-Failure (errors) → email ("do it manually!")
 
 Layer 2: AWS Budgets (8-24h delay)
-  ├── 10% ($1)  → email
-  ├── 40% ($4)  → email
-  ├── 80% ($8)  → email
-  └── 95% ($9.50) → email + IAM deny policy on AletheiaLambdaRole
+  ├── 10% ($2.50)  → email
+  ├── 40% ($10)    → email
+  ├── 80% ($20)    → email
+  └── 95% ($23.75) → email + IAM deny policy on AletheiaLambdaRole
 
 Layer 3: Account concurrency limit (always active)
   └── 10 concurrent Lambda executions max (AWS account limit)
@@ -59,11 +59,11 @@ Layer 3: Account concurrency limit (always active)
 
 **You received an email saying actual cost exceeded 10%, 40%, or 80%.**
 
-### At 10% ($1) — Awareness
+### At 10% ($2.50) — Awareness
 
 No action required. This is normal if you or friends are using the extension.
 
-### At 40% ($4) — Check usage
+### At 40% ($10) — Check usage
 
 1. Check if usage is legitimate:
    ```bash
@@ -77,10 +77,10 @@ No action required. This is normal if you or friends are using the extension.
 2. If invocations look normal (friends using it): no action needed
 3. If invocations are abnormally high: go to [Section 5](#5-active-attack-response)
 
-### At 80% ($8) — Prepare to shut down
+### At 80% ($20) — Prepare to shut down
 
 1. Run the check from 40% above
-2. If you expect to exceed $10 this month, consider temporarily disabling:
+2. If you expect to exceed $25 this month, consider temporarily disabling:
    ```bash
    MSYS_NO_PATHCONV=1 aws lambda put-function-concurrency \
      --function-name AletheiaAgent \
@@ -134,26 +134,51 @@ Expected output: empty or no `ReservedConcurrentExecutions` field (meaning it us
 
 ## 3. Restore After Bedrock Deny Policy
 
-**AWS Budgets applied the `AletheiaDenyBedrock-BudgetBreach` policy at 95% ($9.50). Lambda runs but Bedrock calls fail — users see errors.**
+**AWS Budgets applied the `AletheiaDenyBedrock-BudgetBreach` policy at 95% ($23.75). Lambda runs but Bedrock calls fail — users see "Analysis Failed" errors.**
 
 ### How to tell this happened
 
 - You received a budget 95% alert email
-- Users report "Analysis unavailable" errors
-- Verify:
+- Users report "Analysis Failed" or "Analysis unavailable" errors
+- Verify the policy is attached:
   ```bash
   MSYS_NO_PATHCONV=1 aws iam list-attached-role-policies \
     --role-name AletheiaLambdaRole --output table --region us-east-1
   ```
   If `AletheiaDenyBedrock-BudgetBreach` appears in the list, the deny policy is active.
 
-### Remove the deny policy
+### Option A (Preferred): Reverse via Budgets API
+
+This tells AWS Budgets to reverse its own action, keeping the action history clean:
+
+```bash
+# First, get the budget action ID
+MSYS_NO_PATHCONV=1 aws budgets describe-budget-actions-for-budget \
+  --account-id 383687041805 --budget-name "Aletheia-Monthly-10USD" \
+  --region us-east-1
+```
+
+```bash
+# Then reverse it (use the ActionId from above)
+MSYS_NO_PATHCONV=1 aws budgets execute-budget-action \
+  --account-id 383687041805 --budget-name "Aletheia-Monthly-10USD" \
+  --action-id ACTION_ID_HERE \
+  --execution-type REVERSE_ACTION --region us-east-1
+```
+
+After reversal, the action returns to **STANDBY** and will re-fire if spend crosses 95% again in the same billing cycle.
+
+### Option B: Manual IAM detach
+
+If the Budgets API approach fails, detach the policy directly:
 
 ```bash
 MSYS_NO_PATHCONV=1 aws iam detach-role-policy \
   --role-name AletheiaLambdaRole \
   --policy-arn arn:aws:iam::383687041805:policy/AletheiaDenyBedrock-BudgetBreach
 ```
+
+> **Note:** Manual detach leaves the Budget Action in EXECUTION_SUCCESS state. It will NOT re-fire in the same billing cycle, even if spend keeps climbing.
 
 ### Verify restoration
 
@@ -164,11 +189,15 @@ MSYS_NO_PATHCONV=1 aws iam list-attached-role-policies \
 
 `AletheiaDenyBedrock-BudgetBreach` should no longer appear.
 
+### IAM eventual consistency warning
+
+After detaching/reversing the deny policy, **already-running Lambda environments may still see the deny for up to ~60 seconds** due to IAM credential caching. If Bedrock calls still fail immediately after reversal, wait 1-2 minutes and test again before escalating.
+
 ### Important: Budget Actions reset
 
 The Budget Action resets each billing cycle. On the 1st of the next month, the action returns to "standby" and will fire again if the new month hits 95%. You do NOT need to reconfigure anything.
 
-However: if you detach the policy mid-month and costs continue climbing, the Budget Action will NOT re-apply it within the same billing cycle. It fires once per cycle.
+If you used **Option A (REVERSE_ACTION)**, the action returns to STANDBY and *can* re-fire within the same billing cycle if spend crosses 95% again. If you used **Option B (manual detach)**, the action will NOT re-fire within the same billing cycle.
 
 ---
 
@@ -180,11 +209,7 @@ Run both restoration steps in order:
 
 ### Step 1: Remove the deny policy
 
-```bash
-MSYS_NO_PATHCONV=1 aws iam detach-role-policy \
-  --role-name AletheiaLambdaRole \
-  --policy-arn arn:aws:iam::383687041805:policy/AletheiaDenyBedrock-BudgetBreach
-```
+See [Section 3](#3-restore-after-bedrock-deny-policy) for detailed options (Budgets API reversal preferred over manual IAM detach).
 
 ### Step 2: Remove the concurrency block
 
@@ -240,14 +265,9 @@ MSYS_NO_PATHCONV=1 aws ce get-cost-and-usage \
 
 ### Step 3: Check who is calling
 
-WAF logs (if WAF is still active):
-```bash
-MSYS_NO_PATHCONV=1 aws wafv2 get-sampled-requests \
-  --web-acl-arn arn:aws:wafv2:us-east-1:383687041805:global/webacl/AletheiaWebACL/83a38b1a-ebb5-4e97-a859-faadf5bee705 \
-  --rule-metric-name RateLimitPerIP --scope CLOUDFRONT \
-  --time-window StartTime=$(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ),EndTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
-  --max-items 10 --region us-east-1
-```
+CloudFlare analytics (rate limiting is handled by CloudFlare Worker `aletheia-api`):
+- Log into CloudFlare dashboard → `aletheia.study` → Security → Events
+- Check rate limit hits and source IPs
 
 CloudWatch invocation metrics (last hour, per-minute):
 ```bash
@@ -262,8 +282,8 @@ MSYS_NO_PATHCONV=1 aws cloudwatch get-metric-statistics \
 ### Step 4: Decide next steps
 
 - **If attack is over:** Restore service per [Section 2](#2-restore-after-kill-switch)
-- **If attack is ongoing:** Keep Lambda off. Consider adding WAF IP blocking or CloudFlare protection
-- **If source IP identified:** Add WAF IP block rule (if WAF is active) or CloudFlare firewall rule
+- **If attack is ongoing:** Keep Lambda off. Add CloudFlare firewall rules to block source IPs
+- **If source IP identified:** Add CloudFlare WAF custom rule to block the IP
 
 ---
 
@@ -356,12 +376,12 @@ MSYS_NO_PATHCONV=1 aws ce get-cost-and-usage \
   --group-by Type=DIMENSION,Key=SERVICE --region us-east-1
 ```
 
-**What's my current WAF fixed cost?**
-
-WAF charges $5/month per Web ACL + $1/month per rule regardless of traffic. Check:
+**What's the current budget status?**
 
 ```bash
-MSYS_NO_PATHCONV=1 aws wafv2 list-web-acls --scope CLOUDFRONT --region us-east-1
+MSYS_NO_PATHCONV=1 aws budgets describe-budget \
+  --account-id 383687041805 --budget-name "Aletheia-Monthly-10USD" \
+  --region us-east-1
 ```
 
-If WAF still exists and you've migrated to CloudFlare, delete it to stop the $7/month bleed.
+> **Note:** The budget name says "10USD" but the actual limit is **$25**. Budget names can't be changed via the API — ignore the naming mismatch.
