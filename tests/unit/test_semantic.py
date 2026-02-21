@@ -347,3 +347,62 @@ class TestDescriptiveTermsClassification:
         assert result["block_type"] == BLOCK_TYPE_NONE
         assert result["category"] == "None"
         assert result["is_safe"] is True
+
+
+class TestRacialVocabularyClassification:
+    """Tests for Issue #418: Academic racial vocabulary should NOT be classified as Hate."""
+
+    def test_taxonomy_has_racial_context_examples(self):
+        """Verify few-shot examples include racial-vocabulary-in-context classified as None."""
+        with open(TAXONOMY_PATH) as f:
+            taxonomy = json.load(f)
+
+        examples = taxonomy["few_shot_examples"]
+
+        racial_context_terms = ["pan-white tribalism"]
+        found_racial_safe = False
+
+        for example in examples:
+            text_lower = example["text"].lower()
+            if any(term in text_lower for term in racial_context_terms):
+                assert example["category"] == "None", (
+                    f"Racial-context term in '{example['text']}' should be category 'None', "
+                    f"got '{example['category']}'"
+                )
+                found_racial_safe = True
+
+        assert found_racial_safe, (
+            "No racial-vocabulary-in-context examples found in taxonomy few-shot examples"
+        )
+
+    def test_taxonomy_hate_definition_excludes_academic_discussion(self):
+        """Verify Hate definition mentions academic/journalistic discussion is NOT hate."""
+        with open(TAXONOMY_PATH) as f:
+            taxonomy = json.load(f)
+
+        hate_def = taxonomy["taxonomy"]["Hate"]
+        assert "academic" in hate_def.lower() or "journalistic" in hate_def.lower(), (
+            "Hate definition should mention that academic/journalistic discussion is NOT hate"
+        )
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_pan_white_tribalism_returns_no_block(self, mock_boto_client):
+        """'pan-white tribalism' should return BLOCK_TYPE_NONE, not HATE."""
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+
+        llm_output = json.dumps({"scores": {"None": 1.0}, "category": "None"})
+        bedrock_response_body = json.dumps({
+            "content": [{"text": llm_output}]
+        }).encode("utf-8")
+
+        mock_body = Mock()
+        mock_body.read.return_value = bedrock_response_body
+        mock_client_instance.invoke_model.return_value = {"body": mock_body}
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("The article discusses pan-white tribalism in modern politics")
+
+        assert result["block_type"] == BLOCK_TYPE_NONE
+        assert result["category"] == "None"
+        assert result["is_safe"] is True
