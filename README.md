@@ -117,14 +117,14 @@ poetry run python tools/admin_id_resolve.py reverse HASH --confirm
 - **Secret management**: All secrets in AWS Secrets Manager, never in code or env vars
 - **Pre-commit hooks**: gitleaks, ruff, mypy, ESLint security rules
 
-See [Security Policy](https://github.com/martymcenroe/Aletheia/wiki/Security) and [16 ADRs](https://github.com/martymcenroe/Aletheia/tree/main/docs/adrs) documenting architectural decisions.
+See [Security Policy](https://github.com/martymcenroe/Aletheia/wiki/Security) and [20 ADRs](https://github.com/martymcenroe/Aletheia/tree/main/docs/adrs) documenting architectural decisions.
 
 ## Documentation
 
 | Resource | Description |
 |----------|-------------|
 | [Wiki](https://github.com/martymcenroe/Aletheia/wiki) | User guide, architecture, API reference |
-| [ADRs](docs/adrs/) | 19 architecture decision records |
+| [ADRs](docs/adrs/) | 20 architecture decision records |
 | [Privacy Policy](https://github.com/martymcenroe/Aletheia/wiki/Privacy) | Data handling and retention |
 | [aletheia.study](https://aletheia.study) | Product landing page |
 

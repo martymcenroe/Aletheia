@@ -113,6 +113,10 @@ run-audit.bat
 # Lambda build artifacts
 build/
 dependencies.zip
+auth_lambda.zip
+
+# Debug / temp API responses
+tmp_lambda_response*.json
 
 # Browser extension build artifacts
 web-ext-artifacts/
