@@ -132,3 +132,6 @@ tmpclaude-*
 
 # Unleashed session transcripts (auto-generated, untracked)
 data/unleashed/
+
+# Company confidential (pricing, margins, cost analysis, strategy)
+docs/confidential/

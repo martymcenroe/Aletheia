@@ -819,6 +819,56 @@ def handle_delete_my_data(headers: dict) -> dict:
         }
 
 
+def handle_upgrade_success() -> dict:
+    """Handle GET /upgrade-success — Stripe checkout success redirect page.
+
+    Issue #366: After successful Stripe checkout, redirect here.
+    """
+    return {
+        "statusCode": 200,
+        "headers": {"Content-Type": "text/html; charset=utf-8"},
+        "body": """<!DOCTYPE html>
+<html>
+<head>
+    <title>Aletheia - Upgrade Successful</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; text-align: center; }
+        .success { color: #28a745; }
+    </style>
+</head>
+<body>
+    <h1 class="success">Thank You!</h1>
+    <p>Your subscription is now active. You can close this tab and return to the extension.</p>
+</body>
+</html>""",
+    }
+
+
+def handle_upgrade_cancel() -> dict:
+    """Handle GET /upgrade-cancel — Stripe checkout cancellation page.
+
+    Issue #366: If the user cancels Stripe checkout, redirect here.
+    """
+    return {
+        "statusCode": 200,
+        "headers": {"Content-Type": "text/html; charset=utf-8"},
+        "body": """<!DOCTYPE html>
+<html>
+<head>
+    <title>Aletheia - Upgrade Cancelled</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; text-align: center; }
+        .cancelled { color: #6c757d; }
+    </style>
+</head>
+<body>
+    <h1 class="cancelled">Upgrade Cancelled</h1>
+    <p>No worries! You can upgrade anytime from the extension.</p>
+</body>
+</html>""",
+    }
+
+
 def lambda_handler(event: dict, context: Any) -> dict:
     """
     Main entry point for auth Lambda.
@@ -879,6 +929,12 @@ def lambda_handler(event: dict, context: Any) -> dict:
             # Issue #367: Manual subscriptions with coupons
             from .auth.coupon_handler import handle_redeem_coupon
             return handle_redeem_coupon(event, context)
+        elif path == "/upgrade-success" and http_method == "GET":
+            # Issue #366: Stripe checkout success redirect
+            return handle_upgrade_success()
+        elif path == "/upgrade-cancel" and http_method == "GET":
+            # Issue #366: Stripe checkout cancel redirect
+            return handle_upgrade_cancel()
         elif path == "/create-checkout-session" and http_method == "POST":
             # Issue #366: Stripe billing
             from .auth.stripe_handler import handle_create_checkout

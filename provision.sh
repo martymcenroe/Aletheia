@@ -30,9 +30,9 @@ FUNC_NAME="${APP_NAME}Agent"
 AUTH_FUNC_NAME="${APP_NAME}Auth"
 LINKEDIN_SECRET_NAME="aletheia/linkedin-oauth"
 JWT_SECRET_NAME="aletheia/jwt-signing-key"
-STRIPE_SECRET_NAME="aletheia/stripe-secret-key-test"
-STRIPE_WEBHOOK_SECRET_NAME="aletheia/stripe-webhook-secret-test"
-STRIPE_PRICE_ID="${STRIPE_PRICE_ID:-}"  # Set after Stripe price creation (#366)
+STRIPE_SECRET_NAME="aletheia/stripe-secret-key"
+STRIPE_WEBHOOK_SECRET_NAME="aletheia/stripe-webhook-secret"
+STRIPE_PRICE_ID="price_1T3sjCARfOsdSf7sfarT8Reo"
 LAYER_NAME="${APP_NAME}Dependencies"
 
 # Issue #351: Read CloudFlare origin secret from SSM Parameter Store (never in git)
@@ -477,6 +477,13 @@ echo "[7/10] Deploying Auth Lambda..."
 echo "Packaging src/ directory for Auth Lambda..."
 zip -rq auth_lambda.zip src/
 
+# Issue #366: Get existing Auth Function URL for Stripe redirect URLs
+AUTH_LAMBDA_URL=$(aws lambda get-function-url-config \
+    --function-name "$AUTH_FUNC_NAME" \
+    --region "$REGION" \
+    --query 'FunctionUrl' \
+    --output text 2>/dev/null || echo "")
+
 if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION" >/dev/null 2>&1; then
     echo "Creating Lambda function: $AUTH_FUNC_NAME"
     aws lambda create-function \
@@ -489,7 +496,7 @@ if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION
         --timeout 30 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID,STRIPE_SUCCESS_URL=${AUTH_LAMBDA_URL}upgrade-success,STRIPE_CANCEL_URL=${AUTH_LAMBDA_URL}upgrade-cancel}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Auth Lambda (X-Ray enabled)${NC}"
@@ -507,7 +514,7 @@ else
         --function-name "$AUTH_FUNC_NAME" \
         --handler src.lambda_auth_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID,STRIPE_SUCCESS_URL=${AUTH_LAMBDA_URL}upgrade-success,STRIPE_CANCEL_URL=${AUTH_LAMBDA_URL}upgrade-cancel}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
