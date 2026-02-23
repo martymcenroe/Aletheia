@@ -8,6 +8,17 @@ const API_ENDPOINT = "https://api.aletheia.study/";
 // [#95] Client version for Lambda header validation (Issue #349: moved from WAF to Lambda)
 const CLIENT_VERSION = "1.0";
 
+// Issue #402: Auth header injection
+async function getAuthHeaders() {
+    const session = await chrome.storage.session.get(['jwt']);
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Aletheia-Client-Version': CLIENT_VERSION
+    };
+    if (session.jwt) headers['Authorization'] = `Bearer ${session.jwt}`;
+    return headers;
+}
+
 // =============================================================================
 // Issue #391 Phase 2: Error Handling Helpers
 // =============================================================================
@@ -249,10 +260,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Aletheia-Client-Version': CLIENT_VERSION
-                    },
+                    headers: await getAuthHeaders(),
                     body: JSON.stringify(payload)
                 });
 
@@ -459,10 +467,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Aletheia-Client-Version': CLIENT_VERSION  // [#95] WAF header validation
-            },
+            headers: await getAuthHeaders(),
             body: JSON.stringify(payload),
             signal: controller.signal
         });

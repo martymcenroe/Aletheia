@@ -500,13 +500,17 @@ async function handleFullPageClick() {
       }
     };
 
-    // Send to Lambda
+    // Send to Lambda (Issue #402: include JWT if authenticated)
+    const jwt = await window.AletheiaAuth.getJwt();
+    const fullPageHeaders = {
+      'Content-Type': 'application/json',
+      'X-Aletheia-Client-Version': CLIENT_VERSION
+    };
+    if (jwt) fullPageHeaders['Authorization'] = `Bearer ${jwt}`;
+
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Aletheia-Client-Version': CLIENT_VERSION
-      },
+      headers: fullPageHeaders,
       body: JSON.stringify(payload)
     });
 

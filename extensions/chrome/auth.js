@@ -52,11 +52,12 @@ function generateState() {
  * @param {number} expiresIn - Seconds until access token expires
  * @param {object} user - User info {id, name}
  */
-async function storeTokens(accessToken, refreshToken, expiresIn, user) {
-    // Access token - session only (memory, cleared on browser close)
+async function storeTokens(accessToken, refreshToken, expiresIn, user, jwt) {
+    // Access token + JWT - session only (memory, cleared on browser close)
     await chrome.storage.session.set({
         accessToken,
-        expiresAt: Date.now() + (expiresIn * 1000)
+        expiresAt: Date.now() + (expiresIn * 1000),
+        jwt: jwt || null
     });
 
     // Refresh token + profile - local persistence
@@ -73,9 +74,18 @@ async function storeTokens(accessToken, refreshToken, expiresIn, user) {
  * Clear all auth data (logout).
  */
 async function clearTokens() {
-    await chrome.storage.session.remove(['accessToken', 'expiresAt']);
+    await chrome.storage.session.remove(['accessToken', 'expiresAt', 'jwt']);
     await chrome.storage.local.remove(['refreshToken', 'userId', 'displayName']);
     console.log('[Aletheia Auth] Tokens cleared');
+}
+
+/**
+ * Get JWT from session storage.
+ * @returns {Promise<string | null>} JWT or null if not authenticated
+ */
+async function getJwt() {
+    const session = await chrome.storage.session.get(['jwt']);
+    return session.jwt || null;
 }
 
 /**
@@ -313,7 +323,8 @@ async function initiateLogin() {
             tokenData.accessToken,
             tokenData.refreshToken,
             tokenData.expiresIn,
-            tokenData.user
+            tokenData.user,
+            tokenData.jwt
         );
 
         console.log('[Aletheia Auth] Login successful:', tokenData.user.name);
@@ -344,6 +355,7 @@ window.AletheiaAuth = {
     isAuthenticated,
     getAuthState,
     getAccessToken,
+    getJwt,
     clearTokens,
     // Config for debugging
     getConfig: () => ({ ...AUTH_CONFIG, CLIENT_ID: '***' })  // Hide client ID in logs
