@@ -577,13 +577,17 @@ async function handleFullPageClick() {
       }
     };
 
-    // Send to Lambda
+    // Send to Lambda (Issue #402: include JWT if authenticated)
+    const jwt = await window.AletheiaAuth.getJwt();
+    const fullPageHeaders = {
+      'Content-Type': 'application/json',
+      'X-Aletheia-Client-Version': CLIENT_VERSION
+    };
+    if (jwt) fullPageHeaders['Authorization'] = `Bearer ${jwt}`;
+
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Aletheia-Client-Version': CLIENT_VERSION
-      },
+      headers: fullPageHeaders,
       body: JSON.stringify(payload)
     });
 
@@ -686,9 +690,9 @@ async function handleCouponSubmit() {
   showCouponStatus('Validating coupon...', 'info');
 
   try {
-    // Get JWT from auth state
-    const authState = await window.AletheiaAuth.getAuthState();
-    if (!authState || !authState.jwt) {
+    // Get JWT from session storage (Issue #402)
+    const jwt = await window.AletheiaAuth.getJwt();
+    if (!jwt) {
       showCouponStatus('Please sign in first', 'error');
       return;
     }
@@ -702,7 +706,7 @@ async function handleCouponSubmit() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authState.jwt}`
+        'Authorization': `Bearer ${jwt}`
       },
       body: JSON.stringify(payload)
     });
@@ -764,12 +768,13 @@ async function checkSubscriptionStatus() {
 
   try {
     const authState = await window.AletheiaAuth.getAuthState();
-    if (!authState || !authState.jwt) return;
+    const jwt = await window.AletheiaAuth.getJwt();
+    if (!authState || !jwt) return;
 
     const response = await fetch(SUBSCRIPTION_STATUS_URL, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${authState.jwt}`
+        'Authorization': `Bearer ${jwt}`
       }
     });
 
@@ -814,7 +819,8 @@ async function handleUpgradeClick() {
 
   try {
     const authState = await window.AletheiaAuth.getAuthState();
-    if (!authState || !authState.jwt) {
+    const jwt = await window.AletheiaAuth.getJwt();
+    if (!authState || !jwt) {
       upgradeButton.textContent = 'Please sign in first';
       return;
     }
@@ -823,7 +829,7 @@ async function handleUpgradeClick() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authState.jwt}`
+        'Authorization': `Bearer ${jwt}`
       }
     });
 

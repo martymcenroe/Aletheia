@@ -63,11 +63,12 @@ function generateState() {
  * @param {number} expiresIn - Seconds until access token expires
  * @param {object} user - User info {id, name}
  */
-async function storeTokens(accessToken, refreshToken, expiresIn, user) {
-    // Access token - session only (memory, cleared on browser close)
+async function storeTokens(accessToken, refreshToken, expiresIn, user, jwt) {
+    // Access token + JWT - session only (memory, cleared on browser close)
     await browser.storage.session.set({
         accessToken,
-        expiresAt: Date.now() + (expiresIn * 1000)
+        expiresAt: Date.now() + (expiresIn * 1000),
+        jwt: jwt || null
     });
 
     // Refresh token + profile - local persistence
@@ -84,9 +85,18 @@ async function storeTokens(accessToken, refreshToken, expiresIn, user) {
  * Clear all auth data (logout).
  */
 async function clearTokens() {
-    await browser.storage.session.remove(['accessToken', 'expiresAt']);
+    await browser.storage.session.remove(['accessToken', 'expiresAt', 'jwt']);
     await browser.storage.local.remove(['refreshToken', 'userId', 'displayName']);
     console.log('[Aletheia Auth] Tokens cleared');
+}
+
+/**
+ * Get JWT from session storage.
+ * @returns {Promise<string | null>} JWT or null if not authenticated
+ */
+async function getJwt() {
+    const session = await browser.storage.session.get(['jwt']);
+    return session.jwt || null;
 }
 
 /**
@@ -312,6 +322,7 @@ window.AletheiaAuth = {
     isAuthenticated,
     getAuthState,
     getAccessToken,
+    getJwt,
     clearTokens,
     // Exposed for testing
     generateState,
