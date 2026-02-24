@@ -133,5 +133,8 @@ tmpclaude-*
 # Unleashed session transcripts (auto-generated, untracked)
 data/unleashed/
 
+# Handoff logs (session context transfers, local only)
+data/handoff-log.md
+
 # Company confidential (pricing, margins, cost analysis, strategy)
 docs/confidential/
