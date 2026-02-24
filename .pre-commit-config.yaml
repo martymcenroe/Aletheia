@@ -37,6 +37,7 @@ repos:
         entry: npx eslint --max-warnings 0
         language: system
         files: \.(js|mjs)$
+        exclude: \.min\.js$
         types: [file]
 
   # Project Policy Compliance (ADRs, CLAUDE.md directives)

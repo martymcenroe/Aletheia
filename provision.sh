@@ -307,12 +307,12 @@ aws iam put-role-policy \
                 "dynamodb:Scan"
             ],
             "Resource": [
-                "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'",
-                "arn:aws:dynamodb:*:*:table/'"$TABLE_NAME"'/index/*",
-                "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'",
-                "arn:aws:dynamodb:*:*:table/'"$USERS_TABLE"'/index/*",
-                "arn:aws:dynamodb:*:*:table/'"$TOKEN_CAP_TABLE"'",
-                "arn:aws:dynamodb:*:*:table/'"$COUPONS_TABLE"'"
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$TABLE_NAME"'",
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$TABLE_NAME"'/index/*",
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$USERS_TABLE"'",
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$USERS_TABLE"'/index/*",
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$TOKEN_CAP_TABLE"'",
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$COUPONS_TABLE"'"
             ]
         },
         {
@@ -321,7 +321,10 @@ aws iam put-role-policy \
                 "bedrock:InvokeModel",
                 "bedrock:InvokeModelWithResponseStream"
             ],
-            "Resource": "*"
+            "Resource": [
+                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
+                "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0"
+            ]
         },
         {
             "Effect": "Allow",
@@ -382,8 +385,8 @@ mkdir -p build/python
 # Install ONLY the required runtime dependencies (cherry-pick, not full poetry export)
 # Issue #7: aws-xray-sdk for observability tracing
 # Issue #341: PyJWT for JWT authentication
-echo "Installing runtime dependencies: requests, python-jose, aws-xray-sdk, PyJWT, stripe..."
-pip install requests python-jose aws-xray-sdk PyJWT stripe -t build/python --no-cache-dir --quiet
+echo "Installing runtime dependencies: requests, aws-xray-sdk, PyJWT, stripe..."
+pip install requests aws-xray-sdk PyJWT stripe -t build/python --no-cache-dir --quiet
 
 # Remove unnecessary files to reduce layer size
 echo "Cleaning up unnecessary files..."
@@ -405,7 +408,7 @@ echo "Layer size: $LAYER_SIZE"
 echo "Publishing Lambda Layer: $LAYER_NAME..."
 LAYER_VERSION_ARN=$(aws lambda publish-layer-version \
     --layer-name "$LAYER_NAME" \
-    --description "Runtime dependencies for Aletheia Lambdas (requests, python-jose, aws-xray-sdk, PyJWT, stripe)" \
+    --description "Runtime dependencies for Aletheia Lambdas (requests, aws-xray-sdk, PyJWT, stripe)" \
     --zip-file fileb://dependencies.zip \
     --compatible-runtimes python3.12 python3.11 python3.10 \
     --compatible-architectures x86_64 \
@@ -535,8 +538,12 @@ echo "[8/10] Configuring Function URLs..."
 aws lambda create-function-url-config \
     --function-name "$FUNC_NAME" \
     --auth-type NONE \
-    --cors "AllowOrigins=['*'],AllowMethods=['POST'],AllowHeaders=['Content-Type']" \
-    --region "$REGION" 2>/dev/null || true
+    --cors "AllowOrigins=['https://api.aletheia.study'],AllowMethods=['POST'],AllowHeaders=['Content-Type']" \
+    --region "$REGION" 2>/dev/null || \
+aws lambda update-function-url-config \
+    --function-name "$FUNC_NAME" \
+    --cors "AllowOrigins=['https://api.aletheia.study'],AllowMethods=['POST'],AllowHeaders=['Content-Type']" \
+    --region "$REGION" >/dev/null
 
 aws lambda add-permission \
     --function-name "$FUNC_NAME" \
@@ -556,8 +563,12 @@ FUNC_URL=$(aws lambda get-function-url-config \
 aws lambda create-function-url-config \
     --function-name "$AUTH_FUNC_NAME" \
     --auth-type NONE \
-    --cors "AllowOrigins=['*'],AllowMethods=['POST','GET'],AllowHeaders=['Content-Type','Authorization']" \
-    --region "$REGION" 2>/dev/null || true
+    --cors "AllowOrigins=['https://api.aletheia.study'],AllowMethods=['POST','GET'],AllowHeaders=['Content-Type','Authorization']" \
+    --region "$REGION" 2>/dev/null || \
+aws lambda update-function-url-config \
+    --function-name "$AUTH_FUNC_NAME" \
+    --cors "AllowOrigins=['https://api.aletheia.study'],AllowMethods=['POST','GET'],AllowHeaders=['Content-Type','Authorization']" \
+    --region "$REGION" >/dev/null
 
 aws lambda add-permission \
     --function-name "$AUTH_FUNC_NAME" \

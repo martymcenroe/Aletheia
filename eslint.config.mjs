@@ -138,7 +138,8 @@ export default [
       "node_modules/**",
       "dist/**",
       "coverage/**",
-      ".git/**"
+      ".git/**",
+      "static/admin/chart.umd.min.js"
     ]
   }
 ];
