@@ -203,6 +203,7 @@ async function mockLogin() {
         accessToken: 'mock-access-token-12345',
         refreshToken: 'mock-refresh-token-67890',
         expiresIn: 3600,
+        jwt: 'mock-jwt-for-testing',
         user: {
             id: 'mock-sub-782bbtaQ',  // Mimics OIDC 'sub' format
             name: 'Test User'
@@ -213,7 +214,8 @@ async function mockLogin() {
         mockUser.accessToken,
         mockUser.refreshToken,
         mockUser.expiresIn,
-        mockUser.user
+        mockUser.user,
+        mockUser.jwt
     );
 
     return mockUser.user;
@@ -351,6 +353,7 @@ async function logout() {
 // Make functions available globally for other scripts
 window.AletheiaAuth = {
     initiateLogin,
+    mockLogin,
     logout,
     isAuthenticated,
     getAuthState,
