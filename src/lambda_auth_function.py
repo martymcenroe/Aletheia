@@ -869,6 +869,53 @@ def handle_upgrade_cancel() -> dict:
     }
 
 
+_MIME_TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+}
+
+
+def _serve_static_file(path: str) -> dict:
+    """Serve a static file from the deployment package.
+
+    Issue #433: Admin dashboard files are packaged alongside src/ in the
+    Lambda zip. On Lambda, the zip extracts to the working directory,
+    so static/admin/metrics.html is accessible via relative path.
+
+    Only serves files from the static/ directory with known MIME types
+    to prevent path traversal or serving unintended files.
+    """
+    import pathlib
+
+    # Map URL path to filesystem: /admin/metrics.html → static/admin/metrics.html
+    file_path = pathlib.PurePosixPath("static" + path)
+
+    # Path traversal guard: resolve and verify it stays under static/
+    if ".." in file_path.parts:
+        return {"statusCode": 404, "body": json.dumps({"error": "Not found"})}
+
+    suffix = file_path.suffix.lower()
+    content_type = _MIME_TYPES.get(suffix)
+    if not content_type:
+        return {"statusCode": 404, "body": json.dumps({"error": "Not found"})}
+
+    try:
+        with open(str(file_path), encoding="utf-8") as f:
+            content = f.read()
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": content_type,
+                "Cache-Control": "no-cache",
+            },
+            "body": content,
+        }
+    except FileNotFoundError:
+        return {"statusCode": 404, "body": json.dumps({"error": "Not found"})}
+
+
 def lambda_handler(event: dict, context: Any) -> dict:
     """
     Main entry point for auth Lambda.
@@ -947,6 +994,17 @@ def lambda_handler(event: dict, context: Any) -> dict:
             # Issue #366: Subscription status
             from .auth.stripe_handler import handle_subscription_status
             return handle_subscription_status(event, context)
+        elif path == "/auth/github/authorize" and http_method == "GET":
+            # Issue #433: GitHub OAuth for admin dashboard
+            from .auth.github_oauth import handle_github_authorize
+            return handle_github_authorize(query_params)
+        elif path == "/auth/github/callback" and http_method == "GET":
+            # Issue #433: GitHub OAuth callback
+            from .auth.github_oauth import handle_github_callback
+            return handle_github_callback(query_params)
+        elif path.startswith("/admin/") and http_method == "GET":
+            # Issue #433: Serve admin dashboard static files from deployment package
+            return _serve_static_file(path)
         else:
             return {
                 "statusCode": 404,

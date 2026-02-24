@@ -136,5 +136,8 @@ data/unleashed/
 # Handoff logs (session context transfers, local only)
 data/handoff-log.md
 
+# Wrangler local cache (CloudFlare Workers dev)
+.wrangler/
+
 # Company confidential (pricing, margins, cost analysis, strategy)
 docs/confidential/

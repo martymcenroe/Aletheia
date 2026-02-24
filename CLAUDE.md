@@ -99,7 +99,7 @@ The issue MUST contain:
 
 **NEVER bundle configuration changes with feature work.**
 
-`AUTH_ENABLED=true` is a separate issue from "build Hermes dashboard." Config changes that affect all users get their own issue, their own PR, their own verification.
+`AUTH_ENABLED=true` is a separate issue from "build admin dashboard." Config changes that affect all users get their own issue, their own PR, their own verification.
 
 ### Post-Change Verification
 
