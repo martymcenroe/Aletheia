@@ -58,6 +58,10 @@ function createServiceWorkerEnvironment(options = {}) {
   // Set up global browser object (canonical Firefox namespace)
   global.browser = browserMock;
 
+  // Firefox service-worker.js uses chrome.* namespace (same source as Chrome).
+  // Without this alias, the source fails silently and no handlers register.
+  global.chrome = browserMock;
+
   // Mock console to suppress logging during tests (save original first)
   const originalConsole = global.console;
   global.console = {
@@ -613,5 +617,254 @@ describe('Error Handling (Firefox)', () => {
 
     // The age gate should fail open (allow the tab)
     // This is tested via checkTabForAgeRestriction behavior
+  });
+});
+
+// ============================================================================
+// START_OAUTH HANDLER TESTS (Issue #396)
+// ============================================================================
+
+describe('START_OAUTH Handler (Issue #396)', () => {
+  let env;
+  let messageListener;
+
+  const MOCK_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization?client_id=test';
+  const MOCK_CALLBACK_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws/auth/callback';
+  const MOCK_LAMBDA_AUTH_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws';
+  const MOCK_STATE = 'csrf-state-abc123';
+
+  function createOAuthMessage(overrides = {}) {
+    return {
+      type: 'START_OAUTH',
+      authUrl: MOCK_AUTH_URL,
+      callbackUrl: MOCK_CALLBACK_URL,
+      lambdaAuthUrl: MOCK_LAMBDA_AUTH_URL,
+      state: MOCK_STATE,
+      ...overrides
+    };
+  }
+
+  beforeEach(() => {
+    env = createServiceWorkerEnvironment();
+    // Get the registered onMessage listener directly for precise control
+    const { browserMock } = env;
+    const calls = browserMock.runtime.onMessage.addListener.mock.calls;
+    messageListener = calls[calls.length - 1][0];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanupEnvironment();
+  });
+
+  it('returns true for async response', () => {
+    const sendResponse = vi.fn();
+    const result = messageListener(
+      createOAuthMessage(),
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+    expect(result).toBe(true);
+  });
+
+  it('opens auth tab with correct URL', async () => {
+    const { browserMock } = env;
+    const sendResponse = vi.fn();
+
+    messageListener(
+      createOAuthMessage(),
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+
+    // Wait for tabs.create to be called
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(browserMock.tabs.create).toHaveBeenCalledWith({ url: MOCK_AUTH_URL });
+  });
+
+  it('stores tokens on successful callback', async () => {
+    const { browserMock } = env;
+    const sendResponse = vi.fn();
+
+    // Mock token exchange response
+    const mockTokenData = {
+      accessToken: 'linkedin-access-token',
+      expiresIn: 3600,
+      jwt: 'signed-jwt-token',
+      refreshToken: 'linkedin-refresh-token',
+      user: { id: 'user-123', name: 'Test LinkedIn User' }
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(mockTokenData)
+    });
+
+    messageListener(
+      createOAuthMessage(),
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+
+    // Wait for tabs.create to resolve
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Get the tab ID that was created
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+
+    // Simulate LinkedIn redirecting to callback URL with code and state
+    const callbackUrlWithParams = `${MOCK_CALLBACK_URL}?code=auth-code-xyz&state=${MOCK_STATE}`;
+    browserMock.__simulateTabUpdate(createdTab.id, callbackUrlWithParams, 'complete');
+
+    // Wait for token exchange and storage
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Verify session storage was updated
+    expect(browserMock.storage.session.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'linkedin-access-token',
+        jwt: 'signed-jwt-token'
+      })
+    );
+
+    // Verify local storage was updated
+    expect(browserMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refreshToken: 'linkedin-refresh-token',
+        userId: 'user-123',
+        displayName: 'Test LinkedIn User'
+      })
+    );
+  });
+
+  it('responds with user info on success', async () => {
+    const { browserMock } = env;
+    const sendResponse = vi.fn();
+
+    const mockTokenData = {
+      accessToken: 'at',
+      expiresIn: 3600,
+      jwt: 'jwt',
+      refreshToken: 'rt',
+      user: { id: 'u1', name: 'Alice' }
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(mockTokenData)
+    });
+
+    messageListener(
+      createOAuthMessage(),
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+
+    const callbackUrl = `${MOCK_CALLBACK_URL}?code=code&state=${MOCK_STATE}`;
+    browserMock.__simulateTabUpdate(createdTab.id, callbackUrl, 'complete');
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      success: true,
+      user: { id: 'u1', name: 'Alice' }
+    });
+  });
+
+  it('rejects on CSRF state mismatch', async () => {
+    const { browserMock } = env;
+    const sendResponse = vi.fn();
+
+    // We still need fetch mock for the flow but CSRF check happens before token exchange
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        accessToken: 'at', expiresIn: 3600, jwt: 'j',
+        refreshToken: 'rt', user: { id: 'u', name: 'N' }
+      })
+    });
+
+    messageListener(
+      createOAuthMessage(),
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+
+    // Return a DIFFERENT state than what was sent (CSRF attack)
+    const callbackUrl = `${MOCK_CALLBACK_URL}?code=code&state=WRONG-STATE`;
+    browserMock.__simulateTabUpdate(createdTab.id, callbackUrl, 'complete');
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(sendResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('CSRF')
+      })
+    );
+  });
+
+  it('handles tab closure (OAuth cancelled)', async () => {
+    const { browserMock } = env;
+    const sendResponse = vi.fn();
+
+    messageListener(
+      createOAuthMessage(),
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+
+    // User closes the OAuth tab before completing auth
+    browserMock.__triggerTabRemoved(createdTab.id);
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(sendResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('cancelled')
+      })
+    );
+  });
+
+  it('times out after 5 minutes', async () => {
+    vi.useFakeTimers();
+    const sendResponse = vi.fn();
+
+    messageListener(
+      createOAuthMessage(),
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+
+    // Advance past the 5-minute timeout
+    // tabs.create returns a promise — need to flush microtasks first
+    await vi.advanceTimersByTimeAsync(10);
+
+    // Now advance past the 5-minute timeout
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000 + 1000);
+
+    // Flush any remaining microtasks
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(sendResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('timeout')
+      })
+    );
   });
 });

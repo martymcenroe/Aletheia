@@ -166,4 +166,51 @@ test.describe('E2E Auth Flow (#403)', () => {
         await page.close();
     });
 
+    test('060: authenticated fetch includes Authorization header at network level', async ({ context, extensionId, serviceWorker }) => {
+        // Step 1: mockLogin via popup to store JWT in session storage
+        const popupUrl = `chrome-extension://${extensionId}/popup.html`;
+        const page = await context.newPage();
+        await page.goto(popupUrl);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(500);
+
+        await page.evaluate(async () => {
+            return await window.AletheiaAuth.mockLogin();
+        });
+
+        // Step 2: Intercept requests to api.aletheia.study and capture Authorization header
+        let capturedAuthHeader = null;
+        await context.route('**/api.aletheia.study/**', async (route) => {
+            capturedAuthHeader = route.request().headers()['authorization'];
+            // Fulfill with mock response to avoid hitting production
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    signal: 'Verified',
+                    gem: 'Mock authenticated response',
+                    context: 'Test context'
+                })
+            });
+        });
+
+        // Step 3: Trigger a fetch from the service worker using getAuthHeaders()
+        await serviceWorker.evaluate(async () => {
+            // eslint-disable-next-line no-undef
+            const headers = await getAuthHeaders();
+            // eslint-disable-next-line no-undef
+            await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ text: 'test auth header' })
+            });
+        });
+
+        // Step 4: Verify the Authorization header was present at network level
+        // Playwright lowercases header names in route.request().headers()
+        expect(capturedAuthHeader).toBe('Bearer mock-jwt-for-testing');
+
+        await page.close();
+    });
+
 });

@@ -366,6 +366,49 @@ jobs:
       - name: Deploy Infrastructure
         run: ./provision.sh
 
+  # Post-deploy smoke test - verifies production API after deploy (Issue #404)
+  post-deploy-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check
+        run: |
+          echo "=== Production Health Check ==="
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.aletheia.study/health)
+          echo "Health endpoint returned: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "✗ FAIL: Health check returned $HTTP_STATUS (expected 200)"
+            exit 1
+          fi
+          echo "✓ Health check passed"
+
+      - name: Analysis smoke test
+        run: |
+          echo "=== Production Analysis Smoke Test ==="
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.aletheia.study/ \
+            -H "Content-Type: application/json" \
+            -H "X-Aletheia-Client-Version: 1.0" \
+            -d '{"text":"smoke test"}')
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          echo "Analysis endpoint returned: $HTTP_STATUS"
+          # 200 = AUTH_ENABLED=false (normal response)
+          # 401 = AUTH_ENABLED=true (expected when auth is on)
+          # 5xx = server error (FAIL)
+          if [ "$HTTP_STATUS" -ge 500 ]; then
+            echo "✗ FAIL: Server error $HTTP_STATUS"
+            echo "Response: $BODY"
+            exit 1
+          fi
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 401 ]; then
+            echo "✓ Analysis smoke test passed (status: $HTTP_STATUS)"
+          else
+            echo "⚠ Unexpected status $HTTP_STATUS — investigate"
+            echo "Response: $BODY"
+            exit 1
+          fi
+
   # Compliance audit - runs on push to main AND nightly schedule
   # Requires AWS credentials to verify Bedrock configuration
   compliance-audit:
