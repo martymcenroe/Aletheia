@@ -27,6 +27,17 @@ const AUTH_STATES = {
     },
 
     /**
+     * Authenticated with JWT in session storage.
+     * Used for E2E auth flow tests (Issue #403).
+     */
+    authenticatedWithJwt: {
+        userId: 'test-user-12345',
+        displayName: 'Test User',
+        refreshToken: 'mock-refresh-token',
+        jwt: 'mock-jwt-for-testing'
+    },
+
+    /**
      * Authenticated with specific display name.
      * @param {string} name - Display name to show
      * @returns {object} Auth state object
