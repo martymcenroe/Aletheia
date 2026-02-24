@@ -23,6 +23,7 @@ Quick reference for the orchestrator (Marty) on how to run tools, commands, agen
 | 0901 | [Nightly AgentOS Audit](AgentOS:runbooks/AgentOS:runbooks/0901-nightly-agentos-audit-audit) | PowerShell | Nightly | Opus + ultrathink |
 | 10902 | [Cost Incident Response](10902-runbook-cost-incident-response.md) | Budget alert email, kill switch activation, or suspected attack | As needed | N/A (manual CLI) |
 | 10903 | [Lambda Configuration Change](10903-runbook-lambda-config-change.md) | Any `update-function-configuration` call | Every config change | N/A (manual CLI) |
+| 10904 | [Admin Dashboard](10904-runbook-admin-dashboard.md) | Access business metrics dashboard | As needed | N/A (browser) |
 
 ## Model Selection Guide
 
