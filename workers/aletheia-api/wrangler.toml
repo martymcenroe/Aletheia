@@ -1,0 +1,3 @@
+name = "aletheia-api"
+main = "worker.js"
+compatibility_date = "2026-02-16"

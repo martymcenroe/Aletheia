@@ -6,7 +6,7 @@
 
 ## What You're Looking At
 
-The Hermes dashboard shows 6 business metrics charts, auto-refreshing every 5 minutes. All data comes from the `/metrics` API endpoint, which queries DynamoDB.
+The admin dashboard shows 6 business metrics charts, auto-refreshing every 5 minutes. All data comes from the `/metrics` API endpoint, which queries DynamoDB.
 
 ![Dashboard screenshot](assets/metrics-dashboard.png)
 

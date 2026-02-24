@@ -1,9 +1,11 @@
 /**
  * Aletheia Business Metrics Dashboard
- * Issue #368
+ * Issue #368, #433
  *
  * Fetches /metrics API (or mock data) and renders 6 Chart.js charts.
+ * Issue #433: GitHub OAuth login flow for admin access.
  */
+/* exported loginWithGitHub, logout */
 
 const API_BASE = 'https://api.aletheia.study';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -16,6 +18,45 @@ let refreshTimer = null;
 const params = new URLSearchParams(window.location.search);
 const isMockMode = params.get('mock') === 'true';
 
+// Issue #433: Handle OAuth callback JWT
+function handleOAuthCallback() {
+    const jwtParam = params.get('jwt');
+    if (jwtParam) {
+        localStorage.setItem('aletheia_jwt', jwtParam);
+        // Strip JWT from URL to avoid leaking in referer/bookmarks
+        const url = new URL(window.location);
+        url.searchParams.delete('jwt');
+        window.history.replaceState({}, '', url.toString());
+    }
+}
+
+function showLoginScreen() {
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('logout-btn').classList.add('hidden');
+}
+
+function showDashboard() {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('logout-btn').classList.remove('hidden');
+}
+
+function loginWithGitHub() {
+    window.location.href = `${API_BASE}/auth/github/authorize`;
+}
+
+function logout() {
+    localStorage.removeItem('aletheia_jwt');
+    if (refreshTimer) clearTimeout(refreshTimer);
+    showLoginScreen();
+    hideError();
+}
+
+function isAuthenticated() {
+    return isMockMode || !!localStorage.getItem('aletheia_jwt');
+}
+
 async function fetchMetrics() {
     if (isMockMode) {
         const resp = await fetch('mock-metrics.json');
@@ -24,7 +65,7 @@ async function fetchMetrics() {
 
     const token = localStorage.getItem('aletheia_jwt');
     if (!token) {
-        showError('Not authenticated. Please log in.');
+        showLoginScreen();
         return null;
     }
 
@@ -32,14 +73,10 @@ async function fetchMetrics() {
         headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    if (resp.status === 401) {
+    if (resp.status === 401 || resp.status === 403) {
         localStorage.removeItem('aletheia_jwt');
-        showError('Session expired. Please log in again.');
-        return null;
-    }
-
-    if (resp.status === 403) {
-        showError('Admin access required.');
+        showLoginScreen();
+        showError(resp.status === 401 ? 'Session expired. Please sign in again.' : 'Admin access required.');
         return null;
     }
 
@@ -216,6 +253,7 @@ async function loadDashboard() {
         hideError();
         const data = await fetchMetrics();
         if (data) {
+            showDashboard();
             renderAll(data);
             // Schedule next refresh
             if (refreshTimer) clearTimeout(refreshTimer);
@@ -229,4 +267,9 @@ async function loadDashboard() {
 }
 
 // Initialize
-loadDashboard();
+handleOAuthCallback();
+if (isAuthenticated()) {
+    loadDashboard();
+} else {
+    showLoginScreen();
+}
