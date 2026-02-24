@@ -24,7 +24,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=9.0.1,<10.0.0"
-responses = ">=0.25.8,<0.26.0"
+responses = ">=0.25.8,<0.27.0"
 pytest-cov = ">=7.0.0,<8.0.0"
 pytest-benchmark = ">=5.1.0,<6.0.0"  # Issue #161: Performance benchmarks
 ruff = ">=0.14.10,<0.16.0"
