@@ -16,7 +16,7 @@ requests = "^2.32.5"
 beautifulsoup4 = "^4.14.3"
 colorama = "^0.4.6"
 aws-xray-sdk = "^2.14.0"  # Issue #7: Observability tracing
-stripe = ">=7.0.0,<8.0.0"
+stripe = ">=14.0.0,<15.0.0"
 
 [build-system]
 requires = ["poetry-core"]
