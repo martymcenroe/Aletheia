@@ -39,12 +39,12 @@ Application security audit covering web application, browser extension, and AWS 
 |------|------------------------|-------|--------|
 | **A01: Broken Access Control** | Lambda API endpoints | CloudFlare proxy + shared secret header + Lambda header check (ADR 10216). Rate limiting at edge. Kill switch at >100 inv/5min. | ✅ Pass |
 | **A02: Security Misconfiguration** | AWS, extension | Minimal permissions, no debug endpoints | ✅ Pass |
-| **A03: Software Supply Chain Failures** | Dependencies + models | npm audit: 0 vulns, poetry.lock pinned, Bedrock managed | ✅ Pass |
+| **A03: Software Supply Chain Failures** | Dependencies + models | npm audit: 10 dev-only vulns (ajv, minimatch — not shipped), poetry.lock pinned, Bedrock managed. **Admin dashboard loads Chart.js from CDN (C-1)** | ⚠️ Warning |
 | **A04: Cryptographic Failures** | Data in transit | HTTPS only via CloudFlare (SSL Full mode) | ✅ Pass |
 | **A05: Injection** | User input to Lambda | Input validation (20k limit), no eval() | ✅ Pass |
 | **A06: Insecure Design** | Architecture | ADRs document security decisions | ✅ Pass |
-| **A07: Auth Failures** | LinkedIn OAuth | CSRF protection, secure token storage | ✅ Pass |
-| **A08: Data Integrity Failures** | Extension updates | No remote code, all JS bundled | ✅ Pass |
+| **A07: Auth Failures** | LinkedIn + GitHub OAuth | CSRF protection (HMAC-signed state tokens). Admin JWT in localStorage (H-1). AUTH_ENABLED=false in production (H-5) | ⚠️ Warning |
+| **A08: Data Integrity Failures** | Extension updates | No remote code in extension JS. **Admin dashboard CDN script (C-1)** | ⚠️ Warning |
 | **A09: Logging & Monitoring Failures** | Lambda | CloudWatch enabled, generic error messages | ✅ Pass |
 | **A10: Mishandling of Exceptional Conditions** | Error handling | Fail-closed guardrails, generic errors to client | ✅ Pass |
 
@@ -70,7 +70,7 @@ The 2025 framework expands A06 "Vulnerable Components" into broader supply chain
 | Dependency pinning | poetry.lock, package-lock.json committed | ✅ Pass |
 | Dependency scanning | Dependabot configured, 0 open alerts | ✅ Pass |
 | AI model provenance | Bedrock Claude (AWS-managed, Anthropic source) | ✅ Pass |
-| No CDN dependencies | All assets bundled locally | ✅ Pass |
+| No CDN dependencies | Extension: all local. **Admin dashboard: Chart.js from jsdelivr CDN (C-1)** | ⚠️ Warning |
 | Build integrity | No untrusted build plugins | ✅ Pass |
 | Denylist source | Wikipedia via trusted GitHub Gist (#121) | ✅ Pass |
 
@@ -130,9 +130,9 @@ This new category covers 24 CWEs related to error handling, edge cases, and unex
 
 | Check | Requirement | Status |
 |-------|-------------|--------|
-| Dependencies audited | npm audit: 0 vulnerabilities | ✅ Pass |
+| Dependencies audited | npm audit: 10 dev-only vulns (ajv ReDoS, minimatch ReDoS — not in shipped code) | ⚠️ Note |
 | Lock files committed | package-lock.json, poetry.lock | ✅ Pass |
-| No CDN dependencies | All local | ✅ Pass |
+| No CDN dependencies | Extension code: all local. Admin dashboard: CDN (C-1) | ⚠️ Warning |
 | Dependabot alerts | 0 open (3 fixed historically) | ✅ Pass |
 | Dependabot configured | `.github/dependabot.yml` | ✅ Pass |
 | Quarterly dependency review | Some outdated (boto3, certifi) - not critical | ⚠️ Note |
@@ -156,11 +156,11 @@ This new category covers 24 CWEs related to error handling, edge cases, and unex
 
 | Check | Requirement | Status |
 |-------|-------------|--------|
-| IAM least privilege | Only DynamoDB + Bedrock | ✅ Pass |
+| IAM least privilege | DynamoDB, Bedrock, CloudWatch, Secrets Manager. **Bedrock Resource: "*" (H-3), DynamoDB wildcard region (H-4)** | ⚠️ Warning |
 | No hardcoded secrets | Environment variables, policy_check.sh verified | ✅ Pass |
 | VPC isolation | N/A (public Lambda via CloudFront) | ✅ N/A |
 | Concurrency limits | Configurable via lambda-on/off scripts | ✅ Pass |
-| Function URL auth | CloudFront + WAF (X-Aletheia-Client-Version) | ✅ Pass |
+| Function URL auth | CloudFlare Worker + origin secret (replaced CloudFront+WAF). **CORS AllowOrigins=['*'] (H-2)** | ⚠️ Warning |
 
 ### Bedrock Security
 
@@ -249,6 +249,71 @@ This ensures:
 |------|---------|------------------|----------------|
 | 2026-01-04 | Claude Opus 4.5 | **PASS** - All sections passed. 1 low-severity finding (semantic.py input handling). Some outdated dependencies (non-critical). | None (findings below threshold) |
 | 2026-01-06 | Claude Opus 4.5 | **PASS** - Tier 1 Store Compliance audit. All policy checks pass. 0 npm vulnerabilities. 0 Dependabot alerts. Forbidden patterns in deny list. innerHTML safe (static templates only). | None |
+| 2026-02-24 | Claude Opus 4.6 (Security Reviewer) | **WARNING** — 1 Critical (CDN supply chain), 5 High (localStorage JWT, CORS wildcard, IAM over-permission, auth disabled), 8 Medium, 7 Low. No active exploitation. Extension code secure. | Remediation tracked below |
+
+### 2026-02-24 Audit Details
+
+**Auditor:** Claude Opus 4.6 (Security Reviewer Agent, ADR 0213 Adversarial Audit Philosophy)
+**Scope:** Full application — browser extensions, Lambda backend, infrastructure, OAuth flows, admin dashboard, dependencies, agent permissions
+**Prerequisite:** 10816 Dependabot audit completed (2 PRs: #423 merged, #425 migrated via #435)
+
+**Tools Used:**
+- `tools/policy_check.sh` — All 6 policies passed
+- `npm audit` — 10 dev-only vulnerabilities (ajv, minimatch in eslint/serve/pa11y-ci — not in shipped code)
+- Dependabot alerts — 0 open
+- Manual code review of all auth, extension, infrastructure, and worker code
+
+**Findings (1 Critical, 5 High, 8 Medium, 7 Low, 4 Informational):**
+
+| ID | Severity | Category | Finding | File(s) | Remediation |
+|----|----------|----------|---------|---------|-------------|
+| C-1 | 🔴 Critical | A08 Supply Chain | Admin dashboard loads Chart.js from jsdelivr CDN — supply chain risk | `static/admin/metrics.html:8` | Vendor Chart.js locally + add SRI hash |
+| H-1 | 🟠 High | A07 Auth | Admin JWT stored in localStorage (vulnerable to XSS, amplified by C-1) | `static/admin/metrics.js:25,36` | Use HttpOnly cookie or sessionStorage |
+| H-2 | 🟠 High | A01 Access Control | Lambda Function URLs have CORS AllowOrigins=['*'] | `provision.sh:533-558` | Restrict to known origins |
+| H-3 | 🟠 High | AWS Least Privilege | Bedrock IAM uses Resource: "*" — can invoke any model | `provision.sh:322-325` | Scope to specific model ARNs |
+| H-4 | 🟠 High | AWS Least Privilege | DynamoDB IAM uses wildcard region/account | `provision.sh:308-314` | Pin to `us-east-1:383687041805` |
+| H-5 | 🟠 High | A07 Auth | AUTH_ENABLED=false in production — JWT auth bypassed | `provision.sh:441`, `lambda_function.py:736` | Enable when auth is stable |
+| M-1 | 🟡 Medium | Attack Surface | python-jose installed in Lambda layer but unused (has CVEs) | `provision.sh:384` | Remove python-jose from pip install |
+| M-2 | 🟡 Medium | A03 Injection | OAuth callback HTML attribute injection (mitigated by html.escape) | `lambda_auth_function.py:720` | Add code comment noting html.escape(quote=True) is required |
+| M-3 | 🟡 Medium | Info Disclosure | Direct Lambda Function URLs exposed in extension source | `extensions/*/auth.js` | Route Auth through CloudFlare Worker |
+| M-4 | 🟡 Medium | DoS/Cost | DynamoDB scan operations in metrics handler — expensive at scale | `metrics_handler.py:171,199,246,289` | Add GSIs for common queries |
+| M-6 | 🟡 Medium | Side-Channel | Coupon code timing: different errors for expired vs exhausted reveals existence | `coupon_handler.py:162-189` | Normalize error messages |
+| M-7 | 🟡 Medium | A02 Misconfig | No CSP header on Lambda HTML responses | `lambda_auth_function.py:763` | Add CSP: default-src 'none'; style-src 'unsafe-inline' |
+| M-8 | 🟡 Medium | A09 Logging | LinkedIn API responses logged without sanitization (log injection risk) | `lambda_auth_function.py:131,165` | Sanitize before logging |
+| L-1 | 🔵 Low | Permissions | Chrome "notifications" permission — not needed for core function | `extensions/chrome/manifest.json:14` | Document justification |
+| L-4 | 🔵 Low | Config | Stripe price ID hardcoded in provision.sh | `provision.sh:35` | Move to SSM Parameter Store |
+| L-5 | 🔵 Low | DoS | No input length validation on full_article content | `lambda_function.py:471-476` | Add length check in validate_input() |
+| L-6 | 🔵 Low | Info Disclosure | ALETHEIA_ENV=dev in production — debug timings in responses | `provision.sh:441` | Change to prod |
+| L-7 | 🔵 Low | DoS | No rate limiting on GDPR data erasure endpoint | `lambda_auth_function.py:772` | Add CloudFlare rate rule |
+
+**Agent Permissions Audit:**
+
+| Check | Status |
+|-------|--------|
+| `eval:` in deny list | ✅ Pass |
+| `format:` in deny list | ✅ Pass |
+| `git push --force`, `git reset --hard`, `git clean -fd` in deny | ✅ Pass |
+| `pip install:` in deny list | ✅ Pass |
+| `exec:` in deny list | ❌ Missing |
+| `env:` in deny list | ❌ Missing |
+| `printenv:` in deny list | ❌ Missing |
+| `python:` NOT in allow list | ❌ In allow list (should use `poetry run python` only) |
+
+**Positive Findings (no action needed):**
+- Extension Shadow DOM uses closed mode correctly — DOM clobbering protection present
+- JWT dual-secret rotation well-implemented in jwt_service.py
+- Stripe webhook signature verification correct with idempotency
+- Chrome/Firefox service workers validate sender.id on all messages
+- GitHub OAuth: HMAC-signed CSRF state tokens, collaborator+push check, html.escape on error pages
+
+**Prioritized Remediation (top 5):**
+1. C-1: Vendor Chart.js locally (Low effort, eliminates supply chain risk)
+2. H-5: Enable AUTH_ENABLED=true (Config change, activates JWT auth)
+3. M-1: Remove python-jose from Lambda layer (Low effort, removes CVE exposure)
+4. H-2: Restrict CORS AllowOrigins (Low effort, limits cross-origin abuse)
+5. H-3/H-4: Scope Bedrock/DynamoDB IAM (Low effort, tightens least privilege)
+
+---
 
 ### 2026-01-04 Audit Details
 

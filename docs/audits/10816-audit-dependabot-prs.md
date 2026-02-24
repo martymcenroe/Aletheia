@@ -364,6 +364,7 @@ Before beginning security audit, run 0816-audit-dependabot-prs to ensure:
 | 2026-01-04 | Claude Opus 4.5 | 4 (#142, #143, #144, #146) | ✅ PASS | None |
 | 2026-02-18 | Claude Opus 4.6 (reviewed: martymcenroe) | 4 alerts (lodash, lodash-es, jsonpath x2) | ✅ PASS | None (4 mod ajv accepted risk) |
 | 2026-02-23 | Claude Opus 4.6 | 5 (#421–#425): 2 merged (#421 npm-minor, #424 python-minor), 3 conflicting (#422 @eslint/js 10, #423 eslint-plugin-security 4, #425 stripe 14) — rebase requested | ✅ PARTIAL | None |
+| 2026-02-24 | Claude Opus 4.6 | 2 (#423 eslint-plugin-security 3→4, #425 stripe 7→14): #423 merged directly, #425 superseded by #435 (migration PR with regression testing) | ✅ PASS | None |
 | *Template* | *Agent* | *Count* | *PASS/FAIL* | *Issue links* |
 
 ---
