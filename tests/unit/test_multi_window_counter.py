@@ -283,8 +283,8 @@ class TestFreeTierBoundary:
 
         call_kwargs = mock_client.transact_write_items.call_args[1]
         hourly_item = call_kwargs["TransactItems"][0]["Update"]
-        cap_value = hourly_item["ExpressionAttributeValues"][":cap"]["N"]
-        assert cap_value == "5"
+        cap_value = hourly_item["ExpressionAttributeValues"][":cap_limit"]["N"]
+        assert cap_value == "4"
 
 
 # --------------------------------------------------------------------------- #
@@ -321,8 +321,8 @@ class TestSubscriberTierBoundary:
 
         call_kwargs = mock_client.transact_write_items.call_args[1]
         hourly_item = call_kwargs["TransactItems"][0]["Update"]
-        cap_value = hourly_item["ExpressionAttributeValues"][":cap"]["N"]
-        assert cap_value == "20"
+        cap_value = hourly_item["ExpressionAttributeValues"][":cap_limit"]["N"]
+        assert cap_value == "19"
 
 
 # --------------------------------------------------------------------------- #
@@ -363,40 +363,40 @@ class TestFailClosedFree:
 
 
 # --------------------------------------------------------------------------- #
-# T080b: DynamoDB timeout + subscriber tier → fail-open
+# T080b: DynamoDB timeout + subscriber tier → fail-closed
 # --------------------------------------------------------------------------- #
 
 
-class TestFailOpenSubscriber:
-    """T080b: DynamoDB errors with subscriber tier → fail-open."""
+class TestFailClosedSubscriber:
+    """T080b: DynamoDB errors with subscriber tier → fail-closed."""
 
-    def test_timeout_subscriber_allowed(self, counter, mock_client):
-        """DynamoDB timeout for subscriber → allowed (fail-open)."""
+    def test_timeout_subscriber_denied(self, counter, mock_client):
+        """DynamoDB timeout for subscriber → denied (fail-closed)."""
         mock_client.transact_write_items.side_effect = _client_error(
             "ProvisionedThroughputExceededException"
         )
 
         result = counter.check_and_increment(TEST_USER_ID, SUBSCRIBER_CONFIG)
 
-        assert result["allowed"] is True
+        assert result["allowed"] is False
 
-    def test_timeout_admin_allowed(self, counter, mock_client):
-        """DynamoDB timeout for admin → allowed (fail-open)."""
+    def test_timeout_admin_denied(self, counter, mock_client):
+        """DynamoDB timeout for admin → denied (fail-closed)."""
         mock_client.transact_write_items.side_effect = _client_error(
             "InternalServerError"
         )
 
         result = counter.check_and_increment(TEST_USER_ID, ADMIN_CONFIG)
 
-        assert result["allowed"] is True
+        assert result["allowed"] is False
 
-    def test_connection_error_subscriber_allowed(self, counter, mock_client):
-        """Connection error for subscriber → allowed (fail-open)."""
+    def test_connection_error_subscriber_denied(self, counter, mock_client):
+        """Connection error for subscriber → denied (fail-closed)."""
         mock_client.transact_write_items.side_effect = ConnectionError("timeout")
 
         result = counter.check_and_increment(TEST_USER_ID, SUBSCRIBER_CONFIG)
 
-        assert result["allowed"] is True
+        assert result["allowed"] is False
 
 
 # --------------------------------------------------------------------------- #
