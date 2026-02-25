@@ -1030,7 +1030,7 @@ class TestLiveOAuthFlow:
 
     def test_130_live_oauth_flow(self):
         """Scenario 130: Live OAuth flow (skipped unless -m live)."""
-        pytest.skip(
+        pytest.skip(  # ref #456
             "Live OAuth test requires real LinkedIn credentials and browser interaction"
         )
 

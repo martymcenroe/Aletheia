@@ -119,7 +119,7 @@ test.describe('Visual Regression POC (#173)', () => {
         } else {
             console.log('No snapshots yet - run test:visual:update to create baselines');
             // Skip on first run
-            test.skip();
+            test.skip(); // ref #456 — skipped until baselines exist
         }
     });
 
