@@ -1,0 +1,54 @@
+# Issue #452: Firefox E2E Test Workflow
+# Runs E2E tests against Firefox overlay (script injection only, no extension loading).
+# firefox-overlay project uses headless mode — no xvfb needed.
+
+name: E2E Tests (Firefox)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-firefox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+      - name: Cache Playwright binaries
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Firefox
+        run: npx playwright install firefox
+
+      - name: Install Firefox OS dependencies
+        run: npx playwright install-deps firefox
+
+      - name: Run E2E tests (Firefox)
+        run: npx playwright test --project=firefox-overlay --reporter=html
+
+      - name: Upload test report on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report-firefox
+          path: playwright-report/
+          retention-days: 7
