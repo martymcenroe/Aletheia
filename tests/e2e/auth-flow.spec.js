@@ -229,3 +229,207 @@ test.describe('E2E Auth Flow (#403)', () => {
     });
 
 });
+
+// =============================================================================
+// Issue #480: Popup UI interaction tests
+// =============================================================================
+
+test.describe('Popup Auth UI (#480)', () => {
+
+    test.describe.configure({ mode: 'serial' });
+
+    test('070: popup shows login view when not authenticated', async ({ context, extensionId }) => {
+        // Clear all auth state first
+        const sw = context.serviceWorkers().find(w => w.url().includes(extensionId));
+        await sw.evaluate(async () => {
+            await chrome.storage.session.clear();
+            await chrome.storage.local.clear();
+        });
+
+        const popupUrl = `chrome-extension://${extensionId}/popup.html`;
+        const page = await context.newPage();
+        await page.goto(popupUrl);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(500);
+
+        // Login view should be visible
+        const loginView = page.locator('#login-view');
+        await expect(loginView).toBeVisible();
+
+        // Main view should be hidden
+        const mainView = page.locator('#main-view');
+        await expect(mainView).not.toBeVisible();
+
+        // Login button should be visible and enabled
+        const loginButton = page.locator('#login-button');
+        await expect(loginButton).toBeVisible();
+        await expect(loginButton).toBeEnabled();
+
+        // Error message should be hidden
+        const loginError = page.locator('#login-error');
+        await expect(loginError).not.toBeVisible();
+
+        await page.close();
+    });
+
+    test('080: mock login stores tokens and popup shows authenticated on reopen', async ({ context, extensionId }) => {
+        // Clear state
+        const sw = context.serviceWorkers().find(w => w.url().includes(extensionId));
+        await sw.evaluate(async () => {
+            await chrome.storage.session.clear();
+            await chrome.storage.local.clear();
+        });
+
+        const popupUrl = `chrome-extension://${extensionId}/popup.html`;
+        const page = await context.newPage();
+        await page.goto(popupUrl);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(500);
+
+        // Call mockLogin to simulate completed OAuth
+        const user = await page.evaluate(async () => {
+            return await window.AletheiaAuth.mockLogin();
+        });
+
+        expect(user.id).toBe('mock-sub-782bbtaQ');
+        expect(user.name).toBe('Test User');
+
+        // Close and reopen popup — should show authenticated state
+        await page.close();
+
+        const page2 = await context.newPage();
+        await page2.goto(popupUrl);
+        await page2.waitForLoadState('domcontentloaded');
+        await page2.waitForTimeout(500);
+
+        // Main view should be visible (authenticated)
+        const mainView = page2.locator('#main-view');
+        await expect(mainView).toBeVisible();
+
+        // Login view should be hidden
+        const loginView = page2.locator('#login-view');
+        await expect(loginView).not.toBeVisible();
+
+        // User name should display
+        const userName = page2.locator('#user-name');
+        await expect(userName).toHaveText('Test User');
+
+        // Logout button should be visible
+        const logoutButton = page2.locator('#logout-button');
+        await expect(logoutButton).toBeVisible();
+
+        await page2.close();
+    });
+
+    test('090: logout button clears tokens and returns to login view', async ({ context, extensionId }) => {
+        // Ensure we're authenticated
+        const sw = context.serviceWorkers().find(w => w.url().includes(extensionId));
+        await sw.evaluate(async () => {
+            await chrome.storage.session.set({
+                accessToken: 'test-access',
+                expiresAt: Date.now() + 3600000,
+                jwt: 'test-jwt'
+            });
+            await chrome.storage.local.set({
+                refreshToken: 'test-refresh',
+                userId: 'test-user-123',
+                displayName: 'Test User'
+            });
+        });
+
+        const popupUrl = `chrome-extension://${extensionId}/popup.html`;
+        const page = await context.newPage();
+        await page.goto(popupUrl);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(500);
+
+        // Should be authenticated
+        const mainView = page.locator('#main-view');
+        await expect(mainView).toBeVisible();
+
+        // Click logout
+        const logoutButton = page.locator('#logout-button');
+        await logoutButton.click();
+        await page.waitForTimeout(300);
+
+        // Should be back to login view
+        const loginView = page.locator('#login-view');
+        await expect(loginView).toBeVisible();
+        await expect(mainView).not.toBeVisible();
+
+        // Verify tokens are actually cleared
+        const tokens = await sw.evaluate(async () => {
+            const session = await chrome.storage.session.get(['accessToken', 'jwt']);
+            const local = await chrome.storage.local.get(['userId', 'refreshToken']);
+            return { ...session, ...local };
+        });
+
+        expect(tokens.accessToken).toBeUndefined();
+        expect(tokens.jwt).toBeUndefined();
+        expect(tokens.userId).toBeUndefined();
+        expect(tokens.refreshToken).toBeUndefined();
+
+        await page.close();
+    });
+
+    test('100: authError from SW displays in popup on reopen', async ({ context, extensionId }) => {
+        // Simulate: SW stored an authError after a failed OAuth attempt
+        const sw = context.serviceWorkers().find(w => w.url().includes(extensionId));
+        await sw.evaluate(async () => {
+            await chrome.storage.session.clear();
+            await chrome.storage.local.clear();
+            await chrome.storage.session.set({
+                authError: 'Token exchange failed (500)'
+            });
+        });
+
+        const popupUrl = `chrome-extension://${extensionId}/popup.html`;
+        const page = await context.newPage();
+        await page.goto(popupUrl);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(500);
+
+        // Login view should be visible (not authenticated)
+        const loginView = page.locator('#login-view');
+        await expect(loginView).toBeVisible();
+
+        // Error message should be visible with the authError text
+        const loginError = page.locator('#login-error');
+        await expect(loginError).toBeVisible();
+        await expect(loginError).toHaveText('Token exchange failed (500)');
+
+        // authError should be cleared after display (one-time)
+        const remaining = await sw.evaluate(async () => {
+            const data = await chrome.storage.session.get(['authError']);
+            return data.authError || null;
+        });
+        expect(remaining).toBeNull();
+
+        await page.close();
+    });
+
+    test('110: no authError shown after user cancellation', async ({ context, extensionId }) => {
+        // After user cancels OAuth, no authError should be stored
+        const sw = context.serviceWorkers().find(w => w.url().includes(extensionId));
+        await sw.evaluate(async () => {
+            await chrome.storage.session.clear();
+            await chrome.storage.local.clear();
+        });
+
+        const popupUrl = `chrome-extension://${extensionId}/popup.html`;
+        const page = await context.newPage();
+        await page.goto(popupUrl);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(500);
+
+        // Login view visible, no error
+        const loginView = page.locator('#login-view');
+        await expect(loginView).toBeVisible();
+
+        const loginError = page.locator('#login-error');
+        await expect(loginError).not.toBeVisible();
+
+        await page.close();
+    });
+
+});
