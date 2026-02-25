@@ -20,7 +20,6 @@ from .models.rate_limit import (
     CounterState,
     RateLimitResult,
     TierConfig,
-    UserTier,
     WindowType,
 )
 
@@ -315,6 +314,7 @@ class MultiWindowCounter:
         user_id: str,
         tier_config: TierConfig,
         billing_anchor_day: int = 1,
+        weight: int = 1,
     ) -> RateLimitResult:
         """Check rate limits and atomically increment all three counters.
 
@@ -326,6 +326,7 @@ class MultiWindowCounter:
             user_id: The user's unique identifier.
             tier_config: The user's tier configuration with caps.
             billing_anchor_day: Day of month for monthly window reset.
+            weight: Number of tokens to consume (default 1).
 
         Returns:
             RateLimitResult indicating whether the request is allowed.
@@ -350,16 +351,16 @@ class MultiWindowCounter:
                     "TableName": self._table_name,
                     "Key": {"PK": {"S": pk}, "SK": {"S": hourly_sk}},
                     "UpdateExpression": (
-                        "SET #cnt = if_not_exists(#cnt, :zero) + :one, #ttl = :ttl_val"
+                        "SET #cnt = if_not_exists(#cnt, :zero) + :weight, #ttl = :ttl_val"
                     ),
                     "ConditionExpression": (
-                        "attribute_not_exists(#cnt) OR #cnt < :cap"
+                        "attribute_not_exists(#cnt) OR #cnt <= :cap_limit"
                     ),
                     "ExpressionAttributeNames": {"#cnt": "count", "#ttl": "ttl"},
                     "ExpressionAttributeValues": {
                         ":zero": {"N": "0"},
-                        ":one": {"N": "1"},
-                        ":cap": {"N": str(tier_config["hourly_cap"])},
+                        ":weight": {"N": str(weight)},
+                        ":cap_limit": {"N": str(max(0, tier_config["hourly_cap"] - weight))},
                         ":ttl_val": {"N": str(hourly_ttl)},
                     },
                 }
@@ -369,16 +370,16 @@ class MultiWindowCounter:
                     "TableName": self._table_name,
                     "Key": {"PK": {"S": pk}, "SK": {"S": daily_sk}},
                     "UpdateExpression": (
-                        "SET #cnt = if_not_exists(#cnt, :zero) + :one, #ttl = :ttl_val"
+                        "SET #cnt = if_not_exists(#cnt, :zero) + :weight, #ttl = :ttl_val"
                     ),
                     "ConditionExpression": (
-                        "attribute_not_exists(#cnt) OR #cnt < :cap"
+                        "attribute_not_exists(#cnt) OR #cnt <= :cap_limit"
                     ),
                     "ExpressionAttributeNames": {"#cnt": "count", "#ttl": "ttl"},
                     "ExpressionAttributeValues": {
                         ":zero": {"N": "0"},
-                        ":one": {"N": "1"},
-                        ":cap": {"N": str(tier_config["daily_cap"])},
+                        ":weight": {"N": str(weight)},
+                        ":cap_limit": {"N": str(max(0, tier_config["daily_cap"] - weight))},
                         ":ttl_val": {"N": str(daily_ttl)},
                     },
                 }
@@ -388,16 +389,16 @@ class MultiWindowCounter:
                     "TableName": self._table_name,
                     "Key": {"PK": {"S": pk}, "SK": {"S": monthly_sk}},
                     "UpdateExpression": (
-                        "SET #cnt = if_not_exists(#cnt, :zero) + :one, #ttl = :ttl_val"
+                        "SET #cnt = if_not_exists(#cnt, :zero) + :weight, #ttl = :ttl_val"
                     ),
                     "ConditionExpression": (
-                        "attribute_not_exists(#cnt) OR #cnt < :cap"
+                        "attribute_not_exists(#cnt) OR #cnt <= :cap_limit"
                     ),
                     "ExpressionAttributeNames": {"#cnt": "count", "#ttl": "ttl"},
                     "ExpressionAttributeValues": {
                         ":zero": {"N": "0"},
-                        ":one": {"N": "1"},
-                        ":cap": {"N": str(tier_config["monthly_cap"])},
+                        ":weight": {"N": str(weight)},
+                        ":cap_limit": {"N": str(max(0, tier_config["monthly_cap"] - weight))},
                         ":ttl_val": {"N": str(monthly_ttl)},
                     },
                 }
@@ -490,37 +491,24 @@ class MultiWindowCounter:
     def _handle_dynamo_error(
         self, error: Exception, tier_config: TierConfig, user_id: str
     ) -> RateLimitResult:
-        """Handle DynamoDB errors with hybrid fail mode.
+        """Handle DynamoDB errors with fail-closed mode.
 
-        Free tier → fail-closed (503 "retry")
-        Subscriber/Admin → fail-open (allowed)
+        All tiers → fail-closed (503 "retry")
+        This prevents uncontrolled costs during database outages.
         """
         tier = tier_config.get("tier", "free")
 
-        if tier == UserTier.FREE or tier == "free":
-            logger.warning(
-                "Rate limit DynamoDB error for free user %s, fail-closed: %s",
-                user_id, str(error),
-            )
-            return RateLimitResult(
-                allowed=False,
-                exceeded_window="SERVICE_UNAVAILABLE",
-                resets_at=None,
-                resets_in_seconds=None,
-                current_counts={},
-            )
-        else:
-            logger.warning(
-                "Rate limit DynamoDB error for %s user %s, fail-open: %s",
-                tier, user_id, str(error),
-            )
-            return RateLimitResult(
-                allowed=True,
-                exceeded_window=None,
-                resets_at=None,
-                resets_in_seconds=None,
-                current_counts={},
-            )
+        logger.warning(
+            "Rate limit DynamoDB error for %s user %s, fail-closed: %s",
+            tier, user_id, str(error),
+        )
+        return RateLimitResult(
+            allowed=False,
+            exceeded_window="SERVICE_UNAVAILABLE",
+            resets_at=None,
+            resets_in_seconds=None,
+            current_counts={},
+        )
 
     @staticmethod
     def _get_current_windows(

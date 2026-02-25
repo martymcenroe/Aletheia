@@ -157,7 +157,7 @@ def extract_tier_from_jwt(claims: dict) -> UserTier:
 
 
 def check_rate_limit(
-    user_id: str, tier: UserTier, billing_anchor_day: int = 1
+    user_id: str, tier: UserTier, billing_anchor_day: int = 1, weight: int = 1
 ) -> tuple[bool, dict | None]:
     """Check rate limits for a user request.
 
@@ -165,6 +165,7 @@ def check_rate_limit(
         user_id: The user's unique identifier.
         tier: The user's subscription tier.
         billing_anchor_day: Day of month for billing cycle.
+        weight: Number of tokens to consume (default 1).
 
     Returns:
         Tuple of (allowed, error_response_dict_or_None).
@@ -173,7 +174,7 @@ def check_rate_limit(
     counter = _get_multi_window_counter()
 
     tier_config = config_service.get_tier_config(tier)
-    result = counter.check_and_increment(user_id, tier_config, billing_anchor_day)
+    result = counter.check_and_increment(user_id, tier_config, billing_anchor_day, weight)
 
     if result["allowed"]:
         return True, None
@@ -300,6 +301,19 @@ def require_auth(handler: Callable) -> Callable:
 
         user_id = str(auth_result["user_id"])  # guaranteed non-None after auth success
 
+        # Parse body to determine cost/weight
+        weight = 1
+        try:
+            body_str = event.get("body", "{}")
+            if isinstance(body_str, str):
+                body = json.loads(body_str)
+            else:
+                body = body_str
+            if isinstance(body, dict) and body.get("action") == "deep_poetic_analysis":
+                weight = 5  # Opus is much more expensive
+        except Exception as e:
+            logger.debug(f"Failed to parse body for rate limit weighting: {e}")
+
         # Issue #369: Emit RequestCount metric and log anonymized user (fail-open)
         try:
             from ..observability import emit_request_metric, log_anonymized_user
@@ -309,7 +323,7 @@ def require_auth(handler: Callable) -> Callable:
             logger.warning(f"Metric emission failed (non-fatal): {e}")
 
         allowed, error_response = check_rate_limit(
-            user_id, tier, billing_anchor_day
+            user_id, tier, billing_anchor_day, weight
         )
         if not allowed and error_response is not None:
             # Issue #369: Emit CapDenied metric (fail-open)
