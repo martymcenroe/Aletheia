@@ -621,7 +621,7 @@ describe('Error Handling (Firefox)', () => {
 });
 
 // ============================================================================
-// START_OAUTH HANDLER TESTS (Issue #396)
+// START_OAUTH HANDLER TESTS (Issue #396 — Persistent State Pattern)
 // ============================================================================
 
 describe('START_OAUTH Handler (Issue #396)', () => {
@@ -639,25 +639,6 @@ describe('START_OAUTH Handler (Issue #396)', () => {
     cleanupEnvironment();
   });
 
-  it('returns true for async response', async () => {
-    const { browserMock } = env;
-
-    const sendResponse = vi.fn();
-
-    // Get the actual registered listener
-    const listener = browserMock.runtime.onMessage.addListener.mock.calls
-      .map(call => call[0])
-      .find(fn => typeof fn === 'function');
-
-    const result = listener(
-      { type: 'START_OAUTH', authUrl: AUTH_URL, callbackUrl: CALLBACK_URL, state: CSRF_STATE, lambdaAuthUrl: LAMBDA_AUTH_URL },
-      { id: 'extension@aletheia.study' },
-      sendResponse
-    );
-
-    expect(result).toBe(true);
-  });
-
   it('opens auth tab with correct URL', async () => {
     const { browserMock } = env;
 
@@ -669,13 +650,41 @@ describe('START_OAUTH Handler (Issue #396)', () => {
       lambdaAuthUrl: LAMBDA_AUTH_URL
     });
 
-    // Wait for async tab creation
     await new Promise(resolve => setTimeout(resolve, 50));
 
     expect(browserMock.tabs.create).toHaveBeenCalledWith({ url: AUTH_URL });
   });
 
-  it('stores tokens on successful callback', async () => {
+  it('stores pendingOAuth in session storage', async () => {
+    const { browserMock } = env;
+
+    browserMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      callbackUrl: CALLBACK_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+
+    // Verify pendingOAuth was stored with correct fields
+    expect(browserMock.storage.session.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pendingOAuth: expect.objectContaining({
+          tabId: createdTab.id,
+          state: CSRF_STATE,
+          callbackUrl: CALLBACK_URL,
+          lambdaAuthUrl: LAMBDA_AUTH_URL,
+          startedAt: expect.any(Number)
+        })
+      })
+    );
+  });
+
+  it('top-level listener detects callback and stores tokens', async () => {
     const { browserMock } = env;
 
     // Mock the token exchange endpoint
@@ -691,6 +700,7 @@ describe('START_OAUTH Handler (Issue #396)', () => {
       })
     });
 
+    // Send START_OAUTH to set up pendingOAuth state
     browserMock.__simulateMessage({
       type: 'START_OAUTH',
       authUrl: AUTH_URL,
@@ -699,10 +709,9 @@ describe('START_OAUTH Handler (Issue #396)', () => {
       lambdaAuthUrl: LAMBDA_AUTH_URL
     });
 
-    // Wait for tab creation
     await new Promise(resolve => setTimeout(resolve, 50));
 
-    // Simulate the OAuth callback - tab navigates to callback URL with code
+    // Simulate the OAuth callback via top-level tab listener
     const createdTab = await browserMock.tabs.create.mock.results[0].value;
     browserMock.__simulateTabUpdate(
       createdTab.id,
@@ -710,7 +719,7 @@ describe('START_OAUTH Handler (Issue #396)', () => {
       'complete'
     );
 
-    // Wait for token exchange
+    // Wait for async token exchange
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Verify tokens stored in session storage
@@ -729,66 +738,15 @@ describe('START_OAUTH Handler (Issue #396)', () => {
         displayName: 'Test User'
       })
     );
+
+    // Verify pendingOAuth was cleaned up
+    expect(browserMock.storage.session.remove).toHaveBeenCalledWith('pendingOAuth');
   });
 
-  it('responds with user info on success', async () => {
+  it('validates CSRF state', async () => {
     const { browserMock } = env;
 
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({
-        accessToken: 'token',
-        refreshToken: 'refresh',
-        expiresIn: 3600,
-        jwt: 'jwt',
-        user: { id: 'user-456', name: 'Jane Doe' }
-      })
-    });
-
-    browserMock.__simulateMessage({
-      type: 'START_OAUTH',
-      authUrl: AUTH_URL,
-      callbackUrl: CALLBACK_URL,
-      state: CSRF_STATE,
-      lambdaAuthUrl: LAMBDA_AUTH_URL
-    });
-
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    const createdTab = await browserMock.tabs.create.mock.results[0].value;
-    browserMock.__simulateTabUpdate(
-      createdTab.id,
-      `${CALLBACK_URL}?code=code&state=${CSRF_STATE}`,
-      'complete'
-    );
-
-    // Wait for the full async chain
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    // Verify user info was stored (indicates successful flow)
-    expect(browserMock.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userId: 'user-456',
-        displayName: 'Jane Doe'
-      })
-    );
-  });
-
-  it('rejects on CSRF state mismatch', async () => {
-    const { browserMock } = env;
-
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({
-        accessToken: 'token',
-        refreshToken: 'refresh',
-        expiresIn: 3600,
-        jwt: 'jwt',
-        user: { id: 'user', name: 'User' }
-      })
-    });
+    global.fetch = vi.fn();
 
     browserMock.__simulateMessage({
       type: 'START_OAUTH',
@@ -809,11 +767,15 @@ describe('START_OAUTH Handler (Issue #396)', () => {
       'complete'
     );
 
-    // Wait for async processing
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Token exchange should not store tokens since state mismatches
-    // The handler sends error response with 'CSRF detected'
+    // Token exchange should NOT have been called
+    expect(global.fetch).not.toHaveBeenCalled();
+
+    // pendingOAuth should be cleared
+    expect(browserMock.storage.session.remove).toHaveBeenCalledWith('pendingOAuth');
+
+    // No access tokens stored
     const sessionSetCalls = browserMock.storage.session.set.mock.calls;
     const hasAccessToken = sessionSetCalls.some(call =>
       call[0] && call[0].accessToken !== undefined
@@ -821,7 +783,7 @@ describe('START_OAUTH Handler (Issue #396)', () => {
     expect(hasAccessToken).toBe(false);
   });
 
-  it('handles tab closure (OAuth cancelled)', async () => {
+  it('clears pendingOAuth when tab closed', async () => {
     const { browserMock } = env;
 
     browserMock.__simulateMessage({
@@ -836,13 +798,15 @@ describe('START_OAUTH Handler (Issue #396)', () => {
 
     const createdTab = await browserMock.tabs.create.mock.results[0].value;
 
-    // Simulate tab being closed by user (OAuth cancelled)
+    // Simulate tab being closed by user
     browserMock.__triggerTabRemoved(createdTab.id);
 
-    // Wait for error handling
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Should not have stored any tokens
+    // pendingOAuth should be cleared
+    expect(browserMock.storage.session.remove).toHaveBeenCalledWith('pendingOAuth');
+
+    // No tokens stored
     const sessionSetCalls = browserMock.storage.session.set.mock.calls;
     const hasAccessToken = sessionSetCalls.some(call =>
       call[0] && call[0].accessToken !== undefined
@@ -850,9 +814,98 @@ describe('START_OAUTH Handler (Issue #396)', () => {
     expect(hasAccessToken).toBe(false);
   });
 
-  it('times out after 5 minutes', () => {
-    // Verify the source code contains the 5-minute timeout
+  it('detects stale OAuth (>5 min)', async () => {
+    const { browserMock } = env;
+
+    global.fetch = vi.fn();
+
+    // Manually set pendingOAuth with old startedAt (6 minutes ago)
+    browserMock.__setSessionStorageData({
+      pendingOAuth: {
+        tabId: 100,
+        state: CSRF_STATE,
+        callbackUrl: CALLBACK_URL,
+        lambdaAuthUrl: LAMBDA_AUTH_URL,
+        startedAt: Date.now() - (6 * 60 * 1000)
+      }
+    });
+
+    // Simulate tab update matching the callback URL
+    browserMock.__simulateTabUpdate(
+      100,
+      `${CALLBACK_URL}?code=code&state=${CSRF_STATE}`,
+      'complete'
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Token exchange should NOT have been called (stale)
+    expect(global.fetch).not.toHaveBeenCalled();
+
+    // pendingOAuth should be cleared
+    expect(browserMock.storage.session.remove).toHaveBeenCalledWith('pendingOAuth');
+  });
+
+  it('handles token exchange failure', async () => {
+    const { browserMock } = env;
+
+    // Mock failed token exchange
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({ error: 'Internal server error' })
+    });
+
+    browserMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      callbackUrl: CALLBACK_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+    browserMock.__simulateTabUpdate(
+      createdTab.id,
+      `${CALLBACK_URL}?code=code&state=${CSRF_STATE}`,
+      'complete'
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // pendingOAuth should be cleared even on failure
+    expect(browserMock.storage.session.remove).toHaveBeenCalledWith('pendingOAuth');
+
+    // No access tokens stored
+    const sessionSetCalls = browserMock.storage.session.set.mock.calls;
+    const hasAccessToken = sessionSetCalls.some(call =>
+      call[0] && call[0].accessToken !== undefined
+    );
+    expect(hasAccessToken).toBe(false);
+  });
+
+  it('ignores tab updates with no pendingOAuth', async () => {
+    const { browserMock } = env;
+
+    global.fetch = vi.fn();
+
+    // Simulate a tab update without any START_OAUTH — no pendingOAuth in storage
+    browserMock.__simulateTabUpdate(
+      1,
+      `${CALLBACK_URL}?code=code&state=${CSRF_STATE}`,
+      'complete'
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // No fetch calls, no errors, no token storage
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('stale check uses 5-minute threshold from source', () => {
     expect(serviceWorkerSource).toContain('5 * 60 * 1000');
-    expect(serviceWorkerSource).toContain('OAuth timeout');
+    expect(serviceWorkerSource).toContain('Stale OAuth');
   });
 });
