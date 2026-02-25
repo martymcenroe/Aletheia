@@ -211,6 +211,13 @@ export function createFirefoxMock(options = {}) {
       })
     },
 
+    // Issue #391: Notifications API mock
+    notifications: {
+      create: vi.fn().mockImplementation(() => {
+        return Promise.resolve('mock-notification-id');
+      })
+    },
+
     // Storage API
     storage: {
       // Local storage (persists)
