@@ -96,6 +96,8 @@ module.exports = defineConfig({
         },
         {
             // Issue #263: Edge E2E test matrix
+            // Visual baselines: Edge shares Chromium rendering engine;
+            // separate baselines not needed (ref #458)
             name: 'edge',
             use: {
                 channel: 'msedge',
