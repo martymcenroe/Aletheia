@@ -929,6 +929,19 @@ async function init() {
     // Not logged in - show login view
     console.log('[Aletheia] Showing login view');
     showView('login');
+
+    // Issue #480: Check if SW stored an auth error from a previous attempt
+    try {
+      const { authError } = await chrome.storage.session.get(['authError']);
+      if (authError) {
+        loginError.textContent = authError;
+        loginError.style.display = 'block';
+        // Clear it so it only shows once
+        await chrome.storage.session.remove(['authError']);
+      }
+    } catch (_e) {
+      // Not critical — just skip error display
+    }
     return;
   }
 

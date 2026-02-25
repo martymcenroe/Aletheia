@@ -820,6 +820,12 @@ describe('START_OAUTH Handler (Issue #480)', () => {
       call[0] && call[0].accessToken !== undefined
     );
     expect(hasAccessToken).toBe(false);
+
+    // authError stored for popup to display
+    const hasAuthError = sessionSetCalls.some(call =>
+      call[0] && call[0].authError !== undefined
+    );
+    expect(hasAuthError).toBe(true);
   });
 
   it('handles launchWebAuthFlow failure (user cancelled)', async () => {
@@ -843,7 +849,7 @@ describe('START_OAUTH Handler (Issue #480)', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('handles token exchange failure', async () => {
+  it('handles token exchange failure and stores authError', async () => {
     const { chromeMock } = env;
 
     // Mock failed token exchange
@@ -868,6 +874,43 @@ describe('START_OAUTH Handler (Issue #480)', () => {
       call[0] && call[0].accessToken !== undefined
     );
     expect(hasAccessToken).toBe(false);
+
+    // authError stored for popup to display
+    const hasAuthError = sessionSetCalls.some(call =>
+      call[0] && call[0].authError !== undefined
+    );
+    expect(hasAuthError).toBe(true);
+  });
+
+  it('uses hardcoded LAMBDA_AUTH_URL, ignores message-provided URL', async () => {
+    const { chromeMock } = env;
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        expiresIn: 3600,
+        jwt: 'jwt',
+        user: { id: 'u1', name: 'User' }
+      })
+    });
+
+    // Send a DIFFERENT lambdaAuthUrl — SW should ignore it
+    chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: 'https://evil.example.com'
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Fetch should use the hardcoded URL, not the evil one
+    const fetchUrl = global.fetch.mock.calls[0][0];
+    expect(fetchUrl).toBe(`${LAMBDA_AUTH_URL}/auth/token`);
+    expect(fetchUrl).not.toContain('evil');
   });
 
   it('uses chrome.identity.getRedirectURL as redirectUri in token exchange', async () => {

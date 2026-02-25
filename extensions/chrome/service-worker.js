@@ -8,6 +8,9 @@ const API_ENDPOINT = "https://api.aletheia.study/";
 // [#95] Client version for Lambda header validation (Issue #349: moved from WAF to Lambda)
 const CLIENT_VERSION = "1.0";
 
+// Issue #480: Auth Lambda URL (hardcoded — never trust popup-provided URLs for fetch)
+const LAMBDA_AUTH_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws';
+
 // Issue #402: Auth header injection
 async function getAuthHeaders() {
     const session = await chrome.storage.session.get(['jwt']);
@@ -298,8 +301,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'START_OAUTH') {
         (async () => {
             try {
-                const { authUrl, state, lambdaAuthUrl } = message;
+                const { authUrl, state } = message;
                 const redirectUri = chrome.identity.getRedirectURL();
+
+                // Clear any previous auth error
+                await chrome.storage.session.remove(['authError']);
 
                 // Respond immediately — popup may close when auth window opens
                 try {
@@ -322,23 +328,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 if (error) {
                     console.error('[Aletheia Auth SW] OAuth error:', error);
+                    await chrome.storage.session.set({ authError: `LinkedIn error: ${error}` });
                     return;
                 }
 
                 if (!code) {
                     console.error('[Aletheia Auth SW] No authorization code received');
+                    await chrome.storage.session.set({ authError: 'No authorization code received' });
                     return;
                 }
 
                 // Validate CSRF state
                 if (returnedState !== state) {
                     console.error('[Aletheia Auth SW] CSRF detected: state mismatch');
+                    await chrome.storage.session.set({ authError: 'Security validation failed. Please try again.' });
                     return;
                 }
 
-                // Exchange code for tokens
+                // Exchange code for tokens (use hardcoded LAMBDA_AUTH_URL, not popup-provided)
                 console.log('[Aletheia Auth SW] Exchanging code for tokens...');
-                const tokenResponse = await fetch(`${lambdaAuthUrl}/auth/token`, {
+                const tokenResponse = await fetch(`${LAMBDA_AUTH_URL}/auth/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -349,7 +358,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 if (!tokenResponse.ok) {
                     const errorData = await tokenResponse.json().catch(() => ({}));
-                    console.error('[Aletheia Auth SW] Token exchange failed:', errorData.error || tokenResponse.status);
+                    const errorMsg = errorData.error || `Token exchange failed (${tokenResponse.status})`;
+                    console.error('[Aletheia Auth SW] Token exchange failed:', errorMsg);
+                    await chrome.storage.session.set({ authError: errorMsg });
                     return;
                 }
 
@@ -371,6 +382,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 console.log('[Aletheia Auth SW] Login successful:', tokenData.user.name);
             } catch (error) {
                 console.error('[Aletheia Auth SW] OAuth flow failed:', error);
+                // User cancelled or network error — store for popup to read
+                const msg = error.message || 'Login failed';
+                // Don't store "cancelled" as an error — it's intentional
+                if (!msg.includes('canceled') && !msg.includes('cancelled')) {
+                    await chrome.storage.session.set({ authError: msg });
+                }
             }
         })();
         return true; // Will respond asynchronously
