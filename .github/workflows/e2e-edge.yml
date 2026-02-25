@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15  # Prevent stalled browser hangs
     # Warn-only initially - remove after baseline established
-    continue-on-error: true
+    continue-on-error: true  # ref #455 — remove after exit criteria met
 
     steps:
       - uses: actions/checkout@v6
