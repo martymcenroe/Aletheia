@@ -255,7 +255,7 @@ describe('extractArticleContent', () => {
   // is not supported. The actual extraction logic is tested via E2E tests
   // in tests/e2e/. See: https://github.com/jsdom/jsdom/issues/1245
 
-  it.skip('should return a string type (requires browser innerText)', () => {
+  it.skip('should return a string type (requires browser innerText)', () => { // ref #456
     // This test requires real browser innerText support
     // Tested via E2E in tests/e2e/full-article.spec.js
   });
@@ -268,7 +268,7 @@ describe('extractArticleContent', () => {
     expect(result).toBe('');
   });
 
-  it.skip('should not throw on complex HTML structure (requires browser innerText)', () => {
+  it.skip('should not throw on complex HTML structure (requires browser innerText)', () => { // ref #456
     // This test requires real browser innerText support
     // Tested via E2E in tests/e2e/full-article.spec.js
   });
