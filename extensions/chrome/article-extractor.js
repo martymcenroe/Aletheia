@@ -18,9 +18,10 @@ const MAX_ARTICLE_CHARS = 10000; // ~2500 tokens
 const PII_PATTERNS = {
     // Email: user@domain.tld
     email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
-    // Phone: US formats only, simplified pattern to avoid ReDoS
-    // Matches: 555-123-4567, (555) 123-4567, 555.123.4567
-    phone: /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/g,
+    // Phone: US formats, simplified pattern to avoid ReDoS
+    // Matches: 555-123-4567, (555) 123-4567, 555.123.4567, +1-555-123-4567
+    // eslint-disable-next-line security/detect-unsafe-regex -- linear alternation, no nested quantifiers
+    phone: /(?:\+1[-.\s]?)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}/g,
 };
 
 // =============================================================================
