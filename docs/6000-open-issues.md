@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
 **Generated:** 2026-01-11 20:01 CT
-**Total Open Issues:** 3
+**Total Open Issues:** 4
 
 ---
 
@@ -286,5 +286,60 @@ The landing page now links to `docs/context.html` from the Context-Aware feature
 ---
 
 Created from landing page work (Issue #81)
+
+---
+
+## Issue #312: Security: Patch Denial-of-Wallet Vulnerabilities
+
+**Labels:** security, bug
+
+**Created:** 2026-02-25
+**Updated:** 2026-02-25
+
+### Description
+
+## Objective
+Implement patches for two high-severity Denial-of-Wallet vulnerabilities identified in the rate-limiting and authentication middleware systems.
+
+## UX Flow
+
+### Scenario 1: Database Outage (Fail-Closed)
+1. System experiences DynamoDB outage.
+2. User from any tier attempts to use the API.
+3. System responds with 503 "Service temporarily unavailable".
+4. Result: Prevents uncontrolled costs during the outage.
+
+### Scenario 2: Deep Poetic Analysis Rate Limiting
+1. User invokes the `deep_poetic_analysis` action (which uses the expensive Opus model).
+2. The rate limiter identifies the action and applies a higher token weight (e.g., 5).
+3. Result: Quota is accurately consumed based on the cost of the model used, preventing rapid Bedrock credit exhaustion.
+
+## Requirements
+
+### Fail-Closed Architecture
+1. The `_handle_dynamo_error` function in `src/auth/token_cap_service.py` must fail closed for all tiers (free, subscriber, admin) during a database error.
+
+### Request Weighting
+1. The rate-limiting counter `MultiWindowCounter` must accept a `weight` parameter and decrement the cap limit accordingly.
+2. `require_auth` in `src/auth/auth_middleware.py` must inspect the body to determine request weight depending on the action (`deep_poetic_analysis`).
+
+## Technical Approach
+- **token_cap_service.py:** Modify `check_and_increment` to accept a `weight` parameter and update the DynamoDB `ConditionExpression` to use `:cap_limit` instead of `:cap`. Modify `_handle_dynamo_error` to fail closed for all tiers.
+- **auth_middleware.py:** Parse the request body in `require_auth` to determine the action type. If `deep_poetic_analysis`, pass a weight of 5 to `check_rate_limit`.
+- **test_multi_window_counter.py:** Update boundary tests to assert against `:cap_limit` and update the fail-open tests for subscriber/admin tiers to assert fail-closed behavior.
+
+## Security Considerations
+These changes directly remediate Denial-of-Wallet vulnerabilities, preventing financial exhaustion via abuse of expensive models or during database outages.
+
+## Files to Modify
+- `src/auth/token_cap_service.py` — Implement weighting and fail-closed logic.
+- `src/auth/auth_middleware.py` — Pass request weight based on action.
+- `tests/unit/test_multi_window_counter.py` — Update tests for new logic.
+
+## Acceptance Criteria
+- [ ] `check_and_increment` correctly applies the `weight` parameter to the DynamoDB transaction.
+- [ ] Database errors result in a 503 response for all tiers.
+- [ ] `deep_poetic_analysis` actions consume 5 tokens instead of 1.
+- [ ] All unit tests pass.
 
 ---
