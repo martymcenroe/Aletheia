@@ -416,13 +416,31 @@ async function handleLoginClick() {
     loginButton.textContent = 'Signing in...';
     loginError.style.display = 'none';
 
-    const user = await window.AletheiaAuth.initiateLogin();
+    // Issue #480: initiateLogin delegates to service worker.
+    // If the popup closes while auth window is open, the service worker
+    // continues the flow. When popup reopens, init() will find stored tokens.
+    const result = await window.AletheiaAuth.initiateLogin();
 
-    // Update user bar and proceed to main flow
-    userName.textContent = user.name;
+    if (result && result.pending) {
+      // SW is handling OAuth asynchronously — auth window is open.
+      // Popup may close when user interacts with auth window.
+      // If popup stays open, show status message.
+      loginButton.textContent = 'Complete sign-in...';
+      return;
+    }
+
+    // If we get here, flow completed synchronously (mock mode)
+    userName.textContent = result.name;
     await checkAgeGate();
 
   } catch (error) {
+    // If the error is about the message channel closing (popup closing),
+    // that's fine — the service worker will finish the flow
+    if (error.message && error.message.includes('disconnected')) {
+      console.log('[Aletheia] Popup closing — service worker will complete OAuth');
+      return;
+    }
+
     console.error('[Aletheia] Login failed:', error);
     loginError.textContent = error.message || 'Login failed. Please try again.';
     loginError.style.display = 'block';

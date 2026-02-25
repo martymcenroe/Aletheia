@@ -292,6 +292,90 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // Will respond asynchronously
     }
 
+    // Issue #480: OAuth flow — call launchWebAuthFlow from SW context
+    // Popup dies when auth window opens (MV3 behavior), so the SW must own the flow.
+    // Same pattern as Firefox #396 but simpler: launchWebAuthFlow returns redirect URL directly.
+    if (message.type === 'START_OAUTH') {
+        (async () => {
+            try {
+                const { authUrl, state, lambdaAuthUrl } = message;
+                const redirectUri = chrome.identity.getRedirectURL();
+
+                // Respond immediately — popup may close when auth window opens
+                try {
+                    sendResponse({ success: true, pending: true });
+                } catch (_e) {
+                    // Popup already closed — expected behavior
+                }
+
+                // Launch OAuth flow (blocks until user completes auth)
+                const responseUrl = await chrome.identity.launchWebAuthFlow({
+                    url: authUrl,
+                    interactive: true
+                });
+
+                // Parse response
+                const url = new URL(responseUrl);
+                const returnedState = url.searchParams.get('state');
+                const code = url.searchParams.get('code');
+                const error = url.searchParams.get('error');
+
+                if (error) {
+                    console.error('[Aletheia Auth SW] OAuth error:', error);
+                    return;
+                }
+
+                if (!code) {
+                    console.error('[Aletheia Auth SW] No authorization code received');
+                    return;
+                }
+
+                // Validate CSRF state
+                if (returnedState !== state) {
+                    console.error('[Aletheia Auth SW] CSRF detected: state mismatch');
+                    return;
+                }
+
+                // Exchange code for tokens
+                console.log('[Aletheia Auth SW] Exchanging code for tokens...');
+                const tokenResponse = await fetch(`${lambdaAuthUrl}/auth/token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: code,
+                        redirectUri: redirectUri
+                    })
+                });
+
+                if (!tokenResponse.ok) {
+                    const errorData = await tokenResponse.json().catch(() => ({}));
+                    console.error('[Aletheia Auth SW] Token exchange failed:', errorData.error || tokenResponse.status);
+                    return;
+                }
+
+                const tokenData = await tokenResponse.json();
+
+                // Store tokens
+                await chrome.storage.session.set({
+                    accessToken: tokenData.accessToken,
+                    expiresAt: Date.now() + (tokenData.expiresIn * 1000),
+                    jwt: tokenData.jwt || null
+                });
+
+                await chrome.storage.local.set({
+                    refreshToken: tokenData.refreshToken,
+                    userId: tokenData.user.id,
+                    displayName: tokenData.user.name
+                });
+
+                console.log('[Aletheia Auth SW] Login successful:', tokenData.user.name);
+            } catch (error) {
+                console.error('[Aletheia Auth SW] OAuth flow failed:', error);
+            }
+        })();
+        return true; // Will respond asynchronously
+    }
+
     return false;
 });
 

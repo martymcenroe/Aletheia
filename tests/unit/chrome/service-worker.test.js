@@ -690,3 +690,213 @@ describe('Error Handling (Issue #391)', () => {
     });
   });
 });
+
+// ============================================================================
+// START_OAUTH HANDLER TESTS (Issue #480 — SW OAuth Migration)
+// ============================================================================
+
+describe('START_OAUTH Handler (Issue #480)', () => {
+  let env;
+  const AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization?client_id=test&state=test-state-123';
+  const CSRF_STATE = 'test-state-123';
+  const LAMBDA_AUTH_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws';
+
+  beforeEach(() => {
+    env = createServiceWorkerEnvironment();
+  });
+
+  afterEach(() => {
+    cleanupEnvironment();
+  });
+
+  it('responds with { success: true, pending: true }', async () => {
+    const { chromeMock } = env;
+
+    const response = await chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    expect(response).toBeDefined();
+    expect(response.success).toBe(true);
+    expect(response.pending).toBe(true);
+  });
+
+  it('calls chrome.identity.launchWebAuthFlow', async () => {
+    const { chromeMock } = env;
+
+    chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(chromeMock.identity.launchWebAuthFlow).toHaveBeenCalledWith({
+      url: AUTH_URL,
+      interactive: true
+    });
+  });
+
+  it('exchanges code for tokens and stores them', async () => {
+    const { chromeMock } = env;
+
+    // Mock token exchange endpoint
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresIn: 3600,
+        jwt: 'new-jwt-token',
+        user: { id: 'user-123', name: 'Test User' }
+      })
+    });
+
+    chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Verify token exchange fetch
+    expect(global.fetch).toHaveBeenCalledWith(
+      `${LAMBDA_AUTH_URL}/auth/token`,
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+
+    // Verify tokens stored in session storage
+    expect(chromeMock.storage.session.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'new-access-token',
+        jwt: 'new-jwt-token'
+      })
+    );
+
+    // Verify user info stored in local storage
+    expect(chromeMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refreshToken: 'new-refresh-token',
+        userId: 'user-123',
+        displayName: 'Test User'
+      })
+    );
+  });
+
+  it('validates CSRF state before token exchange', async () => {
+    const { chromeMock } = env;
+
+    // Configure mock to return mismatched state
+    chromeMock.__setOAuthReturnedState('WRONG-STATE');
+
+    global.fetch = vi.fn();
+
+    chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Token exchange should NOT have been called
+    expect(global.fetch).not.toHaveBeenCalled();
+
+    // No access tokens stored
+    const sessionSetCalls = chromeMock.storage.session.set.mock.calls;
+    const hasAccessToken = sessionSetCalls.some(call =>
+      call[0] && call[0].accessToken !== undefined
+    );
+    expect(hasAccessToken).toBe(false);
+  });
+
+  it('handles launchWebAuthFlow failure (user cancelled)', async () => {
+    const { chromeMock } = env;
+
+    // Make OAuth flow fail
+    chromeMock.__setOAuthShouldFail(true);
+
+    global.fetch = vi.fn();
+
+    chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Token exchange should NOT have been called
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('handles token exchange failure', async () => {
+    const { chromeMock } = env;
+
+    // Mock failed token exchange
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({ error: 'Internal server error' })
+    });
+
+    chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // No access tokens stored on failure
+    const sessionSetCalls = chromeMock.storage.session.set.mock.calls;
+    const hasAccessToken = sessionSetCalls.some(call =>
+      call[0] && call[0].accessToken !== undefined
+    );
+    expect(hasAccessToken).toBe(false);
+  });
+
+  it('uses chrome.identity.getRedirectURL as redirectUri in token exchange', async () => {
+    const { chromeMock } = env;
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        expiresIn: 3600,
+        jwt: 'jwt',
+        user: { id: 'u1', name: 'User' }
+      })
+    });
+
+    chromeMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Verify the token exchange uses the Chrome redirect URL
+    const fetchCall = global.fetch.mock.calls[0];
+    const body = JSON.parse(fetchCall[1].body);
+    expect(body.redirectUri).toBe('https://mock-extension-id-12345.chromiumapp.org/');
+  });
+});
