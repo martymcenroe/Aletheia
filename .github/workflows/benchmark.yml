@@ -55,10 +55,10 @@ jobs:
           retention-days: 30
 
       # Warn-only mode per LLD: 50% threshold initially
-      # TODO: Tighten to 20% after baseline established
+      # ref #461 — tighten to 20% after 10 consecutive stable runs
       - name: Check for regressions (warn only)
         if: always()
         run: |
           echo "::notice::Benchmark complete. Results saved to artifacts."
-          echo "::notice::Regression detection in 'warn only' mode per LLD."
+          echo "::notice::Regression detection in 'warn only' mode (ref #461)."
           echo "::notice::Review benchmark-results.json for latency metrics."
