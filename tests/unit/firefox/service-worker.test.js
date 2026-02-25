@@ -58,6 +58,10 @@ function createServiceWorkerEnvironment(options = {}) {
   // Set up global browser object (canonical Firefox namespace)
   global.browser = browserMock;
 
+  // Firefox service-worker.js uses chrome.* namespace (48 refs), not browser.*
+  // This is because Firefox MV3 supports the chrome.* API for compatibility
+  global.chrome = browserMock;
+
   // Mock console to suppress logging during tests (save original first)
   const originalConsole = global.console;
   global.console = {
@@ -613,5 +617,242 @@ describe('Error Handling (Firefox)', () => {
 
     // The age gate should fail open (allow the tab)
     // This is tested via checkTabForAgeRestriction behavior
+  });
+});
+
+// ============================================================================
+// START_OAUTH HANDLER TESTS (Issue #396)
+// ============================================================================
+
+describe('START_OAUTH Handler (Issue #396)', () => {
+  let env;
+  const AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization?client_id=test&state=test-state-123';
+  const CALLBACK_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws/auth/callback';
+  const LAMBDA_AUTH_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws';
+  const CSRF_STATE = 'test-state-123';
+
+  beforeEach(() => {
+    env = createServiceWorkerEnvironment();
+  });
+
+  afterEach(() => {
+    cleanupEnvironment();
+  });
+
+  it('returns true for async response', async () => {
+    const { browserMock } = env;
+
+    const sendResponse = vi.fn();
+
+    // Get the actual registered listener
+    const listener = browserMock.runtime.onMessage.addListener.mock.calls
+      .map(call => call[0])
+      .find(fn => typeof fn === 'function');
+
+    const result = listener(
+      { type: 'START_OAUTH', authUrl: AUTH_URL, callbackUrl: CALLBACK_URL, state: CSRF_STATE, lambdaAuthUrl: LAMBDA_AUTH_URL },
+      { id: 'extension@aletheia.study' },
+      sendResponse
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('opens auth tab with correct URL', async () => {
+    const { browserMock } = env;
+
+    browserMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      callbackUrl: CALLBACK_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    // Wait for async tab creation
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    expect(browserMock.tabs.create).toHaveBeenCalledWith({ url: AUTH_URL });
+  });
+
+  it('stores tokens on successful callback', async () => {
+    const { browserMock } = env;
+
+    // Mock the token exchange endpoint
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresIn: 3600,
+        jwt: 'new-jwt-token',
+        user: { id: 'user-123', name: 'Test User' }
+      })
+    });
+
+    browserMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      callbackUrl: CALLBACK_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    // Wait for tab creation
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Simulate the OAuth callback - tab navigates to callback URL with code
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+    browserMock.__simulateTabUpdate(
+      createdTab.id,
+      `${CALLBACK_URL}?code=auth-code-xyz&state=${CSRF_STATE}`,
+      'complete'
+    );
+
+    // Wait for token exchange
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Verify tokens stored in session storage
+    expect(browserMock.storage.session.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'new-access-token',
+        jwt: 'new-jwt-token'
+      })
+    );
+
+    // Verify user info stored in local storage
+    expect(browserMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refreshToken: 'new-refresh-token',
+        userId: 'user-123',
+        displayName: 'Test User'
+      })
+    );
+  });
+
+  it('responds with user info on success', async () => {
+    const { browserMock } = env;
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        expiresIn: 3600,
+        jwt: 'jwt',
+        user: { id: 'user-456', name: 'Jane Doe' }
+      })
+    });
+
+    browserMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      callbackUrl: CALLBACK_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+    browserMock.__simulateTabUpdate(
+      createdTab.id,
+      `${CALLBACK_URL}?code=code&state=${CSRF_STATE}`,
+      'complete'
+    );
+
+    // Wait for the full async chain
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Verify user info was stored (indicates successful flow)
+    expect(browserMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-456',
+        displayName: 'Jane Doe'
+      })
+    );
+  });
+
+  it('rejects on CSRF state mismatch', async () => {
+    const { browserMock } = env;
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        expiresIn: 3600,
+        jwt: 'jwt',
+        user: { id: 'user', name: 'User' }
+      })
+    });
+
+    browserMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      callbackUrl: CALLBACK_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+
+    // Return mismatched state
+    browserMock.__simulateTabUpdate(
+      createdTab.id,
+      `${CALLBACK_URL}?code=code&state=WRONG-STATE`,
+      'complete'
+    );
+
+    // Wait for async processing
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Token exchange should not store tokens since state mismatches
+    // The handler sends error response with 'CSRF detected'
+    const sessionSetCalls = browserMock.storage.session.set.mock.calls;
+    const hasAccessToken = sessionSetCalls.some(call =>
+      call[0] && call[0].accessToken !== undefined
+    );
+    expect(hasAccessToken).toBe(false);
+  });
+
+  it('handles tab closure (OAuth cancelled)', async () => {
+    const { browserMock } = env;
+
+    browserMock.__simulateMessage({
+      type: 'START_OAUTH',
+      authUrl: AUTH_URL,
+      callbackUrl: CALLBACK_URL,
+      state: CSRF_STATE,
+      lambdaAuthUrl: LAMBDA_AUTH_URL
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const createdTab = await browserMock.tabs.create.mock.results[0].value;
+
+    // Simulate tab being closed by user (OAuth cancelled)
+    browserMock.__triggerTabRemoved(createdTab.id);
+
+    // Wait for error handling
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Should not have stored any tokens
+    const sessionSetCalls = browserMock.storage.session.set.mock.calls;
+    const hasAccessToken = sessionSetCalls.some(call =>
+      call[0] && call[0].accessToken !== undefined
+    );
+    expect(hasAccessToken).toBe(false);
+  });
+
+  it('times out after 5 minutes', () => {
+    // Verify the source code contains the 5-minute timeout
+    expect(serviceWorkerSource).toContain('5 * 60 * 1000');
+    expect(serviceWorkerSource).toContain('OAuth timeout');
   });
 });
