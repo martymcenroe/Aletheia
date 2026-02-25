@@ -34,8 +34,9 @@ test.describe('Visual Regression POC (#173)', () => {
     test('010: Test fixture page - baseline/comparison', async ({ page }) => {
         // Skip on Linux CI if no Linux baseline exists (Windows baselines won't match)
         // Bypass skip when --update-snapshots is active so baselines can be generated
+        // (bare --update-snapshots sets updateSnapshots to 'changed', not 'all')
         if (process.platform === 'linux' && !hasLinuxBaseline('test-fixture-header.png')) {
-            if (test.info().config.updateSnapshots !== 'all') {
+            if (test.info().config.updateSnapshots === 'missing') {
                 test.skip(true, 'Linux baseline not yet generated - run with --update-snapshots');
                 return;
             }
@@ -59,7 +60,7 @@ test.describe('Visual Regression POC (#173)', () => {
     test('020: Full page screenshot - baseline/comparison', async ({ page }) => {
         // Skip on Linux CI if no Linux baseline exists
         if (process.platform === 'linux' && !hasLinuxBaseline('test-fixture-fullpage.png')) {
-            if (test.info().config.updateSnapshots !== 'all') {
+            if (test.info().config.updateSnapshots === 'missing') {
                 test.skip(true, 'Linux baseline not yet generated - run with --update-snapshots');
                 return;
             }
@@ -82,7 +83,7 @@ test.describe('Visual Regression POC (#173)', () => {
     test('030: Extension loaded - verify extension injects content', async ({ page }) => {
         // Skip on Linux CI if no Linux baseline exists
         if (process.platform === 'linux' && !hasLinuxBaseline('page-with-extension.png')) {
-            if (test.info().config.updateSnapshots !== 'all') {
+            if (test.info().config.updateSnapshots === 'missing') {
                 test.skip(true, 'Linux baseline not yet generated - run with --update-snapshots');
                 return;
             }
