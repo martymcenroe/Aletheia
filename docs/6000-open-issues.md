@@ -1,7 +1,7 @@
 # Aletheia - Open Issues
 
 **Generated:** 2026-02-25 CT
-**Total Open Issues:** 15
+**Total Open Issues:** 16
 
 ---
 
@@ -341,5 +341,52 @@ These changes directly remediate Denial-of-Wallet vulnerabilities, preventing fi
 - [ ] Database errors result in a 503 response for all tiers.
 - [ ] `deep_poetic_analysis` actions consume 5 tokens instead of 1.
 - [ ] All unit tests pass.
+
+---
+
+## Issue #313: Refactor Test Strategy & Add Real AWS Emulation Coverage
+
+**Labels:** tech-debt, testing, critical
+
+**Created:** 2026-02-25
+**Updated:** 2026-02-25
+
+### Description
+
+## Objective
+Ruthlessly eliminate brittle `MagicMock` usage in unit/integration tests and resolve the completely broken Docker `testcontainers` integration to establish a reliable, high-fidelity testing strategy.
+
+## Problem
+The current testing strategy suffers from multiple severe flaws:
+1. **Broken Integrations:** The `testcontainers-python` integration tests are completely non-functional on Windows environments lacking a direct exposed Docker daemon, failing all 43 tests. This means we have *zero* working integration coverage for DynamoDB interactions.
+2. **"Lying" Mocks:** The unit tests (especially `tests/unit/test_lambda_auth.py` and others) use `unittest.mock.patch` to return `MagicMock` objects for complex Boto3/DynamoDB calls. Mocks don't validate schemas, query structures, or state, allowing the system to pass tests while potentially failing in reality.
+3. **Abysmal Coverage:** Critical components lack sufficient coverage because mocks are too difficult/fragile to set up for complex flows:
+    - `src/lambda_auth_function.py`: 37%
+    - `src/signal_inspector/reporter.py`: 14%
+    - `src/signal_inspector/fetcher.py`: 60%
+
+## Requirements
+
+### Emulate Real Infrastructure
+1. Integrate `moto` (Mock Boto3) as a dev dependency to replace generic mocks with true AWS emulators. `moto` enforces actual DynamoDB and Bedrock API contracts in memory without requiring Docker.
+
+### Fix the Broken Integration Suite
+1. Refactor `tests/integration/conftest.py` to strip the broken `testcontainers-python` dependency.
+2. Use `moto` to boot an in-memory DynamoDB instance during integration tests.
+
+### Eradicate MagicMocks in Auth Tests
+1. Refactor `tests/unit/test_lambda_auth.py` to replace all `with patch(...)` DynamoDB calls with the `moto` emulator.
+2. Increase the test coverage of `src/lambda_auth_function.py` from 37% to >90% using the newly robust testing framework.
+
+## Technical Approach
+- Add `moto` via `poetry add --group dev moto`.
+- Update `tests/integration/conftest.py` to yield a `moto` mock_dynamodb client instead of a Docker container host IP.
+- Sweep `test_lambda_auth.py` and replace `MagicMock` boilerplate with `@mock_aws` decorators and standard Boto3 setup logic.
+
+## Acceptance Criteria
+- [ ] `moto` is added as a development dependency.
+- [ ] All 43 integration tests pass successfully in environments without Docker Desktop.
+- [ ] `tests/unit/test_lambda_auth.py` no longer utilizes `patch` for Boto3/DynamoDB clients.
+- [ ] Coverage for `src/lambda_auth_function.py` increases significantly (>80%).
 
 ---
