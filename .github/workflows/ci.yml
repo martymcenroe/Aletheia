@@ -279,6 +279,8 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
 
       - name: Cache Playwright binaries
         uses: actions/cache@v5
