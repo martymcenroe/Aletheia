@@ -137,6 +137,16 @@
 
       <p class="discworld-aside">Much like the Unseen University Library, where every book must pass through several layers of cataloguing before reaching the shelves &mdash; and the Librarian knows exactly where each one belongs &mdash; every request is filed, classified, and stored with precision. Ook.</p>
 
+      <h2>Context &amp; Memory Strategy</h2>
+      <p>Aletheia uses request-scoped context enrichment, not conversational memory. When a user selects text, the extension captures a context bundle of three signals:</p>
+      <ul>
+        <li><strong>The selection</strong> &mdash; the word or phrase the user highlighted</li>
+        <li><strong>Surrounding text</strong> &mdash; the enclosing paragraph and nearby sentences</li>
+        <li><strong>Page metadata</strong> &mdash; the URL and document context</li>
+      </ul>
+      <p>This bundle is the entire input to the model. A dictionary gives you every meaning of "cell" &mdash; Aletheia gives you the biological meaning because it can see "mitochondria" in the surrounding text. The context window is deliberately bounded to the visible page rather than accumulated across sessions.</p>
+      <p>DynamoDB stores each request with a 30-day TTL for conversation history features, but there is no cross-session memory or user profile building. This is a privacy decision as much as an architectural one: the system never knows what you were reading yesterday. The user's browser already has all the context the model needs; the system's job is to capture it faithfully and pass it through.</p>
+
       <h2>Model Selection</h2>
       <p>The system supports two models with automatic fallback:</p>
       <ul>
@@ -185,6 +195,15 @@
 
       <h3>Why separate auth Lambda?</h3>
       <p>Blast radius isolation. If the auth system has a bug, the core analysis pipeline keeps working for unauthenticated users. If the analysis pipeline has a bug, users can still authenticate. Neither failure mode takes down both capabilities.</p>
+
+      <h3>Why no RAG or vector database?</h3>
+      <p>Aletheia generates etymological and contextual analysis from the model's parametric knowledge, grounded by the context bundle from the user's browser. There is no retrieval step and no vector database because:</p>
+      <ul>
+        <li><strong>The knowledge source is stable</strong> &mdash; language, etymology, and usage patterns are exactly the kind of broad, well-established knowledge that large language models encode well during training</li>
+        <li><strong>The grounding signal comes from the page</strong> &mdash; the surrounding text provides the context that disambiguates meaning, eliminating the need to retrieve similar passages from a corpus</li>
+        <li><strong>The cost doesn't justify it</strong> &mdash; a vector store adds infrastructure, latency, and a maintenance burden for marginal quality improvement on a task the model already handles well</li>
+      </ul>
+      <p>RAG is the right tool when the model lacks domain knowledge or when the knowledge changes faster than the model can be retrained. Neither applies here. Knowing when <em>not</em> to add infrastructure is as important as knowing how to build it.</p>
 
       <h3>Why CloudFlare Worker instead of API Gateway?</h3>
       <p>Cost. API Gateway charges per request. CloudFlare Workers have a generous free tier and provide edge-level rate limiting, DDoS protection, and SSL termination at no additional cost. The Worker also rewrites the Host header and injects a shared secret, acting as a lightweight authentication proxy.</p>

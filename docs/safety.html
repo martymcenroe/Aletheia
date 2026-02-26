@@ -146,6 +146,38 @@
       </ul>
       <p>This is a deliberate tradeoff: brief periods of over-warning are preferable to brief periods of no safety checks at all.</p>
 
+      <h2>Hallucination Prevention</h2>
+      <p>Hallucination risk is managed through three complementary mechanisms:</p>
+      <ul>
+        <li><strong>Constrained output format:</strong> The model generates structured JSON with specific fields (etymology, context explanation, category scores), not free-form text. A structured format reduces the surface area for hallucination because the model is filling defined slots, not inventing narrative.</li>
+        <li><strong>Context grounding:</strong> Every request includes the surrounding paragraph from the page the user is reading, which anchors the model's response to observable text rather than parametric recall alone. The model explains what a word means <em>here</em>, not what it might mean in general.</li>
+        <li><strong>Confidence-based gating:</strong> The semantic classifier returns confidence scores across all taxonomy categories. Low-confidence scores across the board signal an unreliable generation. When the classifier itself fails (timeout, model error), the system fails closed with a soft block and an <code>is_fallback</code> flag rather than serving an unvalidated response.</li>
+      </ul>
+      <p>The design philosophy is that the model generates, the code decides whether the output is trustworthy enough to serve. At no point does the system pass through a model response without the code inspecting its structure and scores first.</p>
+
+      <h2>Model Quality Evaluation</h2>
+      <p>Quality evaluation happens at two levels:</p>
+      <h3>Model selection</h3>
+      <p>Amazon Nova Micro and Claude Haiku were benchmarked on the same workload. Nova Micro delivers ~532ms median latency at lower cost; Haiku delivers richer etymological analysis at ~1,469ms. Nova is the default with Haiku as automatic fallback, switchable via environment variable without code changes. The choice is configuration-driven, so model swaps require no code modifications.</p>
+      <h3>Output-level evaluation</h3>
+      <p>The semantic guardrail doubles as a quality evaluation layer. Every response passes through the five-category taxonomy, which returns confidence scores. These scores serve dual duty:</p>
+      <ul>
+        <li><strong>Safety gating:</strong> Scores drive block decisions (hard, soft, or pass-through)</li>
+        <li><strong>Quality signal:</strong> A response the classifier can't categorise cleanly indicates the generation may be unreliable</li>
+      </ul>
+      <p>Additional quality thresholds control output filtering:</p>
+      <table class="metric-table">
+        <thead>
+          <tr><th>Threshold</th><th>Value</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Score display</td><td>15%</td><td>Suppress low-confidence category scores from the response</td></tr>
+          <tr><td>Poetic resonance</td><td>60%</td><td>Gate access to the "Explore Deeper Meaning" feature</td></tr>
+          <tr><td>Max tokens</td><td>500</td><td>Bound output length to prevent runaway generation</td></tr>
+        </tbody>
+      </table>
+      <p>The adversarial test suite (eight attack vectors across three pipeline layers) runs on every deployment, acting as an automated quality gate alongside the safety checks.</p>
+
       <h2>Age Gate</h2>
       <p>The extension checks for age-restricted content using HTML meta tags before sending any text to the API:</p>
       <ul>
