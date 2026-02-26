@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operations &amp; Cost Control - Aletheia</title>
+  <meta name="description" content="How Aletheia manages LLM costs, kill switches, rate limiting, and defense-in-depth for a production AI system.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/operations.html">
+  <meta property="og:title" content="Operations & Cost Control - Aletheia">
+  <meta property="og:description" content="How Aletheia manages LLM costs, kill switches, rate limiting, and defense-in-depth for a production AI system.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+          </div>
+        </div>
+        <a href="privacy.html" class="nav-link">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Operations &amp; Cost Control</h1>
+
+      <div class="highlight-box">
+        <strong>The problem:</strong> LLM APIs charge per token. A single runaway loop or DDoS can generate an unbounded bill. Every layer of the system is designed to prevent this &mdash; not just detect it after the fact.
+      </div>
+
+      <p class="discworld-aside">Lord Vetinari governs Ankh-Morpork not through force but through careful observation and the occasional, precise intervention. The city runs itself; he merely ensures nothing runs away with it. The same principle applies here.</p>
+
+      <h2>Three-Layer Kill Switch</h2>
+      <p>When something goes wrong, the system shuts itself down. Three independent mechanisms ensure that no single failure mode can result in unbounded spend:</p>
+
+      <div class="layer-diagram">
+        <div class="layer-item">
+          <div class="layer-number">1</div>
+          <div class="layer-content">
+            <strong>CloudWatch Alarm &rarr; Kill Switch Lambda</strong>
+            <span>If invocations exceed 100 in 5 minutes, an SNS notification triggers <code>AletheiaKillSwitch</code>, which sets Lambda concurrency to 0. All requests immediately return 503.</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">2</div>
+          <div class="layer-content">
+            <strong>AWS Budget Alarm</strong>
+            <span>Monthly budget threshold triggers notification and alerts. Independent of application code &mdash; works even if the Lambda itself is compromised.</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">3</div>
+          <div class="layer-content">
+            <strong>Manual Concurrency Override</strong>
+            <span><code>aws lambda put-function-concurrency --reserved-concurrent-executions 0</code> &mdash; the nuclear option, available via CLI script (<code>lambda-off.sh</code>).</span>
+          </div>
+        </div>
+      </div>
+
+      <p>Restoration is intentionally manual: <code>aws lambda delete-function-concurrency --function-name AletheiaAgent</code>. You don't want an auto-heal mechanism that might restore service during an active attack.</p>
+
+      <h2>Seven-Layer Defense in Depth</h2>
+      <p>Cost control isn't a single feature &mdash; it's seven independent layers, any one of which can stop a runaway bill:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>#</th><th>Layer</th><th>Mechanism</th><th>Fail Mode</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>CloudFlare Rate Limit</td><td>3 req / 10s / IP</td><td>429 at edge</td></tr>
+          <tr><td>2</td><td>Origin Secret</td><td>Shared secret in Worker</td><td>403 before compute</td></tr>
+          <tr><td>3</td><td>Input Validation</td><td>Max 20KB text, UTF-8</td><td>400 before LLM</td></tr>
+          <tr><td>4</td><td>Token Cap (Daily)</td><td>20 requests/day default</td><td>429 before LLM</td></tr>
+          <tr><td>5</td><td>Multi-Window Rate Limit</td><td>Hourly/Daily/Monthly DDB</td><td>429 before LLM</td></tr>
+          <tr><td>6</td><td>Kill Switch</td><td>Concurrency &rarr; 0</td><td>503 all requests</td></tr>
+          <tr><td>7</td><td>AWS Budget</td><td>Monthly spend threshold</td><td>Alert + manual action</td></tr>
+        </tbody>
+      </table>
+
+      <p>The key insight is that layers 1&ndash;5 prevent expensive operations from starting. They reject requests <em>before</em> Bedrock is invoked. Layer 6 stops everything after the fact. Layer 7 is the human-in-the-loop backstop.</p>
+
+      <h2>Real Cost Model</h2>
+      <p>LLM cost is often hand-waved. Here's the actual breakdown for a single Aletheia request using Nova Micro:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>Component</th><th>Cost per Request</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Bedrock (Nova Micro)</td><td>$0.000075</td><td>~100 tokens at $0.75/1M</td></tr>
+          <tr><td>Lambda compute</td><td>$0.000042</td><td>~700ms at 256MB</td></tr>
+          <tr><td>DynamoDB write</td><td>$0.0000125</td><td>1 WCU</td></tr>
+          <tr><td>X-Ray trace (5%)</td><td>$0.0000025</td><td>$0.000050 &times; 5% sampling</td></tr>
+          <tr><td>CloudWatch logs</td><td>$0.000005</td><td>~500 bytes/request</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>$0.000137</strong></td><td></td></tr>
+        </tbody>
+      </table>
+
+      <p>At 100 daily active users making 5 requests each: <strong>$2.10/month</strong>. At 1,000 DAU: $21/month. The cost model makes Aletheia viable as a free product &mdash; the ceiling is low enough that a kill switch at 100 invocations/5min provides a safety margin of orders of magnitude above normal traffic.</p>
+
+      <h2>Multi-Window Rate Limiting</h2>
+      <p>Rate limits use DynamoDB atomic transactions across three concurrent time windows:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>Window</th><th>Key Format</th><th>TTL</th><th>Reset</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Hourly</td><td><code>RATE#HOURLY#{ISO-hour}</code></td><td>2 hours</td><td>Next hour</td></tr>
+          <tr><td>Daily</td><td><code>RATE#DAILY#{ISO-date}</code></td><td>2 days</td><td>Midnight UTC</td></tr>
+          <tr><td>Monthly</td><td><code>RATE#MONTHLY#{YYYY-MM}</code></td><td>35 days</td><td>Billing anchor day</td></tr>
+        </tbody>
+      </table>
+
+      <p>All three windows are checked and incremented in a single DynamoDB <code>TransactWriteItems</code> call. If any window is at capacity, the request is rejected before the LLM is invoked. TTLs ensure expired counters are automatically cleaned up.</p>
+
+      <div class="code-block">
+        <span class="code-label">DynamoDB transactional rate limit (simplified)</span>
+<span class="code-comment"># Single atomic transaction checks all windows</span>
+<span class="code-keyword">response</span> = dynamodb.transact_write_items(
+    TransactItems=[
+        {   <span class="code-comment"># Hourly window</span>
+            <span class="code-string">"Update"</span>: {
+                <span class="code-string">"Key"</span>: {<span class="code-string">"pk"</span>: f<span class="code-string">"RATE#HOURLY#{hour_key}"</span>},
+                <span class="code-string">"ConditionExpression"</span>: <span class="code-string">"#count < :cap"</span>,
+                <span class="code-string">"UpdateExpression"</span>: <span class="code-string">"ADD #count :one SET #ttl = :ttl"</span>
+            }
+        },
+        {   <span class="code-comment"># Daily window</span>
+            <span class="code-string">"Update"</span>: { <span class="code-comment">/* same pattern */</span> }
+        },
+        {   <span class="code-comment"># Monthly window</span>
+            <span class="code-string">"Update"</span>: { <span class="code-comment">/* same pattern */</span> }
+        }
+    ]
+)
+<span class="code-comment"># If any ConditionExpression fails → TransactionCanceledException</span>
+<span class="code-comment"># → 429 returned, no Bedrock invocation</span>
+      </div>
+
+      <p>The fail mode is <strong>fail-closed</strong>: if DynamoDB is unreachable, requests are denied (503) rather than allowed through. This is a deliberate choice &mdash; a temporary denial of service is preferable to an unbounded bill.</p>
+
+      <h2>Feature Flags</h2>
+      <p>Operational controls are feature-flagged via Lambda environment variables, not code deploys:</p>
+      <ul>
+        <li><strong><code>AUTH_ENABLED</code></strong> &mdash; toggles JWT validation on the main pipeline</li>
+        <li><strong><code>MODEL_ID</code></strong> &mdash; switches between Nova Micro and Haiku without redeploy</li>
+        <li><strong><code>KILL_SWITCH_THRESHOLD</code></strong> &mdash; invocation count that triggers auto-shutdown</li>
+      </ul>
+      <p>Changing a feature flag requires updating the Lambda environment and waiting for the next cold start. There is no hot-reload &mdash; this is intentional. You want flag changes to be visible in deployment history, not silently applied.</p>
+
+      <h2>Post-Deploy Smoke Testing</h2>
+      <p>Every deployment runs a two-step verification:</p>
+      <ol>
+        <li><strong>Health check</strong>: <code>GET /health</code> &mdash; verifies Lambda is responsive and dependencies are reachable</li>
+        <li><strong>Analysis test</strong>: <code>POST /</code> with a known-safe test payload &mdash; verifies the full pipeline end-to-end, including Bedrock invocation</li>
+      </ol>
+      <p>If either fails, the deployment is considered broken. The CI pipeline runs these automatically after infrastructure provisioning.</p>
+
+      <h2>Rollback</h2>
+      <p>Lambda supports instant rollback to any previous version. The rollback procedure is documented in the cost incident response runbook and can be executed in under 60 seconds:</p>
+      <ol>
+        <li>Identify the last known-good version from Lambda version history</li>
+        <li>Update the function alias to point to that version</li>
+        <li>Run smoke tests to verify rollback succeeded</li>
+      </ol>
+      <p>No code redeploy required. No build pipeline. Just an AWS CLI command.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="observability.html">Observability</a>
+        <a href="safety.html">Safety</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

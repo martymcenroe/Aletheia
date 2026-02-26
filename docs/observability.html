@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Observability &amp; Monitoring - Aletheia</title>
+  <meta name="description" content="How Aletheia approaches observability for LLM systems: privacy-safe tracing, structured metrics, and component-level latency.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/observability.html">
+  <meta property="og:title" content="Observability & Monitoring - Aletheia">
+  <meta property="og:description" content="How Aletheia approaches observability for LLM systems: privacy-safe tracing, structured metrics, and component-level latency.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+          </div>
+        </div>
+        <a href="privacy.html" class="nav-link">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Observability &amp; Monitoring</h1>
+
+      <div class="highlight-box">
+        <strong>The constraint:</strong> NEVER log prompt text, user input, completion text, URLs, or user IDs. Observability for an LLM system must answer "is it working?" and "how much does it cost?" without ever seeing what users asked.
+      </div>
+
+      <p>Observability in LLM systems is fundamentally different from traditional web services. You can't just log request/response bodies &mdash; those contain user-generated text that may be sensitive. Every metric, trace annotation, and dashboard widget must be designed with the assumption that the content is private, while the operational metadata is not.</p>
+
+      <p class="discworld-aside">Like the Clacks towers of the Grand Trunk, every message carries overhead bytes recording its journey &mdash; how long each tower held it, which ones dropped it, the cost of the semaphore time &mdash; but the message itself is never read by the operators. GNU Terry Pratchett.</p>
+
+      <h2>X-Ray Distributed Tracing</h2>
+      <p>AWS X-Ray traces requests end-to-end across Lambda, DynamoDB, and Bedrock. Sampling is set at <strong>5%</strong> to balance visibility against cost.</p>
+
+      <h3>What we trace (safe)</h3>
+      <ul>
+        <li><strong>Annotations</strong> (searchable): <code>model_id</code>, <code>status</code>, <code>error_type</code></li>
+        <li><strong>Metadata</strong> (visible): <code>tokens_used</code>, <code>latency_ms</code>, Bedrock namespace details</li>
+        <li><strong>Subsegments</strong>: Custom spans for guardrails, Bedrock calls, DynamoDB writes</li>
+      </ul>
+
+      <h3>What we never trace</h3>
+      <ul>
+        <li>Prompt text or user selections</li>
+        <li>Model completions or generated content</li>
+        <li>Page URLs or user identifiers</li>
+        <li>Any dimension that could identify what a user was reading</li>
+      </ul>
+
+      <p>The X-Ray SDK is patched via <code>patch_all()</code> for automatic boto3 instrumentation. Custom subsegments wrap each pipeline stage so latency breakdowns show exactly where time is spent.</p>
+
+      <h2>CloudWatch Metrics (EMF)</h2>
+      <p>Six metrics are emitted via Embedded Metric Format (EMF) &mdash; structured log lines that CloudWatch automatically parses into queryable metrics, without the cost of PutMetricData API calls:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>Metric</th><th>Dimensions</th><th>Unit</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>RequestCount</code></td>
+            <td><code>[Tier]</code></td>
+            <td>Count</td>
+            <td>Total requests by user tier</td>
+          </tr>
+          <tr>
+            <td><code>CapUtilization</code></td>
+            <td><code>[Tier, Window]</code></td>
+            <td>Percent</td>
+            <td>How close users are to rate limits</td>
+          </tr>
+          <tr>
+            <td><code>CapDenied</code></td>
+            <td><code>[Tier]</code></td>
+            <td>Count</td>
+            <td>Requests rejected by rate limiting</td>
+          </tr>
+          <tr>
+            <td><code>BedrockCostEstimate</code></td>
+            <td>&mdash;</td>
+            <td>None (USD)</td>
+            <td>Per-request cost estimate</td>
+          </tr>
+          <tr>
+            <td><code>ErrorRate</code></td>
+            <td><code>[StatusCode]</code></td>
+            <td>Count</td>
+            <td>Errors by HTTP status code</td>
+          </tr>
+          <tr>
+            <td><code>Latency</code></td>
+            <td>&mdash;</td>
+            <td>Milliseconds</td>
+            <td>End-to-end request latency</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>All metrics land in the <code>Aletheia/API</code> namespace. Tier dimensions are validated against a fixed set (<code>free</code>, <code>subscriber</code>, <code>admin</code>, <code>pro</code>, <code>enterprise</code>) to prevent cardinality explosion from malformed JWTs.</p>
+
+      <h2>Component-Level Latency</h2>
+      <p>Each request records timing breakdowns across seven stages, returned in the API response for client-side diagnostics:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>Component</th><th>What it measures</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Input validation</td><td>Text checks, UTF-8 verification</td></tr>
+          <tr><td>Denylist check</td><td>HashSet lookup against term list</td></tr>
+          <tr><td>Semantic guardrail</td><td>LLM classification call</td></tr>
+          <tr><td>DynamoDB persist</td><td>Conditional write with TTL</td></tr>
+          <tr><td>Bedrock generation</td><td>Model invocation (dominant cost)</td></tr>
+          <tr><td>Score processing</td><td>Parse and threshold scores</td></tr>
+          <tr><td>Total</td><td>End-to-end Lambda execution</td></tr>
+        </tbody>
+      </table>
+
+      <h2>EMF Payload Structure</h2>
+      <p>Each metric is a structured JSON log line. CloudWatch extracts the <code>_aws</code> envelope automatically:</p>
+
+      <div class="code-block">
+        <span class="code-label">Embedded Metric Format (EMF) payload</span>
+{
+  <span class="code-string">"_aws"</span>: {
+    <span class="code-string">"Timestamp"</span>: <span class="code-number">1708900000000</span>,
+    <span class="code-string">"CloudWatchMetrics"</span>: [{
+      <span class="code-string">"Namespace"</span>: <span class="code-string">"Aletheia/API"</span>,
+      <span class="code-string">"Dimensions"</span>: [[<span class="code-string">"Tier"</span>]],
+      <span class="code-string">"Metrics"</span>: [{
+        <span class="code-string">"Name"</span>: <span class="code-string">"RequestCount"</span>,
+        <span class="code-string">"Unit"</span>: <span class="code-string">"Count"</span>
+      }]
+    }]
+  },
+  <span class="code-string">"Tier"</span>: <span class="code-string">"free"</span>,
+  <span class="code-string">"RequestCount"</span>: <span class="code-number">1</span>
+}
+      </div>
+
+      <h2>Client-Side Diagnostics</h2>
+      <p>The extension popup includes a diagnostics panel that shows:</p>
+      <ul>
+        <li>Extension version and browser type</li>
+        <li>Service worker status and last restart time</li>
+        <li>API endpoint connectivity</li>
+        <li>Auth state and token expiry (when auth is enabled)</li>
+        <li>Last request latency breakdown</li>
+      </ul>
+      <p>This lets users self-diagnose issues before filing a bug report, and gives the team immediate signal when debugging user-reported problems.</p>
+
+      <h2>Health Check</h2>
+      <p>The <code>/health</code> endpoint returns system status without invoking any LLM calls. It validates that the Lambda is responsive, DynamoDB is reachable, and the Bedrock client can be instantiated. This is the target for post-deploy smoke tests and uptime monitoring.</p>
+
+      <h2>Admin Metrics Dashboard</h2>
+      <p>The <code>/metrics</code> endpoint (admin-only) returns aggregate statistics: total requests, unique users, requests by tier, error rates, and cost estimates. No individual user data is exposed &mdash; all metrics are aggregated at the system level.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="operations.html">Operations</a>
+        <a href="safety.html">Safety</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

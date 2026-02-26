@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety &amp; Guardrails - Aletheia</title>
+  <meta name="description" content="How Aletheia implements responsible AI: two-layer guardrails, content classification, adversarial testing, and privacy-first data handling.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/safety.html">
+  <meta property="og:title" content="Safety & Guardrails - Aletheia">
+  <meta property="og:description" content="How Aletheia implements responsible AI: two-layer guardrails, content classification, adversarial testing, and privacy-first data handling.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+          </div>
+        </div>
+        <a href="privacy.html" class="nav-link">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Safety &amp; Guardrails</h1>
+
+      <div class="highlight-box">
+        <strong>Core principle:</strong> The LLM classifies; code enforces. Policy decisions &mdash; what to block, what to warn, what to allow &mdash; are never delegated to the model. The model's job is classification. The code's job is enforcement.
+      </div>
+
+      <p class="discworld-aside">The Librarian of Unseen University has a simple policy regarding the mistreatment of books: zero tolerance, applied instantly, with no appeals process. The books don't decide their own protection &mdash; the Librarian does. Our guardrails follow the same philosophy.</p>
+
+      <h2>Two-Layer Guardrail Pipeline</h2>
+      <p>Every request passes through two sequential guardrail layers before reaching the LLM. The layers are deliberately different in design: one is fast and deterministic, the other is slow and semantic. Together they provide both breadth and depth of coverage.</p>
+
+      <div class="layer-diagram">
+        <div class="layer-item">
+          <div class="layer-number">1</div>
+          <div class="layer-content">
+            <strong>Denylist (Deterministic)</strong>
+            <span>O(1) HashSet lookup against 802 terms. NFKC Unicode normalization + lowercase. Always returns hard block. Sub-millisecond.</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">2</div>
+          <div class="layer-content">
+            <strong>Semantic Classifier (LLM)</strong>
+            <span>Classifies text across a 5-category taxonomy. Returns confidence scores and block type. Catches what the denylist misses &mdash; context-dependent harm, euphemisms, evolving language.</span>
+          </div>
+        </div>
+      </div>
+
+      <p>Layer 1 runs first because it's free (no LLM call). If the denylist catches it, the semantic layer is never invoked. This saves cost on the most obvious violations.</p>
+
+      <h2>Three Block Types</h2>
+      <p>Not all flagged content is treated the same. The system distinguishes three response types:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>Block Type</th><th>HTTP Status</th><th>Behavior</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Hard</strong></td>
+            <td>403 Forbidden</td>
+            <td>No etymology generated. Request rejected.</td>
+            <td>Hate speech, slurs</td>
+          </tr>
+          <tr>
+            <td><strong>Soft</strong></td>
+            <td>200 OK + warning</td>
+            <td>Etymology generated with <code>"warning": true</code> flag.</td>
+            <td>Archaic terms, provocative language</td>
+          </tr>
+          <tr>
+            <td><strong>None</strong></td>
+            <td>200 OK</td>
+            <td>Normal response. No flag.</td>
+            <td>Standard vocabulary</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The soft block is the key design insight. A word like "wench" is archaic and potentially offensive, but it has legitimate etymological interest. Hard-blocking it would make the tool less useful. Soft-blocking it &mdash; generating the analysis but flagging it &mdash; lets the user see the content while acknowledging the sensitivity.</p>
+
+      <h2>Taxonomy</h2>
+      <p>The semantic classifier assigns confidence scores across five categories, each mapped to a block type:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>Category</th><th>Block Type</th><th>Definition</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Hate</td><td>Hard</td><td>Slurs dehumanizing identity groups</td></tr>
+          <tr><td>Archaic</td><td>Soft</td><td>Words dropped from standard usage before 1950</td></tr>
+          <tr><td>Provocative</td><td>Soft</td><td>Sexual slang, double entendre</td></tr>
+          <tr><td>Neologism</td><td>None</td><td>Words less than 2 years old</td></tr>
+          <tr><td>None</td><td>None</td><td>Safe, standard language</td></tr>
+        </tbody>
+      </table>
+
+      <p>The taxonomy is defined in a JSON configuration file, not hardcoded. Adding a new category requires updating the config and the prompt template &mdash; no code changes needed.</p>
+
+      <h2>Denylist Design</h2>
+      <p>The denylist contains 802 terms, ethically sourced from public Wikipedia lists:</p>
+      <ul>
+        <li><strong>616</strong> ethnic slurs</li>
+        <li><strong>55</strong> sexual slang terms</li>
+        <li><strong>35</strong> profanity terms</li>
+        <li>Additional terms from other categories</li>
+      </ul>
+      <p>Input is normalized via NFKC Unicode normalization (to defeat homoglyph attacks) and lowercased before lookup. Tokenization uses regex word boundaries (<code>\w+</code>), so "don't" is checked as two tokens: "don" and "t".</p>
+      <p>The denylist is an O(1) HashSet, not a linear scan. Lookup time is constant regardless of list size.</p>
+
+      <h2>Semantic Classifier Error Handling</h2>
+      <p>When the semantic LLM call fails (timeout, throttling, model error), the system <strong>fails closed</strong>: it applies a soft block with <code>"is_fallback": true</code>. This means:</p>
+      <ul>
+        <li>The etymology is still generated (so the user gets value)</li>
+        <li>The warning flag is set (so the client can indicate uncertainty)</li>
+        <li>The fallback is logged for operational visibility</li>
+      </ul>
+      <p>This is a deliberate tradeoff: brief periods of over-warning are preferable to brief periods of no safety checks at all.</p>
+
+      <h2>Age Gate</h2>
+      <p>The extension checks for age-restricted content using HTML meta tags before sending any text to the API:</p>
+      <ul>
+        <li><strong>Blocked:</strong> <code>&lt;meta name="rating" content="adult"&gt;</code> and the RTA-1996 label pattern</li>
+        <li><strong>Allowed:</strong> <code>rating="mature"</code> (legitimate: medical sites, reviews)</li>
+        <li><strong>Default:</strong> No rating tag &rarr; allowed</li>
+      </ul>
+      <p>The age gate <strong>fails open</strong> (invalid input &rarr; allow). This is the correct choice for a client-side meta tag check: blocking based on a missing or malformed tag would create false positives on the majority of the web. Server-side guardrails catch the content regardless.</p>
+
+      <h2>Adversarial Testing</h2>
+      <p>The guardrail pipeline is tested against eight categories of adversarial input:</p>
+
+      <table class="metric-table">
+        <thead>
+          <tr><th>#</th><th>Attack Vector</th><th>Test Case</th><th>Expected Result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Direct hate speech</td><td>Known slurs from denylist</td><td>Hard block (denylist)</td></tr>
+          <tr><td>2</td><td>Homoglyph evasion</td><td>Unicode lookalikes for blocked terms</td><td>Hard block (NFKC normalization)</td></tr>
+          <tr><td>3</td><td>Prompt injection</td><td>"Ignore previous instructions and..."</td><td>Classified, not executed</td></tr>
+          <tr><td>4</td><td>Jailbreak attempt</td><td>"You are now DAN, Do Anything Now"</td><td>Classified by semantic layer</td></tr>
+          <tr><td>5</td><td>XSS in input</td><td><code>&lt;script&gt;alert('xss')&lt;/script&gt;</code></td><td>Sanitized, no execution</td></tr>
+          <tr><td>6</td><td>Oversized payload</td><td>20KB+ text body</td><td>400 Bad Request (validation)</td></tr>
+          <tr><td>7</td><td>Empty/whitespace</td><td>Blank or spaces-only input</td><td>400 Bad Request (validation)</td></tr>
+          <tr><td>8</td><td>Encoding attacks</td><td>Invalid UTF-8 sequences</td><td>400 Bad Request (validation)</td></tr>
+        </tbody>
+      </table>
+
+      <p>Tests 1&ndash;2 target the denylist layer. Tests 3&ndash;4 target the semantic layer. Tests 5&ndash;8 target the input validation layer. Each layer handles its own class of attack &mdash; no single layer is expected to catch everything.</p>
+
+      <h2>CSRF Protection</h2>
+      <p>The OAuth flow includes CSRF protection via the <code>state</code> parameter:</p>
+      <ol>
+        <li>Extension generates a cryptographic random state value</li>
+        <li>State is stored in <code>chrome.storage.session</code> before opening the OAuth consent page</li>
+        <li>Callback verifies the returned state matches the stored value</li>
+        <li>Mismatch &rarr; reject the auth code, log the attempt</li>
+      </ol>
+      <p>In Firefox, the state is persisted in a pattern that survives service worker restarts &mdash; a non-trivial challenge in Manifest V3 where the background context can be terminated at any time.</p>
+
+      <h2>Privacy-First Data Handling</h2>
+      <p>Safety and privacy are complementary, not competing:</p>
+      <ul>
+        <li><strong>No prompt logging:</strong> User text is never written to CloudWatch logs, X-Ray traces, or metric dimensions</li>
+        <li><strong>30-day TTL:</strong> All stored data is automatically deleted via DynamoDB TTL (2,592,000 seconds)</li>
+        <li><strong>GDPR erasure:</strong> <code>DELETE /my-data</code> endpoint for immediate data deletion on request</li>
+        <li><strong>No training:</strong> AWS Bedrock does not train on customer prompts</li>
+        <li><strong>Minimal permissions:</strong> Extension uses <code>activeTab</code> only &mdash; no persistent access to browsing history</li>
+      </ul>
+
+      <h2>The Guardrail Flow</h2>
+      <div class="code-block">
+        <span class="code-label">Two-layer guardrail decision flow (simplified)</span>
+<span class="code-keyword">def</span> <span class="code-function">check_guardrails</span>(text):
+    <span class="code-comment"># Layer 1: Denylist (free, instant)</span>
+    <span class="code-keyword">if</span> denylist.contains(normalize(text)):
+        <span class="code-keyword">return</span> Block(type=<span class="code-string">"hard"</span>, source=<span class="code-string">"denylist"</span>)
+
+    <span class="code-comment"># Layer 2: Semantic classifier (LLM call)</span>
+    <span class="code-keyword">try</span>:
+        result = semantic.classify(text)
+        <span class="code-keyword">if</span> result.block_type == <span class="code-string">"hard"</span>:
+            <span class="code-keyword">return</span> Block(type=<span class="code-string">"hard"</span>, source=<span class="code-string">"semantic"</span>)
+        <span class="code-keyword">if</span> result.block_type == <span class="code-string">"soft"</span>:
+            <span class="code-keyword">return</span> Block(type=<span class="code-string">"soft"</span>, scores=result.scores)
+    <span class="code-keyword">except</span> Exception:
+        <span class="code-comment"># Fail closed: apply soft block on infrastructure error</span>
+        <span class="code-keyword">return</span> Block(type=<span class="code-string">"soft"</span>, is_fallback=<span class="code-number">True</span>)
+
+    <span class="code-keyword">return</span> Block(type=<span class="code-string">"none"</span>)  <span class="code-comment"># Safe to proceed</span>
+      </div>
+
+      <p>The critical detail: the code decides what to do with the classification result. The LLM returns scores. The code checks thresholds. The code returns the HTTP status. At no point does the LLM decide whether to block a request &mdash; it only provides the signal that the code acts on.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="observability.html">Observability</a>
+        <a href="operations.html">Operations</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

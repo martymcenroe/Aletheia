@@ -24,117 +24,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="styles.css">
   <style>
-    /* ===== CSS Variables ===== */
+    /* ===== Index-specific: wider layout, hero section ===== */
     :root {
-      /* Light mode (default) - Teal Primary */
-      --color-primary: #0D9488;
-      --color-primary-light: #14B8A6;
-      --color-accent: #4F46E5;
-      --color-text: #1F2937;
-      --color-text-muted: #6B7280;
-      --color-bg: #F9FAFB;
-      --color-surface: #FFFFFF;
-
-      /* Typography */
-      --font-serif: 'Libre Baskerville', Georgia, serif;
-      --font-sans: 'Space Grotesk', system-ui, sans-serif;
       --max-width: 1100px;
     }
 
-    /* Dark mode (auto-detect) */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --color-primary: #2DD4BF;
-        --color-primary-light: #5EEAD4;
-        --color-accent: #818CF8;
-        --color-text: #F9FAFB;
-        --color-text-muted: #9CA3AF;
-        --color-bg: #111827;
-        --color-surface: #1F2937;
-      }
-    }
-
-    /* ===== Reset & Base ===== */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
     body {
-      font-family: var(--font-sans);
-      font-weight: 400;
       line-height: 1.6;
-      color: var(--color-text);
-      background-color: var(--color-bg);
-    }
-
-    a {
-      color: var(--color-primary);
-      text-decoration: none;
-    }
-
-    a:hover {
-      color: var(--color-primary-light);
-    }
-
-    /* ===== Layout ===== */
-    .container {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-
-    /* ===== Header ===== */
-    header {
-      padding: 1.25rem 0;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      header {
-        border-bottom-color: rgba(255,255,255,0.06);
-      }
-    }
-
-    header .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-family: var(--font-serif);
-      font-weight: 700;
-      font-size: 1.25rem;
-      color: var(--color-text);
-    }
-
-    .logo-lambda {
-      height: 1.0em;
-      vertical-align: baseline;
-      margin-right: 0.15em;
-    }
-
-    nav {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .nav-link {
-      font-weight: 500;
-      font-size: 0.9rem;
-      color: var(--color-text-muted);
-      transition: color 0.2s;
-    }
-
-    .nav-link:hover {
-      color: var(--color-primary);
     }
 
     /* ===== Hero ===== */
@@ -299,6 +197,7 @@
       text-align: left;
       max-width: 450px;
       margin: 0 auto;
+      padding-left: 0;
     }
 
     .privacy-list li {
@@ -316,74 +215,28 @@
       margin-top: 0.15em;
     }
 
-    /* ===== Footer ===== */
+    /* Override footer padding for landing page */
     footer {
       padding: 3rem 0;
-    }
-
-    footer .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-    }
-
-    @media (min-width: 768px) {
-      footer .container {
-        flex-direction: row;
-        justify-content: space-between;
-      }
-    }
-
-    .footer-logo {
-      font-family: var(--font-serif);
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--color-text);
-    }
-
-    .footer-lambda {
-      height: 1.0em;
-      vertical-align: baseline;
-      margin-right: 0.12em;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .footer-links a, .footer-links span {
-      font-size: 0.875rem;
-      color: var(--color-text-muted);
-    }
-
-    .footer-links a:hover {
-      color: var(--color-primary);
-    }
-
-    .copyright {
-      font-size: 0.8rem;
-      color: var(--color-text-muted);
-      text-align: center;
-    }
-
-    @media (min-width: 768px) {
-      .copyright {
-        text-align: right;
-      }
     }
   </style>
 </head>
 <body>
   <header>
     <div class="container">
-      <!-- Lockup A: Lambda before -->
       <a href="/" class="logo"><img src="assets/lambda-web-32.png?v=3" alt="λ" class="logo-lambda">Aletheia</a>
       <nav>
-        <a href="#features" class="nav-link">Features</a>
+        <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+          </div>
+        </div>
+        <a href="privacy.html" class="nav-link">Privacy</a>
         <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </div>
@@ -392,7 +245,6 @@
   <main>
     <section class="hero">
       <div class="container">
-        <!-- Lockup B: Lambda replaces L (large, integrated) - λ is Greek letter L -->
         <h1 class="hero-wordmark">A<img src="assets/lambda-web-hero.png?v=3" alt="λ" class="hero-lambda">etheia</h1>
         <p class="hero-tagline">Understand what you read.</p>
         <p class="hero-subtitle">Privacy-first AI context for any webpage. Select text, get instant etymological and contextual insights.</p>
@@ -412,7 +264,6 @@
     <section id="features" class="features">
       <div class="container">
         <div class="features-grid">
-          <!-- Feature 1: Context-Aware -->
           <a href="context.html" class="feature-card">
             <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
@@ -422,7 +273,6 @@
             <p>Analyzes text within its surrounding paragraph, not just isolated dictionary definitions.</p>
           </a>
 
-          <!-- Feature 2: Privacy-First -->
           <a href="privacy.html" class="feature-card">
             <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -432,7 +282,6 @@
             <p>We never track your browsing across sites. No analytics, no cookies.</p>
           </a>
 
-          <!-- Feature 3: Open Source -->
           <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener" class="feature-card">
             <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="16 18 22 12 16 6"/>
@@ -470,12 +319,14 @@
 
   <footer>
     <div class="container">
-      <!-- Lockup A: Lambda before (small) -->
       <span class="footer-logo"><img src="assets/lambda-web-16.png?v=3" alt="λ" class="footer-lambda">Aletheia</span>
       <nav class="footer-links">
-        <a href="privacy.html">Privacy Policy</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="observability.html">Observability</a>
+        <a href="operations.html">Operations</a>
+        <a href="safety.html">Safety</a>
         <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
-        <span>MIT License</span>
       </nav>
       <p class="copyright">&copy; 2026 Aletheia. Open source.</p>
     </div>

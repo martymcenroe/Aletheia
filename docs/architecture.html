@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Architecture - Aletheia</title>
+  <meta name="description" content="How Aletheia's system architecture works: edge routing, serverless Lambda, LLM orchestration, and auth design.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/architecture.html">
+  <meta property="og:title" content="System Architecture - Aletheia">
+  <meta property="og:description" content="How Aletheia's system architecture works: edge routing, serverless Lambda, LLM orchestration, and auth design.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+          </div>
+        </div>
+        <a href="privacy.html" class="nav-link">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>System Architecture</h1>
+
+      <div class="highlight-box">
+        <strong>Design philosophy:</strong> Naked Python orchestrator. No LangChain, no framework abstractions. Every line of LLM orchestration is visible, testable, and auditable. The system does one thing well: turn selected text into contextual understanding.
+      </div>
+
+      <h2>Actors &amp; Trust Boundaries</h2>
+      <p>The system has four actors, each operating at a different trust level:</p>
+      <ul>
+        <li><strong>Browser extension</strong> &mdash; untrusted client, captures user selections and renders results</li>
+        <li><strong>CloudFlare edge</strong> &mdash; trusted perimeter, handles DNS, rate limiting, and origin authentication</li>
+        <li><strong>AWS Lambda</strong> &mdash; trusted compute, runs the orchestration pipeline</li>
+        <li><strong>AWS Bedrock</strong> &mdash; trusted model provider, generates etymological analysis</li>
+      </ul>
+      <p>Trust decreases as you move toward the user. The extension is treated as adversarial &mdash; every input is validated, every claim is verified.</p>
+
+      <h2>Request Pipeline</h2>
+      <p>A single user selection traverses five stages before returning an answer:</p>
+
+      <div class="pipeline">
+        <span class="pipeline-step">CloudFlare Edge</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Worker (Host rewrite)</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Lambda Handler</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Bedrock (Nova/Haiku)</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">DynamoDB</span>
+      </div>
+
+      <p>CloudFlare proxies <code>api.aletheia.study</code> via CNAME to the Lambda Function URL. A Worker rewrites the <code>Host</code> header and injects a shared secret, so the Lambda can verify the request came through the authorized edge. Rate limiting (3 requests per 10 seconds per IP on POST) happens at this layer, before any compute cost is incurred.</p>
+
+      <h2>Lambda Handler Pipeline</h2>
+      <p>Inside the Lambda, the request passes through a sequential pipeline. Each stage can short-circuit with an appropriate HTTP response:</p>
+
+      <div class="layer-diagram">
+        <div class="layer-item">
+          <div class="layer-number">1</div>
+          <div class="layer-content">
+            <strong>Input Validation</strong>
+            <span>Type checks, whitespace, length (max 20KB), UTF-8 encoding</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">2</div>
+          <div class="layer-content">
+            <strong>Origin Verification</strong>
+            <span>Shared secret check &mdash; reject requests not via CloudFlare</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">3</div>
+          <div class="layer-content">
+            <strong>Guardrails (Denylist)</strong>
+            <span>O(1) HashSet lookup against 802-term denylist</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">4</div>
+          <div class="layer-content">
+            <strong>Guardrails (Semantic)</strong>
+            <span>LLM classifies across taxonomy &mdash; hard/soft/none block types</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">5</div>
+          <div class="layer-content">
+            <strong>DynamoDB Persist</strong>
+            <span>Store request with 30-day TTL (2,592,000 seconds)</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">6</div>
+          <div class="layer-content">
+            <strong>Bedrock Generation</strong>
+            <span>Etymology &amp; context analysis via Nova Micro or Claude Haiku</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">7</div>
+          <div class="layer-content">
+            <strong>Score Processing &amp; Response</strong>
+            <span>Parse scores, apply thresholds, structure JSON response</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="discworld-aside">Much like the Unseen University Library, where every book must pass through several layers of cataloguing before reaching the shelves &mdash; and the Librarian knows exactly where each one belongs &mdash; every request is filed, classified, and stored with precision. Ook.</p>
+
+      <h2>Model Selection</h2>
+      <p>The system supports two models with automatic fallback:</p>
+      <ul>
+        <li><strong>Amazon Nova Micro</strong> (default) &mdash; faster responses (~532ms median), lower cost</li>
+        <li><strong>Claude Haiku</strong> (fallback) &mdash; richer analysis (~1,469ms median), used when Nova is unavailable</li>
+      </ul>
+      <p>Model choice is configuration-driven, not code-driven. The orchestrator treats the model as a parameter, not a dependency. This means swapping models requires changing an environment variable, not refactoring code.</p>
+
+      <h2>Auth Architecture</h2>
+      <p>Authentication runs on a separate Lambda (<code>AletheiaAuth</code>) to isolate auth failures from the core analysis pipeline:</p>
+
+      <h3>OAuth Flow</h3>
+      <ol>
+        <li>Extension opens LinkedIn OAuth consent page</li>
+        <li>User authorizes &rarr; callback delivers auth code to extension</li>
+        <li>Extension sends auth code to <code>/auth/token</code></li>
+        <li>Auth Lambda exchanges code for LinkedIn tokens, fetches OIDC identity</li>
+        <li>Creates/updates user record in DynamoDB (<code>aletheia-users</code>)</li>
+        <li>Issues JWT with tier, billing anchor, and 24-hour expiry</li>
+      </ol>
+
+      <h3>JWT Claims</h3>
+      <div class="code-block">
+        <span class="code-label">JWT Payload</span>
+{
+  <span class="code-string">"user_id"</span>:            <span class="code-comment">// LinkedIn OIDC 'sub' (stable identifier)</span>
+  <span class="code-string">"tier"</span>:               <span class="code-comment">// "free" | "subscriber" | "admin"</span>
+  <span class="code-string">"billing_anchor_day"</span>: <span class="code-comment">// Day of month for monthly cap window</span>
+  <span class="code-string">"exp"</span>:                <span class="code-comment">// 24 hours from issuance</span>
+  <span class="code-string">"jti"</span>:                <span class="code-comment">// Unique JWT ID (replay prevention)</span>
+}
+      </div>
+
+      <p>Auth is feature-flagged via <code>AUTH_ENABLED</code> on the main Lambda. When disabled, the analysis pipeline runs without token validation &mdash; useful for development and when auth isn't yet needed.</p>
+
+      <h2>Design Decisions</h2>
+
+      <h3>Why no LangChain?</h3>
+      <p>LangChain adds abstraction layers between you and the model. For a system with a single, well-defined LLM interaction pattern, these layers add complexity without benefit. The naked orchestrator approach means:</p>
+      <ul>
+        <li>Every prompt is a string literal you can read</li>
+        <li>Every model call is a direct boto3 invocation you can trace</li>
+        <li>Error handling is explicit, not buried in framework middleware</li>
+        <li>Testing mocks one thing: the Bedrock client</li>
+      </ul>
+
+      <h3>Why separate auth Lambda?</h3>
+      <p>Blast radius isolation. If the auth system has a bug, the core analysis pipeline keeps working for unauthenticated users. If the analysis pipeline has a bug, users can still authenticate. Neither failure mode takes down both capabilities.</p>
+
+      <h3>Why CloudFlare Worker instead of API Gateway?</h3>
+      <p>Cost. API Gateway charges per request. CloudFlare Workers have a generous free tier and provide edge-level rate limiting, DDoS protection, and SSL termination at no additional cost. The Worker also rewrites the Host header and injects a shared secret, acting as a lightweight authentication proxy.</p>
+
+      <h2>Deployable Units</h2>
+      <table class="metric-table">
+        <thead>
+          <tr><th>Component</th><th>Runtime</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>AletheiaAgent</code></td><td>Python 3.12 Lambda</td><td>Core analysis pipeline</td></tr>
+          <tr><td><code>AletheiaAuth</code></td><td>Python 3.12 Lambda</td><td>OAuth, JWT, user management</td></tr>
+          <tr><td><code>AletheiaKillSwitch</code></td><td>Python 3.12 Lambda</td><td>Emergency shutdown (SNS-triggered)</td></tr>
+          <tr><td><code>aletheia-api</code></td><td>CloudFlare Worker</td><td>Edge routing, rate limiting, origin auth</td></tr>
+          <tr><td>Chrome Extension</td><td>Manifest V3</td><td>Text selection, UI overlay, auth</td></tr>
+          <tr><td>Firefox Extension</td><td>Manifest V3</td><td>Text selection, UI overlay, auth</td></tr>
+        </tbody>
+      </table>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="observability.html">Observability</a>
+        <a href="operations.html">Operations</a>
+        <a href="safety.html">Safety</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

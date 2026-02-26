@@ -22,327 +22,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 
-  <style>
-    :root {
-      --color-primary: #0D9488;
-      --color-primary-light: #14B8A6;
-      --color-accent: #4F46E5;
-      --color-text: #1F2937;
-      --color-text-muted: #6B7280;
-      --color-bg: #F9FAFB;
-      --color-surface: #FFFFFF;
-      --font-serif: 'Libre Baskerville', Georgia, serif;
-      --font-sans: 'Space Grotesk', system-ui, sans-serif;
-      --max-width: 700px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --color-primary: #2DD4BF;
-        --color-primary-light: #5EEAD4;
-        --color-accent: #818CF8;
-        --color-text: #F9FAFB;
-        --color-text-muted: #9CA3AF;
-        --color-bg: #111827;
-        --color-surface: #1F2937;
-      }
-    }
-
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: var(--font-sans);
-      font-weight: 400;
-      line-height: 1.7;
-      color: var(--color-text);
-      background-color: var(--color-bg);
-    }
-
-    a {
-      color: var(--color-primary);
-      text-decoration: none;
-    }
-
-    a:hover {
-      color: var(--color-primary-light);
-    }
-
-    .container {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-
-    header {
-      padding: 1.25rem 0;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      header {
-        border-bottom-color: rgba(255,255,255,0.06);
-      }
-    }
-
-    header .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1100px;
-    }
-
-    .logo {
-      font-family: var(--font-serif);
-      font-weight: 700;
-      font-size: 1.25rem;
-      color: var(--color-text);
-    }
-
-    .logo-lambda {
-      height: 1.0em;
-      vertical-align: baseline;
-      margin-right: 0.15em;
-    }
-
-    nav {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .nav-link {
-      font-weight: 500;
-      font-size: 0.9rem;
-      color: var(--color-text-muted);
-      transition: color 0.2s;
-    }
-
-    .nav-link:hover {
-      color: var(--color-primary);
-    }
-
-    main {
-      padding: 3rem 0 5rem;
-    }
-
-    h1 {
-      font-family: var(--font-serif);
-      font-size: 2.25rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      color: var(--color-text);
-    }
-
-    h2 {
-      font-family: var(--font-sans);
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-top: 2.5rem;
-      margin-bottom: 1rem;
-      color: var(--color-text);
-    }
-
-    p {
-      margin-bottom: 1rem;
-      color: var(--color-text);
-    }
-
-    ul {
-      margin-bottom: 1rem;
-      padding-left: 1.5rem;
-    }
-
-    li {
-      margin-bottom: 0.5rem;
-      color: var(--color-text);
-    }
-
-    strong {
-      font-weight: 600;
-    }
-
-    em {
-      font-style: italic;
-    }
-
-    .highlight-box {
-      background-color: var(--color-surface);
-      border-left: 3px solid var(--color-primary);
-      padding: 1rem 1.25rem;
-      margin: 1.5rem 0;
-      border-radius: 0 8px 8px 0;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .highlight-box {
-        background-color: rgba(255,255,255,0.03);
-      }
-    }
-
-    .example-container {
-      display: grid;
-      gap: 1rem;
-      margin: 1.5rem 0;
-    }
-
-    @media (min-width: 600px) {
-      .example-container {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .example-box {
-      background-color: var(--color-surface);
-      border-radius: 8px;
-      padding: 1.25rem;
-      border: 1px solid rgba(0,0,0,0.08);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .example-box {
-        background-color: rgba(255,255,255,0.03);
-        border-color: rgba(255,255,255,0.08);
-      }
-    }
-
-    .example-box.dictionary {
-      border-top: 3px solid var(--color-text-muted);
-    }
-
-    .example-box.aletheia {
-      border-top: 3px solid var(--color-primary);
-    }
-
-    .example-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.75rem;
-      color: var(--color-text-muted);
-    }
-
-    .example-box.aletheia .example-label {
-      color: var(--color-primary);
-    }
-
-    .example-word {
-      font-family: var(--font-serif);
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .example-context {
-      font-size: 0.85rem;
-      color: var(--color-text-muted);
-      font-style: italic;
-      margin-bottom: 0.75rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .example-context {
-        border-bottom-color: rgba(255,255,255,0.06);
-      }
-    }
-
-    .example-definition {
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    .coming-soon-box {
-      background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(13, 148, 136, 0.08));
-      border: 1px solid rgba(79, 70, 229, 0.2);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin: 2.5rem 0;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .coming-soon-box {
-        background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(45, 212, 191, 0.1));
-        border-color: rgba(129, 140, 248, 0.3);
-      }
-    }
-
-    .coming-soon-box h3 {
-      font-family: var(--font-sans);
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--color-accent);
-      margin-bottom: 0.75rem;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .coming-soon-box h3 {
-        color: var(--color-accent);
-      }
-    }
-
-    .coming-soon-box p {
-      margin-bottom: 0;
-      font-size: 0.95rem;
-    }
-
-    footer {
-      padding: 2rem 0;
-      border-top: 1px solid rgba(0,0,0,0.06);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      footer {
-        border-top-color: rgba(255,255,255,0.06);
-      }
-    }
-
-    footer .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      max-width: 1100px;
-    }
-
-    @media (min-width: 768px) {
-      footer .container {
-        flex-direction: row;
-        justify-content: space-between;
-      }
-    }
-
-    .footer-logo {
-      font-family: var(--font-serif);
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--color-text);
-    }
-
-    .footer-lambda {
-      height: 1.0em;
-      vertical-align: baseline;
-      margin-right: 0.12em;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .footer-links a {
-      font-size: 0.875rem;
-      color: var(--color-text-muted);
-    }
-
-    .footer-links a:hover {
-      color: var(--color-primary);
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
@@ -350,6 +30,16 @@
       <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
       <nav>
         <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+          </div>
+        </div>
+        <a href="privacy.html" class="nav-link">Privacy</a>
         <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </div>
@@ -439,7 +129,11 @@
       <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
       <nav class="footer-links">
         <a href="/">Home</a>
-        <a href="privacy.html">Privacy Policy</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="observability.html">Observability</a>
+        <a href="operations.html">Operations</a>
+        <a href="safety.html">Safety</a>
         <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </div>
