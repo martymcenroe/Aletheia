@@ -2,7 +2,6 @@
 // Firefox Manifest V3 version
 
 // [CV-7] CONSTANTS - WIRED TO CLOUDFLARE (Worker-proxied, rate-limited)
-// Direct Lambda URL: https://sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws/
 const API_ENDPOINT = "https://api.aletheia.study/";
 
 // [#95] Client version for Lambda header validation (Issue #349: moved from WAF to Lambda)

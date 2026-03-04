@@ -8,7 +8,7 @@
 //
 // Issue #433: Added /admin/* and /auth/github/* routing to Auth Lambda.
 
-const AGENT_LAMBDA = "sqrqfnypgswudwtcheeasq5xri0aryfx.lambda-url.us-east-1.on.aws";
+const AGENT_LAMBDA = "vq2uf4fnxgpqpmhqsmsqe5osma0htrgs.lambda-url.us-east-1.on.aws";
 const AUTH_LAMBDA = "sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws";
 
 const AUTH_PREFIXES = ["/auth/", "/admin/", "/metrics", "/my-data", "/redeem-coupon",
