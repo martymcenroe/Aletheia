@@ -250,6 +250,7 @@ This ensures:
 | 2026-01-04 | Claude Opus 4.5 | **PASS** - All sections passed. 1 low-severity finding (semantic.py input handling). Some outdated dependencies (non-critical). | None (findings below threshold) |
 | 2026-01-06 | Claude Opus 4.5 | **PASS** - Tier 1 Store Compliance audit. All policy checks pass. 0 npm vulnerabilities. 0 Dependabot alerts. Forbidden patterns in deny list. innerHTML safe (static templates only). | None |
 | 2026-02-24 | Claude Opus 4.6 (Security Reviewer) | **WARNING** — 1 Critical (CDN supply chain), 5 High (localStorage JWT, CORS wildcard, IAM over-permission, auth disabled), 8 Medium, 7 Low. No active exploitation. Extension code secure. | Remediation tracked below |
+| 2026-02-27 | Claude Opus 4.6 | **WARNING** (improved) — 5/5 previous remediations verified (C-1, H-2, H-3, H-4, M-1). 0 new critical. Auth/OAuth deep dive: 14/14 checks PASS. Remaining: 2 HIGH (H-1 localStorage, H-5 auth disabled), 3 MEDIUM, 2 LOW, 1 Dependabot dev-only. | See `audit-results/2026-02-27-0809.md` |
 
 ### 2026-02-24 Audit Details
 

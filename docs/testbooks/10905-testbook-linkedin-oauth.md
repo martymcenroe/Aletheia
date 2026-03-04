@@ -1,8 +1,8 @@
 # 10905 — LinkedIn OAuth Manual Testbook
 
 **Issue:** #443
-**Related:** #396 (Firefox popup-close bug), #405 (Auth readiness checklist)
-**Last updated:** 2026-02-24
+**Related:** #396 (Firefox popup-close bug), #405 (Auth readiness checklist), #480 (Chrome OAuth SW migration)
+**Last updated:** 2026-02-25
 
 ---
 
@@ -23,16 +23,34 @@
 
 ### TC-01: Login via LinkedIn (Chrome)
 
+> **Note (Issue #480):** Chrome now delegates OAuth to the service worker, same pattern
+> as Firefox (#396). The popup sends `START_OAUTH` to the SW, which calls
+> `chrome.identity.launchWebAuthFlow`. The popup may close when the auth window opens
+> (MV3 behavior). On reopen, `init()` finds stored tokens via `isAuthenticated()`.
+> If OAuth failed, the popup displays the error from `authError` in session storage.
+
 | Step | Action | Expected Result |
 |------|--------|-----------------|
 | 1 | Click extension icon to open popup | Popup opens with "Sign in with LinkedIn" button |
-| 2 | Click "Sign in with LinkedIn" | New tab opens to LinkedIn authorization page |
-| 3 | Enter LinkedIn credentials and authorize | Tab redirects to callback URL, then closes automatically |
-| 4 | Check popup | Shows user display name, "Sign Out" button visible |
+| 2 | Click "Sign in with LinkedIn" | Chrome auth window opens to LinkedIn authorization page; popup may close (expected) |
+| 3 | Enter LinkedIn credentials and authorize | Auth window closes automatically after redirect |
+| 4 | Click extension icon to reopen popup | Shows user display name, "Sign Out" button visible |
 | 5 | Check DevTools > Application > Session Storage | `accessToken`, `expiresAt`, `jwt` keys present |
 | 6 | Check DevTools > Application > Local Storage | `refreshToken`, `userId`, `displayName` keys present |
 
-**Pass criteria:** User is authenticated, tokens stored correctly, popup reflects login state.
+**Pass criteria:** Tokens stored by service worker via `launchWebAuthFlow`. Popup shows authenticated state on reopen.
+
+### TC-01a: Login Error Feedback (Chrome)
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Click extension icon to open popup | Popup opens with "Sign in with LinkedIn" button |
+| 2 | Click "Sign in with LinkedIn" | Chrome auth window opens |
+| 3 | Close the auth window without completing login | Auth window closes |
+| 4 | Click extension icon to reopen popup | Popup shows "Sign in with LinkedIn" button (no error — cancellation is not an error) |
+| 5 | Disconnect network, then repeat steps 1-3 (complete LinkedIn auth with network off) | On reopen, popup shows error message (token exchange failed) |
+
+**Pass criteria:** User cancellation shows no error. Actual failures display a message.
 
 ### TC-02: JWT Verification (Chrome)
 
@@ -75,20 +93,20 @@
 
 ### TC-05: Login via LinkedIn (Firefox)
 
-> **Known bug (#396):** Firefox popup closes when the auth tab opens, which may prevent
-> the popup's message listener from receiving the token callback. The service worker
-> handles the OAuth flow to mitigate this, but verify behavior carefully.
+> **Note:** Firefox popup closes when the auth tab opens — this is expected behavior.
+> The service worker stores OAuth state in `chrome.storage.session` and top-level
+> listeners handle the callback (PR #478, persistent state pattern). The popup
+> detects authentication on reopen via `isAuthenticated()`.
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
 | 1 | Click extension icon to open popup | Popup opens with "Sign in with LinkedIn" button |
-| 2 | Click "Sign in with LinkedIn" | New tab opens to LinkedIn authorization page |
-| 3 | **Observe:** Does popup remain open? | **Known issue:** Popup may close (#396) |
-| 4 | Enter LinkedIn credentials and authorize | Tab redirects to callback URL, then closes |
-| 5 | Click extension icon to reopen popup | Check if user is shown as authenticated |
-| 6 | Check `about:devtools-toolbox` > Storage | Session: tokens present. Local: user info present |
+| 2 | Click "Sign in with LinkedIn" | New tab opens to LinkedIn authorization page; popup closes (expected) |
+| 3 | Enter LinkedIn credentials and authorize | Tab redirects to callback URL, then closes automatically |
+| 4 | Click extension icon to reopen popup | Shows user display name, "Sign Out" button visible |
+| 5 | Check `about:devtools-toolbox` > Storage | Session: `accessToken`, `expiresAt`, `jwt` present. Local: `refreshToken`, `userId`, `displayName` present |
 
-**Pass criteria (partial):** If popup closes (#396), tokens should still be stored by the service worker. User should see authenticated state when reopening popup.
+**Pass criteria:** Tokens stored by service worker via persistent state. Popup shows authenticated state on reopen.
 
 ### TC-06: JWT Verification (Firefox)
 
@@ -106,11 +124,12 @@
 
 | Test Case | Browser | Status | Notes |
 |-----------|---------|--------|-------|
-| TC-01 | Chrome | | |
+| TC-01 | Chrome | | Popup may close (expected); tokens via SW launchWebAuthFlow |
+| TC-01a | Chrome | | Error feedback on failure, no error on cancellation |
 | TC-02 | Chrome | | |
 | TC-03 | Chrome | | |
 | TC-04 | Chrome | | |
-| TC-05 | Firefox | | Known #396 bug may affect |
+| TC-05 | Firefox | | Popup closes (expected); tokens via SW persistent state |
 | TC-06 | Firefox | | Depends on TC-05 |
 
 ---
@@ -120,6 +139,7 @@
 | Test Case | Date | Tester | Result | Screenshot/Log |
 |-----------|------|--------|--------|----------------|
 | TC-01 | | | | |
+| TC-01a | | | | |
 | TC-02 | | | | |
 | TC-03 | | | | |
 | TC-04 | | | | |
