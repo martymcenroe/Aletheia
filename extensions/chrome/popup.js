@@ -423,12 +423,18 @@ async function handleLoginClick() {
     await checkAgeGate();
 
   } catch (error) {
+    // If the message channel closed (popup closing during auth), that's fine —
+    // the service worker will complete the flow. Popup detects auth on reopen.
+    if (error.message && (error.message.includes('disconnected') || error.message.includes('message port closed'))) {
+      console.log('[Aletheia] Popup closing — service worker will complete OAuth');
+      return;
+    }
+
     console.error('[Aletheia] Login failed:', error);
     loginError.textContent = error.message || 'Login failed. Please try again.';
     loginError.style.display = 'block';
     loginButton.disabled = false;
     // Reset button content safely without innerHTML (XSS hardening)
-    // Matches popup.html structure: <span class="linkedin-icon">in</span> Sign in with LinkedIn
     while (loginButton.firstChild) {
       loginButton.removeChild(loginButton.firstChild);
     }

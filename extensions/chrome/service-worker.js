@@ -30,8 +30,8 @@ async function getAuthHeaders() {
 function mapHttpStatusToMessage(status, responseBody) {
     if (status === 401) {
         return {
-            signal: "Configuration Error",
-            gem: "Service configuration error. This has been logged.",
+            signal: "Sign In Required",
+            gem: "Please sign in with LinkedIn to use Aletheia.",
             context: "",
             warning: true
         };
@@ -252,6 +252,100 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     // Issue #310: Handle deep poetic analysis request from overlay
+    // Issue #480: OAuth flow — delegate from popup to service worker
+    // chrome.identity.launchWebAuthFlow survives popup closure when called from SW
+    if (message.type === 'START_OAUTH') {
+        (async () => {
+            try {
+                const { authUrl, lambdaAuthUrl } = message;
+
+                // 1. Launch OAuth flow from SW (survives popup closure)
+                const responseUrl = await chrome.identity.launchWebAuthFlow({
+                    url: authUrl,
+                    interactive: true
+                });
+
+                // 2. Parse response URL
+                const url = new URL(responseUrl);
+                const code = url.searchParams.get('code');
+                const returnedState = url.searchParams.get('state');
+                const error = url.searchParams.get('error');
+
+                if (error) {
+                    await chrome.storage.session.set({ authError: error });
+                    try { sendResponse({ success: false, error }); } catch (_e) { /* popup closed */ }
+                    return;
+                }
+
+                if (!code) {
+                    await chrome.storage.session.set({ authError: 'No authorization code received' });
+                    try { sendResponse({ success: false, error: 'No authorization code' }); } catch (_e) { /* popup closed */ }
+                    return;
+                }
+
+                // 3. Validate CSRF state
+                const stored = await chrome.storage.session.get(['oauth_state']);
+                if (returnedState !== stored.oauth_state) {
+                    await chrome.storage.session.set({ authError: 'CSRF state mismatch' });
+                    try { sendResponse({ success: false, error: 'CSRF state mismatch' }); } catch (_e) { /* popup closed */ }
+                    return;
+                }
+                await chrome.storage.session.remove(['oauth_state']);
+
+                // 4. Exchange code for tokens via Lambda
+                const redirectUri = chrome.identity.getRedirectURL();
+                console.log('[Aletheia Auth SW] Exchanging code for tokens...');
+                const tokenResponse = await fetch(
+                    `${lambdaAuthUrl}/auth/token`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code, redirectUri })
+                    }
+                );
+
+                if (!tokenResponse.ok) {
+                    const errData = await tokenResponse.json().catch(() => ({}));
+                    const errMsg = errData.error || `Token exchange failed: ${tokenResponse.status}`;
+                    await chrome.storage.session.set({ authError: errMsg });
+                    try { sendResponse({ success: false, error: errMsg }); } catch (_e) { /* popup closed */ }
+                    return;
+                }
+
+                const tokenData = await tokenResponse.json();
+
+                // 5. Store tokens
+                await chrome.storage.session.set({
+                    accessToken: tokenData.accessToken,
+                    expiresAt: Date.now() + (tokenData.expiresIn * 1000),
+                    jwt: tokenData.jwt || null
+                });
+                await chrome.storage.local.set({
+                    refreshToken: tokenData.refreshToken,
+                    userId: tokenData.user.id,
+                    displayName: tokenData.user.name
+                });
+
+                // Clear any previous error
+                await chrome.storage.session.remove(['authError']);
+                console.log('[Aletheia Auth SW] Login successful:', tokenData.user.name);
+
+                try {
+                    sendResponse({ success: true, user: tokenData.user });
+                } catch (_e) {
+                    // Popup already closed — expected
+                }
+            } catch (error) {
+                console.error('[Aletheia Auth SW] OAuth error:', error);
+                await chrome.storage.session.set({ authError: error.message || 'OAuth failed' }).catch(() => {});
+                try {
+                    sendResponse({ success: false, error: error.message });
+                } catch (_e) { /* popup closed */ }
+            }
+        })();
+        return true; // Will respond asynchronously
+    }
+
     if (message.type === 'DEEP_POETIC_ANALYSIS') {
         (async () => {
             try {

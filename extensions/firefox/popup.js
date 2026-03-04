@@ -343,7 +343,7 @@ async function handleLoginClick() {
   } catch (error) {
     // If the error is about the message channel closing (popup closing),
     // that's fine — the service worker will finish the flow
-    if (error.message && error.message.includes('disconnected')) {
+    if (error.message && (error.message.includes('disconnected') || error.message.includes('message port closed'))) {
       console.log('[Aletheia] Popup closing — service worker will complete OAuth');
       return;
     }

@@ -638,7 +638,7 @@ describe('Error Handling (Issue #391)', () => {
 
     it('maps 401 to auth error message', () => {
       expect(serviceWorkerSource).toContain('status === 401');
-      expect(serviceWorkerSource).toContain('Service configuration error');
+      expect(serviceWorkerSource).toContain('Sign In Required');
     });
 
     it('maps 429 to rate limit with reset time', () => {
