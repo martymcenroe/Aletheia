@@ -574,6 +574,40 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         console.log("[Aletheia] Response:", httpStatus, responseData);
 
+        // Map HTTP errors to user-friendly messages (parity with Chrome SW)
+        if (httpStatus === 401) {
+            responseData = {
+                signal: "Sign In Required",
+                gem: "Please sign in with LinkedIn to use Aletheia.",
+                context: "",
+                warning: true
+            };
+        } else if (httpStatus === 429) {
+            const resetSeconds = responseData?.resets_in_seconds || 0;
+            const resetMinutes = Math.ceil(resetSeconds / 60);
+            const resetText = resetMinutes > 0 ? ` Resets in ${resetMinutes} minutes.` : "";
+            responseData = {
+                signal: "Rate Limited",
+                gem: `Limit reached.${resetText}`,
+                context: "",
+                warning: true
+            };
+        } else if (httpStatus >= 500) {
+            responseData = {
+                signal: "Server Error",
+                gem: "Server error. Try again shortly.",
+                context: "",
+                warning: true
+            };
+        } else if (httpStatus >= 400) {
+            responseData = {
+                signal: responseData?.signal || "Error",
+                gem: responseData?.gem || responseData?.error || `Request failed (${httpStatus}).`,
+                context: responseData?.context || "",
+                warning: true
+            };
+        }
+
         // Issue #310: Add selectedText and domContext for deep poetic analysis
         responseData.selectedText = info.selectionText;
         responseData.domContext = fullPageText;

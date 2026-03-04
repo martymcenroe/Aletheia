@@ -301,6 +301,12 @@ async function initiateLogin() {
         throw new Error(response?.error || 'OAuth flow failed');
     }
 
+    // SW responds with {success: true, pending: true} — tokens arrive via
+    // top-level onUpdated listener. Popup detects auth on reopen.
+    if (response.pending) {
+        return { id: 'pending', name: 'pending' };
+    }
+
     console.log('[Aletheia Auth] Login successful:', response.user.name);
     return response.user;
 }

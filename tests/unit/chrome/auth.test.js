@@ -224,8 +224,8 @@ describe('CSRF State Validation', () => {
   it('rejects mismatched state parameter (CSRF attack)', async () => {
     const { chromeMock } = env;
 
-    // Configure mock to return a different state (CSRF attack simulation)
-    chromeMock.__setOAuthReturnedState('attacker-controlled-state');
+    // SW detected CSRF mismatch and returned error
+    chromeMock.__setMessageResponse('START_OAUTH', { success: false, error: 'CSRF state mismatch' });
 
     if (global.window.AletheiaAuth) {
       await expect(global.window.AletheiaAuth.initiateLogin())
@@ -236,8 +236,8 @@ describe('CSRF State Validation', () => {
   it('accepts matching state parameter', async () => {
     const { chromeMock } = env;
 
-    // Configure mock to echo back the correct state (valid flow)
-    chromeMock.__setOAuthReturnedState(null); // null = echo back sent state
+    // SW validated state and returned success
+    chromeMock.__setMessageResponse('START_OAUTH', { success: true, user: { id: 'lambda-user-id', name: 'Lambda User' } });
 
     if (global.window.AletheiaAuth) {
       // Should not throw CSRF error
@@ -267,13 +267,13 @@ describe('Token Storage Hierarchy', () => {
     const { chromeMock } = env;
 
     if (global.window.AletheiaAuth) {
-      await global.window.AletheiaAuth.initiateLogin();
+      // Token storage tested via mockLogin (storeTokens called directly)
+      await global.window.AletheiaAuth.mockLogin();
 
-      // Verify chrome.storage.session.set was called with accessToken
       expect(chromeMock.storage.session.set).toHaveBeenCalled();
 
       const sessionData = chromeMock.__getSessionStorageData();
-      expect(sessionData.accessToken).toBe('lambda-access-token');
+      expect(sessionData.accessToken).toBe('mock-access-token-12345');
     }
   });
 
@@ -281,13 +281,12 @@ describe('Token Storage Hierarchy', () => {
     const { chromeMock } = env;
 
     if (global.window.AletheiaAuth) {
-      await global.window.AletheiaAuth.initiateLogin();
+      await global.window.AletheiaAuth.mockLogin();
 
-      // Verify chrome.storage.local.set was called
       expect(chromeMock.storage.local.set).toHaveBeenCalled();
 
       const localData = chromeMock.__getLocalStorageData();
-      expect(localData.refreshToken).toBe('lambda-refresh-token');
+      expect(localData.refreshToken).toBe('mock-refresh-token-67890');
     }
   });
 
@@ -295,11 +294,11 @@ describe('Token Storage Hierarchy', () => {
     const { chromeMock } = env;
 
     if (global.window.AletheiaAuth) {
-      await global.window.AletheiaAuth.initiateLogin();
+      await global.window.AletheiaAuth.mockLogin();
 
       const localData = chromeMock.__getLocalStorageData();
-      expect(localData.userId).toBe('lambda-user-id');
-      expect(localData.displayName).toBe('Lambda User');
+      expect(localData.userId).toBe('mock-sub-782bbtaQ');
+      expect(localData.displayName).toBe('Test User');
     }
   });
 
@@ -308,7 +307,7 @@ describe('Token Storage Hierarchy', () => {
 
     if (global.window.AletheiaAuth) {
       const beforeLogin = Date.now();
-      await global.window.AletheiaAuth.initiateLogin();
+      await global.window.AletheiaAuth.mockLogin();
 
       const sessionData = chromeMock.__getSessionStorageData();
       // expiresIn is 3600 seconds, so expiresAt should be ~3600000ms from now
@@ -463,32 +462,26 @@ describe('OAuth Flow', () => {
     cleanupEnvironment();
   });
 
-  it('calls chrome.identity.launchWebAuthFlow', async () => {
+  it('delegates to service worker via runtime.sendMessage', async () => {
     const { chromeMock } = env;
+    chromeMock.__setMessageResponse('START_OAUTH', { success: true, user: { id: 'lambda-user-id', name: 'Lambda User' } });
 
     if (global.window.AletheiaAuth) {
       await global.window.AletheiaAuth.initiateLogin();
-      expect(chromeMock.identity.launchWebAuthFlow).toHaveBeenCalled();
+      expect(chromeMock.runtime.sendMessage).toHaveBeenCalled();
+      const call = chromeMock.runtime.sendMessage.mock.calls[0][0];
+      expect(call.type).toBe('START_OAUTH');
     }
   });
 
-  it('uses interactive mode for OAuth', async () => {
+  it('sends authUrl with correct OAuth parameters', async () => {
     const { chromeMock } = env;
+    chromeMock.__setMessageResponse('START_OAUTH', { success: true, user: { id: 'lambda-user-id', name: 'Lambda User' } });
 
     if (global.window.AletheiaAuth) {
       await global.window.AletheiaAuth.initiateLogin();
-      const call = chromeMock.identity.launchWebAuthFlow.mock.calls[0][0];
-      expect(call.interactive).toBe(true);
-    }
-  });
-
-  it('includes correct OAuth parameters in auth URL', async () => {
-    const { chromeMock } = env;
-
-    if (global.window.AletheiaAuth) {
-      await global.window.AletheiaAuth.initiateLogin();
-      const call = chromeMock.identity.launchWebAuthFlow.mock.calls[0][0];
-      const url = new URL(call.url);
+      const call = chromeMock.runtime.sendMessage.mock.calls[0][0];
+      const url = new URL(call.authUrl);
 
       expect(url.hostname).toBe('www.linkedin.com');
       expect(url.searchParams.get('response_type')).toBe('code');
@@ -499,24 +492,22 @@ describe('OAuth Flow', () => {
     }
   });
 
-  it('exchanges code for tokens via Lambda', async () => {
+  it('sends lambdaAuthUrl in START_OAUTH message', async () => {
+    const { chromeMock } = env;
+    chromeMock.__setMessageResponse('START_OAUTH', { success: true, user: { id: 'lambda-user-id', name: 'Lambda User' } });
+
     if (global.window.AletheiaAuth) {
       await global.window.AletheiaAuth.initiateLogin();
-
-      // Verify fetch was called for token exchange
-      expect(global.fetch).toHaveBeenCalled();
-      const fetchCall = global.fetch.mock.calls.find(call =>
-        call[0].includes('/auth/token')
-      );
-      expect(fetchCall).toBeDefined();
+      const call = chromeMock.runtime.sendMessage.mock.calls[0][0];
+      expect(call.lambdaAuthUrl).toContain('lambda-url.us-east-1.on.aws');
     }
   });
 
   it('handles OAuth cancellation gracefully', async () => {
     const { chromeMock } = env;
 
-    // Make OAuth flow fail (user cancelled)
-    chromeMock.__setOAuthShouldFail(true);
+    // SW returns error when user cancels
+    chromeMock.__setMessageResponse('START_OAUTH', { success: false, error: 'OAuth flow cancelled by user' });
 
     if (global.window.AletheiaAuth) {
       await expect(global.window.AletheiaAuth.initiateLogin())
@@ -527,22 +518,12 @@ describe('OAuth Flow', () => {
   it('handles LinkedIn error responses', async () => {
     const { chromeMock } = env;
 
-    // First, we need to trigger a login to generate a state
-    // Then override the launchWebAuthFlow to return an error with that state
-    let capturedState = null;
-
-    // Override launchWebAuthFlow to capture the state and return an error
-    chromeMock.identity.launchWebAuthFlow.mockImplementationOnce(({ url }) => {
-      const authUrl = new URL(url);
-      capturedState = authUrl.searchParams.get('state');
-      return Promise.resolve(
-        `https://mock-extension-id-12345.chromiumapp.org/?error=access_denied&state=${capturedState}`
-      );
-    });
+    // SW returns LinkedIn's error
+    chromeMock.__setMessageResponse('START_OAUTH', { success: false, error: 'access_denied' });
 
     if (global.window.AletheiaAuth) {
       await expect(global.window.AletheiaAuth.initiateLogin())
-        .rejects.toThrow(/LinkedIn OAuth error|access_denied/i);
+        .rejects.toThrow(/access_denied/i);
     }
   });
 });
@@ -636,12 +617,10 @@ describe('Error Handling', () => {
   });
 
   it('handles token exchange failure', async () => {
-    // Mock failed token exchange
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: () => Promise.resolve({ error: 'invalid_grant' })
-    });
+    const { chromeMock } = env;
+
+    // SW returns token exchange error
+    chromeMock.__setMessageResponse('START_OAUTH', { success: false, error: 'invalid_grant' });
 
     if (global.window.AletheiaAuth) {
       await expect(global.window.AletheiaAuth.initiateLogin())
@@ -650,8 +629,10 @@ describe('Error Handling', () => {
   });
 
   it('handles network errors during token exchange', async () => {
-    // Mock network error
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+    const { chromeMock } = env;
+
+    // SW communication failure — sendMessage rejects
+    chromeMock.runtime.sendMessage.mockRejectedValueOnce(new Error('Network error'));
 
     if (global.window.AletheiaAuth) {
       await expect(global.window.AletheiaAuth.initiateLogin())

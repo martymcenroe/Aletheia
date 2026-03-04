@@ -10,7 +10,10 @@
     "contextMenus",
     "storage"
   ],
-  "host_permissions": [],
+  "host_permissions": [
+    "https://api.aletheia.study/*",
+    "https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws/*"
+  ],
   "background": {
     "scripts": ["service-worker.js"]
   },

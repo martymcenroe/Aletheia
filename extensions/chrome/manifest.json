@@ -13,7 +13,10 @@
     "identity",
     "notifications"
   ],
-  "host_permissions": [],
+  "host_permissions": [
+    "https://api.aletheia.study/*",
+    "https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws/*"
+  ],
   "background": {
     "service_worker": "service-worker.js"
   },

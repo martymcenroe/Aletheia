@@ -261,81 +261,27 @@ async function initiateLogin() {
     // 1. Generate CSRF state
     const state = generateState();
 
-    // 2. Store state for validation (use session storage for popup context)
-    // Note: In MV3, we use chrome.storage.session which is shared across extension contexts
+    // 2. Store state for validation (shared across extension contexts via session storage)
     await chrome.storage.session.set({ oauth_state: state });
 
     // 3. Build auth URL
     const authUrl = buildAuthUrl(state);
-    const redirectUri = chrome.identity.getRedirectURL();
 
-    console.log('[Aletheia Auth] Launching OAuth flow...');
-    console.log('[Aletheia Auth] Redirect URI:', redirectUri);
+    console.log('[Aletheia Auth] Delegating OAuth flow to service worker...');
 
-    try {
-        // 4. Launch OAuth flow
-        const responseUrl = await chrome.identity.launchWebAuthFlow({
-            url: authUrl,
-            interactive: true
-        });
+    // 4. Delegate to service worker — survives popup closure (Issue #480)
+    const response = await chrome.runtime.sendMessage({
+        type: 'START_OAUTH',
+        authUrl: authUrl,
+        lambdaAuthUrl: AUTH_CONFIG.LAMBDA_AUTH_URL
+    });
 
-        // 5. Parse response
-        const url = new URL(responseUrl);
-        const returnedState = url.searchParams.get('state');
-        const code = url.searchParams.get('code');
-        const error = url.searchParams.get('error');
-
-        // 6. Validate state (CSRF protection)
-        const stored = await chrome.storage.session.get(['oauth_state']);
-        await chrome.storage.session.remove(['oauth_state']);
-
-        if (returnedState !== stored.oauth_state) {
-            throw new Error('CSRF detected: state mismatch');
-        }
-
-        // 7. Check for errors
-        if (error) {
-            throw new Error(`LinkedIn OAuth error: ${error}`);
-        }
-
-        if (!code) {
-            throw new Error('No authorization code received');
-        }
-
-        // 8. Exchange code for tokens via Lambda
-        console.log('[Aletheia Auth] Exchanging code for tokens...');
-        const tokenResponse = await fetch(`${AUTH_CONFIG.LAMBDA_AUTH_URL}/auth/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                code: code,
-                redirectUri: redirectUri
-            })
-        });
-
-        if (!tokenResponse.ok) {
-            const errorData = await tokenResponse.json().catch(() => ({}));
-            throw new Error(errorData.error || `Token exchange failed: ${tokenResponse.status}`);
-        }
-
-        const tokenData = await tokenResponse.json();
-
-        // 9. Store tokens
-        await storeTokens(
-            tokenData.accessToken,
-            tokenData.refreshToken,
-            tokenData.expiresIn,
-            tokenData.user,
-            tokenData.jwt
-        );
-
-        console.log('[Aletheia Auth] Login successful:', tokenData.user.name);
-        return tokenData.user;
-
-    } catch (error) {
-        console.error('[Aletheia Auth] Login failed:', error);
-        throw error;
+    if (!response || !response.success) {
+        throw new Error(response?.error || 'OAuth flow failed');
     }
+
+    console.log('[Aletheia Auth] Login successful:', response.user.name);
+    return response.user;
 }
 
 /**
