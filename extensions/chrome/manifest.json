@@ -14,8 +14,7 @@
     "notifications"
   ],
   "host_permissions": [
-    "https://api.aletheia.study/*",
-    "https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws/*"
+    "https://api.aletheia.study/*"
   ],
   "background": {
     "service_worker": "service-worker.js"
