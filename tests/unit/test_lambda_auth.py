@@ -197,6 +197,52 @@ class TestUserManagement:
         assert user["user_id"] == TEST_USER_ID
         assert user["display_name"] == "Old Name"  # Display name is not updated on login currently
 
+    def test_get_or_create_user_stores_email_and_picture_on_create(self, aws_env):
+        user_info = {
+            "sub": TEST_USER_ID, "name": TEST_USER_NAME,
+            "email": "test@example.com", "picture": "https://example.com/photo.jpg",
+        }
+        auth_func.get_or_create_user(user_info)
+        db_user = aws_env["dynamodb"].get_item(
+            TableName=auth_func.USERS_TABLE,
+            Key={"user_id": {"S": TEST_USER_ID}}
+        )["Item"]
+        assert db_user["email"]["S"] == "test@example.com"
+        assert db_user["picture"]["S"] == "https://example.com/photo.jpg"
+
+    def test_get_or_create_user_updates_email_and_picture_on_login(self, aws_env):
+        aws_env["dynamodb"].put_item(
+            TableName=auth_func.USERS_TABLE,
+            Item={
+                "user_id": {"S": TEST_USER_ID},
+                "display_name": {"S": "Old Name"},
+                "created_at": {"S": "2020-01-01T00:00:00Z"},
+                "last_login": {"S": "2020-01-01T00:00:00Z"},
+            }
+        )
+        user_info = {
+            "sub": TEST_USER_ID, "name": "Old Name",
+            "email": "new@example.com", "picture": "https://example.com/new.jpg",
+        }
+        auth_func.get_or_create_user(user_info)
+        db_user = aws_env["dynamodb"].get_item(
+            TableName=auth_func.USERS_TABLE,
+            Key={"user_id": {"S": TEST_USER_ID}}
+        )["Item"]
+        assert db_user["email"]["S"] == "new@example.com"
+        assert db_user["picture"]["S"] == "https://example.com/new.jpg"
+
+    def test_get_or_create_user_no_email_picture_no_error(self, aws_env):
+        user_info = {"sub": TEST_USER_ID, "name": TEST_USER_NAME}
+        user = auth_func.get_or_create_user(user_info)
+        assert user["user_id"] == TEST_USER_ID
+        db_user = aws_env["dynamodb"].get_item(
+            TableName=auth_func.USERS_TABLE,
+            Key={"user_id": {"S": TEST_USER_ID}}
+        )["Item"]
+        assert "email" not in db_user
+        assert "picture" not in db_user
+
     def test_get_user_tier_missing(self, aws_env):
         tier, day = auth_func.get_user_tier("missing-user")
         assert tier == "free"
