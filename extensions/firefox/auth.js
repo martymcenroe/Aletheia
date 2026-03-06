@@ -24,8 +24,8 @@ const AUTH_CONFIG = {
     // LinkedIn OAuth endpoints
     AUTH_URL: 'https://www.linkedin.com/oauth/v2/authorization',
 
-    // Lambda Auth endpoint (shared with Chrome extension)
-    LAMBDA_AUTH_URL: 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws',
+    // Auth endpoint (routed through CloudFlare Worker to Auth Lambda)
+    LAMBDA_AUTH_URL: 'https://api.aletheia.study',
 
     // LinkedIn OAuth scopes (minimal - r_liteprofile only)
     SCOPES: 'openid profile',
