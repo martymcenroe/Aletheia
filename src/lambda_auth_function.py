@@ -351,12 +351,24 @@ def get_or_create_user(user_info: dict) -> dict:
             Key={"user_id": {"S": user_id}},
         )
         if "Item" in response:
-            # Update last_login
+            # Update last_login and profile fields (Issue #498)
+            update_expr = "SET last_login = :now"
+            expr_values = {":now": {"S": now}}
+
+            email = user_info.get("email")
+            if email:
+                update_expr += ", email = :email"
+                expr_values[":email"] = {"S": email}
+            picture = user_info.get("picture")
+            if picture:
+                update_expr += ", picture = :picture"
+                expr_values[":picture"] = {"S": picture}
+
             client.update_item(
                 TableName=USERS_TABLE,
                 Key={"user_id": {"S": user_id}},
-                UpdateExpression="SET last_login = :now",
-                ExpressionAttributeValues={":now": {"S": now}},
+                UpdateExpression=update_expr,
+                ExpressionAttributeValues=expr_values,
             )
             return {
                 "user_id": user_id,
@@ -368,16 +380,24 @@ def get_or_create_user(user_info: dict) -> dict:
         logger.error(f"DynamoDB get_item error: {e}")
         raise
 
-    # Create new user
+    # Create new user (Issue #498: store profile fields)
     try:
+        item = {
+            "user_id": {"S": user_id},
+            "display_name": {"S": display_name},
+            "created_at": {"S": now},
+            "last_login": {"S": now},
+        }
+        email = user_info.get("email")
+        if email:
+            item["email"] = {"S": email}
+        picture = user_info.get("picture")
+        if picture:
+            item["picture"] = {"S": picture}
+
         client.put_item(
             TableName=USERS_TABLE,
-            Item={
-                "user_id": {"S": user_id},
-                "display_name": {"S": display_name},
-                "created_at": {"S": now},
-                "last_login": {"S": now},
-            },
+            Item=item,
         )
         logger.info(f"Created new user: {user_id}")
         return {
