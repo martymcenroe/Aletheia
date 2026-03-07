@@ -532,12 +532,23 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             });
         }
 
+        // Issue #528: Extract focused context window around selected text
+        // ~1000 chars before and after selection instead of full page DOM
         const injectionResults = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: () => document.body.innerText,
+            func: (selectedText) => {
+                const fullText = document.body.innerText;
+                const WINDOW = 1000;
+                const pos = fullText.indexOf(selectedText);
+                if (pos === -1) return fullText.slice(0, 2000);
+                const start = Math.max(0, pos - WINDOW);
+                const end = Math.min(fullText.length, pos + selectedText.length + WINDOW);
+                return fullText.slice(start, end);
+            },
+            args: [info.selectionText]
         });
 
-        const fullPageText = injectionResults[0].result;
+        const contextText = injectionResults[0].result;
 
         // Issue #162: Include noarchive signal in payload
         const hasNoArchive = tabNoArchive.get(tab.id) || false;
@@ -546,7 +557,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             text: info.selectionText,
             url: info.pageUrl,
             title: tab.title,
-            domContext: fullPageText,
+            domContext: contextText,
             signals: {
                 noarchive: hasNoArchive
             }
@@ -609,7 +620,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         // Issue #310: Add selectedText and domContext for deep poetic analysis
         responseData.selectedText = info.selectionText;
-        responseData.domContext = fullPageText;
+        responseData.domContext = contextText;
 
         // Show Museum Label overlay with structured data
         await chrome.scripting.executeScript({

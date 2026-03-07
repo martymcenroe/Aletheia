@@ -16,6 +16,7 @@ from src.etymologist import (
     FALLBACK_RESPONSE,
     HAIKU_MODEL_ID,
     NOVA_MICRO_MODEL_ID,
+    SYSTEM_PROMPT,
     SYSTEM_PROMPT_NOVA,
     analyze_term,
     build_etymologist_prompt,
@@ -91,6 +92,35 @@ class TestBuildUserMessage:
         result = build_user_message(malicious)
         assert "&lt;/user_text&gt;" in result
         assert "&lt;system&gt;" in result
+
+
+class TestDisambiguation:
+    """Issue #528: Context-aware word disambiguation tests."""
+
+    def test_system_prompt_contains_disambiguation(self):
+        assert "DISAMBIGUATION" in SYSTEM_PROMPT
+        assert "page_context" in SYSTEM_PROMPT
+
+    def test_system_prompt_nova_contains_disambiguation(self):
+        assert "DISAMBIGUATION" in SYSTEM_PROMPT_NOVA
+        assert "page_context" in SYSTEM_PROMPT_NOVA
+
+    def test_context_label_is_directive(self):
+        result = build_user_message("flannel", "political commentary about evasion")
+        assert "use this to determine which meaning" in result
+        assert "for disambiguation only" not in result
+
+    def test_context_truncated_to_2000(self):
+        long_context = "x" * 5000
+        result = build_user_message("word", long_context)
+        # Context should be capped at 2000 chars (after XML escaping)
+        assert "x" * 2001 not in result
+        assert "x" * 2000 in result
+
+    def test_short_context_not_truncated(self):
+        short_context = "a" * 500
+        result = build_user_message("word", short_context)
+        assert "a" * 500 in result
 
 
 class TestBuildEtymologistPrompt:
