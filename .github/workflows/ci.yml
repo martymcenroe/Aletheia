@@ -387,7 +387,7 @@ jobs:
             exit 1
           fi
 
-      - name: Analysis endpoint (AUTH_ENABLED guard)
+      - name: Analysis endpoint (AUTH_ENABLED=true expected)
         run: |
           HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
             -X POST https://api.aletheia.study/ \
@@ -396,7 +396,11 @@ jobs:
             -d '{"text":"smoke test"}')
           echo "Analysis: $HTTP_STATUS"
           if [ "$HTTP_STATUS" = "401" ]; then
-            echo "FAIL: AUTH_ENABLED=true detected — extension auth not verified"
+            echo "OK: AUTH_ENABLED=true — unauthenticated request correctly rejected"
+          elif [ "$HTTP_STATUS" = "200" ]; then
+            echo "OK: Analysis endpoint responded successfully"
+          else
+            echo "FAIL: Unexpected status $HTTP_STATUS"
             exit 1
           fi
 

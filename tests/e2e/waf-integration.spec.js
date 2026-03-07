@@ -12,7 +12,9 @@ test.describe('Header Enforcement (#95, #349)', () => {
     // CloudFlare rate limit: 3 req/10s/IP — run serial with delay to avoid 429
     test.describe.configure({ mode: 'serial' });
 
-    test('020: API accepts request with valid header', async ({ request }) => {
+    test('020: API returns 401 for unauthenticated request with valid header', async ({ request }) => {
+        // AUTH_ENABLED=true — valid client header passes CloudFlare Worker
+        // but Lambda requires JWT authentication
         const response = await request.post(API_URL, {
             headers: {
                 'Content-Type': 'application/json',
@@ -26,8 +28,7 @@ test.describe('Header Enforcement (#95, #349)', () => {
             }
         });
 
-        expect(response.status()).toBe(200);
-        expect(response.ok()).toBe(true);
+        expect(response.status()).toBe(401);
     });
 
     test('030: Worker blocks request without header', async ({ request }) => {
@@ -54,7 +55,7 @@ test.describe('Header Enforcement (#95, #349)', () => {
         expect(response.status()).toBe(403);
     });
 
-    test('050: Future version accepted', async ({ request }) => {
+    test('050: Future version returns 401 (passes Worker, blocked by auth)', async ({ request }) => {
         // Wait for CloudFlare rate-limit window to reset (3 req/10s)
         await new Promise(r => setTimeout(r, 11_000));
         const response = await request.post(API_URL, {
@@ -70,7 +71,7 @@ test.describe('Header Enforcement (#95, #349)', () => {
             }
         });
 
-        expect(response.status()).toBe(200);
+        expect(response.status()).toBe(401);
     });
 
 });
