@@ -31,6 +31,7 @@ from src.etymologist import (
     fix_mixed_quote_pairs,
     get_fallback_response,
     get_model_id,
+    is_nova_model,
     process_bedrock_response,
     validate_model_id,
     validate_response_schema,
@@ -774,8 +775,8 @@ class TestModelConstants:
         assert NOVA_MICRO_MODEL_ID == "amazon.nova-micro-v1:0"
 
     def test_haiku_model_id(self):
-        """Haiku model ID is correct."""
-        assert HAIKU_MODEL_ID == "anthropic.claude-3-haiku-20240307-v1:0"
+        """Issue #535: Haiku model ID defaults to Haiku 4.5."""
+        assert HAIKU_MODEL_ID == "anthropic.claude-haiku-4-5-20251001-v1:0"
 
     def test_default_model_is_nova(self):
         """Default model is Nova Micro for improved latency."""
@@ -812,7 +813,29 @@ class TestValidateModelId:
     def test_similar_but_wrong_model_is_invalid(self):
         """Similar but incorrect model ID is invalid."""
         assert validate_model_id("amazon.nova-micro-v2:0") is False
-        assert validate_model_id("anthropic.claude-3-haiku-20240307-v2:0") is False
+
+
+class TestIsNovaModel:
+    """Issue #535: Tests for is_nova_model helper."""
+
+    def test_raw_nova_model_id(self):
+        assert is_nova_model("amazon.nova-micro-v1:0") is True
+
+    def test_aip_arn_with_nova(self):
+        assert is_nova_model(
+            "arn:aws:bedrock:us-east-1:383687041805:inference-profile/aletheia-nova-micro"
+        ) is True
+
+    def test_haiku_model_id(self):
+        assert is_nova_model("anthropic.claude-haiku-4-5-20251001-v1:0") is False
+
+    def test_opus_model_id(self):
+        assert is_nova_model("anthropic.claude-opus-4-6-v1") is False
+
+    def test_aip_arn_without_nova(self):
+        assert is_nova_model(
+            "arn:aws:bedrock:us-east-1:383687041805:inference-profile/aletheia-haiku"
+        ) is False
 
 
 class TestGetModelId:
