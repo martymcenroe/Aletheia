@@ -326,7 +326,7 @@ Registry/index files must stay synchronized with actual files.
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-03-06 | Claude Opus 4.6 | INITIAL: 17 audits in schedule. 4 monthly audits were 25-59 days overdue (0811, 0815, 0817, 0821) — all updated this cycle. 2 new audits (0827, 0899) initialized. audit_schedule_check.py enforces thresholds: monthly 30d block/22d warn, quarterly 90d/67d, weekly 7d/5d. CI integration working via ci.yml audit-schedule job. | #514 |
 
 ---
 
