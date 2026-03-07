@@ -325,11 +325,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-      - name: Install Chromium for pa11y
-        run: npx playwright install --with-deps chromium
+      - name: Install Chrome for pa11y
+        run: npx puppeteer browsers install chrome
 
       - name: Start local server
         run: npx serve . -l 8080 &
