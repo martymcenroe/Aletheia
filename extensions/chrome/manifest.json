@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Aletheia",
-  "version": "1.1",
+  "version": "1.1.1",
   "description": "AI-Powered Context Analysis",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwqhKPypEh3MS48mKuwfehoz2koJ1uAxX1ZokOvzz5jhqONCzi5qL5WSZm9f7tOe2i6gby7D211qFcna/5h0V8J1tafVSWPA6WWAh3zlTDpk/i9/s74Usfo4PZJIMlPp++xXBzdoihL3iudOaUbQXwlyKupjgn2BDE9pav9u5j0/Pom0Djmg94/8G/CfxtB+qJweztm7d6WMlMBPLa04ed2G/GiHK7XTHdTv8mBu/bnN03Bx0i+2CXeIcPwGVyXzhziL924VggzkVHjfqaHMap13KIxVfZqOg7MnMv4+XJp9U8GuUC6LgXai3c1aTzQyfpvxtJmyzMqzMm5UzjYVIvwIDAQAB",
   "permissions": [
