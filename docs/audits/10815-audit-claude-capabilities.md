@@ -178,6 +178,7 @@ Review `.claude/settings.local.json`:
 | 2026-01-05 | Gemini 3.0 Pro | Custom Slash Commands (active), Browser Integration, MCP CloudWatch | Browser/MCP added to backlog |
 | 2026-01-06 | Claude Opus 4.5 | Subagents (Explore, Plan), Named Sessions, Status Line, Thinking Mode | Subagent research evaluation (active in this session) |
 | 2026-01-12 | Claude Opus 4.5 | **Claude Code 2.1.0/2.1.1** - Hooks for agents/skills, Hot reload skills, Haiku 4.5, Auto-background bash, Prompt suggestions, Claude in Chrome Beta | Skills/Hooks to evaluate |
+| 2026-03-06 | Claude Opus 4.6 | **Opus 4.6 model** now in use. Custom skills active (/handoff, /pickup, /audit, /commit-push-pr, /code-review, /cleanup). Background agents used for parallel audit execution. Worktree isolation mature. pr-sentinel GitHub App enforces PR discipline. | None |
 
 ---
 

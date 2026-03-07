@@ -151,6 +151,7 @@ git push origin master
 | Date | Auditor | Pages Updated | Issues Found |
 |------|---------|---------------|--------------|
 | 2026-01-06 | Claude Opus 4.5 | All pages (timestamps added) | Wiki was BLANK - remote HEAD pointed to nonexistent branch. Fixed by pushing `master` branch. Added §4.0 availability check. |
+| 2026-03-06 | Claude Opus 4.6 | Architecture docs present (docs/architecture/). EULA and privacy pages added to site (eula.html, privacy.html). Auth architecture documented across LLDs and ADRs. Wiki availability not verified this cycle — deferred to next audit. | None |
 | 2026-01-04 | Claude Opus 4.5 | Privacy, FAQ, Architecture, Security, Terms-of-Use (new) | Privacy was inaccurate (said in-memory only) |
 
 ---

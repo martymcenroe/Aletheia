@@ -291,6 +291,7 @@ If multi-agent architecture is adopted:
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
 | 2026-01-10 | Claude Opus 4.5 | PASS: Comprehensive deny list in settings.local.json (git reset, force push, rm -rf, eval, pip, env), session logs maintained (7 log files), CLAUDE.md defines escalation paths, worktree isolation enforced per ADR 0210 | None |
+| 2026-03-06 | Claude Opus 4.6 | PASS: Root CLAUDE.md expanded with Two-Strike Rule, When Blocked/Uncertain overrides, Production Safety requirements, PR Issue References mandate. Aletheia CLAUDE.md adds Change Control (issue-before-code, no-bundling, post-change verification). Session logs active through March. pr-sentinel enforces PR discipline. No governance gaps. | None |
 
 ---
 

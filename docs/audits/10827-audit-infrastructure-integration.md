@@ -181,7 +181,7 @@ Extension → API Gateway → Lambda → Bedrock
 
 | Date | Auditor | Findings Summary | Issues Created |
 |------|---------|------------------|----------------|
-| | | | |
+| 2026-03-06 | Claude Opus 4.6 | INITIAL: 3 Lambdas deployed (AletheiaAgent, AletheiaAuth, AletheiaKillSwitch). CloudFlare Worker proxies api.aletheia.study to Lambda. CLOUDFLARE_ORIGIN_SECRET set. DynamoDB tables: aletheia-users, aletheia-coupons. AUTH_ENABLED=true. provision.sh correctly sets both create/update paths. No drift detected. | None |
 
 ---
 
