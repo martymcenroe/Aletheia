@@ -44,6 +44,15 @@ USERS_TABLE_SCHEMA = {
     "BillingMode": "PAY_PER_REQUEST",
 }
 
+COUPONS_TABLE_SCHEMA = {
+    "TableName": "aletheia-coupons",
+    "KeySchema": [{"AttributeName": "code", "KeyType": "HASH"}],
+    "AttributeDefinitions": [
+        {"AttributeName": "code", "AttributeType": "S"},
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+}
+
 TOKEN_CAP_TABLE_SCHEMA = {
     "TableName": "aletheia-token-cap",
     "KeySchema": [
@@ -84,6 +93,9 @@ def dynamodb_client(aws_credentials):
         token_cap_name: str = TOKEN_CAP_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
         os.environ["TOKEN_CAP_TABLE"] = token_cap_name
 
+        coupons_name: str = COUPONS_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
+        os.environ["COUPONS_TABLE"] = coupons_name
+
         # Explicitly remove endpoint override if it exists so boto3 hits moto interceptor
         if "DYNAMODB_ENDPOINT" in os.environ:
             del os.environ["DYNAMODB_ENDPOINT"]
@@ -95,6 +107,7 @@ def dynamodb_client(aws_credentials):
         del os.environ["DYNAMODB_TABLE"]
         del os.environ["AGENT_STATE_TABLE"]
         del os.environ["TOKEN_CAP_TABLE"]
+        del os.environ["COUPONS_TABLE"]
 
 
 @pytest.fixture(scope="session")
@@ -121,8 +134,16 @@ def token_cap_table(dynamodb_client) -> str:
     return table_name
 
 
+@pytest.fixture(scope="session")
+def coupons_table(dynamodb_client) -> str:
+    """Create aletheia-coupons table."""
+    table_name: str = COUPONS_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
+    dynamodb_client.create_table(**COUPONS_TABLE_SCHEMA)
+    return table_name
+
+
 @pytest.fixture(autouse=True)
-def cleanup_tables(dynamodb_client, agent_state_table, users_table, token_cap_table):
+def cleanup_tables(dynamodb_client, agent_state_table, users_table, token_cap_table, coupons_table):
     """Delete all items after each test."""
     yield  # Test runs here
 
@@ -167,6 +188,20 @@ def cleanup_tables(dynamodb_client, agent_state_table, users_table, token_cap_ta
             dynamodb_client.delete_item(
                 TableName=token_cap_table,
                 Key={"PK": item["PK"], "SK": item["SK"]},
+            )
+    except ClientError:
+        pass
+
+    # Cleanup coupons_table
+    try:
+        response = dynamodb_client.scan(
+            TableName=coupons_table,
+            ProjectionExpression="code",
+        )
+        for item in response.get("Items", []):
+            dynamodb_client.delete_item(
+                TableName=coupons_table,
+                Key={"code": item["code"]},
             )
     except ClientError:
         pass

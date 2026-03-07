@@ -564,6 +564,106 @@ async function handleFullPageClick() {
 }
 
 // ============================================================================
+// COUPON REDEMPTION (Issue #367)
+// ============================================================================
+
+const AUTH_API_ENDPOINT = "https://api.aletheia.study/redeem-coupon";
+
+const couponToggle = document.getElementById('coupon-toggle');
+const couponArrow = document.getElementById('coupon-arrow');
+const couponForm = document.getElementById('coupon-form');
+const couponInput = document.getElementById('coupon-input');
+const couponEmail = document.getElementById('coupon-email');
+const couponSubmit = document.getElementById('coupon-submit');
+const couponStatus = document.getElementById('coupon-status');
+
+function handleCouponToggle() {
+  if (!couponForm) return;
+  const isVisible = couponForm.style.display !== 'none';
+  couponForm.style.display = isVisible ? 'none' : 'block';
+  if (couponArrow) {
+    couponArrow.textContent = isVisible ? '\u2192' : '\u2193';
+  }
+}
+
+function handleCouponInput() {
+  if (!couponInput || !couponSubmit) return;
+  const code = couponInput.value.trim().toUpperCase();
+  const isValid = /^[A-Z0-9]{16}$/.test(code);
+  couponSubmit.disabled = !isValid;
+}
+
+async function handleCouponSubmit() {
+  if (!couponInput || !couponSubmit || couponSubmit.disabled) return;
+
+  const code = couponInput.value.trim().toUpperCase();
+  const email = couponEmail ? couponEmail.value.trim() : '';
+
+  if (email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+    showCouponStatus('Invalid email format', 'error');
+    return;
+  }
+
+  couponSubmit.disabled = true;
+  couponSubmit.textContent = 'Redeeming...';
+  showCouponStatus('Validating coupon...', 'info');
+
+  try {
+    const jwt = await window.AletheiaAuth.getJwt();
+    if (!jwt) {
+      showCouponStatus('Please sign in first', 'error');
+      return;
+    }
+
+    const payload = { code };
+    if (email) {
+      payload.email = email;
+    }
+
+    const response = await fetch(AUTH_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwt}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.status === 'success') {
+      showCouponStatus(`Upgraded to ${data.tier}!`, 'success');
+      couponInput.value = '';
+      if (couponEmail) couponEmail.value = '';
+      couponSubmit.disabled = true;
+    } else {
+      const errorMessages = {
+        'invalid_code': 'Invalid or expired coupon code',
+        'code_expired': 'This coupon has expired',
+        'code_exhausted': 'This coupon has already been used',
+        'internal_error': 'Something went wrong. Please try again.',
+        'Invalid coupon code format': 'Invalid coupon code format',
+        'Invalid email format': 'Invalid email format'
+      };
+      const msg = errorMessages[data.error] || data.error || 'Redemption failed';
+      showCouponStatus(msg, 'error');
+    }
+  } catch (_err) {
+    showCouponStatus('Network error. Please try again.', 'error');
+  } finally {
+    couponSubmit.textContent = 'Redeem Coupon';
+    handleCouponInput();
+  }
+}
+
+function showCouponStatus(message, type) {
+  if (!couponStatus) return;
+  couponStatus.textContent = message;
+  couponStatus.className = 'coupon-status ' + type;
+  couponStatus.style.display = 'block';
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
@@ -592,6 +692,17 @@ async function init() {
   // Full page button (Issue #106)
   if (fullPageButton) {
     fullPageButton.addEventListener('click', handleFullPageClick);
+  }
+
+  // Coupon redemption (Issue #367)
+  if (couponToggle) {
+    couponToggle.addEventListener('click', handleCouponToggle);
+  }
+  if (couponInput) {
+    couponInput.addEventListener('input', handleCouponInput);
+  }
+  if (couponSubmit) {
+    couponSubmit.addEventListener('click', handleCouponSubmit);
   }
 
   // Check auth state first (Issue #206)
