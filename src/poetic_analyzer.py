@@ -14,13 +14,16 @@ See: docs/lld/active/1310-poetic-resonance.md
 
 import json
 import logging
+import os
 import time
 from typing import Literal, TypedDict
 
 logger = logging.getLogger(__name__)
 
-# Opus model for deep analysis (more capable than Nova for nuanced reasoning)
-OPUS_MODEL_ID = "anthropic.claude-3-opus-20240229-v1:0"
+# Issue #535: Opus model from env var (AIP ARN) with fallback to raw model ID
+OPUS_MODEL_ID = os.environ.get(
+    "ALETHEIA_AIP_OPUS", "anthropic.claude-opus-4-6-v1"
+)
 
 # Maximum tokens for Opus response
 MAX_TOKENS = 1000

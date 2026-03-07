@@ -322,8 +322,10 @@ aws iam put-role-policy \
                 "bedrock:InvokeModelWithResponseStream"
             ],
             "Resource": [
-                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0"
+                "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0",
+                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-6-v1",
+                "arn:aws:bedrock:us-east-1:'"$ACCOUNT_ID"':inference-profile/aletheia-*"
             ]
         },
         {
@@ -368,6 +370,50 @@ echo -e "${GREEN}IAM permissions configured${NC}"
 # Wait for IAM propagation
 echo "Waiting for IAM propagation (10 seconds)..."
 sleep 10
+
+# =============================================================================
+# Step 4b: Application Inference Profiles (Issue #535: Cost Separation)
+# =============================================================================
+echo ""
+echo "[4b/10] Creating Application Inference Profiles..."
+
+# Create AIPs idempotently — tag all with Project:Aletheia for cost attribution
+for AIP_NAME_MODEL in \
+    "aletheia-nova-micro|arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0" \
+    "aletheia-haiku|arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0" \
+    "aletheia-opus|arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-6-v1"; do
+    AIP_NAME="${AIP_NAME_MODEL%%|*}"
+    AIP_MODEL="${AIP_NAME_MODEL##*|}"
+    if MSYS_NO_PATHCONV=1 aws bedrock list-inference-profiles --type APPLICATION \
+        --query "inferenceProfileSummaries[?inferenceProfileName=='${AIP_NAME}'].inferenceProfileArn" \
+        --output text --region "$REGION" 2>/dev/null | grep -q "arn:"; then
+        echo "AIP already exists: $AIP_NAME"
+    else
+        echo "Creating AIP: $AIP_NAME"
+        MSYS_NO_PATHCONV=1 aws bedrock create-inference-profile \
+            --inference-profile-name "$AIP_NAME" \
+            --model-source "{\"copyFrom\":\"${AIP_MODEL}\"}" \
+            --tags "key=Project,value=Aletheia" \
+            --region "$REGION" 2>/dev/null || echo -e "${YELLOW}WARNING: Failed to create AIP $AIP_NAME (may require model access)${NC}"
+    fi
+done
+
+# Resolve AIP ARNs for Lambda env vars
+AIP_NOVA_ARN=$(MSYS_NO_PATHCONV=1 aws bedrock list-inference-profiles --type APPLICATION \
+    --query "inferenceProfileSummaries[?inferenceProfileName=='aletheia-nova-micro'].inferenceProfileArn" \
+    --output text --region "$REGION" 2>/dev/null || echo "")
+AIP_HAIKU_ARN=$(MSYS_NO_PATHCONV=1 aws bedrock list-inference-profiles --type APPLICATION \
+    --query "inferenceProfileSummaries[?inferenceProfileName=='aletheia-haiku'].inferenceProfileArn" \
+    --output text --region "$REGION" 2>/dev/null || echo "")
+AIP_OPUS_ARN=$(MSYS_NO_PATHCONV=1 aws bedrock list-inference-profiles --type APPLICATION \
+    --query "inferenceProfileSummaries[?inferenceProfileName=='aletheia-opus'].inferenceProfileArn" \
+    --output text --region "$REGION" 2>/dev/null || echo "")
+
+echo "AIP ARNs:"
+echo "  Nova Micro: ${AIP_NOVA_ARN:-NOT FOUND}"
+echo "  Haiku:      ${AIP_HAIKU_ARN:-NOT FOUND}"
+echo "  Opus:       ${AIP_OPUS_ARN:-NOT FOUND}"
+echo -e "${GREEN}Application Inference Profiles configured${NC}"
 
 # =============================================================================
 # Step 5: Lambda Dependency Layer (Cherry-Pick Strategy)
@@ -443,7 +489,7 @@ if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/d
         --timeout 60 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true,ALETHEIA_AIP_NOVA_MICRO=${AIP_NOVA_ARN},ALETHEIA_AIP_HAIKU=${AIP_HAIKU_ARN},ALETHEIA_AIP_OPUS=${AIP_OPUS_ARN}}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Agent Lambda (X-Ray enabled)${NC}"
@@ -462,7 +508,7 @@ else
         --function-name "$FUNC_NAME" \
         --handler src.lambda_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true,ALETHEIA_AIP_NOVA_MICRO=${AIP_NOVA_ARN},ALETHEIA_AIP_HAIKU=${AIP_HAIKU_ARN},ALETHEIA_AIP_OPUS=${AIP_OPUS_ARN}}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
@@ -665,6 +711,103 @@ if ! aws secretsmanager describe-secret --secret-id "$GITHUB_SECRET_NAME" --regi
 else
     echo -e "${GREEN}GitHub OAuth secret exists: $GITHUB_SECRET_NAME${NC}"
 fi
+
+# =============================================================================
+# Step 10b: Lambda Tagging (Issue #535: Cost Separation)
+# =============================================================================
+echo ""
+echo "[10b/10] Tagging Lambda functions..."
+
+# Tag Aletheia Lambdas
+for LAMBDA_NAME in "$FUNC_NAME" "$AUTH_FUNC_NAME" "AletheiaKillSwitch"; do
+    LAMBDA_ARN=$(aws lambda get-function --function-name "$LAMBDA_NAME" --region "$REGION" --query 'Configuration.FunctionArn' --output text 2>/dev/null || echo "")
+    if [ -n "$LAMBDA_ARN" ]; then
+        aws lambda tag-resource --resource "$LAMBDA_ARN" --tags "Project=Aletheia" --region "$REGION" 2>/dev/null || true
+        echo "  Tagged $LAMBDA_NAME -> Project:Aletheia"
+    fi
+done
+
+# Tag Hermes Lambdas
+for LAMBDA_NAME in "hermes-ai-handler" "AletheiaHermesPoller"; do
+    LAMBDA_ARN=$(aws lambda get-function --function-name "$LAMBDA_NAME" --region "$REGION" --query 'Configuration.FunctionArn' --output text 2>/dev/null || echo "")
+    if [ -n "$LAMBDA_ARN" ]; then
+        aws lambda tag-resource --resource "$LAMBDA_ARN" --tags "Project=Hermes" --region "$REGION" 2>/dev/null || true
+        echo "  Tagged $LAMBDA_NAME -> Project:Hermes"
+    fi
+done
+
+echo -e "${GREEN}Lambda tagging complete${NC}"
+
+# =============================================================================
+# Step 10c: HermesPoller Role Migration (Issue #535)
+# =============================================================================
+echo ""
+echo "[10c/10] Configuring HermesPoller role..."
+
+HERMES_POLLER_ROLE="HermesPollerRole"
+
+if ! aws iam get-role --role-name "$HERMES_POLLER_ROLE" >/dev/null 2>&1; then
+    echo "Creating IAM role: $HERMES_POLLER_ROLE"
+    aws iam create-role --role-name "$HERMES_POLLER_ROLE" --assume-role-policy-document "$TRUST_POLICY"
+
+    aws iam attach-role-policy \
+        --role-name "$HERMES_POLLER_ROLE" \
+        --policy-arn "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" 2>/dev/null || true
+
+    aws iam put-role-policy \
+        --role-name "$HERMES_POLLER_ROLE" \
+        --policy-name "HermesPollerAccess" \
+        --policy-document '{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:GetItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:'"$ACCOUNT_ID"':table/'"$TABLE_NAME"'"
+            },
+            {
+                "Effect": "Allow",
+                "Action": "sns:Publish",
+                "Resource": "arn:aws:sns:us-east-1:'"$ACCOUNT_ID"':Aletheia-CapDenialAlerts"
+            }
+        ]
+    }'
+    echo "Waiting for IAM propagation (10 seconds)..."
+    sleep 10
+    echo -e "${GREEN}Created HermesPoller role${NC}"
+else
+    echo "HermesPoller role already exists"
+fi
+
+# Migrate AletheiaHermesPoller to new role (if it exists)
+if aws lambda get-function --function-name "AletheiaHermesPoller" --region "$REGION" >/dev/null 2>&1; then
+    CURRENT_ROLE=$(aws lambda get-function-configuration --function-name "AletheiaHermesPoller" --region "$REGION" --query 'Role' --output text 2>/dev/null || echo "")
+    if echo "$CURRENT_ROLE" | grep -q "$ROLE_NAME"; then
+        echo "Migrating AletheiaHermesPoller from $ROLE_NAME to $HERMES_POLLER_ROLE..."
+        aws lambda update-function-configuration \
+            --function-name "AletheiaHermesPoller" \
+            --role "arn:aws:iam::${ACCOUNT_ID}:role/${HERMES_POLLER_ROLE}" \
+            --region "$REGION" >/dev/null
+        echo -e "${GREEN}Migrated AletheiaHermesPoller to HermesPollerRole${NC}"
+    else
+        echo "AletheiaHermesPoller already on correct role"
+    fi
+else
+    echo "AletheiaHermesPoller not found (Hermes not deployed)"
+fi
+
+# =============================================================================
+# Step 10d: Activate Cost Allocation Tag (Issue #535)
+# =============================================================================
+echo ""
+echo "[10d/10] Activating cost allocation tag..."
+MSYS_NO_PATHCONV=1 aws ce update-cost-allocation-tags-status \
+    --cost-allocation-tags-status '[{"TagKey":"Project","Status":"Active"}]' \
+    --region "$REGION" 2>/dev/null || echo -e "${YELLOW}WARNING: Cost allocation tag activation failed (may need billing permissions)${NC}"
+echo -e "${GREEN}Cost allocation tag 'Project' activated${NC}"
 
 # =============================================================================
 # Sanity Check: Self-Test the Auth Lambda

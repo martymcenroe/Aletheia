@@ -39,12 +39,16 @@ class SemanticGuardrail:
     def __init__(
         self,
         region_name: str = "us-east-1",
-        model_id: str = "anthropic.claude-3-haiku-20240307-v1:0",
+        model_id: str | None = None,
         bedrock_client=None,
     ):
         # Use injected client if provided, otherwise create new (backward compat)
         self.client = bedrock_client or boto3.client("bedrock-runtime", region_name=region_name)
-        self.model_id = model_id
+        # Issue #535: Read model ID from env var (AIP ARN) with fallback
+        import os
+        self.model_id = model_id or os.environ.get(
+            "ALETHEIA_AIP_HAIKU", "anthropic.claude-haiku-4-5-20251001-v1:0"
+        )
         self.resources = self._load_resources()
 
     def _load_resources(self) -> Dict[str, Any]:

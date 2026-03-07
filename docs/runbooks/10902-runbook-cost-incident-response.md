@@ -30,10 +30,14 @@ Layer 1: CloudWatch Alarms (real-time, 1-minute)
   └── KillSwitch-Failure (errors) → email ("do it manually!")
 
 Layer 2: AWS Budgets (8-24h delay)
-  ├── 10% ($2.50)  → email
-  ├── 40% ($10)    → email
-  ├── 80% ($20)    → email
-  └── 95% ($23.75) → email + IAM deny policy on AletheiaLambdaRole
+  ├── Account-Monthly-Canary ($150, alert-only, all services)
+  │   ├── 50% ($75)   → email
+  │   ├── 80% ($120)  → email
+  │   └── 100% ($150) → email
+  └── Aletheia-Monthly-25USD ($25, Aletheia-only with action)
+      ├── 50% ($12.50) → email
+      ├── 80% ($20)    → email
+      └── 95% ($23.75) → email + IAM deny policy on AletheiaLambdaRole only
 
 Layer 3: Account concurrency limit (always active)
   └── 10 concurrent Lambda executions max (AWS account limit)
@@ -50,7 +54,7 @@ Layer 3: Account concurrency limit (always active)
 | Budgets action role | `AletheiaBudgetsActionRole` |
 | Alert SNS topic | `AletheiaBillingAlerts` |
 | Kill switch SNS topic | `AletheiaKillSwitchTrigger` |
-| Budget | `Aletheia-Monthly-10USD` |
+| Budgets | `Account-Monthly-Canary` (alert-only), `Aletheia-Monthly-25USD` (with action) |
 | CloudWatch alarms | `AletheiaAgent-InvocationSpike`, `AletheiaAgent-Throttles`, `AletheiaKillSwitch-Failure` |
 
 ---
@@ -154,14 +158,14 @@ This tells AWS Budgets to reverse its own action, keeping the action history cle
 ```bash
 # First, get the budget action ID
 MSYS_NO_PATHCONV=1 aws budgets describe-budget-actions-for-budget \
-  --account-id 383687041805 --budget-name "Aletheia-Monthly-10USD" \
+  --account-id 383687041805 --budget-name "Aletheia-Monthly-25USD" \
   --region us-east-1
 ```
 
 ```bash
 # Then reverse it (use the ActionId from above)
 MSYS_NO_PATHCONV=1 aws budgets execute-budget-action \
-  --account-id 383687041805 --budget-name "Aletheia-Monthly-10USD" \
+  --account-id 383687041805 --budget-name "Aletheia-Monthly-25USD" \
   --action-id ACTION_ID_HERE \
   --execution-type REVERSE_ACTION --region us-east-1
 ```
@@ -380,8 +384,8 @@ MSYS_NO_PATHCONV=1 aws ce get-cost-and-usage \
 
 ```bash
 MSYS_NO_PATHCONV=1 aws budgets describe-budget \
-  --account-id 383687041805 --budget-name "Aletheia-Monthly-10USD" \
+  --account-id 383687041805 --budget-name "Aletheia-Monthly-25USD" \
   --region us-east-1
 ```
 
-> **Note:** The budget name says "10USD" but the actual limit is **$25**. Budget names can't be changed via the API — ignore the naming mismatch.
+> **Note:** Issue #535 renamed the budget to `Aletheia-Monthly-25USD` ($25 limit). A separate `Account-Monthly-Canary` ($150) monitors total account spend.

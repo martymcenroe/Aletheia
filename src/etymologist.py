@@ -23,18 +23,34 @@ logger = logging.getLogger(__name__)
 # Constants
 MAX_TOKENS = 500
 
-# Issue #294: Model IDs for Nova Micro and Claude Haiku
-NOVA_MICRO_MODEL_ID = "amazon.nova-micro-v1:0"
-HAIKU_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
+# Issue #535: Model IDs from env vars (AIP ARNs) with fallback to raw model IDs
+NOVA_MICRO_MODEL_ID = os.environ.get(
+    "ALETHEIA_AIP_NOVA_MICRO", "amazon.nova-micro-v1:0"
+)
+HAIKU_MODEL_ID = os.environ.get(
+    "ALETHEIA_AIP_HAIKU", "anthropic.claude-haiku-4-5-20251001-v1:0"
+)
 
 # Issue #294: Default to Nova Micro for improved latency (532ms vs 1469ms)
 DEFAULT_MODEL_ID = NOVA_MICRO_MODEL_ID
 
-# Issue #294: Allowlist of permitted models (defense in depth per G1.1)
+# Issue #535: Allowlist — accepts AIP ARNs and raw model IDs
 ALLOWED_MODELS = {
     NOVA_MICRO_MODEL_ID,
     HAIKU_MODEL_ID,
+    "amazon.nova-micro-v1:0",
+    "anthropic.claude-haiku-4-5-20251001-v1:0",
+    "anthropic.claude-3-haiku-20240307-v1:0",
 }
+
+
+def is_nova_model(model_id: str) -> bool:
+    """Issue #535: Check if model ID refers to a Nova model.
+
+    Handles both raw model IDs (amazon.nova-micro-v1:0) and AIP ARNs
+    (arn:aws:bedrock:...:inference-profile/aletheia-nova-micro).
+    """
+    return model_id.startswith("amazon.nova") or "nova" in model_id.lower()
 
 # Comprehensive Unicode quote normalization map (Issue #288)
 # Key insight: Double quote variants -> single quote (to avoid breaking JSON structure)
@@ -309,7 +325,7 @@ def build_etymologist_prompt(word: str, page_context: str = "", model_id: str | 
     if model_id is None:
         model_id = get_model_id()
 
-    if model_id.startswith("amazon.nova"):
+    if is_nova_model(model_id):
         return build_nova_prompt(word, page_context)
     else:
         return build_haiku_prompt(word, page_context)
@@ -606,7 +622,7 @@ def extract_response_text(response_body: dict, model_id: str) -> str:
     - Nova: {"output": {"message": {"content": [{"text": "..."}]}}}
     - Claude: {"content": [{"type": "text", "text": "..."}]}
     """
-    if model_id.startswith("amazon.nova"):
+    if is_nova_model(model_id):
         # Nova format
         output = response_body.get("output", {})
         message = output.get("message", {})
@@ -631,7 +647,7 @@ def extract_token_usage(response_body: dict, model_id: str) -> tuple[int, int]:
     - Claude: {"usage": {"input_tokens": N, "output_tokens": N}}
     """
     usage = response_body.get("usage", {})
-    if model_id.startswith("amazon.nova"):
+    if is_nova_model(model_id):
         return (
             usage.get("inputTokens", 0),
             usage.get("outputTokens", 0),
