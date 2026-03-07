@@ -335,7 +335,15 @@ async function handleLoginClick() {
     // continues the flow. When popup reopens, init() will find stored tokens.
     const user = await window.AletheiaAuth.initiateLogin();
 
-    // If we get here, popup stayed open and flow completed
+    // Firefox tabs-based flow returns {id: 'pending', name: 'pending'} immediately.
+    // The SW completes the token exchange asynchronously via onUpdated listener.
+    // Close the popup — user will reopen after completing LinkedIn auth.
+    if (user.id === 'pending') {
+      window.close();
+      return;
+    }
+
+    // If we get here, popup stayed open and flow completed synchronously
     userName.textContent = user.name;
     showView('main');
     await renderMainView();
