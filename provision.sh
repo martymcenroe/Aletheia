@@ -322,10 +322,11 @@ aws iam put-role-policy \
                 "bedrock:InvokeModelWithResponseStream"
             ],
             "Resource": [
-                "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-6-v1",
-                "arn:aws:bedrock:us-east-1:'"$ACCOUNT_ID"':inference-profile/aletheia-*"
+                "arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0",
+                "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+                "arn:aws:bedrock:*::foundation-model/anthropic.claude-opus-4-6-v1",
+                "arn:aws:bedrock:*:'"$ACCOUNT_ID"':inference-profile/*",
+                "arn:aws:bedrock:*:'"$ACCOUNT_ID"':application-inference-profile/*"
             ]
         },
         {
@@ -378,10 +379,12 @@ echo ""
 echo "[4b/10] Creating Application Inference Profiles..."
 
 # Create AIPs idempotently — tag all with Project:Aletheia for cost attribution
+# Nova Micro: copy from foundation model (supports ON_DEMAND)
+# Haiku 4.5 / Opus 4.6: copy from system-defined inference profile (INFERENCE_PROFILE-only models)
 for AIP_NAME_MODEL in \
     "aletheia-nova-micro|arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0" \
-    "aletheia-haiku|arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0" \
-    "aletheia-opus|arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-6-v1"; do
+    "aletheia-haiku|arn:aws:bedrock:us-east-1:${ACCOUNT_ID}:inference-profile/us.anthropic.claude-haiku-4-5-20251001-v1:0" \
+    "aletheia-opus|arn:aws:bedrock:us-east-1:${ACCOUNT_ID}:inference-profile/us.anthropic.claude-opus-4-6-v1"; do
     AIP_NAME="${AIP_NAME_MODEL%%|*}"
     AIP_MODEL="${AIP_NAME_MODEL##*|}"
     if MSYS_NO_PATHCONV=1 aws bedrock list-inference-profiles --type APPLICATION \
