@@ -40,6 +40,12 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/secret-guard.sh",
+            "timeout": 5,
+            "description": "Secret File Guard (blocks access to .env, credentials)"
+          },
+          {
+            "type": "command",
             "command": "bash /c/Users/mcwiz/Projects/Aletheia/.claude/hooks/bash-gate.sh",
             "timeout": 5,
             "description": "Bash Command Gate (blocks &&, |, ;)"
