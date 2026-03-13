@@ -51,61 +51,114 @@
       <p class="last-updated">Last updated: March 2026</p>
 
       <div class="highlight-box">
-        <strong>Summary:</strong> Aletheia is privacy-first. We only access text you explicitly select, we don't track you, and we don't sell your data.
+        <strong>Summary:</strong> Aletheia is privacy-first. We don't track you, and we don't sell your data. We collect only what's needed to provide the service, and we're transparent about every detail.
       </div>
 
       <h2>1. What We Collect</h2>
+
+      <h3>Selection-Based Analysis</h3>
       <p>When you select text and choose "Explain with AI", the following is sent to our servers:</p>
       <ul>
         <li>The text you select</li>
-        <li>The surrounding text</li>
-        <li>The page URL where you selected it</li>
+        <li>The surrounding context (~2,000 characters around your selection)</li>
+        <li>The page URL</li>
+        <li>The page title</li>
+        <li>Page metadata signals (such as noarchive tags indicating publisher preferences)</li>
       </ul>
-      <p>If you redeem a coupon code, you may optionally provide an email address. This is stored in our database for account communication purposes only and is never shared with third parties.</p>
+
+      <h3>Full Page Analysis</h3>
+      <p>When you click "Analyze Full Page", the extension extracts up to 10,000 characters of article content from the current page. Before transmission, email addresses and phone numbers found in the text are automatically redacted to protect third-party privacy.</p>
+
+      <h3>Account Data</h3>
+      <p>If you sign in with LinkedIn, we collect and store:</p>
+      <ul>
+        <li>Your LinkedIn user ID (stable identifier)</li>
+        <li>Your display name</li>
+        <li>Your email address</li>
+        <li>Your profile picture URL</li>
+      </ul>
+      <p>This data is stored in our database to manage your account and is retained until you delete your account or request erasure.</p>
+
+      <h3>Payment Data</h3>
+      <p>If you subscribe to a paid plan, we store a Stripe customer ID and subscription ID to manage your billing. Payment card details are handled entirely by Stripe and never touch our servers.</p>
+
+      <h3>Local Storage</h3>
+      <p>The extension stores the following locally on your device:</p>
+      <ul>
+        <li>Authentication tokens (access and refresh tokens, cleared on browser close or logout)</li>
+        <li>Your user ID and display name (for showing logged-in state)</li>
+        <li>Your domain allowlist preferences</li>
+      </ul>
 
       <p>We do <strong>not</strong> collect:</p>
       <ul>
         <li>Your browsing history across sites</li>
-        <li>Personal information</li>
-        <li>Any data without your explicit action</li>
+        <li>Any data without your explicit action (clicking the extension or right-click menu)</li>
       </ul>
 
       <h2>2. How We Process Your Data</h2>
-      <p>Your text is analyzed using AWS Bedrock (Amazon Nova AI). AWS Bedrock:</p>
+      <p>Your text is analyzed using <strong>AWS Bedrock</strong>, which hosts the following AI models:</p>
       <ul>
-        <li>Does not train on your prompts</li>
-        <li>Does not store your data beyond processing</li>
-        <li>Processes data in secure, isolated environments</li>
+        <li><strong>Amazon Nova Micro</strong> &mdash; standard analysis</li>
+        <li><strong>Anthropic Claude Haiku 4.5</strong> &mdash; standard analysis</li>
+        <li><strong>Anthropic Claude Opus 4.6</strong> &mdash; deep poetic/literary analysis</li>
+      </ul>
+      <p>All models are accessed through AWS Bedrock, which provides these guarantees:</p>
+      <ul>
+        <li>Your prompts and responses are <strong>not</strong> used to train any AI models</li>
+        <li>Your data is not stored by AWS or Anthropic beyond the duration of processing</li>
+        <li>Processing occurs in secure, isolated environments</li>
       </ul>
 
       <h2>3. Data Retention</h2>
-      <p>Submitted text is stored for <strong>30 days</strong> to enable features like conversation history, then automatically deleted. We never sell your data or use it to train AI models.</p>
+      <p><strong>Analysis data</strong> (your selected text and AI responses) is stored for <strong>30 days</strong> to enable conversation history, then automatically deleted.</p>
+      <p><strong>Account data</strong> (your profile and billing information) is retained until you delete your account or request erasure via the DELETE /my-data endpoint.</p>
+      <p><strong>Rate limit counters</strong> expire automatically within hours to days.</p>
+      <p>We never sell your data or use it to train AI models.</p>
 
       <h2>4. Browser Permissions</h2>
-      <p>Aletheia requests only the permissions strictly necessary:</p>
+      <p>Aletheia requests only the permissions necessary for its features:</p>
+
+      <h3>All Browsers (Chrome &amp; Firefox)</h3>
       <ul>
-        <li><strong>ActiveTab:</strong> Access only the current tab when you invoke the extension</li>
-        <li><strong>ContextMenus:</strong> Add "Explain with AI" to your right-click menu</li>
-        <li><strong>Storage:</strong> Save your preferences locally</li>
+        <li><strong>activeTab:</strong> Access only the current tab when you explicitly invoke the extension</li>
+        <li><strong>tabs:</strong> Detect page navigation for overlay lifecycle management and content script injection</li>
+        <li><strong>scripting:</strong> Execute content scripts on the active tab to extract selected text and display analysis overlays</li>
+        <li><strong>contextMenus:</strong> Add "Explain with AI" to your right-click menu</li>
+        <li><strong>storage:</strong> Save your preferences, authentication tokens, and domain allowlist locally on your device</li>
       </ul>
-      <p>We <strong>cannot</strong> access your browsing history, other tabs, or any data you don't explicitly select.</p>
+
+      <h3>Chrome Only</h3>
+      <ul>
+        <li><strong>identity:</strong> Required for the LinkedIn OAuth authentication flow</li>
+        <li><strong>notifications:</strong> Display analysis completion notifications</li>
+      </ul>
+
+      <h3>Remote Server Access</h3>
+      <ul>
+        <li><strong>api.aletheia.study:</strong> The only remote server the extension communicates with, for AI analysis and authentication</li>
+      </ul>
+
+      <p>We <strong>cannot</strong> access your browsing history or data from other tabs.</p>
 
       <h2>5. Your Rights (GDPR/CCPA)</h2>
       <p>You have the right to:</p>
       <ul>
-        <li>Request deletion of your data at any time</li>
-        <li>Access information about what data we hold</li>
-        <li>Data portability</li>
+        <li><strong>Erasure:</strong> Request deletion of all your data at any time. The DELETE /my-data endpoint removes your data from all of our systems, including your profile, analysis history, billing references, and rate limit records. Active subscriptions are cancelled automatically.</li>
+        <li><strong>Access:</strong> Request information about what data we hold about you.</li>
       </ul>
-      <p>Data is also automatically purged after 30 days.</p>
+      <p>Analysis data is also automatically purged after 30 days.</p>
 
       <h2>6. Third-Party Services</h2>
       <p>We use the following third-party services:</p>
       <ul>
-        <li><strong>AWS Bedrock:</strong> AI processing (Amazon Web Services)</li>
-        <li><strong>AWS DynamoDB:</strong> Temporary data storage</li>
+        <li><strong>AWS Bedrock:</strong> AI processing &mdash; your selected text and page context are sent to Amazon Nova and Anthropic Claude models hosted on AWS. Neither Amazon nor Anthropic trains on your data.</li>
+        <li><strong>AWS DynamoDB:</strong> Data storage for analysis history, user accounts, rate limits, and coupon records.</li>
+        <li><strong>LinkedIn:</strong> OAuth authentication &mdash; if you choose to sign in, LinkedIn provides your user ID, name, email, and profile picture to Aletheia.</li>
+        <li><strong>Stripe:</strong> Payment processing &mdash; if you subscribe to a paid plan, Stripe handles all payment card details. We store only a Stripe customer ID and subscription ID; we never see your card number.</li>
+        <li><strong>CloudFlare:</strong> All traffic between the extension and our API is proxied through CloudFlare for performance and security. CloudFlare does not store request or response content.</li>
       </ul>
-      <p>We do not use analytics, advertising networks, or tracking services.</p>
+      <p>We do not use user analytics, advertising networks, or tracking services. We collect anonymous operational metrics (request counts, latency, error rates) for service reliability only.</p>
 
       <h2>7. Open Source Transparency</h2>
       <p>Aletheia is fully open source under the <a href="https://polyformproject.org/licenses/noncommercial/1.0.0/" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a> license. You can audit our code at any time:</p>
