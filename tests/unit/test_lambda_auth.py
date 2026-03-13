@@ -105,6 +105,14 @@ def aws_env():
             BillingMode="PAY_PER_REQUEST"
         )
 
+        # Coupons Table (GDPR erasure — redeemed_by cleanup)
+        dynamodb.create_table(
+            TableName=os.environ.get("COUPONS_TABLE", "aletheia-coupons"),
+            KeySchema=[{"AttributeName": "code", "KeyType": "HASH"}],
+            AttributeDefinitions=[{"AttributeName": "code", "AttributeType": "S"}],
+            BillingMode="PAY_PER_REQUEST"
+        )
+
         yield {"dynamodb": dynamodb, "secrets": secrets}
 
 
@@ -339,8 +347,8 @@ class TestHandlers:
 
 
 class TestGDPRDataErasure:
-    def test_delete_user_data_success(self, aws_env):
-        # Insert data
+    def test_delete_user_data_deletes_analysis_records(self, aws_env):
+        """Issue #553: analysis records deleted from AletheiaAgentState."""
         dynamodb = aws_env["dynamodb"]
         for i in range(3):
             dynamodb.put_item(
@@ -352,7 +360,7 @@ class TestGDPRDataErasure:
                 }
             )
 
-        # Insert another user's data
+        # Insert another user's data (must survive)
         dynamodb.put_item(
             TableName=auth_func.AGENT_STATE_TABLE,
             Item={
@@ -362,14 +370,96 @@ class TestGDPRDataErasure:
             }
         )
 
-        deleted = auth_func.delete_user_data(TEST_USER_ID)
-        assert deleted == 3
+        summary = auth_func.delete_user_data(TEST_USER_ID)
+        assert summary["analysis_records"] == 3
 
-        # Verify deletion
+        # Other user's data untouched
         response = dynamodb.scan(TableName=auth_func.AGENT_STATE_TABLE)
         items = response["Items"]
         assert len(items) == 1
         assert items[0]["user_id"]["S"] == "other-user"
+
+    def test_delete_user_data_deletes_user_profile(self, aws_env):
+        """Issue #553: user profile deleted from aletheia-users."""
+        dynamodb = aws_env["dynamodb"]
+        dynamodb.put_item(
+            TableName=auth_func.USERS_TABLE,
+            Item={
+                "user_id": {"S": TEST_USER_ID},
+                "display_name": {"S": TEST_USER_NAME},
+                "email": {"S": "test@example.com"},
+            }
+        )
+
+        summary = auth_func.delete_user_data(TEST_USER_ID)
+        assert summary["profile_deleted"] is True
+
+        # Verify gone
+        response = dynamodb.get_item(
+            TableName=auth_func.USERS_TABLE,
+            Key={"user_id": {"S": TEST_USER_ID}},
+        )
+        assert "Item" not in response
+
+    def test_delete_user_data_removes_from_coupon_redeemed_by(self, aws_env):
+        """Issue #553: user_id removed from coupon redeemed_by sets."""
+        dynamodb = aws_env["dynamodb"]
+        coupons_table = os.environ.get("COUPONS_TABLE", "aletheia-coupons")
+
+        dynamodb.put_item(
+            TableName=coupons_table,
+            Item={
+                "code": {"S": "TEST-COUPON"},
+                "redeemed_by": {"SS": [TEST_USER_ID, "other-user"]},
+                "uses": {"N": "2"},
+                "max_uses": {"N": "10"},
+            }
+        )
+
+        summary = auth_func.delete_user_data(TEST_USER_ID)
+        assert summary["coupons_updated"] == 1
+
+        # Verify user removed but other-user remains
+        response = dynamodb.get_item(
+            TableName=coupons_table,
+            Key={"code": {"S": "TEST-COUPON"}},
+        )
+        redeemed = response["Item"]["redeemed_by"]["SS"]
+        assert TEST_USER_ID not in redeemed
+        assert "other-user" in redeemed
+
+    def test_delete_user_data_deletes_rate_limits(self, aws_env):
+        """Issue #553: rate limit counters deleted from aletheia-token-cap."""
+        dynamodb = aws_env["dynamodb"]
+        pk = f"USER#{TEST_USER_ID}"
+        for sk in ["RATE#HOURLY#2026-01", "RATE#DAILY#2026-01-01", "RATE#MONTHLY#2026-01"]:
+            dynamodb.put_item(
+                TableName=auth_func.TOKEN_CAP_TABLE,
+                Item={"PK": {"S": pk}, "SK": {"S": sk}, "count": {"N": "5"}},
+            )
+
+        # Other user's rate limits (must survive)
+        dynamodb.put_item(
+            TableName=auth_func.TOKEN_CAP_TABLE,
+            Item={"PK": {"S": "USER#other"}, "SK": {"S": "RATE#HOURLY#2026-01"}, "count": {"N": "3"}},
+        )
+
+        summary = auth_func.delete_user_data(TEST_USER_ID)
+        assert summary["rate_limits_deleted"] == 3
+
+        # Other user untouched
+        response = dynamodb.scan(TableName=auth_func.TOKEN_CAP_TABLE)
+        assert len(response["Items"]) == 1
+        assert response["Items"][0]["PK"]["S"] == "USER#other"
+
+    def test_delete_user_data_returns_complete_summary(self, aws_env):
+        """Issue #553: summary includes all tables."""
+        summary = auth_func.delete_user_data(TEST_USER_ID)
+        assert "analysis_records" in summary
+        assert "profile_deleted" in summary
+        assert "stripe_cancelled" in summary
+        assert "coupons_updated" in summary
+        assert "rate_limits_deleted" in summary
 
     @responses.activate
     def test_handle_delete_my_data(self, aws_env):
@@ -380,7 +470,9 @@ class TestGDPRDataErasure:
 
         result = auth_func.handle_delete_my_data({"Authorization": "Bearer token123"})
         assert result["statusCode"] == 200
-        assert json.loads(result["body"])["success"] is True
+        body = json.loads(result["body"])
+        assert body["success"] is True
+        assert "details" in body
 
     def test_handle_delete_my_data_unauthorized(self):
         result = auth_func.handle_delete_my_data({})

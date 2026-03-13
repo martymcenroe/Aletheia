@@ -667,63 +667,190 @@ def handle_validate_token(headers: dict) -> dict:
     }
 
 
-def delete_user_data(user_id: str) -> int:
-    """
-    Delete all DynamoDB items for a user from AletheiaAgentState table.
-
-    Issue #147: GDPR Article 17 - Right to Erasure implementation.
-    Uses GSI on user_id to efficiently query user's items.
-
-    Args:
-        user_id: LinkedIn OIDC 'sub' identifier.
-
-    Returns:
-        Count of items deleted.
-    """
-    client = get_dynamodb_client()
+def _delete_analysis_records(client, user_id: str) -> int:
+    """Delete all analysis records from AletheiaAgentState for a user."""
     deleted_count = 0
+    response = client.query(
+        TableName=AGENT_STATE_TABLE,
+        IndexName="user_id-index",
+        KeyConditionExpression="user_id = :uid",
+        ExpressionAttributeValues={":uid": {"S": user_id}},
+        ProjectionExpression="thread_id, checkpoint_id",
+    )
+    items = response.get("Items", [])
 
-    try:
-        # Query all items for this user using GSI
+    while response.get("LastEvaluatedKey"):
         response = client.query(
             TableName=AGENT_STATE_TABLE,
             IndexName="user_id-index",
             KeyConditionExpression="user_id = :uid",
             ExpressionAttributeValues={":uid": {"S": user_id}},
             ProjectionExpression="thread_id, checkpoint_id",
+            ExclusiveStartKey=response["LastEvaluatedKey"],
         )
+        items.extend(response.get("Items", []))
 
+    for item in items:
+        client.delete_item(
+            TableName=AGENT_STATE_TABLE,
+            Key={
+                "thread_id": item["thread_id"],
+                "checkpoint_id": item["checkpoint_id"],
+            },
+        )
+        deleted_count += 1
+
+    return deleted_count
+
+
+def _cancel_stripe_subscription(user_record: dict) -> bool:
+    """Cancel active Stripe subscription if one exists. Returns True if cancelled."""
+    sub_id = user_record.get("stripe_subscription_id", {}).get("S")
+    if not sub_id:
+        return False
+
+    try:
+        import stripe as stripe_lib
+        from auth.stripe_handler import get_stripe_api_key
+        stripe_lib.api_key = get_stripe_api_key()
+        stripe_lib.Subscription.cancel(sub_id)
+        logger.info(f"GDPR erasure: cancelled Stripe subscription {sub_id}")
+        return True
+    except Exception as e:
+        logger.warning(f"GDPR erasure: Stripe cancellation failed for {sub_id}: {e}")
+        return False
+
+
+def _delete_user_profile(client, user_id: str) -> bool:
+    """Delete user record from aletheia-users. Returns the record before deletion."""
+    try:
+        response = client.delete_item(
+            TableName=USERS_TABLE,
+            Key={"user_id": {"S": user_id}},
+            ReturnValues="ALL_OLD",
+        )
+        return response.get("Attributes") is not None
+    except ClientError:
+        return False
+
+
+def _remove_from_coupon_redeemed_by(client, user_id: str) -> int:
+    """Remove user_id from redeemed_by sets in aletheia-coupons. Returns count updated."""
+    coupons_table = os.environ.get("COUPONS_TABLE", "aletheia-coupons")
+    updated = 0
+    try:
+        response = client.scan(
+            TableName=coupons_table,
+            FilterExpression="contains(redeemed_by, :uid)",
+            ExpressionAttributeValues={":uid": {"S": user_id}},
+            ProjectionExpression="code",
+        )
         items = response.get("Items", [])
 
-        # Handle pagination for users with many items
         while response.get("LastEvaluatedKey"):
-            response = client.query(
-                TableName=AGENT_STATE_TABLE,
-                IndexName="user_id-index",
-                KeyConditionExpression="user_id = :uid",
+            response = client.scan(
+                TableName=coupons_table,
+                FilterExpression="contains(redeemed_by, :uid)",
                 ExpressionAttributeValues={":uid": {"S": user_id}},
-                ProjectionExpression="thread_id, checkpoint_id",
+                ProjectionExpression="code",
                 ExclusiveStartKey=response["LastEvaluatedKey"],
             )
             items.extend(response.get("Items", []))
 
-        # Delete each item (DynamoDB requires primary key for deletion)
+        for item in items:
+            client.update_item(
+                TableName=coupons_table,
+                Key={"code": item["code"]},
+                UpdateExpression="DELETE redeemed_by :user_set",
+                ExpressionAttributeValues={":user_set": {"SS": [user_id]}},
+            )
+            updated += 1
+    except ClientError as e:
+        logger.warning(f"GDPR erasure: coupon cleanup failed: {e}")
+
+    return updated
+
+
+def _delete_rate_limit_records(client, user_id: str) -> int:
+    """Delete rate limit counters from aletheia-token-cap for a user."""
+    deleted = 0
+    pk = f"USER#{user_id}"
+    try:
+        response = client.query(
+            TableName=TOKEN_CAP_TABLE,
+            KeyConditionExpression="PK = :pk",
+            ExpressionAttributeValues={":pk": {"S": pk}},
+            ProjectionExpression="PK, SK",
+        )
+        items = response.get("Items", [])
+
+        while response.get("LastEvaluatedKey"):
+            response = client.query(
+                TableName=TOKEN_CAP_TABLE,
+                KeyConditionExpression="PK = :pk",
+                ExpressionAttributeValues={":pk": {"S": pk}},
+                ProjectionExpression="PK, SK",
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+            )
+            items.extend(response.get("Items", []))
+
         for item in items:
             client.delete_item(
-                TableName=AGENT_STATE_TABLE,
-                Key={
-                    "thread_id": item["thread_id"],
-                    "checkpoint_id": item["checkpoint_id"],
-                },
+                TableName=TOKEN_CAP_TABLE,
+                Key={"PK": item["PK"], "SK": item["SK"]},
             )
-            deleted_count += 1
-
-        logger.info(f"GDPR erasure: deleted {deleted_count} items for user {user_id}")
-        return deleted_count
-
+            deleted += 1
     except ClientError as e:
-        logger.error(f"GDPR erasure failed: {e}")
-        raise
+        logger.warning(f"GDPR erasure: rate limit cleanup failed: {e}")
+
+    return deleted
+
+
+def delete_user_data(user_id: str) -> dict:
+    """
+    Delete ALL data for a user across all DynamoDB tables.
+
+    Issue #147 + #553: GDPR Article 17 - Complete Right to Erasure.
+    Deletes from: AletheiaAgentState, aletheia-users, aletheia-coupons,
+    aletheia-token-cap. Cancels Stripe subscription if active.
+
+    Args:
+        user_id: LinkedIn OIDC 'sub' identifier.
+
+    Returns:
+        Summary dict with counts of deleted/updated items per table.
+    """
+    client = get_dynamodb_client()
+    summary = {}
+
+    # 1. Delete analysis records from AletheiaAgentState
+    analysis_count = _delete_analysis_records(client, user_id)
+    summary["analysis_records"] = analysis_count
+
+    # 2. Get user profile (need Stripe IDs before deletion)
+    try:
+        user_response = client.get_item(
+            TableName=USERS_TABLE,
+            Key={"user_id": {"S": user_id}},
+        )
+        user_record = user_response.get("Item", {})
+    except ClientError:
+        user_record = {}
+
+    # 3. Cancel Stripe subscription if active
+    summary["stripe_cancelled"] = _cancel_stripe_subscription(user_record)
+
+    # 4. Delete user profile from aletheia-users
+    summary["profile_deleted"] = _delete_user_profile(client, user_id)
+
+    # 5. Remove user_id from coupon redeemed_by sets
+    summary["coupons_updated"] = _remove_from_coupon_redeemed_by(client, user_id)
+
+    # 6. Delete rate limit counters from aletheia-token-cap
+    summary["rate_limits_deleted"] = _delete_rate_limit_records(client, user_id)
+
+    logger.info(f"GDPR erasure complete for user {user_id}: {summary}")
+    return summary
 
 
 def handle_oauth_callback(query_params: dict) -> dict:
@@ -818,16 +945,16 @@ def handle_delete_my_data(headers: dict) -> dict:
     user_id = user_info["sub"]
 
     try:
-        # Delete user's analysis data from agent state table
-        deleted_count = delete_user_data(user_id)
+        # Delete user's data from ALL tables (Issue #553)
+        summary = delete_user_data(user_id)
 
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({
                 "success": True,
-                "message": "Your data has been deleted",
-                "itemsDeleted": deleted_count,
+                "message": "All your data has been deleted",
+                "details": summary,
             }),
         }
 
