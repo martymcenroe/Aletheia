@@ -102,7 +102,14 @@
       <p>Upon termination, your right to use the Extension ceases immediately. You may request data deletion per our Privacy Policy.</p>
 
       <h2>7. Data Handling</h2>
-      <p>Governed by our <a href="privacy.html">Privacy Policy</a>. We only process text you explicitly select. We do not track browsing history or sell data. Data retained for 30 days, then deleted.</p>
+      <p>Governed by our <a href="privacy.html">Privacy Policy</a>. Key points:</p>
+      <ul>
+        <li>We process text you select and submit, or page content you explicitly request via "Analyze Full Page"</li>
+        <li>Text is processed by AWS Bedrock using Amazon Nova Micro, Anthropic Claude Haiku 4.5, and Anthropic Claude Opus 4.6 &mdash; none of which train on your data</li>
+        <li>We do not track browsing history or sell data</li>
+        <li>Analysis data retained for 30 days, then automatically deleted. Account data retained until you delete your account.</li>
+        <li>Complete data deletion available via DELETE /my-data endpoint</li>
+      </ul>
 
       <h2>8. Intellectual Property</h2>
       <p>The Extension is licensed under PolyForm Noncommercial 1.0.0. Source code: <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">github.com/martymcenroe/Aletheia</a>.</p>
