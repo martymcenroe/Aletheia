@@ -79,12 +79,13 @@ Upon termination, your right to use the Extension ceases immediately. You may re
 
 Your use of the Extension is also governed by our [Privacy Policy](https://aletheia.study/privacy.html). Key points:
 
-- We only process text you explicitly select and submit
+- We process text you select and submit, or page content you explicitly request via "Analyze Full Page"
 - We do not track your browsing history
 - We do not sell your data to third parties
-- Selected text is processed by AWS Bedrock (Amazon Nova AI), which does not train on your data
-- Data is retained for 30 days, then automatically deleted
-- You may request data deletion at any time
+- Text is processed by AWS Bedrock using Amazon Nova Micro, Anthropic Claude Haiku 4.5, and Anthropic Claude Opus 4.6 — none of which train on your data
+- If you sign in with LinkedIn, we store your user ID, display name, email, and profile picture to manage your account
+- Analysis data is retained for 30 days, then automatically deleted. Account data is retained until you delete your account.
+- You may request complete data deletion at any time via the DELETE /my-data endpoint, which removes your data from all systems
 
 ## 8. Intellectual Property
 
