@@ -24,6 +24,7 @@ Quick reference for the orchestrator (Marty) on how to run tools, commands, agen
 | 10902 | [Cost Incident Response](10902-runbook-cost-incident-response.md) | Budget alert email, kill switch activation, or suspected attack | As needed | N/A (manual CLI) |
 | 10903 | [Lambda Configuration Change](10903-runbook-lambda-config-change.md) | Any `update-function-configuration` call | Every config change | N/A (manual CLI) |
 | 10904 | [Admin Dashboard](10904-runbook-admin-dashboard.md) | Access business metrics dashboard | As needed | N/A (browser) |
+| 10905 | [Extension Store Publishing](10905-runbook-extension-store-publish.md) | Chrome/Firefox extension version release | Each release | N/A (manual upload) |
 
 ## Model Selection Guide
 
