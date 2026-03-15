@@ -499,7 +499,7 @@ describe('OAuth Flow', () => {
     if (global.window.AletheiaAuth) {
       await global.window.AletheiaAuth.initiateLogin();
       const call = chromeMock.runtime.sendMessage.mock.calls[0][0];
-      expect(call.lambdaAuthUrl).toContain('lambda-url.us-east-1.on.aws');
+      expect(call.lambdaAuthUrl).toContain('api.aletheia.study');
     }
   });
 

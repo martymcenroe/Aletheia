@@ -627,8 +627,8 @@ describe('Error Handling (Firefox)', () => {
 describe('START_OAUTH Handler (Issue #396)', () => {
   let env;
   const AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization?client_id=test&state=test-state-123';
-  const CALLBACK_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws/auth/callback';
-  const LAMBDA_AUTH_URL = 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws';
+  const CALLBACK_URL = 'https://api.aletheia.study/auth/callback';
+  const LAMBDA_AUTH_URL = 'https://api.aletheia.study';
   const CSRF_STATE = 'test-state-123';
 
   beforeEach(() => {

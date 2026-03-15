@@ -82,7 +82,7 @@ function createAuthEnvironment(options = {}) {
 
   // Auth config from the source file (for test assertions)
   const authConfig = {
-    LAMBDA_AUTH_URL: 'https://sk33bz56yi5qlbrrwzqnprmeuy0xwhzn.lambda-url.us-east-1.on.aws'
+    LAMBDA_AUTH_URL: 'https://api.aletheia.study'
   };
 
   return { browserMock, authConfig };
