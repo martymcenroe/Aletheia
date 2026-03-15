@@ -389,6 +389,7 @@ Standard format for all audits:
 - [10829 - Lambda Failure Remediation](10829-audit-lambda-failure-remediation.md)
 - [10830 - Architecture Freshness](10830-audit-architecture-freshness.md) ✨
 - [10831 - Web Assets](10831-audit-web-assets.md)
+- [10832 - Privacy Policy Compliance](10832-audit-privacy-policy-compliance.md)
 
 **AI Governance (10818-10825)**
 - [10818 - AI Management System](10818-audit-ai-management-system.md)
