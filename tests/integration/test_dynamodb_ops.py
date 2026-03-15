@@ -56,10 +56,11 @@ class TestDeleteUserData:
         assert len(response["Items"]) == 10
 
         # Call delete_user_data
-        deleted_count = auth_module.delete_user_data(user_id)
+        result = auth_module.delete_user_data(user_id)
 
-        # Verify all items deleted
-        assert deleted_count == 10
+        # Verify all items deleted (PR #554 changed return to dict)
+        assert result["analysis_records"] == 10
+        assert result["profile_deleted"] is True
 
         # Verify GSI query returns empty
         response = dynamodb_client.query(
@@ -109,10 +110,11 @@ class TestDeleteUserData:
         assert initial_count == 2000
 
         # Call delete_user_data
-        deleted_count = auth_module.delete_user_data(user_id)
+        result = auth_module.delete_user_data(user_id)
 
-        # Verify all 2000 items deleted
-        assert deleted_count == 2000
+        # Verify all 2000 items deleted (PR #554 changed return to dict)
+        assert result["analysis_records"] == 2000
+        assert result["profile_deleted"] is True
 
         # Verify no items remain
         response = dynamodb_client.query(
@@ -146,10 +148,11 @@ class TestDeleteUserData:
         assert len(response["Items"]) == 0
 
         # Call delete_user_data - should not raise
-        deleted_count = auth_module.delete_user_data(user_id)
+        result = auth_module.delete_user_data(user_id)
 
-        # Verify 0 deleted
-        assert deleted_count == 0
+        # Verify 0 deleted (PR #554 changed return to dict)
+        assert result["analysis_records"] == 0
+        assert result["profile_deleted"] is True
 
 
 class TestSaveState:
