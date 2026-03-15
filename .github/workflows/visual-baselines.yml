@@ -125,7 +125,7 @@ jobs:
             --base "${{ github.event.inputs.branch }}"
 
       - name: Upload baselines as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: linux-visual-baselines
           path: tests/e2e/__snapshots__/visual-poc.spec.js-snapshots/*-chromium-linux.png
