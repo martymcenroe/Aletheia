@@ -32,8 +32,8 @@ mypy = ">=1.19.1,<2.0.0"
 pre-commit = ">=4.5.1,<5.0.0"
 types-requests = ">=2.32.4.20250913,<3.0.0.0"
 types-colorama = "^0.4.15.20250801"
-pyjwt = "^2.11.0"
-moto = "^5.1.21"
+pyjwt = "^2.12.1"
+moto = "^5.1.22"
 
 
 [tool.pytest.ini_options]
