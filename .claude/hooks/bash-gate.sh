@@ -61,6 +61,7 @@ fi
 
 # Check for | (pipe) with common patterns
 if [[ "$command" =~ (.+)\|[[:space:]]*(head|tail|grep|wc|sort) ]]; then
+    # shellcheck disable=SC2034  # base_cmd captured for context, not used directly
     base_cmd="${BASH_REMATCH[1]}"
     pipe_to="${BASH_REMATCH[2]}"
     violations="${violations}

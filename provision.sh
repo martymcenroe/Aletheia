@@ -813,6 +813,57 @@ MSYS_NO_PATHCONV=1 aws ce update-cost-allocation-tags-status \
 echo -e "${GREEN}Cost allocation tag 'Project' activated${NC}"
 
 # =============================================================================
+# Step 10e: Budget Configuration (Issue #575)
+# =============================================================================
+echo ""
+echo "[10e/10] Configuring Aletheia budget with tag filter..."
+# Budget filters by Project:Aletheia tag only — prevents Hermes costs from
+# triggering Aletheia's Bedrock deny policy. Note: Bedrock usage costs do NOT
+# inherit resource tags in Cost Explorer (AWS limitation), so the budget action
+# (deny policy) relies on the CloudWatch alarm below for real-time protection.
+# shellcheck disable=SC2016  # $Aletheia is literal JSON, not a shell variable
+MSYS_NO_PATHCONV=1 aws budgets update-budget --account-id "$ACCOUNT_ID" \
+    --new-budget '{
+      "BudgetName": "Aletheia-Monthly-25USD",
+      "BudgetLimit": {"Amount": "25.0", "Unit": "USD"},
+      "BudgetType": "COST",
+      "TimeUnit": "MONTHLY",
+      "CostFilters": {"TagKeyValue": ["user:Project$Aletheia"]},
+      "CostTypes": {
+        "IncludeTax": true, "IncludeSubscription": true, "UseBlended": false,
+        "IncludeRefund": true, "IncludeCredit": true, "IncludeUpfront": true,
+        "IncludeRecurring": true, "IncludeOtherSubscription": true,
+        "IncludeSupport": true, "IncludeDiscount": true, "UseAmortized": false
+      }
+    }' 2>/dev/null || echo -e "${YELLOW}WARNING: Budget update failed (may need billing permissions)${NC}"
+echo -e "${GREEN}Aletheia budget configured with Project:Aletheia tag filter${NC}"
+
+# =============================================================================
+# Step 10f: Bedrock Cost Alarm (Issue #575)
+# =============================================================================
+echo ""
+echo "[10f/10] Creating Bedrock daily cost alarm..."
+# Real-time cost protection using per-request cost estimates from observability.py.
+# This is the primary cost guard since Bedrock tags don't flow to Cost Explorer.
+# Threshold: $1/day (~$30/month) — alerts via AletheiaBillingAlerts SNS topic.
+MSYS_NO_PATHCONV=1 aws cloudwatch put-metric-alarm \
+    --alarm-name "Aletheia-BedrockDailyCost" \
+    --alarm-description "Aletheia Bedrock estimated cost exceeds \$1/day (~\$30/month). Based on per-request cost estimates from observability.py EMF metrics. Issue #575." \
+    --namespace "Aletheia/API" \
+    --metric-name "BedrockCostEstimate" \
+    --statistic Sum \
+    --period 86400 \
+    --evaluation-periods 1 \
+    --threshold 1.0 \
+    --comparison-operator GreaterThanThreshold \
+    --alarm-actions "arn:aws:sns:us-east-1:${ACCOUNT_ID}:AletheiaBillingAlerts" \
+    --ok-actions "arn:aws:sns:us-east-1:${ACCOUNT_ID}:AletheiaBillingAlerts" \
+    --treat-missing-data notBreaching \
+    --tags Key=Project,Value=Aletheia \
+    --region "$REGION" 2>/dev/null || echo -e "${YELLOW}WARNING: Bedrock cost alarm creation failed${NC}"
+echo -e "${GREEN}Bedrock daily cost alarm created (\$1/day threshold)${NC}"
+
+# =============================================================================
 # Sanity Check: Self-Test the Auth Lambda
 # =============================================================================
 echo ""
