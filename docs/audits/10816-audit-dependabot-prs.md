@@ -366,6 +366,7 @@ Before beginning security audit, run 0816-audit-dependabot-prs to ensure:
 | 2026-02-23 | Claude Opus 4.6 | 5 (#421–#425): 2 merged (#421 npm-minor, #424 python-minor), 3 conflicting (#422 @eslint/js 10, #423 eslint-plugin-security 4, #425 stripe 14) — rebase requested | ✅ PARTIAL | None |
 | 2026-02-24 | Claude Opus 4.6 | 2 (#423 eslint-plugin-security 3→4, #425 stripe 7→14): #423 merged directly, #425 superseded by #435 (migration PR with regression testing) | ✅ PASS | None |
 | 2026-02-27 | Claude Opus 4.6 | 1 alert (#19): basic-ftp 5.1.0→5.2.0 (critical path traversal GHSA-5rq4-664w-9x2c), lockfile-only fix via `npm audit fix` | ✅ PASS | #482 |
+| 2026-03-15 | Claude Opus 4.6 | 3 (#567 python-minor, #566 npm-minor, #484 upload-artifact v6→v7): all merged. Pre-req: fixed integration test regression #568. Discovered pr-sentinel-mm + auto-reviewer didn't handle dependabot PRs (fixed in AssemblyZero). Baseline 1027 passed → post-merge 1027 passed, identical. | ✅ PASS | #564, #568 |
 | *Template* | *Agent* | *Count* | *PASS/FAIL* | *Issue links* |
 
 ---
