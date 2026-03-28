@@ -1,8 +1,9 @@
 #!/bin/bash
-# Stop Hook: Session Log Guarantee
+# SessionEnd Hook: Session Log Guarantee
 #
 # Ensures session log is appended when Claude Code session ends.
-# This is a STOP hook - runs when the session terminates.
+# This is a SessionEnd hook — runs once when the session terminates.
+# (Was previously a Stop hook, which fires after every assistant turn.)
 #
 # Note: Stop hooks run with limited context. We append a minimal
 # entry that can be enriched by /cleanup if run beforehand.
@@ -24,7 +25,7 @@ if [ ! -d "$project_root/docs/session-logs" ]; then
 fi
 
 # Get today's date for the log file
-today=$(powershell.exe -Command "Get-Date -Format 'yyyy-MM-dd'" | tr -d '\r')
+today=$(date +%Y-%m-%d)
 log_file="$project_root/docs/session-logs/$today.md"
 
 # Check if there's already a recent entry (within ~2 minutes)
@@ -32,7 +33,7 @@ log_file="$project_root/docs/session-logs/$today.md"
 if [ -f "$log_file" ]; then
     last_entry=$(tail -20 "$log_file" | grep -oE "[0-9]{2}:[0-9]{2} CT" | tail -1 || echo "")
     if [ -n "$last_entry" ]; then
-        current_time=$(powershell.exe -Command "Get-Date -Format 'HH:mm'" | tr -d '\r')
+        current_time=$(date +%H:%M)
         # Extract hours and minutes
         last_hour="${last_entry:0:2}"
         last_min="${last_entry:3:2}"
