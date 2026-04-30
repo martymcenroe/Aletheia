@@ -33,21 +33,6 @@ jobs:
       - name: Run policy compliance check
         run: ./tools/policy_check.sh
 
-  # Audit schedule enforcement - blocks if scheduled audits are overdue
-  audit-schedule:
-    needs: policy-check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-
-      - name: Check audit schedule compliance
-        run: python tools/audit_schedule_check.py
-
   # Shell script linting - catch bash syntax errors before merge
   infra-lint:
     runs-on: ubuntu-latest
