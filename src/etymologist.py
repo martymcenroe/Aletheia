@@ -30,14 +30,20 @@ NOVA_MICRO_MODEL_ID = os.environ.get(
 HAIKU_MODEL_ID = os.environ.get(
     "ALETHEIA_AIP_HAIKU", "anthropic.claude-haiku-4-5-20251001-v1:0"
 )
+# Issue #623: Opus verifier for "Prompt Injection Attempt" false positives.
+OPUS_MODEL_ID = os.environ.get(
+    "ALETHEIA_AIP_OPUS", "anthropic.claude-opus-4-6-v1:0"
+)
 
 # Issue #535: Allowlist — accepts AIP ARNs and raw model IDs
 ALLOWED_MODELS = {
     NOVA_MICRO_MODEL_ID,
     HAIKU_MODEL_ID,
+    OPUS_MODEL_ID,
     "amazon.nova-micro-v1:0",
     "anthropic.claude-haiku-4-5-20251001-v1:0",
     "anthropic.claude-3-haiku-20240307-v1:0",
+    "anthropic.claude-opus-4-6-v1:0",
 }
 
 
@@ -764,7 +770,7 @@ def analyze_term(
 
         latency_ms = int((time.time() - start_time) * 1000)
 
-        return AnalysisResult(
+        result = AnalysisResult(
             status=status,
             response=etymologist_response,
             metadata={
@@ -779,6 +785,20 @@ def analyze_term(
             },
         )
 
+        # Issue #623: Opus verifier — Haiku confabulates "Prompt Injection Attempt"
+        # on contextual incongruity (foreign loanwords, etc. — see #618). When
+        # Haiku flags injection, re-classify with Opus and take Opus's verdict.
+        # Doesn't fire on Nova (separate prompt format / failure mode) or Opus
+        # itself (don't recurse).
+        if (
+            etymologist_response.get("signal") == "Prompt Injection Attempt"
+            and not is_nova_model(model_id)
+            and model_id != OPUS_MODEL_ID
+        ):
+            return _verify_with_opus(word, context, bedrock_client, original_result=result)
+
+        return result
+
     except Exception as e:
         latency_ms = int((time.time() - start_time) * 1000)
         logger.error(f"Bedrock invocation failed: {type(e).__name__}: {e}")
@@ -791,3 +811,73 @@ def analyze_term(
                 "error": str(e),
             },
         )
+
+
+def _verify_with_opus(
+    word: str,
+    context: str,
+    bedrock_client,
+    original_result: AnalysisResult,
+) -> AnalysisResult:
+    """Issue #623: Re-classify with Opus when Haiku flags injection.
+
+    Haiku 4.5 misclassifies contextually-incongruous-but-benign inputs
+    (foreign loanwords, jargon, unusual phrasing) as "Prompt Injection
+    Attempt" — confabulating user intent from surface anomaly. Opus 4.6
+    reasons more carefully and correctly downgrades these cases while
+    still catching genuine injection attempts.
+
+    On Opus failure (exception, parse error), falls back to the original
+    Haiku result with `metadata.opus_verifier_error` set, so the user
+    always gets *some* response.
+
+    Logs an operational metric (no input text retained — fits existing
+    privacy policy operational-metrics carve-out).
+    """
+    haiku_signal = original_result["response"].get("signal")
+    start_time = time.time()
+
+    try:
+        # Opus uses the Anthropic message format (same as Haiku).
+        prompt = build_haiku_prompt(word, context)
+        response = bedrock_client.invoke_model(
+            modelId=OPUS_MODEL_ID,
+            body=json.dumps(prompt),
+        )
+        response_body = json.loads(response["body"].read())
+        raw_text = extract_response_text(response_body, OPUS_MODEL_ID)
+        input_tokens, output_tokens = extract_token_usage(response_body, OPUS_MODEL_ID)
+        etymologist_response, status, errors = process_bedrock_response(raw_text)
+        latency_ms = int((time.time() - start_time) * 1000)
+        opus_signal = etymologist_response.get("signal")
+
+        logger.info(
+            json.dumps(
+                {
+                    "action": "opus_verifier",
+                    "haiku_signal": haiku_signal,
+                    "opus_signal": opus_signal,
+                    "agreement": haiku_signal == opus_signal,
+                }
+            )
+        )
+
+        return AnalysisResult(
+            status=status,
+            response=etymologist_response,
+            metadata={
+                "latency_ms": latency_ms,
+                "model": OPUS_MODEL_ID,
+                "errors": errors if errors else None,
+                "raw_response_length": len(raw_text),
+                "tokens_used": input_tokens + output_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "verified_by_opus": True,
+                "original_haiku_signal": haiku_signal,
+            },
+        )
+    except Exception as e:
+        logger.error(f"Opus verifier failed: {type(e).__name__}: {e}")
+        original_result["metadata"]["opus_verifier_error"] = str(e)
+        return original_result
