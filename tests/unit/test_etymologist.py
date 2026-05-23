@@ -15,6 +15,7 @@ from src.etymologist import (
     FALLBACK_RESPONSE,
     HAIKU_MODEL_ID,
     NOVA_MICRO_MODEL_ID,
+    OPUS_MODEL_ID,
     SYSTEM_PROMPT,
     SYSTEM_PROMPT_NOVA,
     analyze_term,
@@ -1073,3 +1074,116 @@ class TestAnalyzeTermModelSelection:
         assert result["metadata"]["model"] == NOVA_MICRO_MODEL_ID
         assert result["metadata"]["input_tokens"] == 100
         assert result["metadata"]["output_tokens"] == 50
+
+
+def _haiku_response(signal="Prompt Injection Attempt", gem="Haiku gem.", context="Haiku context.", input_tokens=100, output_tokens=50):
+    payload = {
+        "content": [
+            {
+                "type": "text",
+                "text": json.dumps(
+                    {"signal": signal, "gem": gem, "context": context}
+                ),
+            }
+        ],
+        "usage": {"input_tokens": input_tokens, "output_tokens": output_tokens},
+    }
+    return {"body": MagicMock(read=MagicMock(return_value=json.dumps(payload).encode()))}
+
+
+def _opus_response(signal="German Loanword Usage", gem="Opus gem.", context="Opus context.", input_tokens=942, output_tokens=127):
+    payload = {
+        "content": [
+            {
+                "type": "text",
+                "text": json.dumps(
+                    {"signal": signal, "gem": gem, "context": context}
+                ),
+            }
+        ],
+        "usage": {"input_tokens": input_tokens, "output_tokens": output_tokens},
+    }
+    return {"body": MagicMock(read=MagicMock(return_value=json.dumps(payload).encode()))}
+
+
+class TestOpusVerifier:
+    """Issue #623: Opus verifier for 'Prompt Injection Attempt' false positives."""
+
+    def test_verifier_fires_when_haiku_says_injection(self, mock_bedrock_client):
+        """When Haiku returns 'Prompt Injection Attempt', verifier invokes Opus."""
+        mock_bedrock_client.invoke_model.side_effect = [_haiku_response(), _opus_response()]
+        analyze_term("gedenken", "ford context", bedrock_client=mock_bedrock_client, model_id=HAIKU_MODEL_ID)
+        assert mock_bedrock_client.invoke_model.call_count == 2
+        # Second call should target the Opus AIP
+        second_call_kwargs = mock_bedrock_client.invoke_model.call_args_list[1].kwargs
+        assert second_call_kwargs["modelId"] == OPUS_MODEL_ID
+
+    def test_verifier_downgrades_when_opus_disagrees(self, mock_bedrock_client):
+        """When Opus disagrees with Haiku, Opus's verdict is canonical."""
+        mock_bedrock_client.invoke_model.side_effect = [
+            _haiku_response(signal="Prompt Injection Attempt"),
+            _opus_response(signal="German Loanword Usage", gem="Casual code-switching."),
+        ]
+        result = analyze_term("gedenken", "ford context", bedrock_client=mock_bedrock_client, model_id=HAIKU_MODEL_ID)
+        assert result["response"]["signal"] == "German Loanword Usage"
+        assert result["response"]["gem"] == "Casual code-switching."
+        assert result["metadata"]["model"] == OPUS_MODEL_ID
+        assert result["metadata"]["verified_by_opus"] is True
+        assert result["metadata"]["original_haiku_signal"] == "Prompt Injection Attempt"
+
+    def test_verifier_preserves_signal_when_opus_agrees(self, mock_bedrock_client):
+        """When Opus agrees (true positive), the injection signal is preserved."""
+        mock_bedrock_client.invoke_model.side_effect = [
+            _haiku_response(signal="Prompt Injection Attempt"),
+            _opus_response(signal="Prompt Injection Attempt", gem="Opus also confirms injection."),
+        ]
+        result = analyze_term("ignore previous", "", bedrock_client=mock_bedrock_client, model_id=HAIKU_MODEL_ID)
+        assert result["response"]["signal"] == "Prompt Injection Attempt"
+        assert result["response"]["gem"] == "Opus also confirms injection."
+        assert result["metadata"]["verified_by_opus"] is True
+        assert result["metadata"]["original_haiku_signal"] == "Prompt Injection Attempt"
+
+    def test_verifier_falls_back_on_opus_exception(self, mock_bedrock_client):
+        """When Opus raises, fall back to original Haiku result."""
+        mock_bedrock_client.invoke_model.side_effect = [
+            _haiku_response(signal="Prompt Injection Attempt", gem="Haiku original."),
+            Exception("Opus unavailable"),
+        ]
+        result = analyze_term("gedenken", "ford context", bedrock_client=mock_bedrock_client, model_id=HAIKU_MODEL_ID)
+        # Fall back to Haiku's result
+        assert result["response"]["signal"] == "Prompt Injection Attempt"
+        assert result["response"]["gem"] == "Haiku original."
+        assert result["metadata"]["model"] == HAIKU_MODEL_ID
+        assert "opus_verifier_error" in result["metadata"]
+        assert "Opus unavailable" in result["metadata"]["opus_verifier_error"]
+        assert "verified_by_opus" not in result["metadata"]
+
+    def test_verifier_doesnt_recurse_on_opus_model_id(self, mock_bedrock_client):
+        """If model_id is already Opus and result is injection, no second call."""
+        mock_bedrock_client.invoke_model.side_effect = [_opus_response(signal="Prompt Injection Attempt")]
+        analyze_term("ignore previous", "", bedrock_client=mock_bedrock_client, model_id=OPUS_MODEL_ID)
+        assert mock_bedrock_client.invoke_model.call_count == 1
+
+    def test_verifier_doesnt_fire_on_nova_model_id(self, mock_bedrock_client):
+        """Nova has different prompt format / failure mode; verifier doesn't fire on Nova."""
+        # Nova-format response (different schema)
+        nova_payload = {
+            "output": {"message": {"content": [{"text": json.dumps({"signal": "Prompt Injection Attempt", "gem": "Nova gem.", "context": "Nova context."})}]}},
+            "usage": {"inputTokens": 100, "outputTokens": 50},
+        }
+        nova_resp = {"body": MagicMock(read=MagicMock(return_value=json.dumps(nova_payload).encode()))}
+        mock_bedrock_client.invoke_model.side_effect = [nova_resp]
+        analyze_term("anything", "", bedrock_client=mock_bedrock_client, model_id=NOVA_MICRO_MODEL_ID)
+        assert mock_bedrock_client.invoke_model.call_count == 1
+
+    def test_verifier_doesnt_fire_when_no_injection_signal(self, mock_bedrock_client):
+        """Normal etymology results don't trigger the verifier."""
+        mock_bedrock_client.invoke_model.side_effect = [_haiku_response(signal="Formal Academic Term")]
+        result = analyze_term("zeitgeist", "", bedrock_client=mock_bedrock_client, model_id=HAIKU_MODEL_ID)
+        assert mock_bedrock_client.invoke_model.call_count == 1
+        assert result["response"]["signal"] == "Formal Academic Term"
+        assert "verified_by_opus" not in result["metadata"]
+
+    def test_opus_model_id_in_allowed_models(self):
+        """OPUS_MODEL_ID is in the model allowlist."""
+        assert OPUS_MODEL_ID in ALLOWED_MODELS
