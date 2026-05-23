@@ -31,9 +31,6 @@ HAIKU_MODEL_ID = os.environ.get(
     "ALETHEIA_AIP_HAIKU", "anthropic.claude-haiku-4-5-20251001-v1:0"
 )
 
-# Issue #294: Default to Nova Micro for improved latency (532ms vs 1469ms)
-DEFAULT_MODEL_ID = NOVA_MICRO_MODEL_ID
-
 # Issue #535: Allowlist — accepts AIP ARNs and raw model IDs
 ALLOWED_MODELS = {
     NOVA_MICRO_MODEL_ID,
@@ -203,19 +200,6 @@ def validate_model_id(model_id: str) -> bool:
     return model_id in ALLOWED_MODELS
 
 
-def get_model_id() -> str:
-    """Issue #294: Get model ID from environment or use default.
-
-    Validates model against allowlist, falls back to default if invalid.
-    Logs warning for invalid model IDs to aid debugging.
-    """
-    model_id = os.environ.get("ETYMOLOGIST_MODEL", DEFAULT_MODEL_ID)
-    if not validate_model_id(model_id):
-        logger.warning(f"Invalid model ID '{model_id}', falling back to {DEFAULT_MODEL_ID}")
-        return DEFAULT_MODEL_ID
-    return model_id
-
-
 class EtymologistResponse(TypedDict):
     """Structured response from the Digital Etymologist."""
 
@@ -320,10 +304,13 @@ def build_etymologist_prompt(word: str, page_context: str = "", model_id: str | 
     Issue #294: Build model-appropriate prompt based on model ID.
 
     Dispatches to Nova or Haiku prompt builder based on model ID prefix.
-    If model_id is None, uses get_model_id() to read from environment.
+    If model_id is None, defaults to HAIKU_MODEL_ID. The Lambda caller
+    always passes an explicit model_id (BEDROCK_MODEL_ID env var in
+    lambda_function.py); the None default exists for direct callers
+    (tests, scripts).
     """
     if model_id is None:
-        model_id = get_model_id()
+        model_id = HAIKU_MODEL_ID
 
     if is_nova_model(model_id):
         return build_nova_prompt(word, page_context)
@@ -714,16 +701,18 @@ def analyze_term(
         word: The term to analyze.
         context: Page context for disambiguation.
         bedrock_client: boto3 Bedrock client (optional, for dependency injection).
-        model_id: Bedrock model ID to use. If None, reads from ETYMOLOGIST_MODEL env var.
+        model_id: Bedrock model ID to use. If None, defaults to HAIKU_MODEL_ID.
+            The Lambda caller always passes an explicit model_id (BEDROCK_MODEL_ID
+            env var in lambda_function.py:50); the None default exists for direct
+            callers (tests, scripts).
 
     Returns:
         AnalysisResult with status, response, and metadata.
     """
     start_time = time.time()
 
-    # Issue #294: Resolve model_id from environment if not provided
     if model_id is None:
-        model_id = get_model_id()
+        model_id = HAIKU_MODEL_ID
 
     # Handle empty input gracefully
     if not word or not word.strip():
