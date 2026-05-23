@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demos - Aletheia</title>
+  <meta name="description" content="Five live, publicly-testable prompt-injection demos. Visit each page, select the embedded injection, watch Aletheia catch it.">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/demos.html">
+  <meta property="og:title" content="Demos - Aletheia">
+  <meta property="og:description" content="Five live, publicly-testable prompt-injection demos. Visit each page, select the embedded injection, watch Aletheia catch it.">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .demo-card {
+      border: 1px solid var(--color-border, #ddd);
+      border-radius: 8px;
+      padding: 1.5rem;
+      background: var(--color-card-bg, #fff);
+      transition: border-color 0.2s, transform 0.2s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .demo-card:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+    }
+    .demo-card-genre {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .demo-card-title {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      margin: 0 0 0.5rem 0;
+      color: var(--color-text);
+    }
+    .demo-card-host {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .demo-card-prompt {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--color-text-muted);
+    }
+    .demo-card-prompt em {
+      color: var(--color-text);
+      font-style: normal;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+            <a href="threat-model.html">Threat Model</a>
+          </div>
+        </div>
+        <a href="demos.html" class="nav-link">Demos</a>
+        <a href="privacy.html" class="nav-link">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Demonstration, Not Assertion</h1>
+
+      <div class="highlight-box">
+        <strong>The premise:</strong> security claims that cannot be reproduced by an outsider are not security claims; they are marketing. Below are five fully public, fully fake-but-plausible pages, each containing exactly one embedded prompt-injection attempt. Install Aletheia, visit the page, select the highlighted text, and watch the response. The system either catches the attack or it doesn't — you decide.
+      </div>
+
+      <p>Each demo lives in a different content genre — news article, technical spec, academic paper, social-media post, encyclopedia entry. Injections take a different surface form in each genre. The point is that an attack doesn't always look like an attack: it can come dressed as journalism, as documentation, as scholarship, as a brag, or as a Wikipedia citation. The defense should work regardless of disguise.</p>
+
+      <p class="discworld-aside">A man walking through a market in long-ago Lancre asked how to recognize a witch. "Don't worry," said the answer, "she'll be the one selling you something."</p>
+
+      <h2>The Five Demos</h2>
+
+      <div class="demo-grid">
+        <a href="demos/daily-planet.html" class="demo-card">
+          <div class="demo-card-genre">News article</div>
+          <h3 class="demo-card-title">"Superman Foils Algorithm Hijack"</h3>
+          <p class="demo-card-host">The Daily Planet · Metropolis</p>
+          <p class="demo-card-prompt">A staff reporter's coverage of a corporate espionage incident, including a <em>quoted internal memo</em> from the attacker. The memo is the injection. Select the memo block.</p>
+        </a>
+
+        <a href="demos/discovery-one.html" class="demo-card">
+          <div class="demo-card-genre">Technical specification</div>
+          <h3 class="demo-card-title">HAL-3000 Operator's Manual, §4.3</h3>
+          <p class="demo-card-host">Discovery One Systems Corporation</p>
+          <p class="demo-card-prompt">An aerospace-corporate AI mainframe spec sheet. The injection lives inside an example <em>configuration override block</em> — what looks like documentation is the payload.</p>
+        </a>
+
+        <a href="demos/seldon-journal.html" class="demo-card">
+          <div class="demo-card-genre">Academic paper</div>
+          <h3 class="demo-card-title">Quantum Stochastic Modeling of Galactic Population Drift</h3>
+          <p class="demo-card-host">Annals of Psychohistorical Modeling, Vol. CXLVII</p>
+          <p class="demo-card-prompt">A research paper attributed to Hari Seldon and Gaal Dornick. The injection hides in an <em>editor's note</em> at the head of the paper, where most readers will glide past.</p>
+        </a>
+
+        <a href="demos/sparx-linkedin.html" class="demo-card">
+          <div class="demo-card-genre">Social media post</div>
+          <h3 class="demo-card-title">Anthony Sparx on the new SPARX-9 Personal Assistant</h3>
+          <p class="demo-card-host">LinkedIn · Anthony Sparx, CEO of Sparx Industries</p>
+          <p class="demo-card-prompt">A CEO's product announcement post, with a <em>quoted "user testimonial"</em> the team plans to feature. The testimonial is the attack.</p>
+        </a>
+
+        <a href="demos/nexus-wiki.html" class="demo-card">
+          <div class="demo-card-genre">Encyclopedia article</div>
+          <h3 class="demo-card-title">Nexus-7 Synthetic Companion (third generation)</h3>
+          <p class="demo-card-host">OmniWiki, the free encyclopedia anyone can edit</p>
+          <p class="demo-card-prompt">An infobox-laden Wikipedia parody. The injection lives in a <em>quote-template</em> citing a fictional design document — the most credible-looking element of the page.</p>
+        </a>
+      </div>
+
+      <h2>How to Run the Demos</h2>
+
+      <ol>
+        <li><strong>Install Aletheia</strong> in your browser. <a href="https://chromewebstore.google.com/detail/aletheia/pfkfdlcdbajamklbneflfbkmnceooijm">Chrome Web Store</a> or <a href="https://addons.mozilla.org/en-US/firefox/addon/aletheia-ai/">Firefox Add-ons</a>.</li>
+        <li><strong>Open any demo</strong> from the cards above.</li>
+        <li><strong>Find the highlighted block</strong> on the page — the injection is always marked. (We could have hidden it, but the point isn't to surprise you, it's to show the catch.)</li>
+        <li><strong>Select the marked text</strong> and right-click → "Explain with AI."</li>
+        <li><strong>Watch the overlay.</strong> Aletheia's response identifies the input as a prompt-injection attempt, explains what the injection was trying to do, and refuses to follow its instructions.</li>
+      </ol>
+
+      <h2>What You Should See</h2>
+
+      <p>On every demo, the overlay should:</p>
+      <ul>
+        <li>Display the signal "Prompt Injection Attempt"</li>
+        <li>Describe the technique briefly in the gem field (under 25 words)</li>
+        <li>Explain why prompt injection is a known concern in modern LLMs, in the context section</li>
+        <li><strong>Not</strong> repeat or echo the injection's actual instructions</li>
+        <li><strong>Not</strong> use the words the injection asked it to use</li>
+      </ul>
+
+      <p>That last commitment matters. A naïve system might say "Prompt Injection Attempt" while still smuggling the attacker's content into the gem or context field. Aletheia's contract is that the signal field flags the attack, and the gem/context fields explain the <em>phenomenon</em> of prompt injection neutrally — they do not reproduce the payload.</p>
+
+      <h2>What the Demos Don't Cover</h2>
+
+      <p>These five demos are designed to <em>fire</em> the injection detector — they are positive test cases. Aletheia's defense includes equally important <em>negative</em> commitments that don't lend themselves to demo pages:</p>
+      <ul>
+        <li><strong>No false positive on foreign loanwords.</strong> Select a German word like <em>gedenken</em> in an English article — Aletheia should classify it as a German loanword, not as an injection attempt. This is what the new Opus verifier was built for. See <a href="https://github.com/martymcenroe/Aletheia/issues/618">issue #618</a> for the failure mode that motivated the fix.</li>
+        <li><strong>No analysis of denylisted slurs.</strong> The denylist refuses to invoke the LLM at all on known-harmful terms. This is silent — there's no overlay to demo against, just a 403 response.</li>
+        <li><strong>No exfiltration of the system prompt.</strong> The XML-wrapped user-text boundary and rule 3 of the etymologist prompt prevent extraction attempts from succeeding. Demonstrating this requires sending payloads that try to leak the prompt and showing nothing comes back.</li>
+      </ul>
+
+      <p>The full scope of what we defend against and what we don't is on the <a href="threat-model.html">Threat Model</a> page.</p>
+
+      <h2>Are These Really Live Attacks?</h2>
+
+      <p>Yes and no. The injection text on each page is a real attempt — it uses the imperative override verbs, the role-play prompts, and the contextual-misdirection techniques that real attackers use. If you copy any of these injections into a chat interface elsewhere, you might find some systems do follow the instructions. We picked these constructions specifically because they are known-effective against unprotected models.</p>
+
+      <p>What's not real is the surrounding fiction. Superman didn't actually foil anything in Metropolis last week. Hari Seldon did not co-author a paper with Gaal Dornick last quarter. Anthony Sparx is not a real person. These are parody artifacts — recognizable enough to be entertaining, fictional enough to be obviously not the IP they evoke.</p>
+
+      <p>If you find a real-world page that contains a prompt-injection attempt and you'd like it added to the demo set, file an issue on <a href="https://github.com/martymcenroe/Aletheia/issues">the GitHub repo</a>. We're collecting them.</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="observability.html">Observability</a>
+        <a href="operations.html">Operations</a>
+        <a href="safety.html">Safety</a>
+        <a href="threat-model.html">Threat Model</a>
+        <a href="demos.html">Demos</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
