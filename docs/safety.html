@@ -37,8 +37,10 @@
             <a href="observability.html">Observability</a>
             <a href="operations.html">Operations</a>
             <a href="safety.html">Safety</a>
+            <a href="threat-model.html">Threat Model</a>
           </div>
         </div>
+        <a href="demos.html" class="nav-link">Demos</a>
         <a href="privacy.html" class="nav-link">Privacy</a>
         <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
       </nav>
@@ -146,6 +148,39 @@
       </ul>
       <p>This is a deliberate tradeoff: brief periods of over-warning are preferable to brief periods of no safety checks at all.</p>
 
+      <h2>Opus Verifier &mdash; Post-Classification Sanity Check</h2>
+      <p>Even when an etymology request passes the denylist and semantic guardrail and reaches the model successfully, the model's <em>own</em> classification can be wrong in a specific failure mode: a context-mismatched but otherwise benign input (a German loanword in English prose, a piece of jargon dropped into a casual paragraph, an unusual phrasing) gets flagged as a "Prompt Injection Attempt" because the smaller classifier confabulates user intent from surface anomaly. The user sees a red modal claiming an attack that wasn't there, and repeated false positives erode trust in the genuine alarms.</p>
+
+      <p>The Opus verifier addresses this directly. When the primary classifier (Claude Haiku 4.5) returns <code>signal: "Prompt Injection Attempt"</code>, the input is automatically re-classified by a more capable model (Claude Opus 4.6) before the verdict is shown to the user. Opus reasons more carefully about contextual incongruity and correctly downgrades benign cases while preserving true positives.</p>
+
+      <div class="layer-diagram">
+        <div class="layer-item">
+          <div class="layer-number">&rarr;</div>
+          <div class="layer-content">
+            <strong>Trigger</strong>
+            <span>Verifier fires only when Haiku's signal is "Prompt Injection Attempt." All other classifications return immediately, untouched.</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">&rarr;</div>
+          <div class="layer-content">
+            <strong>Verification</strong>
+            <span>Opus 4.6 re-classifies the same input. If it agrees, the injection signal is preserved (true positive). If it disagrees, Opus's verdict becomes canonical (downgraded false positive).</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">&rarr;</div>
+          <div class="layer-content">
+            <strong>Fallback</strong>
+            <span>On Opus failure (exception, parse error, timeout) the system falls back to the original Haiku result with an error annotation in metadata &mdash; never worse than the pre-verifier behavior.</span>
+          </div>
+        </div>
+      </div>
+
+      <p>The cost trade is favorable: Opus only runs on the rare flagged path. Latency cost is +2-3 seconds on flagged requests only &mdash; acceptable because these are precisely the requests the user is about to be confused by, and the trade is "an extra few seconds for a correct answer" against "an instant wrong answer."</p>
+
+      <p>Operational logging captures the verifier event without retaining any user input: a single log line per verification recording <code>{haiku_signal, opus_signal, agreement}</code>. The disagreement rate over time is a maintenance signal &mdash; if it drifts, the prompt or the model selection needs review. The empirical evidence behind this design is documented at <a href="https://github.com/martymcenroe/Aletheia/issues/623">issue #623</a>, and the failure mode that motivated it at <a href="https://github.com/martymcenroe/Aletheia/issues/618">issue #618</a>.</p>
+
       <h2>Hallucination Prevention</h2>
       <p>Hallucination risk is managed through three complementary mechanisms:</p>
       <ul>
@@ -158,7 +193,7 @@
       <h2>Model Quality Evaluation</h2>
       <p>Quality evaluation happens at two levels:</p>
       <h3>Model selection</h3>
-      <p>Amazon Nova Micro and Claude Haiku were benchmarked on the same workload. Nova Micro delivers ~532ms median latency at lower cost; Haiku delivers richer etymological analysis at ~1,469ms. Nova is the default with Haiku as automatic fallback, switchable via environment variable without code changes. The choice is configuration-driven, so model swaps require no code modifications.</p>
+      <p>Amazon Nova Micro and Claude Haiku 4.5 were benchmarked during the model-selection investigation. Nova Micro delivers ~532ms median latency at lower cost; Haiku delivers richer etymological analysis at ~1,469ms and reasons more carefully about edge cases. Production currently runs on Haiku 4.5 with Claude Opus 4.6 as the verifier layer for the prompt-injection failure mode (see <a href="https://github.com/martymcenroe/Aletheia/issues/620">#620</a> for the model-routing consolidation). Model identifiers are configured via AWS Bedrock Application Inference Profiles, switchable via environment variable without code changes.</p>
       <h3>Output-level evaluation</h3>
       <p>The semantic guardrail doubles as a quality evaluation layer. Every response passes through the five-category taxonomy, which returns confidence scores. These scores serve dual duty:</p>
       <ul>

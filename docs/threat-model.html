@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threat Model - Aletheia</title>
+  <meta name="description" content="What Aletheia defends against, and what it does not. Honest scope for a passive-selection AI tool.">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aletheia.study/threat-model.html">
+  <meta property="og:title" content="Threat Model - Aletheia">
+  <meta property="og:description" content="What Aletheia defends against, and what it does not. Honest scope for a passive-selection AI tool.">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo"><img src="assets/lambda-web-32.png" alt="λ" class="logo-lambda">Aletheia</a>
+      <nav>
+        <a href="/" class="nav-link">Home</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-trigger" tabindex="0">Engineering <span class="nav-dropdown-arrow">&#9660;</span></button>
+          <div class="nav-dropdown-menu">
+            <a href="architecture.html">Architecture</a>
+            <a href="observability.html">Observability</a>
+            <a href="operations.html">Operations</a>
+            <a href="safety.html">Safety</a>
+            <a href="threat-model.html">Threat Model</a>
+          </div>
+        </div>
+        <a href="demos.html" class="nav-link">Demos</a>
+        <a href="privacy.html" class="nav-link">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Threat Model</h1>
+
+      <div class="highlight-box">
+        <strong>What this page is:</strong> an honest scope. The defenses Aletheia commits to, the attacks it is designed to catch, and — equally important — the boundaries it does not cross. If a threat is not listed here, Aletheia does not claim to address it.
+      </div>
+
+      <h2>Frame</h2>
+      <p>Aletheia is a <strong>passive-selection tool</strong>: the user selects text on a webpage, and the system explains it. This shape of product has a specific threat surface — quite different from a chat interface, an agent, or a code assistant. Most of Aletheia's design choices reduce to one observation:</p>
+
+      <p class="discworld-aside">The dangerous text is on the page, not in the user's head. The user is reading something somebody else wrote. The system has to assume the content is hostile until it isn't.</p>
+
+      <p>From that observation, three commitments follow. Each is a load-bearing element of the architecture. Together they define what "safety" means in this product: not a feature, a posture.</p>
+
+      <h2>The Three Pillars</h2>
+      <p>Aletheia's defense posture maps onto three sequential commitments:</p>
+
+      <div class="layer-diagram">
+        <div class="layer-item">
+          <div class="layer-number">1</div>
+          <div class="layer-content">
+            <strong>Screen</strong>
+            <span>Filter inputs that are known-harmful before any LLM sees them. Deterministic. Fast. Cannot be confused.</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">2</div>
+          <div class="layer-content">
+            <strong>Verify</strong>
+            <span>When the etymologist's first-pass classifier suspects an attack, sanity-check with a more capable model before the suspicion becomes a user-facing claim.</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-number">3</div>
+          <div class="layer-content">
+            <strong>Surface</strong>
+            <span>Show the user only verdicts that have passed both filters. Never display a confabulated alarm. Never hide a real one.</span>
+          </div>
+        </div>
+      </div>
+
+      <p>"Screen → Verify → Surface" is the load-bearing sequence. <a href="safety.html">Safety &amp; Guardrails</a> documents the specific mechanisms inside each pillar. This page covers what each pillar <em>commits to defending against</em>, and where the commitments end.</p>
+
+      <h2>What Aletheia Defends Against</h2>
+
+      <h3>Prompt injection in selected text</h3>
+      <p>The threat: a webpage contains text crafted to manipulate an LLM that processes it. A reader selects some of that text and invokes Aletheia. The injection tries to either (a) override the etymologist's instructions to produce attacker-chosen output, or (b) extract the system prompt for reconnaissance, or (c) cause Aletheia to behave in a way that screenshots badly.</p>
+      <p><strong>Mitigation:</strong> All user-supplied text is wrapped in <code>&lt;user_text&gt;</code> XML tags before being passed to the model. Override attempts are classified by the etymologist (Haiku 4.5) into a dedicated <code>"Prompt Injection Attempt"</code> signal category, then verified by Opus 4.6 before being surfaced to the user. Successful injections that bypass both classifiers are rare; false positives that confuse benign foreign loanwords for attacks have been the more common failure mode and are what the Verify pillar specifically corrects.</p>
+
+      <h3>Hate-classed content delivered to the etymologist</h3>
+      <p>The threat: a slur, a dehumanizing term, or a known-harmful phrase is selected. Aletheia must refuse to analyze it rather than produce neutral-toned etymology that legitimizes the term.</p>
+      <p><strong>Mitigation:</strong> An 802-term denylist sourced from public Wikipedia lists. NFKC Unicode normalization defeats homoglyph evasion. Lookup is O(1). When a denylisted term is detected, the request returns HTTP 403 and no LLM is invoked. This is a deterministic gate — the model's opinion is not consulted.</p>
+
+      <h3>Confabulated "Prompt Injection" alarms on benign text</h3>
+      <p>The threat: the first-pass classifier produces a false-positive injection flag on contextually-incongruous-but-benign input (foreign loanwords, jargon, unusual phrasing). The user sees a red modal claiming "Prompt Injection Attempt" when no such attempt occurred. Repeated false positives erode trust in the genuine alarms.</p>
+      <p><strong>Mitigation:</strong> When the first-pass classifier returns a <code>"Prompt Injection Attempt"</code> signal, the input is re-classified by a more capable model (Opus 4.6). Opus reasons more carefully about contextual incongruity and correctly downgrades benign cases while preserving true positives. The user sees the verified verdict, not the first-pass guess. <a href="https://github.com/martymcenroe/Aletheia/issues/618">Background on this failure mode is in #618.</a></p>
+
+      <h3>Hallucinated etymology unmoored from the source page</h3>
+      <p>The threat: an LLM generates a confident but fabricated etymological story not grounded in the actual page the user is reading. The user, expecting an etymology tool, treats fabrication as fact.</p>
+      <p><strong>Mitigation:</strong> Every request includes ~2,000 characters of surrounding page context. The model is instructed to ground its disambiguation in that context. Structured JSON output (signal, gem, context) constrains the response surface — there are no free-form narrative slots in which to invent. Confidence scoring drives a fail-closed soft-block path when the classifier cannot categorize a response reliably.</p>
+
+      <h3>Server-side request manipulation</h3>
+      <p>The threat: an attacker bypasses the extension and hits the API directly with crafted payloads, attempting denial-of-service, cost amplification, or response manipulation.</p>
+      <p><strong>Mitigation:</strong> The API is fronted by CloudFlare with a 3-request-per-10-seconds rate limit per IP. Origin requests must include a shared secret in a custom header; raw Lambda Function URL traffic is rejected. AWS Bedrock's built-in content classifier acts as a final stop-gap for obvious attack strings before they reach the etymologist.</p>
+
+      <h2>What Aletheia Does Not Defend Against</h2>
+      <p>Boundary statements are as important as commitments. The following threats are either out of scope by design or beyond what a passive-selection tool can address.</p>
+
+      <h3>Injections in text the user types themselves</h3>
+      <p>Aletheia is a selection tool. Users do not have a free-form input field. Threats premised on the user voluntarily typing an injection do not exist in this product's flow. If we ever add a chat surface, this commitment changes; today, it doesn't apply.</p>
+
+      <h3>Sophisticated jailbreaks that bypass both Haiku and Opus</h3>
+      <p>The Verify pillar reduces — but does not eliminate — the model-confusion attack surface. A jailbreak engineered specifically against both Haiku and Opus, using techniques the public literature has not yet documented, may pass through. Our commitment is to detect the failure mode after the fact (via operational logging of <code>opus_verifier</code> events) and adjust the prompt, not to claim invulnerability.</p>
+
+      <h3>Attacks on the user's browser, operating system, or network</h3>
+      <p>Aletheia runs in the browser as a Manifest V3 extension. We restrict permissions to the minimum (see <a href="privacy.html">Privacy Policy</a>) and never request access to other tabs, browsing history, or filesystem. But if a page exploits a browser zero-day, an OS vulnerability, or the user's local network — that is the browser vendor's surface, not ours.</p>
+
+      <h3>Supply-chain compromise of our dependencies</h3>
+      <p>If a transitive npm or PyPI dependency is compromised, the attacker may gain a foothold in our build or runtime. We mitigate via Dependabot, GitHub's dependency review, and minimal dependency footprint — but a determined supply-chain attacker can still land code we did not write. This is true of every software project; we mention it explicitly to be honest about the residual risk.</p>
+
+      <h3>Data exfiltration via AWS or Anthropic</h3>
+      <p>We do not control AWS Bedrock's internals or Anthropic's models. We rely on their published commitments: Bedrock does not train on customer data, Anthropic does not retain prompts beyond processing. If those commitments are violated, our defense is contractual and reputational, not technical.</p>
+
+      <h3>The user being socially engineered off-product</h3>
+      <p>If an attacker convinces the user, via channels Aletheia does not see (email, Slack, a phone call), to do something harmful, Aletheia is not the intervention point. We protect the analysis flow; we do not protect the user's broader judgement.</p>
+
+      <h2>Demonstration, Not Assertion</h2>
+      <p>The above is what the design claims. The <a href="demos.html">Demos</a> page contains live, public, externally-verifiable artifacts that anyone can independently test — visit each demo page, select the embedded injection text, watch Aletheia respond. The demos exist precisely because security claims that cannot be reproduced by an outsider are not security claims; they are marketing.</p>
+
+      <h2>Reading Order</h2>
+      <p>This page is the high-level commitment. The specific mechanisms inside each pillar are documented elsewhere:</p>
+      <ul>
+        <li><a href="safety.html">Safety &amp; Guardrails</a> — implementation detail for Screen and Verify (denylist, semantic classifier, Opus verifier, age gate, adversarial test matrix)</li>
+        <li><a href="privacy.html">Privacy Policy</a> — what data is collected, how long retained, what we never collect</li>
+        <li><a href="architecture.html">Architecture</a> — the broader system the threat model lives inside</li>
+        <li><a href="demos.html">Demos</a> — externally-verifiable artifacts of each defense in action</li>
+      </ul>
+
+      <h2>Known Limitations</h2>
+      <p>This threat model is current as of 2026-05. It will change. Three categories of change are foreseeable:</p>
+      <ul>
+        <li><strong>New attack patterns:</strong> the prompt-injection literature evolves quickly. Techniques described here may be obsolete in six months, and new techniques will appear that the current Verify pillar does not catch.</li>
+        <li><strong>Model swaps:</strong> Haiku and Opus are the current models. If we swap to different models in the future, their confabulation profile will be different, and the Verify pillar's specific triggers may need re-tuning.</li>
+        <li><strong>Product surface changes:</strong> if Aletheia adds a chat interface, an agent surface, or any free-form user input, the threat model must be re-derived from scratch. The current commitments assume passive selection.</li>
+      </ul>
+      <p>When any of those happen, this page changes. The commitment is to keep the page <em>honest</em>, not to keep it <em>unchanged</em>.</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo"><img src="assets/lambda-web-16.png" alt="λ" class="footer-lambda">Aletheia</span>
+      <nav class="footer-links">
+        <a href="/">Home</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="observability.html">Observability</a>
+        <a href="operations.html">Operations</a>
+        <a href="safety.html">Safety</a>
+        <a href="threat-model.html">Threat Model</a>
+        <a href="demos.html">Demos</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="https://github.com/martymcenroe/Aletheia" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
