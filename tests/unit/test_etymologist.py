@@ -12,7 +12,6 @@ import pytest
 
 from src.etymologist import (
     ALLOWED_MODELS,
-    DEFAULT_MODEL_ID,
     FALLBACK_RESPONSE,
     HAIKU_MODEL_ID,
     NOVA_MICRO_MODEL_ID,
@@ -30,7 +29,6 @@ from src.etymologist import (
     extract_token_usage,
     fix_mixed_quote_pairs,
     get_fallback_response,
-    get_model_id,
     is_nova_model,
     process_bedrock_response,
     validate_model_id,
@@ -778,10 +776,6 @@ class TestModelConstants:
         """Issue #535: Haiku model ID defaults to Haiku 4.5."""
         assert HAIKU_MODEL_ID == "anthropic.claude-haiku-4-5-20251001-v1:0"
 
-    def test_default_model_is_nova(self):
-        """Default model is Nova Micro for improved latency."""
-        assert DEFAULT_MODEL_ID == NOVA_MICRO_MODEL_ID
-
     def test_allowed_models_contains_nova(self):
         """Allowlist contains Nova Micro."""
         assert NOVA_MICRO_MODEL_ID in ALLOWED_MODELS
@@ -836,30 +830,6 @@ class TestIsNovaModel:
         assert is_nova_model(
             "arn:aws:bedrock:us-east-1:383687041805:inference-profile/aletheia-haiku"
         ) is False
-
-
-class TestGetModelId:
-    """Issue #294: Tests for get_model_id with environment variable handling."""
-
-    def test_returns_default_when_env_not_set(self, monkeypatch):
-        """Returns default model when env var not set."""
-        monkeypatch.delenv("ETYMOLOGIST_MODEL", raising=False)
-        assert get_model_id() == DEFAULT_MODEL_ID
-
-    def test_returns_nova_when_set_to_nova(self, monkeypatch):
-        """Returns Nova Micro when env var set to Nova."""
-        monkeypatch.setenv("ETYMOLOGIST_MODEL", NOVA_MICRO_MODEL_ID)
-        assert get_model_id() == NOVA_MICRO_MODEL_ID
-
-    def test_returns_haiku_when_set_to_haiku(self, monkeypatch):
-        """Returns Haiku when env var set to Haiku."""
-        monkeypatch.setenv("ETYMOLOGIST_MODEL", HAIKU_MODEL_ID)
-        assert get_model_id() == HAIKU_MODEL_ID
-
-    def test_falls_back_to_default_for_invalid_model(self, monkeypatch):
-        """Falls back to default when env var has invalid model ID."""
-        monkeypatch.setenv("ETYMOLOGIST_MODEL", "invalid-model")
-        assert get_model_id() == DEFAULT_MODEL_ID
 
 
 class TestBuildNovaPrompt:
@@ -1060,27 +1030,18 @@ class TestNovaSystemPrompt:
 
 
 class TestAnalyzeTermModelSelection:
-    """Issue #294: Tests for model selection in analyze_term."""
+    """Issue #620: Tests for model selection in analyze_term."""
 
-    def test_uses_default_model_when_none_provided(self, mock_bedrock_client, monkeypatch):
-        """Uses default model when model_id is None."""
-        monkeypatch.delenv("ETYMOLOGIST_MODEL", raising=False)
-        # Will fail at invoke_model but we can check what model was used
+    def test_defaults_to_haiku_when_model_id_none(self, mock_bedrock_client):
+        """When model_id is None, defaults to HAIKU_MODEL_ID."""
         mock_bedrock_client.invoke_model.side_effect = Exception("test")
         result = analyze_term("test", "", bedrock_client=mock_bedrock_client)
-        assert result["metadata"]["model"] == DEFAULT_MODEL_ID
+        assert result["metadata"]["model"] == HAIKU_MODEL_ID
 
     def test_uses_provided_model_id(self, mock_bedrock_client):
         """Uses explicitly provided model_id."""
         mock_bedrock_client.invoke_model.side_effect = Exception("test")
         result = analyze_term("test", "", bedrock_client=mock_bedrock_client, model_id=HAIKU_MODEL_ID)
-        assert result["metadata"]["model"] == HAIKU_MODEL_ID
-
-    def test_uses_env_var_model_when_set(self, mock_bedrock_client, monkeypatch):
-        """Uses model from ETYMOLOGIST_MODEL env var."""
-        monkeypatch.setenv("ETYMOLOGIST_MODEL", HAIKU_MODEL_ID)
-        mock_bedrock_client.invoke_model.side_effect = Exception("test")
-        result = analyze_term("test", "", bedrock_client=mock_bedrock_client)
         assert result["metadata"]["model"] == HAIKU_MODEL_ID
 
     def test_successful_nova_call_with_mock(self, mock_bedrock_client):
