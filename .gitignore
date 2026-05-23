@@ -144,3 +144,7 @@ docs/confidential/
 
 # GTM strategy (private business planning)
 GTM/
+
+# Session logs — internal-only; never publish (added 2026-05-22 after exposure discovery, see #616)
+docs/session-logs/
+docs/dom-dumps/
