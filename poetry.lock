@@ -1525,19 +1525,19 @@ files = [
 
 [[package]]
 name = "stripe"
-version = "14.4.1"
+version = "15.1.0"
 description = "Python bindings for the Stripe API"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "stripe-14.4.1-py3-none-any.whl", hash = "sha256:d6722b985dc3b4d6da01ff4fa95a975d3694a89bba96895bf17aa858073ff2b8"},
-    {file = "stripe-14.4.1.tar.gz", hash = "sha256:e3eecfb336819326cd2ab9a93f98eb01b49c4d4d93c9d167a52a68ab99c19a88"},
+    {file = "stripe-15.1.0-py3-none-any.whl", hash = "sha256:bdfb556be08662a41833e6403607ebf12e0062cae4f9b93e2b89b6ba926d7c82"},
+    {file = "stripe-15.1.0.tar.gz", hash = "sha256:24bd3b6bd0969a4841bd4d7681556a9e35e46c414a07c8590a225fbd5a878450"},
 ]
 
 [package.dependencies]
-requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
-typing_extensions = {version = ">=4.5.0", markers = "python_version >= \"3.7\""}
+requests = ">=2.20"
+typing_extensions = ">=4.7.0"
 
 [package.extras]
 async = ["httpx"]
@@ -1788,4 +1788,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "fd11b27e4351307a6720dd9629b7e9c66c5a39e9521aa68488af66835c9dd7e3"
+content-hash = "3c0613c65185652e51942e24f95b8295acc44ff35ede56f32fe668ff26476ffb"
