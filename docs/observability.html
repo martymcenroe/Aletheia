@@ -57,7 +57,7 @@
 
       <p>Observability in LLM systems is fundamentally different from traditional web services. You can't just log request/response bodies &mdash; those contain user-generated text that may be sensitive. Every metric, trace annotation, and dashboard widget must be designed with the assumption that the content is private, while the operational metadata is not.</p>
 
-      <p class="discworld-aside">Hermes carried messages between the gods and the dead. His winged sandals were not the load-bearing element of his work. The load-bearing element was that he always remembered who sent each message, to whom, and at what hour. Tracing is older than computers; it used to wear winged sandals.</p>
+      <p class="discworld-aside">Like the Clacks towers of the Grand Trunk, every message carries overhead bytes recording its journey &mdash; how long each tower held it, which ones dropped it, the cost of the semaphore time &mdash; but the message itself is never read by the operators. GNU Terry Pratchett.</p>
 
       <h2>X-Ray Distributed Tracing</h2>
       <p>AWS X-Ray traces requests end-to-end across Lambda, DynamoDB, and Bedrock. Sampling is set at <strong>5%</strong> to balance visibility against cost.</p>
