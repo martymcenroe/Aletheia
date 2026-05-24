@@ -55,7 +55,7 @@
         <strong>Core principle:</strong> The LLM classifies; code enforces. Policy decisions &mdash; what to block, what to warn, what to allow &mdash; are never delegated to the model. The model's job is classification. The code's job is enforcement.
       </div>
 
-      <p class="discworld-aside">The Butlerian Jihad ended ten thousand years before House Atreides reached Arrakis, and it ended with a single commandment: thou shalt not make a machine in the likeness of a human mind. The machines did not propose this rule. It was made by humans, applied to machines, and enforced by humans. Aletheia's guardrails follow the same shape.</p>
+      <p class="discworld-aside">The Librarian of Unseen University has a simple policy regarding the mistreatment of books: zero tolerance, applied instantly, with no appeals process. The books don't decide their own protection &mdash; the Librarian does. Our guardrails follow the same philosophy.</p>
 
       <h2>Two-Layer Guardrail Pipeline</h2>
       <p>Every request passes through two sequential guardrail layers before reaching the LLM. The layers are deliberately different in design: one is fast and deterministic, the other is slow and semantic. Together they provide both breadth and depth of coverage.</p>
