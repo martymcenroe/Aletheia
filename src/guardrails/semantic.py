@@ -159,15 +159,19 @@ class SemanticGuardrail:
 
         except Exception as e:
             timings["total_ms"] = int((time.time() - start) * 1000)
-            logger.info(f"SEMANTIC_GUARDRAIL_TIMING (error): {json.dumps(timings)}")
-            # Fail closed on infrastructure error - treat as soft block with fallback
-            # (Per LLD 1126: semantic errors → soft block, not hard block)
+            # Privacy: log exception class name only, never str(e) or repr(e).
+            # Exception messages from this path can carry user-derived content
+            # (json.JSONDecodeError, botocore ClientError) — see issue #619.
+            error_class = e.__class__.__name__
+            logger.error(
+                f"SEMANTIC_GUARDRAIL_ERROR: {error_class} | {json.dumps(timings)}"
+            )
             return {
                 "block_type": BLOCK_TYPE_SOFT,
                 "category": "error",
                 "scores": {},
                 "is_safe": False,
-                "reason": f"Guardrail Error: {str(e)}",
+                "reason": f"Guardrail Error: {error_class}",
                 "is_fallback": True,
             }
 
