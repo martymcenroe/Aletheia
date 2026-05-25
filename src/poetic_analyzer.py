@@ -329,8 +329,10 @@ def analyze_poetic_resonance(
         )
 
     except Exception as e:
+        # Privacy (#645, audit umbrella #637): class name only — Bedrock errors
+        # can carry request-payload echoes. See docs/observability.html.
         latency_ms = int((time.time() - start_time) * 1000)
-        logger.error(f"Poetic analysis failed: {type(e).__name__}: {e}")
+        logger.error(f"POETIC_ANALYSIS_ERROR: {e.__class__.__name__}")
         return PoeticAnalysisResult(
             status="error",
             synthesis="",
