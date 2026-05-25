@@ -666,3 +666,108 @@ class TestMetricsEndpoint:
         assert "users" in body
         assert "usage" in body
         assert "caps" in body
+
+
+class TestLambdaFunctionExceptionTextDoesNotLeak:
+    """Issues #638, #650, #651 (audit umbrella #637):
+
+    Per docs/observability.html: "NEVER log prompt text, user input, completion
+    text, URLs, or user IDs." Exception messages from etymology generation and
+    the catch-all handler must not leak into the response body or log output.
+    Only the exception class name may surface.
+    """
+
+    CANARY = "CANARY-LEAK-lambda-fn-d9b3e7-WOULD-BE-USER-TEXT"
+
+    def _safe_semantic_mock(self):
+        from src.guardrails.semantic import BLOCK_TYPE_NONE
+
+        mock_guard = MagicMock()
+        mock_guard.check_safety.return_value = {
+            "block_type": BLOCK_TYPE_NONE,
+            "category": "None",
+            "is_safe": True,
+            "reason": "None",
+            "scores": {},
+        }
+        return mock_guard
+
+    def test_etymology_exception_not_in_response_gem(self, caplog):
+        """Issue #638: etymology generation exception must not appear in response gem field."""
+        import logging
+
+        event = {"text": "apple"}
+
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic, patch(
+            "src.lambda_function.generate_etymology"
+        ) as mock_gen, patch(
+            "src.lambda_function.get_dynamodb_client"
+        ) as mock_dynamo:
+            mock_semantic.return_value = self._safe_semantic_mock()
+            mock_gen.side_effect = Exception(self.CANARY)
+            mock_dynamo.return_value = MagicMock()
+
+            with caplog.at_level(logging.ERROR, logger="src.lambda_function"):
+                result = lambda_handler(event, None, denylist=MOCK_DENYLIST)
+
+            body = json.loads(result["body"])
+
+            def _no_canary(obj, path="body"):
+                if isinstance(obj, str):
+                    assert self.CANARY not in obj, f"Canary leaked at {path}: {obj!r}"
+                elif isinstance(obj, dict):
+                    for k, v in obj.items():
+                        _no_canary(v, f"{path}[{k!r}]")
+                elif isinstance(obj, (list, tuple)):
+                    for i, v in enumerate(obj):
+                        _no_canary(v, f"{path}[{i}]")
+
+            _no_canary(body)
+
+            log_text = "\n".join(r.getMessage() for r in caplog.records)
+            assert self.CANARY not in log_text, f"Canary leaked into logs: {log_text!r}"
+            assert "ETYMOLOGY_GENERATION_ERROR" in log_text
+            assert "Exception" in log_text
+
+    def test_etymology_exception_class_name_preserved_in_gem(self):
+        """Issue #638: the diagnostic class name must still appear in the gem field."""
+        event = {"text": "apple"}
+
+        with patch("src.lambda_function.get_semantic_guardrail") as mock_semantic, patch(
+            "src.lambda_function.generate_etymology"
+        ) as mock_gen, patch(
+            "src.lambda_function.get_dynamodb_client"
+        ) as mock_dynamo:
+            mock_semantic.return_value = self._safe_semantic_mock()
+            mock_gen.side_effect = RuntimeError(self.CANARY)
+            mock_dynamo.return_value = MagicMock()
+
+            result = lambda_handler(event, None, denylist=MOCK_DENYLIST)
+
+        body = json.loads(result["body"])
+        if "response" in body and isinstance(body.get("response"), dict):
+            gem = body["response"].get("gem", "")
+            assert "RuntimeError" in gem, f"Class name missing from gem: {gem!r}"
+            assert self.CANARY not in gem
+
+    def test_unhandled_exception_log_does_not_leak(self, caplog):
+        """Issue #650: catch-all unhandled exception logger must not include str(e)."""
+        import logging
+
+        event = {"text": "apple"}
+
+        with patch("src.lambda_function.validate_input") as mock_validate:
+            mock_validate.side_effect = RuntimeError(self.CANARY)
+
+            with caplog.at_level(logging.ERROR, logger="src.lambda_function"):
+                result = lambda_handler(event, None, denylist=MOCK_DENYLIST)
+
+        body = json.loads(result["body"])
+        assert result["statusCode"] == 500
+        assert self.CANARY not in json.dumps(body)
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY not in log_text, f"Canary leaked into logs: {log_text!r}"
+        # Class name should still be present somewhere in the log (either
+        # the CRITICAL line or earlier handlers).
+        assert "RuntimeError" in log_text
