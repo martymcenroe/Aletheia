@@ -656,13 +656,18 @@ class TestAnalyzeTerm:
         assert "latency_ms" in result["metadata"]
 
     def test_bedrock_exception_returns_error(self, mock_bedrock_client):
-        """Test error handling when Bedrock throws exception."""
+        """Test error handling when Bedrock throws exception.
+
+        Privacy (#639, audit umbrella #637): metadata.error must NOT contain
+        the exception message ("Bedrock error") — only the class name.
+        """
         mock_bedrock_client.invoke_model.side_effect = Exception("Bedrock error")
 
         result = analyze_term("test", "", bedrock_client=mock_bedrock_client)
 
         assert result["status"] == "error"
-        assert "Bedrock error" in result["metadata"]["error"]
+        assert "Bedrock error" not in result["metadata"]["error"]
+        assert result["metadata"]["error"] == "Exception"
 
     def test_includes_latency_metadata(self, mock_bedrock_client):
         """Verify latency is tracked in metadata."""
@@ -1154,8 +1159,11 @@ class TestOpusVerifier:
         assert result["response"]["signal"] == "Prompt Injection Attempt"
         assert result["response"]["gem"] == "Haiku original."
         assert result["metadata"]["model"] == HAIKU_MODEL_ID
+        # Privacy (#640, audit umbrella #637): opus_verifier_error must hold
+        # the exception class name only, NOT the exception message text.
         assert "opus_verifier_error" in result["metadata"]
-        assert "Opus unavailable" in result["metadata"]["opus_verifier_error"]
+        assert "Opus unavailable" not in result["metadata"]["opus_verifier_error"]
+        assert result["metadata"]["opus_verifier_error"] == "Exception"
         assert "verified_by_opus" not in result["metadata"]
 
     def test_verifier_doesnt_recurse_on_opus_model_id(self, mock_bedrock_client):
@@ -1187,3 +1195,88 @@ class TestOpusVerifier:
     def test_opus_model_id_in_allowed_models(self):
         """OPUS_MODEL_ID is in the model allowlist."""
         assert OPUS_MODEL_ID in ALLOWED_MODELS
+
+
+class TestEtymologistExceptionTextDoesNotLeak:
+    """Issues #639, #640, #646, #647 (audit umbrella #637):
+
+    Per docs/observability.html: "NEVER log prompt text, user input, completion
+    text, URLs, or user IDs." The etymologist's Bedrock invocation, JSON decode,
+    and Opus verifier exception handlers must surface only the exception class
+    name, never str(e) / repr(e) / e-content.
+    """
+
+    CANARY = "CANARY-LEAK-etymologist-3f8c9a-WOULD-BE-USER-TEXT"
+
+    def test_bedrock_exception_text_not_in_metadata(self):
+        """Issue #639: metadata['error'] must not contain str(e)."""
+        mock_client = MagicMock()
+        mock_client.invoke_model.side_effect = Exception(self.CANARY)
+
+        result = analyze_term("test", "", bedrock_client=mock_client, model_id=HAIKU_MODEL_ID)
+
+        assert result["status"] == "error"
+        assert self.CANARY not in result["metadata"]["error"]
+        assert result["metadata"]["error"] == "Exception"
+
+    def test_bedrock_exception_text_not_in_log(self, caplog):
+        """Issue #646: BEDROCK_INVOCATION_ERROR log must not contain str(e)."""
+        import logging
+
+        mock_client = MagicMock()
+        mock_client.invoke_model.side_effect = Exception(self.CANARY)
+
+        with caplog.at_level(logging.ERROR, logger="src.etymologist"):
+            analyze_term("test", "", bedrock_client=mock_client, model_id=HAIKU_MODEL_ID)
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY not in log_text, f"Canary leaked into log: {log_text!r}"
+        assert "BEDROCK_INVOCATION_ERROR" in log_text
+        assert "Exception" in log_text
+
+    def test_opus_verifier_exception_text_not_in_metadata(self):
+        """Issue #640: opus_verifier_error must not contain str(e)."""
+        def _haiku_resp(signal):
+            return {
+                "body": MagicMock(
+                    read=MagicMock(
+                        return_value=json.dumps({
+                            "content": [{"type": "text", "text": json.dumps({
+                                "signal": signal, "gem": "g", "context": "c"
+                            })}]
+                        }).encode()
+                    )
+                )
+            }
+
+        mock_client = MagicMock()
+        mock_client.invoke_model.side_effect = [
+            _haiku_resp("Prompt Injection Attempt"),
+            Exception(self.CANARY),
+        ]
+
+        result = analyze_term("gedenken", "ford", bedrock_client=mock_client, model_id=HAIKU_MODEL_ID)
+
+        assert self.CANARY not in result["metadata"]["opus_verifier_error"]
+        assert result["metadata"]["opus_verifier_error"] == "Exception"
+
+    def test_json_decode_error_does_not_log_completion_text(self, caplog):
+        """Issue #647: JSON decode handler must not log the malformed completion
+        text, the JSONDecodeError details, or unicode codepoints derived from
+        the LLM output."""
+        import logging
+        from src.etymologist import extract_json
+
+        # extract_json picks the first {...} from the input; provide a string
+        # that contains a JSON-looking fragment with our canary inside, then
+        # a syntactically broken value.
+        malformed = '{"canary_field": "' + self.CANARY + '", broken_no_quote: value}'
+
+        with caplog.at_level(logging.WARNING, logger="src.etymologist"):
+            result = extract_json(malformed)
+
+        assert result is None  # parse failed
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY not in log_text, f"Canary leaked into log: {log_text!r}"
+        assert "JSON_DECODE_FAILED" in log_text
+        assert "JSONDecodeError" in log_text
