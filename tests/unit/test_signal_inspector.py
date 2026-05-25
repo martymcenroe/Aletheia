@@ -477,3 +477,45 @@ class TestLiveWebsites:
 
         assert result.fetch_status == FetchStatus.ROBOTS_BLOCKED
         assert result.aletheia_action == AletheiaAction.BLOCK
+
+
+class TestFetcherExceptionTextDoesNotLeak:
+    """Issue #644 (audit umbrella #637):
+
+    Per docs/observability.html: "NEVER log prompt text, user input, completion
+    text, URLs, or user IDs." The fetcher's exception handlers must not log
+    the URL or the exception text — only the exception class name.
+    """
+
+    CANARY_URL = "https://CANARY-LEAK-fetcher-5e2d4f.example.com/secret-path"
+
+    @responses.activate
+    def test_request_exception_does_not_leak_url_or_message_into_log(self, caplog):
+        """Issue #644: RequestException handler must not log url or str(e)."""
+        import logging
+        from signal_inspector.fetcher import fetch_page
+
+        # responses lib raises ConnectionError if no matcher registered for
+        # the URL — perfect for triggering the exception path.
+        with caplog.at_level(logging.WARNING, logger="signal_inspector.fetcher"):
+            html, headers, status, error = fetch_page(self.CANARY_URL, "TestBot/1.0", timeout=5)
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY_URL not in log_text, f"URL leaked into log: {log_text!r}"
+        assert "CANARY-LEAK" not in log_text
+        # Class name should be present for diagnostic value
+        assert any(token in log_text for token in (
+            "FETCH_CONNECTION_ERROR", "FETCH_REQUEST_ERROR", "FETCH_TIMEOUT"
+        ))
+
+    @responses.activate
+    def test_request_exception_does_not_leak_message_into_return_tuple(self):
+        """Issue #644: 4th element of return tuple must be a fixed token or class
+        name, never str(e) with embedded URL/content."""
+        from signal_inspector.fetcher import fetch_page
+
+        html, headers, status, error = fetch_page(self.CANARY_URL, "TestBot/1.0", timeout=5)
+
+        assert html is None
+        assert self.CANARY_URL not in (error or "")
+        assert "CANARY-LEAK" not in (error or "")

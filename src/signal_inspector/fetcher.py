@@ -130,11 +130,13 @@ def fetch_page(
             return None, headers, response.status_code, f"HTTP {response.status_code}"
 
     except requests.exceptions.Timeout:
-        logger.warning(f"Timeout fetching {url}")
+        # Privacy (#644 + adjacent, audit umbrella #637): never log url —
+        # docs/observability.html bans logging URLs. Class name only for exception.
+        logger.warning("FETCH_TIMEOUT")
         return None, {}, None, "timeout"
     except requests.exceptions.ConnectionError as e:
-        logger.warning(f"Connection error fetching {url}: {e}")
+        logger.warning(f"FETCH_CONNECTION_ERROR: {e.__class__.__name__}")
         return None, {}, None, "dns_error"
     except requests.exceptions.RequestException as e:
-        logger.warning(f"Error fetching {url}: {e}")
-        return None, {}, None, str(e)
+        logger.warning(f"FETCH_REQUEST_ERROR: {e.__class__.__name__}")
+        return None, {}, None, e.__class__.__name__
