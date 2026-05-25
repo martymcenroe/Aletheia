@@ -501,14 +501,17 @@ def _analysis_handler(
             "context": result["response"]["context"],
         }
     except Exception as e:
-        # Issue #178: Capture error state for debugging
+        # Issue #178: Capture error state for debugging.
+        # Privacy (#638, #651): log/return exception class name only — never str(e).
+        # Bedrock errors can carry request-payload echoes; see #637 audit umbrella.
         generation_error = e
+        error_class = e.__class__.__name__
         response_data = {
             "signal": "error",
-            "gem": str(e),
+            "gem": f"Generation Error: {error_class}",
             "context": "Generation failed",
         }
-        logger.error(f"Etymology generation failed: {e}")
+        logger.error(f"ETYMOLOGY_GENERATION_ERROR: {error_class}")
     finally:
         # Issue #162: Skip persistence if noarchive signal is present
         if skip_persistence:
@@ -758,8 +761,9 @@ def lambda_handler(
         return {"statusCode": 500, "body": json.dumps({"error": "Service error"})}
 
     except Exception as e:
-        # Catch-all: NEVER proceed to generation on unhandled error
-        logger.error(f"CRITICAL: Unhandled exception: {type(e).__name__}: {e}")
+        # Catch-all: NEVER proceed to generation on unhandled error.
+        # Privacy (#650): class name only — never str(e). See #637 audit umbrella.
+        logger.error(f"CRITICAL: Unhandled exception: {e.__class__.__name__}")
         # Issue #369: Emit error metric (fail-open)
         try:
             emit_error_rate_metric(500)
