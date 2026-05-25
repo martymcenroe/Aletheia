@@ -15,7 +15,6 @@ import logging
 import os
 import re
 import time
-import unicodedata
 from typing import Literal, TypedDict
 
 logger = logging.getLogger(__name__)
@@ -451,30 +450,6 @@ def _peek_next_meaningful_char(text: str, start: int) -> str | None:
     return None
 
 
-def _log_unicode_diagnostics(text: str, context: str) -> None:
-    """Log Unicode codepoints for debugging JSON parse failures.
-
-    Only logs non-ASCII characters that might be causing issues.
-    Limited to first 500 chars and first 10 problematic characters.
-    """
-    non_ascii_chars = []
-    for i, char in enumerate(text[:500]):
-        codepoint = ord(char)
-        if codepoint > 127:
-            try:
-                name = unicodedata.name(char)
-            except ValueError:
-                name = "UNKNOWN"
-            non_ascii_chars.append({"pos": i, "char": char, "codepoint": f"U+{codepoint:04X}", "name": name})
-
-    if non_ascii_chars:
-        logger.warning(f"UNICODE_DIAGNOSTIC [{context}]: Found {len(non_ascii_chars)} non-ASCII chars")
-        for entry in non_ascii_chars[:10]:
-            logger.warning(f"  Position {entry['pos']}: {entry['codepoint']} ({entry['name']}) = '{entry['char']}'")
-    else:
-        logger.warning(f"UNICODE_DIAGNOSTIC [{context}]: No non-ASCII characters found in first 500 chars")
-
-
 def extract_json(raw_response: str) -> dict | None:
     """
     Robustly extract JSON from LLM response.
@@ -529,10 +504,10 @@ def extract_json(raw_response: str) -> dict | None:
     try:
         return json.loads(json_str)
     except json.JSONDecodeError as e:
-        logger.warning(f"JSON decode failed: {e}")
-        logger.warning(f"JSON string (first 200 chars): {json_str[:200]}")
-        # Issue #288: Log Unicode diagnostics for debugging
-        _log_unicode_diagnostics(json_str, f"JSONDecodeError at position {e.pos}")
+        # Privacy (#647): class name only — json_str holds LLM completion text
+        # derived from user input; logging it (or its chars) violates the never-log-
+        # completion-text constraint. See umbrella #637.
+        logger.warning(f"JSON_DECODE_FAILED: {e.__class__.__name__}")
         return None
 
 
@@ -800,15 +775,18 @@ def analyze_term(
         return result
 
     except Exception as e:
+        # Privacy (#639, #646): class name only. Bedrock errors can carry
+        # request-payload echoes. See umbrella #637.
         latency_ms = int((time.time() - start_time) * 1000)
-        logger.error(f"Bedrock invocation failed: {type(e).__name__}: {e}")
+        error_class = e.__class__.__name__
+        logger.error(f"BEDROCK_INVOCATION_ERROR: {error_class}")
         return AnalysisResult(
             status="error",
             response=get_fallback_response(),
             metadata={
                 "latency_ms": latency_ms,
                 "model": model_id,
-                "error": str(e),
+                "error": error_class,
             },
         )
 
@@ -878,6 +856,8 @@ def _verify_with_opus(
             },
         )
     except Exception as e:
-        logger.error(f"Opus verifier failed: {type(e).__name__}: {e}")
-        original_result["metadata"]["opus_verifier_error"] = str(e)
+        # Privacy (#640): class name only. See umbrella #637.
+        error_class = e.__class__.__name__
+        logger.error(f"OPUS_VERIFIER_ERROR: {error_class}")
+        original_result["metadata"]["opus_verifier_error"] = error_class
         return original_result
