@@ -128,7 +128,10 @@ def exchange_code_for_tokens(code: str, redirect_uri: str) -> dict:
     )
 
     if response.status_code != 200:
-        logger.error(f"Token exchange failed: {response.status_code} - {response.text}")
+        # Privacy (#648): do NOT log response.text — OAuth provider responses
+        # can contain redirect URI echoes, partial code fragments, or other
+        # sensitive context. Status code only. See umbrella #637.
+        logger.error(f"TOKEN_EXCHANGE_FAILED: status={response.status_code}")
         raise ValueError(f"Token exchange failed: {response.status_code}")
 
     return response.json()
@@ -162,7 +165,8 @@ def refresh_access_token(refresh_token: str) -> dict:
     )
 
     if response.status_code != 200:
-        logger.error(f"Token refresh failed: {response.status_code} - {response.text}")
+        # Privacy (#648): status code only, not response.text. See umbrella #637.
+        logger.error(f"TOKEN_REFRESH_FAILED: status={response.status_code}")
         raise ValueError(f"Token refresh failed: {response.status_code}")
 
     return response.json()
@@ -255,13 +259,16 @@ def validate_token(event: dict, context: Any) -> dict:
     try:
         profile = fetch_linkedin_profile(access_token)
     except Exception as e:
-        logger.error(f"LinkedIn API error during token validation: {e}")
+        # Privacy (#642 + adjacent, audit umbrella #637): class name only.
+        # LinkedIn API exception messages can carry token fragments or URLs.
+        error_class = e.__class__.__name__
+        logger.error(f"LINKEDIN_API_ERROR_TOKEN_VALIDATION: {error_class}")
         return {
             "statusCode": 502,
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({
                 "error": "LinkedIn API error",
-                "message": str(e),
+                "message": error_class,
             }),
         }
 
@@ -459,8 +466,9 @@ def handle_token_exchange(body: dict) -> dict:
     code = body.get("code")
     redirect_uri = body.get("redirectUri")
 
-    # Debug logging for redirect URI mismatch issues
-    logger.info(f"Token exchange request - redirectUri: {redirect_uri}")
+    # Privacy (#649): redirect_uri is a user-supplied URL — never log per the
+    # never-log-URLs constraint in docs/observability.html. Code length is
+    # operational and safe to log.
     logger.info(f"Token exchange request - code length: {len(code) if code else 0}")
 
     if not code or not redirect_uri:
@@ -488,12 +496,13 @@ def handle_token_exchange(body: dict) -> dict:
         try:
             allowed, current_count = check_and_increment_cap(TOKEN_CAP_TABLE)
         except Exception as e:
-            # Fail closed: if cap check fails, deny token issuance
+            # Fail closed: if cap check fails, deny token issuance.
+            # Privacy (#643, audit umbrella #637): class name only.
             logger.error(
                 json.dumps({
                     "action": "token_denied",
                     "reason": "cap_check_failed",
-                    "error": str(e),
+                    "error": e.__class__.__name__,
                     "user_id": user["user_id"],
                 })
             )
@@ -555,12 +564,14 @@ def handle_token_exchange(body: dict) -> dict:
         }
 
     except ValueError as e:
+        # Privacy (#641, audit umbrella #637): class name only in body.
         return {
             "statusCode": 400,
-            "body": json.dumps({"error": str(e)}),
+            "body": json.dumps({"error": f"ValueError: {e.__class__.__name__}"}),
         }
     except Exception as e:
-        logger.error(f"Token exchange error: {e}")
+        # Privacy (#641 adjacent): class name only in log.
+        logger.error(f"TOKEN_EXCHANGE_ERROR: {e.__class__.__name__}")
         return {
             "statusCode": 500,
             "body": json.dumps({"error": "Internal server error"}),
@@ -603,12 +614,14 @@ def handle_token_refresh(body: dict) -> dict:
         }
 
     except ValueError as e:
+        # Privacy (#641, audit umbrella #637): class name only in body.
         return {
             "statusCode": 401,
-            "body": json.dumps({"error": str(e)}),
+            "body": json.dumps({"error": f"ValueError: {e.__class__.__name__}"}),
         }
     except Exception as e:
-        logger.error(f"Token refresh error: {e}")
+        # Privacy (#641 adjacent): class name only in log.
+        logger.error(f"TOKEN_REFRESH_ERROR: {e.__class__.__name__}")
         return {
             "statusCode": 500,
             "body": json.dumps({"error": "Internal server error"}),
@@ -636,13 +649,15 @@ def handle_validate_token(headers: dict) -> dict:
     try:
         profile = fetch_linkedin_profile(token)
     except Exception as e:
-        logger.error(f"LinkedIn API error during validation: {e}")
+        # Privacy (#642 + adjacent, audit umbrella #637): class name only.
+        error_class = e.__class__.__name__
+        logger.error(f"LINKEDIN_API_ERROR_VALIDATION: {error_class}")
         return {
             "statusCode": 502,
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({
                 "error": "LinkedIn API error",
-                "message": str(e),
+                "message": error_class,
             }),
         }
 

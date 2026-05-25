@@ -502,3 +502,74 @@ class TestLambdaHandlerRouting:
     def test_route_upgrade_cancel(self):
         result = auth_func.lambda_handler({"httpMethod": "GET", "path": "/upgrade-cancel"}, None)
         assert result["statusCode"] == 200
+
+
+class TestAuthLambdaExceptionTextDoesNotLeak:
+    """Issues #641, #642, #643, #648, #649 (audit umbrella #637):
+
+    Per docs/observability.html: "NEVER log prompt text, user input, completion
+    text, URLs, or user IDs." The auth Lambda's exception handlers and OAuth
+    error logging must surface only the exception class name (or status code
+    for HTTP failures), never str(e) / response.text / user-supplied URLs.
+    """
+
+    CANARY = "CANARY-LEAK-auth-7a1c8e-WOULD-BE-USER-DATA"
+
+    @responses.activate
+    def test_token_exchange_failure_log_does_not_include_response_text(self, aws_env, caplog):
+        """Issue #648: OAuth provider response.text must not be logged."""
+        import logging
+
+        responses.add(
+            responses.POST,
+            auth_func.LINKEDIN_TOKEN_URL,
+            json={"error": self.CANARY, "error_description": self.CANARY},
+            status=400,
+        )
+        with caplog.at_level(logging.ERROR, logger="src.lambda_auth_function"):
+            with pytest.raises(ValueError):
+                auth_func.exchange_code_for_tokens("dummy_code", "https://example.com/cb")
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY not in log_text, f"OAuth response body leaked into log: {log_text!r}"
+        assert "TOKEN_EXCHANGE_FAILED" in log_text
+        assert "status=400" in log_text
+
+    @responses.activate
+    def test_token_refresh_failure_log_does_not_include_response_text(self, aws_env, caplog):
+        """Issue #648: OAuth refresh response.text must not be logged."""
+        import logging
+
+        responses.add(
+            responses.POST,
+            auth_func.LINKEDIN_TOKEN_URL,
+            json={"error": self.CANARY},
+            status=401,
+        )
+        with caplog.at_level(logging.ERROR, logger="src.lambda_auth_function"):
+            with pytest.raises(ValueError):
+                auth_func.refresh_access_token("dummy_refresh")
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY not in log_text
+        assert "TOKEN_REFRESH_FAILED" in log_text
+        assert "status=401" in log_text
+
+    def test_redirect_uri_not_logged(self, caplog):
+        """Issue #649: user-supplied redirect_uri must not appear in logs."""
+        import logging
+
+        canary_uri = f"https://{self.CANARY}.example.com/callback"
+        body = {"code": "abc123", "redirectUri": canary_uri}
+
+        with caplog.at_level(logging.INFO, logger="src.lambda_auth_function"):
+            # handle_token_exchange will fail at LinkedIn call, but we only care
+            # about logs emitted before that point.
+            try:
+                auth_func.handle_token_exchange(body)
+            except Exception:
+                pass
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert canary_uri not in log_text, f"redirect_uri leaked into log: {log_text!r}"
+        assert self.CANARY not in log_text
