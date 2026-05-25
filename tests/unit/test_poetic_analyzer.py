@@ -489,3 +489,37 @@ class TestBoundaryConditions:
         }
         is_valid, errors = _validate_poetic_result(result)
         assert is_valid
+
+
+class TestPoeticAnalyzerExceptionTextDoesNotLeak:
+    """Issue #645 (audit umbrella #637):
+
+    Per docs/observability.html: "NEVER log prompt text, user input, completion
+    text, URLs, or user IDs." The poetic analyzer's Bedrock exception handler
+    must surface only the exception class name, never str(e).
+    """
+
+    CANARY = "CANARY-LEAK-poetic-7b3e2a-WOULD-BE-USER-TEXT"
+
+    def test_bedrock_exception_text_not_in_log(self, caplog):
+        """Issue #645: BEDROCK_INVOCATION exception log must not contain str(e)."""
+        import logging
+
+        mock_client = MagicMock()
+        mock_client.invoke_model.side_effect = Exception(self.CANARY)
+
+        with caplog.at_level(logging.ERROR, logger="src.poetic_analyzer"):
+            result = analyze_poetic_resonance(
+                "test_word",
+                {"signal": "test", "gem": "test", "context": "test"},
+                "test page context",
+                ["religious", "architectural"],
+                bedrock_client=mock_client,
+            )
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY not in log_text, f"Canary leaked into log: {log_text!r}"
+        assert "POETIC_ANALYSIS_ERROR" in log_text
+        assert "Exception" in log_text
+        # Result is a dict (TypedDict-like) — verify it returned the error fallback
+        assert result["status"] == "error"
