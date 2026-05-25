@@ -406,3 +406,86 @@ class TestRacialVocabularyClassification:
         assert result["block_type"] == BLOCK_TYPE_NONE
         assert result["category"] == "None"
         assert result["is_safe"] is True
+
+
+class TestExceptionTextDoesNotLeak:
+    """Issue #619: exception text must never appear in log output or response payload.
+
+    Aletheia's public privacy commitment (docs/observability.html) is absolute:
+    "NEVER log prompt text, user input, completion text, URLs, or user IDs."
+    Exceptions raised from code that processes user input can carry user-derived
+    content in their message text (json.JSONDecodeError via e.doc, botocore
+    ClientError validation messages, custom wrapped exceptions). Only the
+    exception class name may flow into logs and response fields.
+    """
+
+    CANARY = "CANARY-LEAK-9d7e3f0a-WOULD-BE-USER-TEXT"
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_exception_message_not_in_response_reason(self, mock_boto_client):
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+        mock_client_instance.invoke_model.side_effect = Exception(self.CANARY)
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("test input")
+
+        assert self.CANARY not in result["reason"], (
+            f"Exception text leaked into result['reason']: {result['reason']!r}"
+        )
+        assert "Exception" in result["reason"], "Exception class name missing — lost diagnostic value"
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_exception_message_not_in_any_response_field(self, mock_boto_client):
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+        mock_client_instance.invoke_model.side_effect = Exception(self.CANARY)
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("test input")
+
+        def _no_canary(obj, path="result"):
+            if isinstance(obj, str):
+                assert self.CANARY not in obj, f"Canary leaked at {path}: {obj!r}"
+            elif isinstance(obj, dict):
+                for k, v in obj.items():
+                    _no_canary(v, f"{path}[{k!r}]")
+            elif isinstance(obj, (list, tuple)):
+                for i, v in enumerate(obj):
+                    _no_canary(v, f"{path}[{i}]")
+
+        _no_canary(result)
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_exception_message_not_in_log_output(self, mock_boto_client, caplog):
+        import logging
+
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+        mock_client_instance.invoke_model.side_effect = Exception(self.CANARY)
+
+        guard = SemanticGuardrail()
+        with caplog.at_level(logging.ERROR, logger="src.guardrails.semantic"):
+            guard.check_safety("test input")
+
+        log_text = "\n".join(r.getMessage() for r in caplog.records)
+        assert self.CANARY not in log_text, (
+            f"Exception text leaked into log output: {log_text!r}"
+        )
+        assert "SEMANTIC_GUARDRAIL_ERROR" in log_text
+        assert "Exception" in log_text, "Exception class name missing from log — lost diagnostic value"
+
+    @patch("src.guardrails.semantic.boto3.client")
+    def test_custom_exception_class_name_preserved(self, mock_boto_client):
+        class WeirdCustomError(Exception):
+            pass
+
+        mock_client_instance = Mock()
+        mock_boto_client.return_value = mock_client_instance
+        mock_client_instance.invoke_model.side_effect = WeirdCustomError(self.CANARY)
+
+        guard = SemanticGuardrail()
+        result = guard.check_safety("test input")
+
+        assert self.CANARY not in result["reason"]
+        assert "WeirdCustomError" in result["reason"]
