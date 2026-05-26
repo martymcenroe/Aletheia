@@ -10,7 +10,7 @@ package-mode = false
 python = "^3.12"
 boto3 = "^1.43"
 pillow = "^12.2.0"
-tzdata = "^2025.3"
+tzdata = "^2026.2"
 pywin32 = {version = "^311", markers = "sys_platform == 'win32'"}
 requests = "^2.34.2"
 beautifulsoup4 = "^4.14.3"
