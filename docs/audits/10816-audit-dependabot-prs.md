@@ -115,7 +115,7 @@ echo "Dependabot PRs to process: $DEPENDABOT_PRS"
 # 3.1 Merge all Dependabot PRs
 for PR in $DEPENDABOT_PRS; do
     echo "Merging PR #$PR..."
-    gh pr merge $PR --repo martymcenroe/Aletheia --merge --auto
+    gh pr merge $PR --repo martymcenroe/Aletheia --squash --delete-branch
 done
 
 # 3.2 Wait for merges to complete
