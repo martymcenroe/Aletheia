@@ -28,13 +28,6 @@ Before ANY commit/push/merge on feature branches:
 2. Create `docs/reports/{IssueID}/test-report.md`
 3. Stage files but DO NOT COMMIT until review approval
 
-### Merge PRs
-
-```bash
-poetry run python /c/Users/mcwiz/Projects/Aletheia/tools/merge_pr.py --pr {number}
-```
-NEVER use `gh pr merge` directly.
-
 ---
 
 ## Documentation Structure
