@@ -11,7 +11,7 @@ This is my running log of hard-won lessons, gotchas, and rules I've established 
 | Date | Lesson | Rule/Action |
 |:-----|:-------|:------------|
 | 2025-12-08 | Branching from a stale `main` causes files created *after* that point to vanish from the workspace. | **Always** `git checkout main && git pull` before creating a new branch. |
-| 2025-12-08 | Squash merge creates new commit SHA on main; original branch commits still exist but aren't "merged" by SHA comparison. `git log main..branch` shows commits even after merge. | Use `git merge-base --is-ancestor <merge-commit> main` to verify squash-merged work is in main. Ignore "not fully merged" warning if PR merged; use `git branch -D` for cleanup. |
+| 2025-12-08 | Squash merge creates new commit SHA on main; original branch commits still exist but aren't "merged" by SHA comparison. `git log main..branch` shows commits even after merge. | Use `git merge-base --is-ancestor <merge-commit> main` to verify squash-merged work is in main. For cleanup follow the AssemblyZero ADR-0217 four-step `git replace --graft` recipe + plain `git branch -d` (lowercase). `git branch -D` is on the banned-commands list — do not use. |
 | 2025-12-11 | The first branch pushed becomes default; cannot PR branch into itself. | Initialize and push `main` upstream before creating feature branches. |
 | 2025-12-16 | Merged branches accumulate as effluvium without explicit cleanup. | Enable `delete_branch_on_merge` on all repos. |
 | 2025-12-17 | Claude Code works fine in Git Bash on Windows as of v2.0.71. | Test compatibility yourself before trusting outdated articles. |
