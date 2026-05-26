@@ -171,7 +171,7 @@ class SemanticGuardrail:
                 "category": "error",
                 "scores": {},
                 "is_safe": False,
-                "reason": f"Guardrail Error: {error_class}",
+                "reason": f"Guardrail Error: {str(e)}",
                 "is_fallback": True,
             }
 

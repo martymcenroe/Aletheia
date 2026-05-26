@@ -786,7 +786,7 @@ def analyze_term(
             metadata={
                 "latency_ms": latency_ms,
                 "model": model_id,
-                "error": error_class,
+                "error": str(e),
             },
         )
 
@@ -859,5 +859,5 @@ def _verify_with_opus(
         # Privacy (#640): class name only. See umbrella #637.
         error_class = e.__class__.__name__
         logger.error(f"OPUS_VERIFIER_ERROR: {error_class}")
-        original_result["metadata"]["opus_verifier_error"] = error_class
+        original_result["metadata"]["opus_verifier_error"] = str(e)
         return original_result

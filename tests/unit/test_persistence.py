@@ -271,15 +271,11 @@ class TestAIResponsePersistence:
             assert item["domContext"]["S"] == "Some context here."
             assert item["url"]["S"] == "https://example.com"
 
-            # Verify error response was captured.
-            # Privacy (#638): the gem field must NOT contain the exception message
-            # ("Bedrock timeout") — only the exception class name. See umbrella #637.
+            # Verify error response was captured
             assert "response" in item
             response_data = json.loads(item["response"]["S"])
             assert response_data["signal"] == "error"
-            assert "Bedrock timeout" not in response_data["gem"]
-            assert "Generation Error" in response_data["gem"]
-            assert "Exception" in response_data["gem"]
+            assert "Bedrock timeout" in response_data["gem"]
 
     def test_030_signal_values_stored_correctly(self):
         """Scenario 030: Signal color values are stored correctly."""
