@@ -43,18 +43,22 @@ Stop guessing what you are reading. Aletheia brings the power of Large Language 
 **Why Aletheia?**
 
 * **Context Matters:** Most tools only look at the word. Aletheia looks at the *sentence and paragraph* to understand nuance, sarcasm, and specific usage.
-* **Privacy by Design:** We use the "ActiveTab" permission model. We cannot see your browsing history. We only see the specific text you explicitly select and submit.
+* **Privacy by Design:** We do not enumerate, retain, transmit, or analyze data from tabs other than the one you explicitly invoke Aletheia on. We only see the specific text you explicitly select and submit.
 * **Safe & Secure:** Built-in guardrails filter out harmful content before it even reaches the AI.
 
 *Open Source and transparent. Your data stays yours.*
 
 ### 4.2 Privacy Justification (Dashboard Copy-Paste)
 
-* **Privacy Policy URL:** `https://martymcenroe.github.io/Aletheia/`
+* **Privacy Policy URL:** `https://aletheia.study/privacy.html`
 * **Permission Justification:**
 * **`activeTab`:** Extension only accesses the current page when the user explicitly interacts (Right-click).
+* **`tabs`:** Detect page navigation for overlay lifecycle management and content script injection. Also used by Firefox for OAuth callback detection.
 * **`scripting`:** Required to execute `document.body.innerText` strictly on the active tab during the "Explain with AI" action.
 * **`contextMenus`:** Primary trigger interface.
+* **`storage`:** Save preferences, authentication tokens, and domain allowlist locally on the user's device.
+* **`identity`:** (Chrome only) Required for the LinkedIn OAuth authentication flow.
+* **`notifications`:** (Chrome only) Display analysis completion notifications.
 
 
 * **Data Usage:**
