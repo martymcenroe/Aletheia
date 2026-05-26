@@ -268,7 +268,7 @@ def validate_token(event: dict, context: Any) -> dict:
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({
                 "error": "LinkedIn API error",
-                "message": error_class,
+                "message": str(e),
             }),
         }
 
@@ -564,13 +564,11 @@ def handle_token_exchange(body: dict) -> dict:
         }
 
     except ValueError as e:
-        # Privacy (#641, audit umbrella #637): class name only in body.
         return {
             "statusCode": 400,
-            "body": json.dumps({"error": f"ValueError: {e.__class__.__name__}"}),
+            "body": json.dumps({"error": str(e)}),
         }
     except Exception as e:
-        # Privacy (#641 adjacent): class name only in log.
         logger.error(f"TOKEN_EXCHANGE_ERROR: {e.__class__.__name__}")
         return {
             "statusCode": 500,
@@ -614,13 +612,11 @@ def handle_token_refresh(body: dict) -> dict:
         }
 
     except ValueError as e:
-        # Privacy (#641, audit umbrella #637): class name only in body.
         return {
             "statusCode": 401,
-            "body": json.dumps({"error": f"ValueError: {e.__class__.__name__}"}),
+            "body": json.dumps({"error": str(e)}),
         }
     except Exception as e:
-        # Privacy (#641 adjacent): class name only in log.
         logger.error(f"TOKEN_REFRESH_ERROR: {e.__class__.__name__}")
         return {
             "statusCode": 500,
@@ -657,7 +653,7 @@ def handle_validate_token(headers: dict) -> dict:
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({
                 "error": "LinkedIn API error",
-                "message": error_class,
+                "message": str(e),
             }),
         }
 

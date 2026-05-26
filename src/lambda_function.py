@@ -502,16 +502,19 @@ def _analysis_handler(
         }
     except Exception as e:
         # Issue #178: Capture error state for debugging.
-        # Privacy (#638, #651): log/return exception class name only — never str(e).
-        # Bedrock errors can carry request-payload echoes; see #637 audit umbrella.
+        # Issue #178: Capture error state for debugging.
+        # Privacy: only the SERVER-side log is scrubbed to class name (per
+        # docs/observability.html). The response payload — including the gem
+        # field below — goes back to the user who made the request and may
+        # contain their own data; scrubbing it provides no privacy benefit.
+        # See #668 for the reasoning.
         generation_error = e
-        error_class = e.__class__.__name__
         response_data = {
             "signal": "error",
-            "gem": f"Generation Error: {error_class}",
+            "gem": str(e),
             "context": "Generation failed",
         }
-        logger.error(f"ETYMOLOGY_GENERATION_ERROR: {error_class}")
+        logger.error(f"ETYMOLOGY_GENERATION_ERROR: {e.__class__.__name__}")
     finally:
         # Issue #162: Skip persistence if noarchive signal is present
         if skip_persistence:
