@@ -25,6 +25,7 @@ Quick reference for the orchestrator (Marty) on how to run tools, commands, agen
 | 10903 | [Lambda Configuration Change](10903-runbook-lambda-config-change.md) | Any `update-function-configuration` call | Every config change | N/A (manual CLI) |
 | 10904 | [Admin Dashboard](10904-runbook-admin-dashboard.md) | Access business metrics dashboard | As needed | N/A (browser) |
 | 10905 | [Extension Store Publishing](10905-runbook-extension-store-publish.md) | Chrome/Firefox extension version release | Each release | N/A (manual upload) |
+| 10906 | [CWS / AMO Image Padding](10906-runbook-cws-image-pad.md) | Producing store-listing screenshots from a source image | Each new image | N/A (Pillow) |
 
 ## Model Selection Guide
 
