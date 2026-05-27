@@ -459,10 +459,17 @@ Reports use flat naming: `docs/reports/done/{1}{IssueID}-{type}.md` where `{1}` 
 | `tools/audit_schedule_check.py` | **Utility** | 🟢 **Stable** | - | Check audit schedule adherence. |
 | `tools/check_artifact_freshness.py` | **Utility** | 🟢 **Stable** | - | Verify build artifacts are up-to-date. |
 | `tools/create_web_icons.py` | **Utility** | 🟢 **Stable** | - | Web icon generator for landing page. |
-| `tools/merge_pr.py` | **Utility** | 🟢 **Stable** | - | Atomic PR merge (merge + worktree cleanup + branch delete). |
+| `tools/cws_image_pad.py` | **Utility** | 🟢 **Stable** | #635 | Pad a screenshot to a store-listing canvas (default CWS 1280x800) with Aletheia brand blue. Runbook: 10906. |
 | `tools/print/print_closed_issues.py` | **Utility** | 🟢 **Stable** | - | GitHub closed issues fetcher/printer (saves to docs/6001-*.md). |
 | `tools/test_lambda.py` | **Utility** | 🟢 **Stable** | - | Lambda local test runner with mock events. |
 | `tools/verify_audits.py` | **Utility** | 🟢 **Stable** | - | Verify audit procedures are complete and valid. |
+
+### Marketing Assets
+| File | Role | Status | Linked Issue | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `screenshots/cws/cws-image-1-epocha.png` | **Asset** | 🟢 **Stable** | #635 | CWS slot 1: WSJ "Epocha" demo screenshot, 1280x800, padded with Aletheia brand blue (#3B82F6). Produced by `tools/cws_image_pad.py`. |
+| `screenshots/cws/` | **Dir** | 🟢 **Stable** | #635 | Chrome Web Store screenshot assets (1280x800 or 640x400). |
+| `screenshots/amo/` | **Dir** | ⚪ **Placeholder** | #559 | Firefox AMO screenshot assets (sized per AMO spec). |
 
 ### Testing & Verification
 
