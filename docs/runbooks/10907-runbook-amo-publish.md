@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.3
-> **Last updated:** 2026-05-29 12:41:37 AM Central
+> **Version:** 1.0.4
+> **Last updated:** 2026-05-29 12:57:37 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -270,9 +270,7 @@ Confirm it's this, **not** the stale `https://martymcenroe.github.io/Aletheia/` 
 
 ### 10b. Data collection disclosure
 
-Firefox 140+ surfaces data-collection consent from the manifest's `data_collection_permissions`. Aletheia declares:
-
-The manifest declares `data_collection_permissions.required: ["authenticationInfo", "websiteContent"]` and `optional: []`. Each required value maps to one AMO disclosure:
+Firefox 140+ surfaces data-collection consent from the manifest's `data_collection_permissions`. Aletheia declares `required: ["authenticationInfo", "websiteContent"]` and `optional: []`. Each required value maps to one AMO disclosure:
 
 | `required` array value | AMO disclosure |
 |---|---|
@@ -444,6 +442,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.4 | 2026-05-29 12:57:37 AM Central | Patch: removed a redundant lead-in in §10b — a dangling "Aletheia declares:" the v1.0.3 table rewrite left in front of the new sentence; merged the two into one. Found by the §0 `Audit 10907` self-audit (Closes #689). |
 | 1.0.3 | 2026-05-29 12:41:37 AM Central | Patch: applied the §0 `Audit 10907` findings. §17c no longer passes the API secret on the command line — `web-ext` reads `WEB_EXT_API_KEY`/`WEB_EXT_API_SECRET` from the environment, keeping the secret out of argv per §17b (Closes #686). §15a now refreshes the deployment-state Current published version, the update trigger includes "on each publish," and §1 Path B / §3a.1 reference the deployment-state block as the single source so the live/pending version is not duplicated three ways (Closes #687). Cosmetics: §10b shows the single `data_collection_permissions.required` array, §16 notes `Closes #N` belongs in the PR body, §4b clarifies the 10-root-file count. |
 | 1.0.2 | 2026-05-29 12:18:55 AM Central | Patch: corrected timestamps that were UTC mislabeled as Central — the v1.0.0/v1.0.1 dates and the header were produced with `TZ='America/Chicago' date`, which Git Bash returns as UTC. Re-derived to true Central (CDT, UTC-5) with plain `date` (Closes #684). |
 | 1.0.1 | 2026-05-28 08:05:10 PM Central | Patch: corrected the deployment-state, §1 Path B, and §3a.1 to state the live AMO version is `1.1.1` (1.1.2 was release-noted but never published — it is the pending upload) (Closes #682); replaced the `rm -f <glob>` artifact-clean step in §4a with a list → inspect → delete-by-name procedure (Closes #681). |
