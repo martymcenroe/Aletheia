@@ -1,7 +1,7 @@
 # 10905 — Chrome Web Store Publishing (Aletheia)
 
-> **Version:** 1.0.0
-> **Last updated:** 2026-05-28 11:49:42 PM Central
+> **Version:** 1.0.1
+> **Last updated:** 2026-05-29 01:05:10 AM Central
 > **Applies to:** Aletheia Chrome extension, every submission to the Chrome Web Store
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -18,7 +18,7 @@ Durable identifiers for the live Aletheia Chrome listing. Agent commands below (
 | Install URL | `https://chromewebstore.google.com/detail/aletheia/pfkfdlcdbajamklbneflfbkmnceooijm` |
 | Dashboard listing | `https://chrome.google.com/webstore/devconsole` → Items → Aletheia |
 | Publisher | ThriveTech.ai (`cto@thrivetech.ai`) |
-| Current published version | `1.1.2` (submitted 2026-03-10) |
+| Current published version | `1.1.2` (live; updated 2026-05-25) |
 | Stable-ID key | `manifest.json` → `key` field pins the dev-load ID to the published ID — not a secret |
 | Submission tracking | per-release issue (see §16); this runbook tracked by [#678](https://github.com/martymcenroe/Aletheia/issues/678) |
 
@@ -120,19 +120,23 @@ If any §3a item is unchecked, the agent fixes what it can (write missing releas
 
 ```bash
 cd /c/Users/mcwiz/Projects/Aletheia
-rm -f dist/aletheia-chrome-v*.zip   # clean stale artifacts so the operator can't upload an old one
+# Clear stale artifacts safely — never glob-delete. List first, inspect, then delete by name:
+ls -1 dist/aletheia-chrome-*.zip 2>/dev/null || echo "(none present)"
+#   If an older-version zip is listed, delete that file BY NAME (e.g. rm dist/aletheia-chrome-v1.1.1.zip).
+#   If the list shows anything you do not recognize, STOP and investigate before deleting.
 poetry run python tools/build_release.py
 ```
 
 `tools/build_release.py` verifies all four icons exist and are non-empty in both extension dirs, validates manifest parity (`name`, `version`, `description`, `icons`), runs `web-ext lint` on the Firefox source, reads the version from the Chrome manifest, and produces **both** `dist/aletheia-chrome-v{version}.zip` and `dist/aletheia-firefox-v{version}.zip`. For a CWS submission you use the **chrome** ZIP.
 
-> **Known hardening gap (principle 17):** `build_release.py` does NOT delete stale `dist/*.zip` before building (Clio's `build_release.py` does). Until that's fixed, the manual `rm -f` above is required. Follow-up: file an issue to add auto-clean to `build_release.py`.
+> **Known hardening gap (principle 17):** `build_release.py` does NOT delete stale `dist/*.zip` before building. Until that is fixed, do the list-inspect-delete-by-name step above. Follow-up: add stale-artifact cleanup to `build_release.py` that removes the prior Aletheia zips by exact name (never a glob).
 
 Fallback if `tools/build_release.py` is missing or broken:
 
 ```bash
 cd /c/Users/mcwiz/Projects/Aletheia
-rm -f dist/aletheia-chrome-v*.zip
+# List, inspect, then delete any stale chrome zip BY NAME (never a glob); STOP if the list is unexpected:
+ls -1 dist/aletheia-chrome-*.zip 2>/dev/null || echo "(none present)"
 cd extensions/chrome
 zip -r ../../dist/aletheia-chrome-vX.Y.Z.zip . -x '.*' -x '*/.*' -x 'node_modules/*'
 ```
@@ -533,4 +537,5 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.1 | 2026-05-29 01:05:10 AM Central | Patch: replaced the `rm -f <glob>` artifact-clean steps in §4a (main + fallback) with a list → inspect → delete-by-name procedure (Closes #681); corrected the deployment-state line to "live; updated 2026-05-25" (CWS is genuinely at 1.1.2). |
 | 1.0.0 | 2026-05-28 11:49:42 PM Central | Restructured to the AZ#1362 runbook standard, modeled on [Clio 30002](https://github.com/martymcenroe/Clio/blob/main/docs/runbooks/30002-chrome-web-store-publish.md). Renamed `10905-runbook-extension-store-publish.md` → `10905-runbook-cws-publish.md` and scoped Chrome-only; Firefox/AMO split to new [10907](./10907-runbook-amo-publish.md). Added: semver+timestamp header, deployment-state block (Extension ID `pfkfdlcdbajamklbneflfbkmnceooijm`, install URL, publisher), §0 invoke phrases, §1 reading-path matrix, §3a/§3b split pre-flight, agent-owned `build_release.py` build, dashboard-order §7–§13, publisher-level §10 Account Settings (shared with Clio). Lifted the audit-corrected Long Description, Privacy Policy URL (`aletheia.study/privacy.html`), and all seven permission justifications from `docs/10920-cws-listing-corrections-2026-05-27.md` and `docs/lld/done/10051-store-compliance.md` as inline canonical paste-blocks; flagged the "Open Source" vs PolyForm-Noncommercial wording. Closes #678 (with [10907](./10907-runbook-amo-publish.md)). |
