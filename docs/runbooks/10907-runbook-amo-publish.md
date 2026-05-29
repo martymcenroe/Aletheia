@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.0
-> **Last updated:** 2026-05-28 11:49:42 PM Central
+> **Version:** 1.0.1
+> **Last updated:** 2026-05-29 01:05:10 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -20,7 +20,7 @@ Durable identifiers for the live Aletheia Firefox listing. Agent commands below 
 | Developer Hub | `https://addons.mozilla.org/developers/` |
 | Manage Versions | `https://addons.mozilla.org/developers/addon/aletheia-ai/versions/` |
 | Account | `cto@thrivetech.ai` (forwards to `cto.thrivetech.ai@gmail.com`) |
-| Current published version | `1.1.2` (submitted 2026-03-10) |
+| Current published version | `1.1.1` (live on AMO; updated 2026-03-06). `1.1.2` is built + release-noted but never went live — it is the pending upload. |
 | Minimum Firefox | `140.0` desktop / `142.0` Android (`browser_specific_settings.gecko`) |
 | License (must be) | **PolyForm Noncommercial 1.0.0** — NOT MIT (recurring error; see §11) |
 
@@ -60,7 +60,7 @@ The agent's reply includes (a) a one-line confirmation, (b) findings/follow-ups,
 | Situation | Read sections |
 |-----------|--------------|
 | **Path A — First AMO submission** (add-on not yet in the Developer Hub) | §2 → §3 → §4 → §5 → §7 → §8 → §9 → §10 → §11 → §12 → §13 → §14 → §15 |
-| **Path B — Subsequent update** (Aletheia already in My Add-ons — the normal case; current version 1.1.2) | §2 → §3 → §4 → §6 → (review §7–§13 if listing copy changed) → §13 source check → §14 → §15 |
+| **Path B — Subsequent update** (Aletheia already in My Add-ons — the normal case; AMO is live at 1.1.1, the repo is at 1.1.2 = the pending upload) | §2 → §3 → §4 → §6 → (review §7–§13 if listing copy changed) → §13 source check → §14 → §15 |
 | **Path C — New machine or new AMO account** | Stop. Confirm the `cto@thrivetech.ai` AMO login (2FA) and, if automating, regenerate API credentials (§17). Then return as Path A or Path B. |
 
 §16 Version bump, §17 API/`web-ext` path, §18 Troubleshooting, §19 Related documents, §20 Change log are reference material.
@@ -79,7 +79,7 @@ Split by responsibility, items numbered for "§3a.N" / "§3b.N" reference.
 
 ### 3a. Agent does (in the repo, before producing the ZIP)
 
-1. `extensions/firefox/manifest.json` has the new `version`, monotonic from the last published version (currently `1.1.2`), and **matching `extensions/chrome/manifest.json`** (`build_release.py` enforces parity on `name`, `version`, `description`, `icons`).
+1. `extensions/firefox/manifest.json` has the new `version`, monotonic from the last published AMO version (currently `1.1.1` live; the repo is already at `1.1.2`, which is the pending upload), and **matching `extensions/chrome/manifest.json`** (`build_release.py` enforces parity on `name`, `version`, `description`, `icons`).
 2. Firefox `permissions` is exactly `activeTab`, `tabs`, `scripting`, `contextMenus`, `storage` — **five, not seven**. Firefox does NOT request `identity` (it uses a tabs-based OAuth flow, not `chrome.identity`) or `notifications`. `host_permissions` is exactly `["https://api.aletheia.study/*"]`. Every permission has a §12 paste-block.
 3. `browser_specific_settings.gecko` is intact: `id` = `extension@aletheia.study`, `strict_min_version` = `140.0`, `gecko_android.strict_min_version` = `142.0`. The `data_collection_permissions` block declares `required: ["authenticationInfo", "websiteContent"]`, `optional: []` — this must match the §10 data-collection disclosure.
 4. No live debug-tier console calls in `extensions/firefox/*.js` (same banned/allowed rule as the Chrome runbook §3a.3). No hardcoded test URLs or dev flags; all API traffic goes to `https://api.aletheia.study/*`.
@@ -106,13 +106,16 @@ Split by responsibility, items numbered for "§3a.N" / "§3b.N" reference.
 
 ```bash
 cd /c/Users/mcwiz/Projects/Aletheia
-rm -f dist/aletheia-firefox-v*.zip   # clean stale artifacts
+# Clear stale artifacts safely — never glob-delete. List first, inspect, then delete by name:
+ls -1 dist/aletheia-firefox-*.zip 2>/dev/null || echo "(none present)"
+#   If an older-version zip is listed, delete that file BY NAME (e.g. rm dist/aletheia-firefox-v1.1.1.zip).
+#   If the list shows anything you do not recognize, STOP and investigate before deleting.
 poetry run python tools/build_release.py
 ```
 
 Produces `dist/aletheia-firefox-v{version}.zip` (and the Chrome ZIP). `build_release.py` runs `web-ext lint` on the Firefox source as Step 3.
 
-> **Known hardening gap (principle 17):** `build_release.py` does not auto-clean stale `dist/*.zip`. The manual `rm -f` above is required until that's fixed (file a follow-up issue — same gap noted in [10905](./10905-runbook-cws-publish.md) §4a).
+> **Known hardening gap (principle 17):** `build_release.py` does not auto-clean stale `dist/*.zip`. Do the list-inspect-delete-by-name step above until that is fixed (same gap noted in [10905](./10905-runbook-cws-publish.md) §4a; follow-up: have the script remove prior Aletheia zips by exact name, never a glob).
 
 Fallback if the build tool is broken:
 
@@ -440,4 +443,5 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.1 | 2026-05-29 01:05:10 AM Central | Patch: corrected the deployment-state, §1 Path B, and §3a.1 to state the live AMO version is `1.1.1` (1.1.2 was release-noted but never published — it is the pending upload) (Closes #682); replaced the `rm -f <glob>` artifact-clean step in §4a with a list → inspect → delete-by-name procedure (Closes #681). |
 | 1.0.0 | 2026-05-28 11:49:42 PM Central | New runbook, built to the AZ#1362 standard, split out of `10905-runbook-extension-store-publish.md` (which became the Chrome-only [10905](./10905-runbook-cws-publish.md)). Firefox-AMO-specific coverage the Chrome runbook lacks: §10b manifest `data_collection_permissions` disclosure (authenticationInfo + websiteContent), §11 PolyForm-Noncommercial custom-license trap (was wrongly MIT), §12 five-permission set (no `identity`/`notifications`; tabs-based OAuth), §13 source-code-submission question, §17 AMO API-key + `web-ext sign` path with secret-handling discipline. Lifted the audit-corrected Description, Privacy Policy URL, and permission justifications from `docs/10920-cws-listing-corrections-2026-05-27.md` and `docs/lld/done/10051-store-compliance.md`. Closes #678 (with [10905](./10905-runbook-cws-publish.md)). |
