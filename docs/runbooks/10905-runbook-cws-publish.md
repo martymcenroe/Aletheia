@@ -1,7 +1,7 @@
 # 10905 — Chrome Web Store Publishing (Aletheia)
 
-> **Version:** 1.0.1
-> **Last updated:** 2026-05-29 01:05:10 AM Central
+> **Version:** 1.0.2
+> **Last updated:** 2026-05-29 12:18:55 AM Central
 > **Applies to:** Aletheia Chrome extension, every submission to the Chrome Web Store
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -537,5 +537,6 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
-| 1.0.1 | 2026-05-29 01:05:10 AM Central | Patch: replaced the `rm -f <glob>` artifact-clean steps in §4a (main + fallback) with a list → inspect → delete-by-name procedure (Closes #681); corrected the deployment-state line to "live; updated 2026-05-25" (CWS is genuinely at 1.1.2). |
-| 1.0.0 | 2026-05-28 11:49:42 PM Central | Restructured to the AZ#1362 runbook standard, modeled on [Clio 30002](https://github.com/martymcenroe/Clio/blob/main/docs/runbooks/30002-chrome-web-store-publish.md). Renamed `10905-runbook-extension-store-publish.md` → `10905-runbook-cws-publish.md` and scoped Chrome-only; Firefox/AMO split to new [10907](./10907-runbook-amo-publish.md). Added: semver+timestamp header, deployment-state block (Extension ID `pfkfdlcdbajamklbneflfbkmnceooijm`, install URL, publisher), §0 invoke phrases, §1 reading-path matrix, §3a/§3b split pre-flight, agent-owned `build_release.py` build, dashboard-order §7–§13, publisher-level §10 Account Settings (shared with Clio). Lifted the audit-corrected Long Description, Privacy Policy URL (`aletheia.study/privacy.html`), and all seven permission justifications from `docs/10920-cws-listing-corrections-2026-05-27.md` and `docs/lld/done/10051-store-compliance.md` as inline canonical paste-blocks; flagged the "Open Source" vs PolyForm-Noncommercial wording. Closes #678 (with [10907](./10907-runbook-amo-publish.md)). |
+| 1.0.2 | 2026-05-29 12:18:55 AM Central | Patch: corrected timestamps that were UTC mislabeled as Central — the v1.0.0/v1.0.1 dates and the header were produced with `TZ='America/Chicago' date`, which Git Bash returns as UTC. Re-derived to true Central (CDT, UTC-5) with plain `date` (Closes #684). |
+| 1.0.1 | 2026-05-28 08:05:10 PM Central | Patch: replaced the `rm -f <glob>` artifact-clean steps in §4a (main + fallback) with a list → inspect → delete-by-name procedure (Closes #681); corrected the deployment-state line to "live; updated 2026-05-25" (CWS is genuinely at 1.1.2). |
+| 1.0.0 | 2026-05-28 06:49:42 PM Central | Restructured to the AZ#1362 runbook standard, modeled on [Clio 30002](https://github.com/martymcenroe/Clio/blob/main/docs/runbooks/30002-chrome-web-store-publish.md). Renamed `10905-runbook-extension-store-publish.md` → `10905-runbook-cws-publish.md` and scoped Chrome-only; Firefox/AMO split to new [10907](./10907-runbook-amo-publish.md). Added: semver+timestamp header, deployment-state block (Extension ID `pfkfdlcdbajamklbneflfbkmnceooijm`, install URL, publisher), §0 invoke phrases, §1 reading-path matrix, §3a/§3b split pre-flight, agent-owned `build_release.py` build, dashboard-order §7–§13, publisher-level §10 Account Settings (shared with Clio). Lifted the audit-corrected Long Description, Privacy Policy URL (`aletheia.study/privacy.html`), and all seven permission justifications from `docs/10920-cws-listing-corrections-2026-05-27.md` and `docs/lld/done/10051-store-compliance.md` as inline canonical paste-blocks; flagged the "Open Source" vs PolyForm-Noncommercial wording. Closes #678 (with [10907](./10907-runbook-amo-publish.md)). |
