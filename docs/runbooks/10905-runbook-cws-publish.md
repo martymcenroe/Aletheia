@@ -1,7 +1,7 @@
 # 10905 — Chrome Web Store Publishing (Aletheia)
 
-> **Version:** 1.0.2
-> **Last updated:** 2026-05-29 12:18:55 AM Central
+> **Version:** 1.0.3
+> **Last updated:** 2026-05-29 11:26:54 AM Central
 > **Applies to:** Aletheia Chrome extension, every submission to the Chrome Web Store
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -88,23 +88,22 @@ Split by responsibility. **Agent items** happen in the repo. **Operator items** 
 
 1. `extensions/chrome/manifest.json` has the new `version`, monotonically increasing from the last published version (currently `1.1.2`). For Path A first submission, no prior published version exists; auto-pass. The Chrome manifest version is the build's source of truth (`tools/build_release.py` Step 4).
 2. `permissions` is exactly `activeTab`, `tabs`, `scripting`, `contextMenus`, `storage`, `identity`, `notifications`. `host_permissions` is exactly `["https://api.aletheia.study/*"]`. **Every permission has a §12 paste-block.** If §12 has fewer entries than the manifest, that's the finding — the 2026-05-26 privacy audit found the dashboard was missing justifications for `tabs`, `storage`, `identity`, and `notifications` (see #670–#672 / `docs/10920-cws-listing-corrections-2026-05-27.md`). Adding a new permission to the manifest requires adding a §12 paste-block in the same change.
-3. No live debug-tier console calls in `extensions/chrome/*.js`. **Banned:** live `console.log` / `console.debug` / `console.info` / `console.warn`. **Allowed:** `console.error` inside a `try/catch` that also surfaces the error to the user via the popup/overlay UI; commented-out calls; explanatory comments.
-4. No hardcoded test URLs, dev flags, or scratch code. **All API traffic goes through `https://api.aletheia.study/*` — never a raw Lambda Function URL** (this was a v1.1.2 security fix).
-5. All tests pass: `poetry run pytest` (backend) and `npx playwright test` (extension e2e).
-6. Lint clean: `npm run lint` (or `npx eslint .`).
-7. Version bump merged to `main` — build from `main`, never a feature branch.
-8. Release notes file `docs/releases/chrome-vX.Y.Z.md` written before the §4 build — see §18.
-9. Listing screenshots exist at `screenshots/cws/cws-image-N-<slug>.png`, format **24-bit PNG (no alpha)**, dimensions **1280×800** (or 640×400; 1280×800 is the default). Mechanical check; agent reports file list, sizes, dimensions, and color mode (must be `RGB`, never `RGBA`). **Current state:** only `screenshots/cws/cws-image-1-epocha.png` exists; the live listing carries 4 identical placeholder screenshots. **[#635](https://github.com/martymcenroe/Aletheia/issues/635) tracks producing 4 distinct images** — produce them with [`10906-runbook-cws-image-pad.md`](./10906-runbook-cws-image-pad.md) before the next listing-copy submission.
-10. Agent reads each `screenshots/cws/*.png` and pre-describes what's visible (browser chrome, overlay state, page content) so the operator's §3b.3 review is "approve the flag-list," not "review from scratch."
-11. Agent reports the current `main` HEAD commit SHA and this runbook's `> **Version:**` line so the operator can sanity-check a printed copy.
+3. No hardcoded test URLs, dev flags, or scratch code. **All API traffic goes through `https://api.aletheia.study/*` — never a raw Lambda Function URL** (this was a v1.1.2 security fix).
+4. All tests pass: `poetry run pytest` (backend) and `npx playwright test` (extension e2e).
+5. Lint clean: `npm run lint` (or `npx eslint .`).
+6. Version bump merged to `main` — build from `main`, never a feature branch.
+7. Release notes file `docs/releases/chrome-vX.Y.Z.md` written before the §4 build — see §18.
+8. Listing screenshots exist at `screenshots/cws/cws-image-N-<slug>.png`, format **24-bit PNG (no alpha)**, dimensions **1280×800** (or 640×400; 1280×800 is the default). Mechanical check; agent reports file list, sizes, dimensions, and color mode (must be `RGB`, never `RGBA`). **Current state:** only `screenshots/cws/cws-image-1-epocha.png` exists; the live listing carries 4 identical placeholder screenshots. **[#635](https://github.com/martymcenroe/Aletheia/issues/635) tracks producing 4 distinct images** — produce them with [`10906-runbook-cws-image-pad.md`](./10906-runbook-cws-image-pad.md) before the next listing-copy submission.
+9. Agent reads each `screenshots/cws/*.png` and pre-describes what's visible (browser chrome, overlay state, page content) so the operator's §3b.3 review is "approve the flag-list," not "review from scratch."
+10. Agent reports the current `main` HEAD commit SHA and this runbook's `> **Version:**` line so the operator can sanity-check a printed copy.
 
 ### 3b. Operator does (on the publishing machine)
 
 1. §2 Account check passes — Publisher chip `ThriveTech.ai`, avatar `cto@thrivetech.ai`.
 2. The version isn't already in the dashboard. For Path B, check the Package tab's version history. For Path A, Aletheia isn't in the Items list yet; auto-pass.
-3. Approve the agent's §3a.10 screenshot pre-description, or flag personal info / embarrassing content the agent missed.
+3. Approve the agent's §3a.9 screenshot pre-description, or flag personal info / embarrassing content the agent missed.
 4. Review §7–§12 paste-blocks for changes since last submission — these are the canonical source; no second document to open. **The dashboard may still carry pre-audit text** (e.g. the false "cannot see your browsing history" claim, the stale `github.io` privacy URL, missing permission justifications). Where the dashboard disagrees with §7/§11/§12, overwrite the dashboard to match this runbook.
-5. Operator's printed-copy version line matches the version the agent reported in §3a.11.
+5. Operator's printed-copy version line matches the version the agent reported in §3a.10.
 
 If any §3a item is unchecked, the agent fixes what it can (write missing release notes, regenerate screenshots, etc.) and surfaces the rest before producing the ZIP. If any §3b item is unchecked, the operator pauses before clicking Upload.
 
@@ -255,7 +254,7 @@ cto@thrivetech.ai
 
 ## 8. Store listing — graphic assets
 
-The **Graphic assets** section of the Store listing tab. Upload in dashboard order; the agent confirmed existence + dimensions + format in §3a.9.
+The **Graphic assets** section of the Store listing tab. Upload in dashboard order; the agent confirmed existence + dimensions + format in §3a.8.
 
 ### 8a. Store icon (required)
 
@@ -537,6 +536,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.3 | 2026-05-29 11:26:54 AM Central | Patch: deleted §3a.3 (no live debug-tier console calls in `extensions/chrome/*.js`). The rule was authored in the 2026-05-28 v1.0.0 restructure with no upstream source — not in `docs/privacy.html`, not in any LLD, not in `docs/safety.html`/`docs/threat-model.html`. Local browser-console output never leaves the user's machine, so the rule had no privacy-policy grounding. The remaining §3a items 4–11 renumber to 3–10; §3b.3 cross-reference (§3a.10 → §3a.9), §3b.5 cross-reference (§3a.11 → §3a.10), and §8 graphic-assets cross-reference (§3a.9 → §3a.8) update accordingly (Closes #691). |
 | 1.0.2 | 2026-05-29 12:18:55 AM Central | Patch: corrected timestamps that were UTC mislabeled as Central — the v1.0.0/v1.0.1 dates and the header were produced with `TZ='America/Chicago' date`, which Git Bash returns as UTC. Re-derived to true Central (CDT, UTC-5) with plain `date` (Closes #684). |
 | 1.0.1 | 2026-05-28 08:05:10 PM Central | Patch: replaced the `rm -f <glob>` artifact-clean steps in §4a (main + fallback) with a list → inspect → delete-by-name procedure (Closes #681); corrected the deployment-state line to "live; updated 2026-05-25" (CWS is genuinely at 1.1.2). |
 | 1.0.0 | 2026-05-28 06:49:42 PM Central | Restructured to the AZ#1362 runbook standard, modeled on [Clio 30002](https://github.com/martymcenroe/Clio/blob/main/docs/runbooks/30002-chrome-web-store-publish.md). Renamed `10905-runbook-extension-store-publish.md` → `10905-runbook-cws-publish.md` and scoped Chrome-only; Firefox/AMO split to new [10907](./10907-runbook-amo-publish.md). Added: semver+timestamp header, deployment-state block (Extension ID `pfkfdlcdbajamklbneflfbkmnceooijm`, install URL, publisher), §0 invoke phrases, §1 reading-path matrix, §3a/§3b split pre-flight, agent-owned `build_release.py` build, dashboard-order §7–§13, publisher-level §10 Account Settings (shared with Clio). Lifted the audit-corrected Long Description, Privacy Policy URL (`aletheia.study/privacy.html`), and all seven permission justifications from `docs/10920-cws-listing-corrections-2026-05-27.md` and `docs/lld/done/10051-store-compliance.md` as inline canonical paste-blocks; flagged the "Open Source" vs PolyForm-Noncommercial wording. Closes #678 (with [10907](./10907-runbook-amo-publish.md)). |
