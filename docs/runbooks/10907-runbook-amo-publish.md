@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.4
-> **Last updated:** 2026-05-29 12:57:37 AM Central
+> **Version:** 1.0.5
+> **Last updated:** 2026-05-29 11:26:54 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -82,7 +82,7 @@ Split by responsibility, items numbered for "§3a.N" / "§3b.N" reference.
 1. `extensions/firefox/manifest.json` has the new `version`, monotonic from the last published AMO version (see the deployment-state block for the current live and pending versions), and **matching `extensions/chrome/manifest.json`** (`build_release.py` enforces parity on `name`, `version`, `description`, `icons`).
 2. Firefox `permissions` is exactly `activeTab`, `tabs`, `scripting`, `contextMenus`, `storage` — **five, not seven**. Firefox does NOT request `identity` (it uses a tabs-based OAuth flow, not `chrome.identity`) or `notifications`. `host_permissions` is exactly `["https://api.aletheia.study/*"]`. Every permission has a §12 paste-block.
 3. `browser_specific_settings.gecko` is intact: `id` = `extension@aletheia.study`, `strict_min_version` = `140.0`, `gecko_android.strict_min_version` = `142.0`. The `data_collection_permissions` block declares `required: ["authenticationInfo", "websiteContent"]`, `optional: []` — this must match the §10 data-collection disclosure.
-4. No live debug-tier console calls in `extensions/firefox/*.js` (same banned/allowed rule as the Chrome runbook §3a.3). No hardcoded test URLs or dev flags; all API traffic goes to `https://api.aletheia.study/*`.
+4. No hardcoded test URLs or dev flags; all API traffic goes to `https://api.aletheia.study/*`.
 5. All tests pass: `poetry run pytest` + `npx playwright test`. `web-ext lint` is clean — `build_release.py` Step 3 runs it automatically and fails on errors (warnings are reported but non-blocking).
 6. Release notes file `docs/releases/firefox-vX.Y.Z.md` written before the §4 build — see §18.
 7. Listing screenshots exist at `screenshots/amo/amo-image-N-<slug>.png`. **Current state: none exist.** AMO accepts up to 10 screenshots with no strict dimension requirement, but use high-resolution images; produce them with [`10906-runbook-cws-image-pad.md`](./10906-runbook-cws-image-pad.md) (it has an AMO output convention and `--width/--height` flags). The CWS 1280×800 images can be reused.
@@ -442,6 +442,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.5 | 2026-05-29 11:26:54 AM Central | Patch: removed the "no live debug-tier console calls" clause from §3a.4. The §3a.4 item now reads only the kept "no hardcoded test URLs or dev flags" portion. The console-call ban was authored in this runbook's 2026-05-28 v1.0.0 split with no upstream source — not in `docs/privacy.html`, not in any LLD, not in `docs/safety.html`/`docs/threat-model.html`. Local browser-console output never leaves the user's machine, so the rule had no privacy-policy grounding. Removing it eliminates the framing that allowed an agent in a later session to mis-label two existing `service-worker.js` `console.log` calls as "privacy-relevant" and present three "disposition" options to the operator. The cross-reference to the Chrome runbook's deleted §3a.3 went with the deleted clause (Closes #691). |
 | 1.0.4 | 2026-05-29 12:57:37 AM Central | Patch: removed a redundant lead-in in §10b — a dangling "Aletheia declares:" the v1.0.3 table rewrite left in front of the new sentence; merged the two into one. Found by the §0 `Audit 10907` self-audit (Closes #689). |
 | 1.0.3 | 2026-05-29 12:41:37 AM Central | Patch: applied the §0 `Audit 10907` findings. §17c no longer passes the API secret on the command line — `web-ext` reads `WEB_EXT_API_KEY`/`WEB_EXT_API_SECRET` from the environment, keeping the secret out of argv per §17b (Closes #686). §15a now refreshes the deployment-state Current published version, the update trigger includes "on each publish," and §1 Path B / §3a.1 reference the deployment-state block as the single source so the live/pending version is not duplicated three ways (Closes #687). Cosmetics: §10b shows the single `data_collection_permissions.required` array, §16 notes `Closes #N` belongs in the PR body, §4b clarifies the 10-root-file count. |
 | 1.0.2 | 2026-05-29 12:18:55 AM Central | Patch: corrected timestamps that were UTC mislabeled as Central — the v1.0.0/v1.0.1 dates and the header were produced with `TZ='America/Chicago' date`, which Git Bash returns as UTC. Re-derived to true Central (CDT, UTC-5) with plain `date` (Closes #684). |
