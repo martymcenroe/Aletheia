@@ -104,5 +104,5 @@ After running the tool:
 
 - Tool source: `tools/cws_image_pad.py`
 - Issue origin: #635 (CWS screenshot replacement)
-- Runbook: `10905-runbook-extension-store-publish.md` (the full publishing flow this slots into)
+- Runbooks: `10905-runbook-cws-publish.md` (Chrome) and `10907-runbook-amo-publish.md` (Firefox) — the publishing flows this slots into
 - Memory: `project_cws_screenshot_padding_procedure.md`
