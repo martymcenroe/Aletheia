@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.2
-> **Last updated:** 2026-05-29 12:18:55 AM Central
+> **Version:** 1.0.3
+> **Last updated:** 2026-05-29 12:41:37 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -24,7 +24,7 @@ Durable identifiers for the live Aletheia Firefox listing. Agent commands below 
 | Minimum Firefox | `140.0` desktop / `142.0` Android (`browser_specific_settings.gecko`) |
 | License (must be) | **PolyForm Noncommercial 1.0.0** — NOT MIT (recurring error; see §11) |
 
-Update this table on rebrand, ID change, or slug change. **Do not change the slug** once published — it's baked into the listing URL.
+Update this table on rebrand, ID change, slug change, **and on each publish** — §15a refreshes the Current published version after AMO approves. **Do not change the slug** once published — it's baked into the listing URL.
 
 ## Throughout this runbook
 
@@ -60,7 +60,7 @@ The agent's reply includes (a) a one-line confirmation, (b) findings/follow-ups,
 | Situation | Read sections |
 |-----------|--------------|
 | **Path A — First AMO submission** (add-on not yet in the Developer Hub) | §2 → §3 → §4 → §5 → §7 → §8 → §9 → §10 → §11 → §12 → §13 → §14 → §15 |
-| **Path B — Subsequent update** (Aletheia already in My Add-ons — the normal case; AMO is live at 1.1.1, the repo is at 1.1.2 = the pending upload) | §2 → §3 → §4 → §6 → (review §7–§13 if listing copy changed) → §13 source check → §14 → §15 |
+| **Path B — Subsequent update** (Aletheia already in My Add-ons — the normal case; for the live vs pending version, see the deployment-state block) | §2 → §3 → §4 → §6 → (review §7–§13 if listing copy changed) → §13 source check → §14 → §15 |
 | **Path C — New machine or new AMO account** | Stop. Confirm the `cto@thrivetech.ai` AMO login (2FA) and, if automating, regenerate API credentials (§17). Then return as Path A or Path B. |
 
 §16 Version bump, §17 API/`web-ext` path, §18 Troubleshooting, §19 Related documents, §20 Change log are reference material.
@@ -79,7 +79,7 @@ Split by responsibility, items numbered for "§3a.N" / "§3b.N" reference.
 
 ### 3a. Agent does (in the repo, before producing the ZIP)
 
-1. `extensions/firefox/manifest.json` has the new `version`, monotonic from the last published AMO version (currently `1.1.1` live; the repo is already at `1.1.2`, which is the pending upload), and **matching `extensions/chrome/manifest.json`** (`build_release.py` enforces parity on `name`, `version`, `description`, `icons`).
+1. `extensions/firefox/manifest.json` has the new `version`, monotonic from the last published AMO version (see the deployment-state block for the current live and pending versions), and **matching `extensions/chrome/manifest.json`** (`build_release.py` enforces parity on `name`, `version`, `description`, `icons`).
 2. Firefox `permissions` is exactly `activeTab`, `tabs`, `scripting`, `contextMenus`, `storage` — **five, not seven**. Firefox does NOT request `identity` (it uses a tabs-based OAuth flow, not `chrome.identity`) or `notifications`. `host_permissions` is exactly `["https://api.aletheia.study/*"]`. Every permission has a §12 paste-block.
 3. `browser_specific_settings.gecko` is intact: `id` = `extension@aletheia.study`, `strict_min_version` = `140.0`, `gecko_android.strict_min_version` = `142.0`. The `data_collection_permissions` block declares `required: ["authenticationInfo", "websiteContent"]`, `optional: []` — this must match the §10 data-collection disclosure.
 4. No live debug-tier console calls in `extensions/firefox/*.js` (same banned/allowed rule as the Chrome runbook §3a.3). No hardcoded test URLs or dev flags; all API traffic goes to `https://api.aletheia.study/*`.
@@ -136,7 +136,7 @@ Confirm:
 - Forward slashes in all paths.
 - `manifest.json` at the archive root, with `manifest_version: 3` and `browser_specific_settings.gecko.id` present.
 - `icons/` with four icons: 16, 32, 48, 128.
-- Expected source files at root: `service-worker.js`, `popup.html`, `popup.js`, `popup.css`, `overlay.js`, `content-check.js`, `content-safety.js`, `article-extractor.js`, `auth.js` (10 root files + 4 icons = 14 entries).
+- Expected files at root: `manifest.json` plus the 9 source files `service-worker.js`, `popup.html`, `popup.js`, `popup.css`, `overlay.js`, `content-check.js`, `content-safety.js`, `article-extractor.js`, `auth.js` (10 root files total + 4 icons = 14 entries).
 - No unexpected files.
 
 Sanity-check the version and gecko ID inside the ZIP:
@@ -272,11 +272,13 @@ Confirm it's this, **not** the stale `https://martymcenroe.github.io/Aletheia/` 
 
 Firefox 140+ surfaces data-collection consent from the manifest's `data_collection_permissions`. Aletheia declares:
 
-| Manifest key | AMO disclosure |
+The manifest declares `data_collection_permissions.required: ["authenticationInfo", "websiteContent"]` and `optional: []`. Each required value maps to one AMO disclosure:
+
+| `required` array value | AMO disclosure |
 |---|---|
-| `required: ["authenticationInfo", ...]` | **Authentication information** — the LinkedIn OAuth token. Stored locally, cleared on browser close. |
-| `required: [..., "websiteContent"]` | **Website content** — the selected text + surrounding context, on user-initiated analysis only. |
-| `optional: []` | None. |
+| `authenticationInfo` | **Authentication information** — the LinkedIn OAuth token. Stored locally, cleared on browser close. |
+| `websiteContent` | **Website content** — the selected text + surrounding context, on user-initiated analysis only. |
+| (`optional: []`) | No additional data types. |
 
 The AMO "Manage Data Collection" / data-disclosure form must match this exactly. No "cannot see browsing history" claims; no data type beyond authentication info + website content.
 
@@ -362,6 +364,7 @@ After AMO approves and emails the operator, the operator says `Run amo post-publ
 2. Tag the released commit: `git tag firefox-vX.Y.Z-published && git push origin firefox-vX.Y.Z-published`.
 3. Comment on the release issue with the approval date and the listing URL; close the issue.
 4. Update `docs/releases/firefox-vX.Y.Z.md` — fill `Submission date:` and add an `Approval date:` line.
+5. Update this runbook's deployment-state **Current published version** row to the just-approved version (e.g. `1.1.2` once it is live), so the live/pending pin does not go stale.
 
 ### 15b. Operator does (smoke test)
 
@@ -376,7 +379,7 @@ Do **not** delist. File a `launch-blocker` issue, reproduce in Firefox dev mode 
 
 ## 16. Version bump procedure
 
-Shared with the Chrome runbook — Aletheia ships both browsers from one version line. See [10905](./10905-runbook-cws-publish.md) §16. In short: bump **both** `extensions/chrome/manifest.json` and `extensions/firefox/manifest.json` to the same `X.Y.Z` (the Chrome manifest is `build_release.py`'s source of truth; parity is enforced), write both release-notes files, commit `chore: bump extension versions to X.Y.Z (close #N)`, merge to `main`, then §4 → §6.
+Shared with the Chrome runbook — Aletheia ships both browsers from one version line. See [10905](./10905-runbook-cws-publish.md) §16. In short: bump **both** `extensions/chrome/manifest.json` and `extensions/firefox/manifest.json` to the same `X.Y.Z` (the Chrome manifest is `build_release.py`'s source of truth; parity is enforced), write both release-notes files, commit `chore: bump extension versions to X.Y.Z (Closes #N)`, merge to `main`, then §4 → §6. Put `Closes #N` in the **PR body** too — pr-sentinel validates the body, not the commit message.
 
 ## 17. Optional: API-key / `web-ext` signing path
 
@@ -405,12 +408,10 @@ cd /c/Users/mcwiz/Projects/Aletheia
 npx web-ext sign \
   --channel listed \
   --source-dir extensions/firefox \
-  --artifacts-dir dist \
-  --api-key "$WEB_EXT_API_KEY" \
-  --api-secret "$WEB_EXT_API_SECRET"
+  --artifacts-dir dist
 ```
 
-`--channel listed` submits to AMO and queues the public-listing review (equivalent to §6 upload). `--channel unlisted` would instead return a self-distributed signed XPI — not what we publish. The agent confirms `$WEB_EXT_API_KEY`/`$WEB_EXT_API_SECRET` are present in the environment **without printing their values**, and refuses to run if they're unset rather than prompting for them inline.
+`web-ext` reads `WEB_EXT_API_KEY` and `WEB_EXT_API_SECRET` from the environment directly, so the secret is **never passed on the command line** — do NOT add `--api-key`/`--api-secret` flags, which would put it in argv (the leak §17b forbids). `--channel listed` submits to AMO and queues the public-listing review (equivalent to §6 upload); `--channel unlisted` would instead return a self-distributed signed XPI — not what we publish. The agent confirms `$WEB_EXT_API_KEY`/`$WEB_EXT_API_SECRET` are present in the environment **without printing their values**, and refuses to run if they're unset.
 
 ## 18. Troubleshooting
 
@@ -443,6 +444,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.3 | 2026-05-29 12:41:37 AM Central | Patch: applied the §0 `Audit 10907` findings. §17c no longer passes the API secret on the command line — `web-ext` reads `WEB_EXT_API_KEY`/`WEB_EXT_API_SECRET` from the environment, keeping the secret out of argv per §17b (Closes #686). §15a now refreshes the deployment-state Current published version, the update trigger includes "on each publish," and §1 Path B / §3a.1 reference the deployment-state block as the single source so the live/pending version is not duplicated three ways (Closes #687). Cosmetics: §10b shows the single `data_collection_permissions.required` array, §16 notes `Closes #N` belongs in the PR body, §4b clarifies the 10-root-file count. |
 | 1.0.2 | 2026-05-29 12:18:55 AM Central | Patch: corrected timestamps that were UTC mislabeled as Central — the v1.0.0/v1.0.1 dates and the header were produced with `TZ='America/Chicago' date`, which Git Bash returns as UTC. Re-derived to true Central (CDT, UTC-5) with plain `date` (Closes #684). |
 | 1.0.1 | 2026-05-28 08:05:10 PM Central | Patch: corrected the deployment-state, §1 Path B, and §3a.1 to state the live AMO version is `1.1.1` (1.1.2 was release-noted but never published — it is the pending upload) (Closes #682); replaced the `rm -f <glob>` artifact-clean step in §4a with a list → inspect → delete-by-name procedure (Closes #681). |
 | 1.0.0 | 2026-05-28 06:49:42 PM Central | New runbook, built to the AZ#1362 standard, split out of `10905-runbook-extension-store-publish.md` (which became the Chrome-only [10905](./10905-runbook-cws-publish.md)). Firefox-AMO-specific coverage the Chrome runbook lacks: §10b manifest `data_collection_permissions` disclosure (authenticationInfo + websiteContent), §11 PolyForm-Noncommercial custom-license trap (was wrongly MIT), §12 five-permission set (no `identity`/`notifications`; tabs-based OAuth), §13 source-code-submission question, §17 AMO API-key + `web-ext sign` path with secret-handling discipline. Lifted the audit-corrected Description, Privacy Policy URL, and permission justifications from `docs/10920-cws-listing-corrections-2026-05-27.md` and `docs/lld/done/10051-store-compliance.md`. Closes #678 (with [10905](./10905-runbook-cws-publish.md)). |
