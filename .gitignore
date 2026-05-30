@@ -148,3 +148,9 @@ GTM/
 # Session logs — internal-only; never publish (added 2026-05-22 after exposure discovery, see #616)
 docs/session-logs/
 docs/dom-dumps/
+
+# Agent-parked files (mv $file $file.parked-{timestamp})
+# CLAUDE.md "Destroying uncommitted state" principle: agent uses
+# mv-to-bak instead of rm to preserve recoverability. *.bak is
+# already in the Logs section above; *.parked-* added per AZ #1425.
+*.parked-*
