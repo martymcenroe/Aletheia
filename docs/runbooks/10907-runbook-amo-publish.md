@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.7
-> **Last updated:** 2026-05-30 9:15:03 AM Central
+> **Version:** 1.0.8
+> **Last updated:** 2026-05-30 9:50:00 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -93,7 +93,7 @@ Split by responsibility, items numbered for "§3a.N" / "§3b.N" reference.
 1. §2 Account check passes.
 2. The version isn't already uploaded — check Manage Versions history. (AMO refuses a duplicate version number.)
 3. Approve the agent's screenshot set, or flag privacy/embarrassing content.
-4. Review §7–§13 paste-blocks for changes — canonical source, no second document. **The live AMO listing may carry the old false "cannot see your browsing history" wording** (the 2026-05-26 audit flagged it on CWS; verify AMO too per `docs/10920`). Where the listing disagrees with §7/§10/§11/§12, overwrite it.
+4. Review §7–§13 paste-blocks for changes — canonical source, no second document. **The live AMO listing may carry the old false "cannot see your browsing history" wording** from earlier versions of the description — verify in private browsing and overwrite §7d Description if so. Where the listing disagrees with §7/§10/§11/§12, overwrite it.
 5. Operator's printed-copy version matches §3a.8.
 
 ## 4. Build & verify the ZIP (agent does this)
@@ -266,7 +266,7 @@ Leave as-is for a routine update. Tags aid discovery; not load-bearing.
 https://aletheia.study/privacy.html
 ```
 
-Confirm it's this, **not** the stale `https://martymcenroe.github.io/Aletheia/` (per `docs/10920-cws-listing-corrections-2026-05-27.md`). Verify in private browsing that the listing's policy link resolves and shows the current policy.
+Confirm it's this, **not** the stale `https://martymcenroe.github.io/Aletheia/`. Verify in private browsing that the listing's policy link resolves and shows the current policy.
 
 ### 10b. Data collection disclosure
 
@@ -424,7 +424,7 @@ npx web-ext sign \
 | `npx playwright test` hangs on Firefox | Windows sandbox crashes the renderer (Juggler `remoteTab is null`) | Workaround applied in `playwright.config.js` (`MOZ_DISABLE_CONTENT_SANDBOX=1`). If running standalone reproduction scripts, export that env var first. |
 | Gecko ID mismatch / "add-on ID changed" | `browser_specific_settings.gecko.id` edited | Restore `extension@aletheia.study` — changing it creates a *new* add-on, orphaning the listing |
 | `strict_min_version` rejected | Set below a feature's availability | Keep `140.0` desktop / `142.0` Android unless a feature requires higher |
-| Listing still shows "cannot see your browsing history" | Pre-audit text | Overwrite §7d Description; verify in private browsing (per `docs/10920`) |
+| Listing still shows "cannot see your browsing history" | Pre-audit text | Overwrite §7d Description; verify in private browsing |
 
 ## 19. Related documents
 
@@ -443,6 +443,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.8 | 2026-05-30 9:50:00 AM Central | Patch from `Audit 10907`: removed three references to `docs/10920-cws-listing-corrections-2026-05-27.md` (at §3b.4, §10a, §18). Canonical AMO listing text lives in §7d / §10a / §12; the references carried no information the runbook lacks and were scan-overhead. Where 10920 contributed operator-relevant guidance (the "live listing may still carry pre-audit wording" claim in §3b.4), that guidance is now inline (Closes #717). |
 | 1.0.7 | 2026-05-30 9:15:03 AM Central | Patch from `Audit 10907`: §3a.7 now states the `screenshots/amo/` directory does not exist (was "none exist" which read as "directory exists, no files"). §7c notes the byte count alongside the visible character count (129 / 131) so a naive `wc -c` reproducibility check does not surface a false discrepancy from the em-dash being 3 UTF-8 bytes (Closes #713). |
 | 1.0.6 | 2026-05-30 12:15:15 AM Central | Patch: documented the Windows sandbox Playwright hang in §18 Troubleshooting. The `MOZ_DISABLE_CONTENT_SANDBOX=1` workaround is now permanently applied in `playwright.config.js`. |
 | 1.0.5 | 2026-05-29 11:26:54 AM Central | Patch: removed the "no live debug-tier console calls" clause from §3a.4. The §3a.4 item now reads only the kept "no hardcoded test URLs or dev flags" portion. The console-call ban was authored in this runbook's 2026-05-28 v1.0.0 split with no upstream source — not in `docs/privacy.html`, not in any LLD, not in `docs/safety.html`/`docs/threat-model.html`. Local browser-console output never leaves the user's machine, so the rule had no privacy-policy grounding. Removing it eliminates the framing that allowed an agent in a later session to mis-label two existing `service-worker.js` `console.log` calls as "privacy-relevant" and present three "disposition" options to the operator. The cross-reference to the Chrome runbook's deleted §3a.3 went with the deleted clause (Closes #691). |
