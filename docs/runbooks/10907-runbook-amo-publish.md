@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.5
-> **Last updated:** 2026-05-29 11:26:54 AM Central
+> **Version:** 1.0.6
+> **Last updated:** 2026-05-30 12:15:15 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -421,6 +421,7 @@ npx web-ext sign \
 | AMO asks for source code | Validator flagged code as hard-to-read | Aletheia is not minified — answer No and link the repo; if a specific file is flagged, upload source + build steps (§13) |
 | Data-collection disclosure mismatch | AMO form drifted from the manifest | Make the AMO disclosure match `data_collection_permissions` (auth info + website content only) (§10b) |
 | `web-ext lint` errors on build | A manifest or file issue | Read the lint output; `build_release.py` fails the build on errors |
+| `npx playwright test` hangs on Firefox | Windows sandbox crashes the renderer (Juggler `remoteTab is null`) | Workaround applied in `playwright.config.js` (`MOZ_DISABLE_CONTENT_SANDBOX=1`). If running standalone reproduction scripts, export that env var first. |
 | Gecko ID mismatch / "add-on ID changed" | `browser_specific_settings.gecko.id` edited | Restore `extension@aletheia.study` — changing it creates a *new* add-on, orphaning the listing |
 | `strict_min_version` rejected | Set below a feature's availability | Keep `140.0` desktop / `142.0` Android unless a feature requires higher |
 | Listing still shows "cannot see your browsing history" | Pre-audit text | Overwrite §7d Description; verify in private browsing (per `docs/10920`) |
@@ -442,6 +443,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.6 | 2026-05-30 12:15:15 AM Central | Patch: documented the Windows sandbox Playwright hang in §18 Troubleshooting. The `MOZ_DISABLE_CONTENT_SANDBOX=1` workaround is now permanently applied in `playwright.config.js`. |
 | 1.0.5 | 2026-05-29 11:26:54 AM Central | Patch: removed the "no live debug-tier console calls" clause from §3a.4. The §3a.4 item now reads only the kept "no hardcoded test URLs or dev flags" portion. The console-call ban was authored in this runbook's 2026-05-28 v1.0.0 split with no upstream source — not in `docs/privacy.html`, not in any LLD, not in `docs/safety.html`/`docs/threat-model.html`. Local browser-console output never leaves the user's machine, so the rule had no privacy-policy grounding. Removing it eliminates the framing that allowed an agent in a later session to mis-label two existing `service-worker.js` `console.log` calls as "privacy-relevant" and present three "disposition" options to the operator. The cross-reference to the Chrome runbook's deleted §3a.3 went with the deleted clause (Closes #691). |
 | 1.0.4 | 2026-05-29 12:57:37 AM Central | Patch: removed a redundant lead-in in §10b — a dangling "Aletheia declares:" the v1.0.3 table rewrite left in front of the new sentence; merged the two into one. Found by the §0 `Audit 10907` self-audit (Closes #689). |
 | 1.0.3 | 2026-05-29 12:41:37 AM Central | Patch: applied the §0 `Audit 10907` findings. §17c no longer passes the API secret on the command line — `web-ext` reads `WEB_EXT_API_KEY`/`WEB_EXT_API_SECRET` from the environment, keeping the secret out of argv per §17b (Closes #686). §15a now refreshes the deployment-state Current published version, the update trigger includes "on each publish," and §1 Path B / §3a.1 reference the deployment-state block as the single source so the live/pending version is not duplicated three ways (Closes #687). Cosmetics: §10b shows the single `data_collection_permissions.required` array, §16 notes `Closes #N` belongs in the PR body, §4b clarifies the 10-root-file count. |
