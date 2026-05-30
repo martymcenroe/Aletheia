@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.6
-> **Last updated:** 2026-05-30 12:15:15 AM Central
+> **Version:** 1.0.7
+> **Last updated:** 2026-05-30 9:15:03 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -85,7 +85,7 @@ Split by responsibility, items numbered for "§3a.N" / "§3b.N" reference.
 4. No hardcoded test URLs or dev flags; all API traffic goes to `https://api.aletheia.study/*`.
 5. All tests pass: `poetry run pytest` + `npx playwright test`. `web-ext lint` is clean — `build_release.py` Step 3 runs it automatically and fails on errors (warnings are reported but non-blocking).
 6. Release notes file `docs/releases/firefox-vX.Y.Z.md` written before the §4 build — see §18.
-7. Listing screenshots exist at `screenshots/amo/amo-image-N-<slug>.png`. **Current state: none exist.** AMO accepts up to 10 screenshots with no strict dimension requirement, but use high-resolution images; produce them with [`10906-runbook-cws-image-pad.md`](./10906-runbook-cws-image-pad.md) (it has an AMO output convention and `--width/--height` flags). The CWS 1280×800 images can be reused.
+7. Listing screenshots exist at `screenshots/amo/amo-image-N-<slug>.png`. **Current state: directory does not exist; it will be created on first AMO screenshot upload.** AMO accepts up to 10 screenshots with no strict dimension requirement, but use high-resolution images; produce them with [`10906-runbook-cws-image-pad.md`](./10906-runbook-cws-image-pad.md) (it has an AMO output convention and `--width/--height` flags). The CWS 1280×800 images can be reused.
 8. Agent reports the current `main` HEAD SHA and this runbook's `> **Version:**` line.
 
 ### 3b. Operator does
@@ -185,7 +185,7 @@ Baked into the listing URL (`…/addon/aletheia-ai/`). Changing it breaks every 
 
 ### 7c. Summary
 
-*AMO summary limit: 250 characters. Same copy as the CWS short description (129 chars).*
+*AMO summary limit: 250 characters. Same copy as the CWS short description (129 characters / 131 bytes UTF-8 — the em-dash is 3 bytes).*
 
 ```
 Instant AI analysis for selected text. Understand context, detect nuance, and verify facts—while maintaining strict data privacy.
@@ -443,6 +443,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.7 | 2026-05-30 9:15:03 AM Central | Patch from `Audit 10907`: §3a.7 now states the `screenshots/amo/` directory does not exist (was "none exist" which read as "directory exists, no files"). §7c notes the byte count alongside the visible character count (129 / 131) so a naive `wc -c` reproducibility check does not surface a false discrepancy from the em-dash being 3 UTF-8 bytes (Closes #713). |
 | 1.0.6 | 2026-05-30 12:15:15 AM Central | Patch: documented the Windows sandbox Playwright hang in §18 Troubleshooting. The `MOZ_DISABLE_CONTENT_SANDBOX=1` workaround is now permanently applied in `playwright.config.js`. |
 | 1.0.5 | 2026-05-29 11:26:54 AM Central | Patch: removed the "no live debug-tier console calls" clause from §3a.4. The §3a.4 item now reads only the kept "no hardcoded test URLs or dev flags" portion. The console-call ban was authored in this runbook's 2026-05-28 v1.0.0 split with no upstream source — not in `docs/privacy.html`, not in any LLD, not in `docs/safety.html`/`docs/threat-model.html`. Local browser-console output never leaves the user's machine, so the rule had no privacy-policy grounding. Removing it eliminates the framing that allowed an agent in a later session to mis-label two existing `service-worker.js` `console.log` calls as "privacy-relevant" and present three "disposition" options to the operator. The cross-reference to the Chrome runbook's deleted §3a.3 went with the deleted clause (Closes #691). |
 | 1.0.4 | 2026-05-29 12:57:37 AM Central | Patch: removed a redundant lead-in in §10b — a dangling "Aletheia declares:" the v1.0.3 table rewrite left in front of the new sentence; merged the two into one. Found by the §0 `Audit 10907` self-audit (Closes #689). |
