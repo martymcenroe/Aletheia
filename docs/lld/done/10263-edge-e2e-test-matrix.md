@@ -1,5 +1,7 @@
 # 10263 - Test: Add Edge/Chromium Browser E2E Test Matrix
 
+> **SUPERSEDED 2026-05-30 by Aletheia #697 and follow-up #705.** The Edge E2E test matrix this LLD designed is no longer maintained. Aletheia is not distributed through Edge Add-ons and the FAQ (`Aletheia.wiki/FAQ.md:20`) explicitly disclaims Edge support: *"Edge and other Chromium-based browsers may work but are not officially supported."* The CI job that ran this matrix (`.github/workflows/e2e-edge.yml`) was deleted in PR #698; the `edge` Playwright project block was removed in the PR closing #705. This file is preserved for historical reference only — do not treat its design as live.
+
 ## 1. Context & Goal
 * **Issue:** #263
 * **Objective:** Add Microsoft Edge to the Playwright E2E test matrix to verify Chrome extension compatibility.
