@@ -115,7 +115,11 @@ module.exports = defineConfig({
                 headless: true,
                 // Remove Chrome extension args for Firefox
                 launchOptions: {
-                    args: []
+                    args: [],
+                    env: {
+                        ...process.env,
+                        MOZ_DISABLE_CONTENT_SANDBOX: '1'
+                    }
                 }
             }
         }
