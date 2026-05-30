@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 1.0.9
-> **Last updated:** 2026-05-30 10:05:57 AM Central
+> **Version:** 1.0.10
+> **Last updated:** 2026-05-30 10:28:40 AM Central
 > **Applies to:** Aletheia Firefox extension, every submission to Firefox Add-ons (addons.mozilla.org / "AMO")
 > **Tracking issue:** [martymcenroe/Aletheia#678](https://github.com/martymcenroe/Aletheia/issues/678)
 > **Versioning:** semver per [AssemblyZero#1362](https://github.com/martymcenroe/AssemblyZero/issues/1362) principle 20 — major.minor.patch. See §20 change log.
@@ -10,7 +10,7 @@
 
 ## Aletheia AMO deployment state
 
-Durable identifiers for the live Aletheia Firefox listing. Agent commands below (§0) reference these.
+Durable identifiers for the live Aletheia Firefox listing. Agent commands (see *Agent invocation phrases* below) reference these.
 
 | Item | Value |
 |---|---|
@@ -29,17 +29,17 @@ Update this table on rebrand, ID change, slug change, **and on each publish** �
 ## Throughout this runbook
 
 - **Operator** — the human running the publishing process at the AMO Developer Hub. Can perform any step.
-- **Agent** — a Claude Code session with this repo's working tree available. Performs any step marked agent. Invoked by the canonical phrases in §0.
+- **Agent** — a Claude Code session with this repo's working tree available. Performs any step marked agent. Invoked by the canonical phrases listed below.
 
 ## How to verify you have the latest copy
 
 This runbook lives at `docs/runbooks/10907-runbook-amo-publish.md` in [martymcenroe/Aletheia](https://github.com/martymcenroe/Aletheia). The **Version** and **Last updated** lines identify your revision.
 
 1. Note the version on your copy.
-2. Say `Run amo prep` or `Audit 10907` (§0) — the agent reports the current `main` HEAD runbook version line.
+2. Say `Run amo prep` or `Audit 10907` — the agent reports the current `main` HEAD runbook version line.
 3. If your copy differs, re-print before continuing.
 
-## 0. Invoke the agent (canonical phrases)
+## Agent invocation phrases (reference)
 
 The operator types one of these to trigger the matching action. The agent recognizes minor punctuation variation and asks for clarification on ambiguity. Phrases are **prefixed `amo`** to disambiguate from the Chrome runbook ([10905](./10905-runbook-cws-publish.md)) — `Run amo build` is Firefox, `Run cws build` is Chrome.
 
@@ -443,6 +443,7 @@ Semver per AZ#1362 principle 20.
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.0.10 | 2026-05-30 10:28:40 AM Central | Patch: dropped the §0 section number. The agent-invocation-phrases table read as "step 0, do this first" when it is reference material, not a procedure step. Heading is now `Agent invocation phrases (reference)` with no number; in-text `(§0)` cross-references at the deployment-state lead-in, "Throughout this runbook" Agent definition, and "How to verify" line 2 are reworded to point at the reference block by name (Closes #721). |
 | 1.0.9 | 2026-05-30 10:05:57 AM Central | Patch: dropped "pre-flight" framing throughout. §3 retitled "Verification (before §4 build)" — the aviation metaphor set the wrong expectation (read as "quick visual check" when it's actually 13 substantive items including a 2-minute test run). §0 phrase `Run amo pre-flight` → `Run amo prep`; descriptions updated to "§3a verification + §4 build" and "(§3 already passed)". A runbook is a checklist; the runbook now names §3 as what it is (Closes #719). |
 | 1.0.8 | 2026-05-30 9:50:00 AM Central | Patch from `Audit 10907`: removed three references to `docs/10920-cws-listing-corrections-2026-05-27.md` (at §3b.4, §10a, §18). Canonical AMO listing text lives in §7d / §10a / §12; the references carried no information the runbook lacks and were scan-overhead. Where 10920 contributed operator-relevant guidance (the "live listing may still carry pre-audit wording" claim in §3b.4), that guidance is now inline (Closes #717). |
 | 1.0.7 | 2026-05-30 9:15:03 AM Central | Patch from `Audit 10907`: §3a.7 now states the `screenshots/amo/` directory does not exist (was "none exist" which read as "directory exists, no files"). §7c notes the byte count alongside the visible character count (129 / 131) so a naive `wc -c` reproducibility check does not surface a false discrepancy from the em-dash being 3 UTF-8 bytes (Closes #713). |
