@@ -1,10 +1,11 @@
 # 10833 — Wiki Audit + Refresh Plan
 
-> **Issue:** #739
-> **Status:** Draft (plan only; execution is out of scope for this PR)
-> **Authored:** 2026-06-04
+> **Issues:** #739 (original plan), #741 (revisions per operator decisions)
+> **Status:** Decisions captured; plan ready to drive follow-up issues per § 9
+> **Authored:** 2026-06-04 | **Revised:** 2026-06-04 (operator decisions; see § 12)
 > **Scope:** `https://github.com/martymcenroe/Aletheia.wiki` only. The repo itself, the marketing site, the store listings, and the runbooks are out of scope.
 > **Supersedes:** Nothing. Complements `docs/audits/10817-audit-wiki-alignment.md` (the recurring checklist). This document is the project-specific, one-time refresh plan that 10817 cannot generate from first principles.
+> **Mermaid standard:** `AssemblyZero/docs/standards/0004-mermaid-diagrams.md` is adopted verbatim for all diagrams produced by this refresh. See § 5.1.
 
 ---
 
@@ -23,7 +24,7 @@ A small sample of what is currently published on the wiki and is wrong:
 
 The wiki has also drifted in framing. `Home.md:5` still positions Aletheia as a "Digital Etymologist" focused on historical context — the product now markets itself (AMO and CWS listings) as a privacy-first context analyzer with prompt-injection detection.
 
-The operator also needs the wiki to function as an interview reference. Today there is no single page that maps technical concepts (model routing, edge architecture, the Opus verifier pattern, four-Lambda topology, OAuth flow, cost tagging) to one-paragraph explanations and pointers into the wiki. Engineers and hiring managers ask about these concepts; the answer should not require the operator to skim 1,542 lines of wiki text mid-conversation.
+The operator also needs the wiki to function as an interview reference. Today there is no single page that maps technical concepts (model routing, edge architecture, four-Lambda topology, OAuth flow, cost tagging, the Digital Etymologist product concept) to one-paragraph explanations and pointers into the wiki. Engineers and hiring managers ask about these concepts; the answer should not require the operator to skim 1,542 lines of wiki text mid-conversation.
 
 This plan exists to define how to fix all of the above.
 
@@ -68,7 +69,7 @@ For each wiki page, the audit produces a findings section in the eventual audit 
 1. **Read the page top-to-bottom**, listing every factual claim (architecture, API shape, license, version, behavior). Opinion sentences ("designed to inform, not judge") are noted separately and only flagged if they contradict the published positioning.
 2. **For each factual claim, grep the code or read the canonical source.** Cite file:line. If the claim is true, mark `OK`. If wrong, capture both the wiki text and the source-of-truth text.
 3. **For each diagram (mermaid or embedded image)**, render it mentally against the current architecture. Capture nodes that are stale, edges that are missing, and edges that no longer exist.
-4. **List missing concepts.** A page is incomplete if a reader following its TOC could not learn things the page is positioned to teach (e.g. `Security.md` says nothing about the Opus verifier, the kill-switch Lambda, or the audit-log hashing PRs).
+4. **List missing concepts.** A page is incomplete if a reader following its TOC could not learn things the page is positioned to teach (e.g. `Security.md` says nothing about the kill-switch Lambda, the audit-log hashing PRs, or the CloudFlare-Worker edge shared-secret pattern).
 5. **List unclear concepts.** Things technically present but written so a reader who does not already know Aletheia cannot follow.
 
 ### 3.3 Cross-cutting checks
@@ -151,7 +152,7 @@ Auditor begins each page with a head-start drift list seeded from the 2026-06-04
 
 - Lines 50-51: "WAF Protection" + "CloudFront rate limits" — wrong; rate limit is at the CloudFlare Worker.
 - Line 87: CloudFront listed as a third-party-service component.
-- Missing: Opus verifier as a defense layer; kill-switch Lambda; per-Lambda IAM separation (HermesPollerRole vs AletheiaLambdaRole); shared-secret pattern (`X-Origin-Secret` header injected by Worker, SSM `/aletheia/cloudflare-origin-secret`); CloudWatch deny budget gate (#535).
+- Missing: kill-switch Lambda; per-Lambda IAM separation (HermesPollerRole vs AletheiaLambdaRole); shared-secret pattern (`X-Origin-Secret` header injected by Worker, SSM `/aletheia/cloudflare-origin-secret`); CloudWatch deny budget gate (#535). (Opus verifier is NOT a flagship defense layer per operator decision § 12; mentioned only factually if the page enumerates the defense funnel.)
 
 **`API-Reference.md` known drift seeds:**
 
@@ -168,61 +169,117 @@ Auditor begins each page with a head-start drift list seeded from the 2026-06-04
 
 ## 5. Mermaid diagram refresh
 
-### 5.1 Existing diagrams
+### 5.1 Standard — AssemblyZero 0004
 
-Currently the wiki has one mermaid diagram (`Architecture.md:9-29`). It depicts: Browser Extension → CloudFront+WAF → Lambda → Bedrock (Nova Micro) + DynamoDB. As § 4.1 records, this is wrong on at least four nodes.
+Every diagram produced by this refresh follows `C:/Users/mcwiz/Projects/AssemblyZero/docs/standards/0004-mermaid-diagrams.md` verbatim. Load-bearing rules from 0004:
 
-### 5.2 Diagrams the refresh should produce
+- **§ 2.1, § 4.1:** `flowchart TD` for vertical flows; `graph TB` for request/response patterns; never `LR` if any edge points backward.
+- **§ 3:** Router pattern — funnel decisions through a single diamond rather than connecting every node to every other.
+- **§ 5.1:** "Quote Everything" — all label text in double quotes if it contains spaces, parens, or special characters. `Node["User Input"]` not `Node[User Input]`.
+- **§ 5.2:** Line breaks inside labels via `<br/>` inside the quoted string. Never raw newlines.
+- **§ 5.3:** Hash/semicolon/braces inside labels must be quoted (`Node["Issue #80"]`).
+- **§ 7.2:** Request/response — TB layout, dashed arrows (`-.->`) for the response leg.
+- **§ 7.4:** Cyclic flows — eliminate the cycle, use an explicit return node, dashed backward edge, or split into two diagrams. Never let an arrow route behind a box.
+- **§ 8.1:** Collapse near-identical nodes (Chrome+Firefox extension nodes collapse to "Extension" unless their interactions differ).
+- **§ 8.4 / § 8.5:** Visual inspection is REQUIRED before commit. Agent procedure: base64-encode the diagram, fetch from `mermaid.ink`, view the PNG with the Read tool, inspect against the § 8.4 checklist (touching elements, hidden lines, label readability, flow clarity).
+- **§ 8.6:** Dark-mode compatibility — avoid `#334155` (invisible on dark) and `#f8fafc` (invisible on light); test in both modes; prefer no custom fills unless color carries semantic meaning.
+- **§ 8.7:** After landing, take Playwright screenshots of the rendered wiki page in both GitHub themes to verify the iframe-rendered diagram looks right (accessibility snapshots cannot read inside the iframe).
 
-The plan recommends the refreshed wiki carry four diagrams, not one. Each lives on its most relevant page; cross-link from the others.
+Any deviation from 0004 in this refresh is a finding to surface, not a license to deviate.
 
-**Diagram A — Edge & request routing (`Architecture.md` or new `Request-Flow.md`).**
-Shows: Browser → CloudFlare DNS (`api.aletheia.study`) → CloudFlare Worker (`aletheia-api`) → either AletheiaAgent Lambda Function URL (POST /, analysis) or AletheiaAuth Lambda Function URL (`/auth/*`, `/admin/*`, `/metrics`, `/my-data`, `/redeem-coupon`, `/upgrade-*`, `/create-checkout-session`, `/stripe-webhook`, `/subscription-status`). Annotates the `X-Origin-Secret` header injection and the 3 req / 10 s / IP rate limit at the Worker.
+### 5.2 Existing diagrams
 
-**Diagram B — AI request lifecycle (`Architecture.md` or new `AI-Pipeline.md`).**
-Shows: Lambda Agent → Defense Funnel (guardrails) → Bedrock via AIP → Haiku 4.5 (default) → if Haiku flags "Prompt Injection Attempt" then re-classify via Opus 4.6 verifier; Nova Micro available as alternative. Captures the AIP layer explicitly because that is what enables the `Project:Aletheia` cost tag.
+Currently the wiki has one mermaid diagram (`Architecture.md:9-29`). It depicts: Browser Extension → CloudFront+WAF → Lambda → Bedrock (Nova Micro) + DynamoDB. As § 4.1 records, this is wrong on at least four nodes. It also pre-dates 0004 — it would need a 0004 pass even if every label were correct.
 
-**Diagram C — Lambda topology (`Architecture.md`).**
+### 5.3 Diagrams the refresh should produce
+
+The plan recommends the refreshed wiki carry four diagrams. Per operator decision (§ 12), all four live INLINE in `Architecture.md` — no `AI-Pipeline.md` or `Extension-Internals.md` split. Architecture.md becomes longer; that is acceptable.
+
+**Diagram A — Edge & request routing.**
+Shows: Browser → CloudFlare DNS (`api.aletheia.study`) → CloudFlare Worker (`aletheia-api`) → either AletheiaAgent Lambda Function URL (POST /, analysis) or AletheiaAuth Lambda Function URL (`/auth/*`, `/admin/*`, `/metrics`, `/my-data`, `/redeem-coupon`, `/upgrade-*`, `/create-checkout-session`, `/stripe-webhook`, `/subscription-status`). Annotates the `X-Origin-Secret` header injection and the 3 req / 10 s / IP rate limit at the Worker. Request/response pattern → TB orientation, dashed return arrows per 0004 § 7.2.
+
+**Diagram B — AI request lifecycle.**
+Shows: Lambda Agent → Defense Funnel (guardrails) → Bedrock via AIP → Haiku 4.5 (default). Nova Micro is shown as an alternative model dispatch path. The Opus verifier is NOT a primary node in this diagram — it is a corner-case path that fires when Haiku returns a specific classification, and per operator decision (§ 12) prompt-injection detection is a minor implementation detail with no user value. If shown at all, the verifier is a sidebar note on the Haiku node, not a flagged box. The AIP layer is shown explicitly because that is what enables the `Project:Aletheia` cost tag.
+
+**Diagram C — Lambda topology.**
 Shows: four Lambdas — AletheiaAgent, AletheiaAuth, AletheiaKillSwitch, AletheiaHermesPoller — with their IAM roles (AletheiaLambdaRole vs HermesPollerRole), their triggers (Function URLs vs scheduled), and the data they touch (DynamoDB `aletheia-state`, Secrets Manager, SSM Parameter Store, Bedrock).
 
-**Diagram D — Browser extension internals (`Architecture.md` or new `Extension-Internals.md`).**
-Shows: per-browser flow. Chrome: popup → service worker → `chrome.identity.launchWebAuthFlow` for OAuth. Firefox: popup → service worker → tabs-based OAuth callback flow (the manifest is MV3 but auth UX differs). Content script injection on user activation. Shadow DOM overlay.
+**Diagram D — Browser extension internals.**
+Shows: per-browser flow. Chrome: popup → service worker → `chrome.identity.launchWebAuthFlow` for OAuth. Firefox: popup → service worker → tabs-based OAuth callback flow (both manifests are MV3 but auth UX differs). Content script injection on user activation. Shadow DOM overlay. Per 0004 § 8.1, the two browsers are shown as separate nodes ONLY where their interactions differ (the OAuth path) and collapse to "Extension" elsewhere.
 
-### 5.3 Optional diagrams
+### 5.4 Optional diagrams
 
 - **Diagram E — Cost separation.** AIPs + `Project:Aletheia` tag → cost-allocation tag → CloudWatch deny budget. Only include if there is a wiki page for cost / operations; otherwise it lives in `docs/architecture/*` not the wiki.
 - **Diagram F — OAuth sequence.** Sequence diagram of LinkedIn OAuth across the Worker, AletheiaAuth, and the extension. Worth doing if the OAuth flow is a frequently-asked interview topic (see § 7).
 
-### 5.4 Diagram authoring rules
+### 5.5 Diagram authoring rules (Aletheia-specific, on top of 0004)
 
-- All mermaid. No PNG/SVG screenshots — they rot silently when the architecture changes and no one notices.
+- No PNG/SVG screenshots — they rot silently when the architecture changes and no one notices.
 - Every node label is the canonical name from the code: `AletheiaAgent` not "Main Lambda"; `aletheia-api` not "Edge Worker"; `Haiku 4.5` not "Claude Haiku".
 - Every diagram has a one-paragraph caption underneath naming what it shows AND what it deliberately does NOT show, to deflect the "but where is X?" follow-up.
-- TD (top-down) layout where the request flow is vertical; LR (left-right) only when the flow naturally reads horizontally.
 
 ---
 
-## 6. Information architecture analysis
+## 6. Information architecture refactor (Outcome B — operator decision)
 
-### 6.1 Question the audit must answer
+Per operator decision 2026-06-04 (§ 12), the refresh is a **full refactor of the wiki**, not refresh-in-place. The wiki is reorganized by reader audience; pages are renamed, split, or merged where current structure does not serve a reader.
 
-Does the current 11-page structure (excluding `_Sidebar`, `_Footer`) serve a reader?
+### 6.1 The four reader audiences
 
-The audit recommendation should answer this directly. The plan presents two reasonable IA outcomes; the audit picks one (or argues for a third).
+| Audience | Reads to | Pages |
+|---|---|---|
+| **End users** | Install, use, get unstuck | `Home`, `Getting-Started`, `User-Guide`, `FAQ` |
+| **Developers** | Build, run, deploy, contribute | `Architecture`, `API-Reference`, `Developer-Guide`, `Contributing` |
+| **Reviewers / auditors** | Verify privacy, security, legal posture | `Security`, `Privacy`, `Terms-of-Use` |
+| **Concept-seekers** | Understand the interesting parts at high altitude (incl. interview prep) | `Concepts` (new), `Architecture` (shared with developers) |
 
-**Outcome A — keep current pages, refresh in place.** Low risk, low IA cost. Refresh each page; do not reshape. The reader navigates the same way they do now. The wiki feels familiar. Downside: misses the chance to fix structural problems (e.g. Architecture.md is currently doing the work that Architecture + AI-Pipeline + Request-Flow should split).
+The sidebar is rebuilt around these four groups. Today's sidebar groups by topic (which loosely tracks audience but does not name it); the refactored sidebar names the audience and groups under it.
 
-**Outcome B — refactor for the four readers.** The wiki actually has four distinct readers: end users (User-Guide, FAQ, Getting-Started), developers (Developer-Guide, API-Reference, Contributing), reviewers / auditors (Privacy, Security, Terms-of-Use), and concept-seekers (Architecture + the proposed Concepts page from § 7). Refactor reorganizes the sidebar by reader, not by topic, and moves pages to fit. Higher risk (link breakage on existing google results), higher payoff.
+### 6.2 Sidebar structure
 
-The plan recommends **Outcome A for this refresh** because: (a) the operator's stated drivers are accuracy + interview reference, not IA; (b) the existing sidebar groups by topic already, which is a reasonable IA; (c) any IA churn during a refresh dilutes the accuracy work the operator actually asked for. The plan also recommends scheduling Outcome B as a SEPARATE later effort, if the operator decides it is worth the link breakage.
+```
+For users
+  Home
+  Getting Started
+  User Guide
+  FAQ
 
-### 6.2 New pages the refresh should add
+For developers
+  Architecture
+  API Reference
+  Developer Guide
+  Contributing
 
-Outcome A still adds one new page: the technical concepts index (§ 7). One page, additive, no link breakage.
+For reviewers
+  Security
+  Privacy
+  Terms of Use
 
-The plan recommends NOT adding a `Deploy.md` / `Operations.md` page — those concepts belong in runbooks under `docs/runbooks/10xxx-*` in the repo, not in the wiki. The wiki is for stable conceptual material that does not change every release. Operational procedures change every release.
+Concepts
+  Concepts (single page; see § 7)
+```
 
-### 6.3 Pages the refresh should remove
+Wiki convention is one flat sidebar with H2 group headers. `_Sidebar.md` is rebuilt accordingly; no functional change to GitHub wiki rendering.
+
+### 6.3 Page-level restructuring
+
+Most existing pages keep their names. The audit identifies which pages need internal restructuring (not just content refresh) — likely candidates based on current content:
+
+- **`Architecture.md`** — gains inline Diagrams A, B, C, D per § 5.3. Page grows substantially. Internal structure shifts from "one diagram + components table + ADR list" to "diagram set + per-component depth + ADR list." Stays one page per operator decision (§ 12).
+- **`API-Reference.md`** — restructured into sections by audience: public endpoints (POST /, /health), authenticated endpoints (/auth/*, /my-data, /subscription-status), admin endpoints (/admin/*), webhooks (/stripe-webhook). Today's "REST API via CloudFront" framing is replaced by an honest endpoint inventory grouped by routing prefix.
+- **`Developer-Guide.md`** — at 225 lines, today's biggest page. Audit evaluates whether to split into Local-Development + Deployment, or keep as one with better section headers. Default is keep as one unless audit finds a strong split signal.
+- **`Security.md`, `Privacy.md`** — content refresh per § 4.1 seeds, no structural change. These pages are already focused.
+- **Other pages** — content refresh per audit; structural changes only if audit surfaces a specific reason.
+
+Page renames are avoided where possible (link breakage on existing search results). If a rename is needed, the audit names it as a finding so it gets its own follow-up issue.
+
+### 6.4 New pages the refresh adds
+
+One: `Concepts.md` (§ 7). One page, additive.
+
+The refresh does NOT add a `Deploy.md` / `Operations.md` page — those concepts belong in runbooks under `docs/runbooks/10xxx-*` in the repo, not in the wiki. The wiki is for stable conceptual material that does not change every release. Operational procedures change every release.
+
+### 6.5 Pages the refresh removes
 
 None. Every existing page has a clear reader and a clear function. Removal is link breakage with no payoff.
 
@@ -256,7 +313,6 @@ These are the concepts the refresh should seed the page with. The auditor adds, 
 
 **Architecture & Infrastructure**
 
-- Tiered model routing (Haiku default + Opus verifier)
 - Bedrock Application Inference Profiles (AIPs) and why they enable cost separation
 - Four-Lambda topology (Agent / Auth / KillSwitch / HermesPoller) and per-Lambda IAM
 - CloudFlare Worker as the edge layer (vs API Gateway) — Host rewrite, shared-secret injection, edge rate limit
@@ -266,11 +322,11 @@ These are the concepts the refresh should seed the page with. The auditor adds, 
 
 **AI / ML**
 
-- The Opus verifier pattern (cost vs precision trade-off; #623)
-- Defense funnel (`src/guardrails/`) — what each layer does
-- Signal / gem response shape and what each conveys
-- Prompt-injection detection vs prompt-injection prevention
-- The Bedrock model dispatch (`is_nova_model`) — supporting Nova alongside Anthropic models
+- Tiered model routing (Haiku 4.5 default; Nova Micro as an alternative dispatch). The Opus verifier is mentioned in this entry as a brief implementation note, not as its own concept — per operator decision (§ 12) the Opus verifier / prompt-injection detection is a minor implementation detail with no user value, and does not warrant a flagship Concepts entry.
+- Defense funnel (`src/guardrails/`) — what each layer does at a high level. Defense-against-injection is one item among many; the entry should not over-index on it.
+- Signal / gem response shape — what the response conveys and why it is shaped that way (the readable-at-a-glance educational gem is the product, not the underlying classification)
+- Digital Etymologist as a product concept — the etymology framing predates the privacy-first context-analyzer positioning but is still valid (operator decision § 12). Concepts entry covers what "Digital Etymologist" means as a product idea and how it relates to the technical model dispatch
+- The Bedrock model dispatch (`is_nova_model`) — supporting Nova alongside Anthropic models from the same code path
 
 **Browser Extension**
 
@@ -339,56 +395,65 @@ These are recommendations; they are out of scope for THIS PR. They become follow
 
 Each refresh task is its own issue per `One Issue Per Concern`. Bundling is forbidden. Below is the proposed issue list. The audit report (the deliverable that uses this plan) will add or split as findings warrant.
 
+Issues F2 through F9 are filed only after F1 (the audit report) lands, because the audit report's findings — including its per-page time-to-refresh estimates per § 12 decision — define each follow-up's exact scope. Issues F10, F11, F13 can be filed concurrently with F1 because their scope is set by this plan.
+
 | # | Title | Scope |
 |---|---|---|
-| F1 | `docs(wiki): audit report against the code per #739 plan` | The audit findings report itself, produced by applying § 3 + § 4. Lives in `docs/audits/108xx-wiki-audit-report-2026-06.md`. Does NOT touch the wiki. |
-| F2 | `docs(wiki): refresh Home.md — stack table, status, license, framing` | All Home.md drift fixes. PR against `Aletheia.wiki`. |
-| F3 | `docs(wiki): refresh Architecture.md — mermaid, components, ADR table` | All Architecture.md drift fixes; replaces the stale mermaid with Diagrams A + C. |
-| F4 | `docs(wiki): refresh Security.md — controls, third-party services, defense layers` | All Security.md drift fixes; surfaces Opus verifier and kill switch as defense layers. |
-| F5 | `docs(wiki): refresh API-Reference.md — base URL, endpoints, auth, /health` | All API-Reference.md drift fixes; full endpoint inventory from `workers/aletheia-api/worker.js`. |
+| F1 | `docs(wiki): audit report against the code per #739 plan` | The audit findings report itself, produced by applying § 3 + § 4. Lives in `docs/audits/108xx-wiki-audit-report-2026-06.md`. Includes per-page estimated time-to-refresh (operator decision § 12). Does NOT touch the wiki. |
+| F2 | `docs(wiki): refresh Home.md — stack table, status, license` | All Home.md drift fixes. PR against `Aletheia.wiki`. Product framing ("Digital Etymologist") is kept per operator decision (§ 12); not relitigated here. |
+| F3 | `docs(wiki): refresh Architecture.md — mermaid, components, ADR table` | All Architecture.md drift fixes; replaces the stale mermaid with all four inline diagrams (A, B, C, D) per § 5.3 and operator decision (§ 12). |
+| F4 | `docs(wiki): refresh Security.md — controls, third-party services, defense layers` | All Security.md drift fixes. Surfaces the kill switch and CloudFlare-Worker edge controls as defense layers. The Opus verifier / prompt-injection detection is NOT surfaced as a flagship defense layer per operator decision (§ 12) — mention it only factually if the page enumerates the defense funnel. |
+| F5 | `docs(wiki): refresh API-Reference.md — base URL, endpoints, auth, /health` | All API-Reference.md drift fixes; full endpoint inventory from `workers/aletheia-api/worker.js`. Restructured into sections by routing prefix per § 6.3. |
 | F6 | `docs(wiki): refresh Privacy.md — data retention, anonymization, hashing roadmap` | All Privacy.md drift; reflect #711 plan. |
-| F7 | `docs(wiki): refresh Developer-Guide.md — local dev, deploy, smoke test` | All Developer-Guide.md drift; align with `provision.sh`. |
+| F7 | `docs(wiki): refresh Developer-Guide.md — local dev, deploy, smoke test` | All Developer-Guide.md drift; align with `provision.sh`. Internal structure: see § 6.3 (split vs single-page is an audit-report finding). |
 | F8 | `docs(wiki): refresh Getting-Started.md, User-Guide.md, FAQ.md, Terms-of-Use.md, Contributing.md` | Lower-density pages; if drift per page warrants splitting, split. |
-| F9 | `docs(wiki): refresh _Sidebar.md and _Footer.md` | Add Concepts page link; verify all internal links. |
-| F10 | `docs(wiki): add Concepts.md — technical concepts index (§ 7)` | New page per § 7. Initial seed of ~25 concepts; iterate. |
-| F11 | `docs(wiki): add AI-Pipeline diagram (Diagram B)` | Either inline in Architecture.md or new page, per audit recommendation. |
-| F12 | `docs(wiki): add Extension-Internals diagram (Diagram D)` | Either inline in Architecture.md or new page, per audit recommendation. |
+| F9 | `docs(wiki): restructure _Sidebar.md by reader audience (Outcome B)` | Per § 6.2 — rebuild sidebar into four groups (Users, Developers, Reviewers, Concepts). Update `_Footer.md` if needed. Verify all internal links. |
+| F10 | `docs(wiki): add Concepts.md — technical concepts index (§ 7)` | New page per § 7. Seed concept list per § 7.3; iterate. |
 | F13 | `docs(audits): update 10817-audit-wiki-alignment.md § 1 to point at 10833 for one-time refreshes` | Repo-side; not a wiki change. |
 
-Issues F2 through F9 are filed only after F1 (the audit report) lands, because the audit report's findings define their exact scope. Issues F10, F11, F12, F13 can be filed concurrently with F1 because their scope is set by this plan.
+(F11 and F12 from the original plan are absorbed into F3 — operator decided all four diagrams live inline in `Architecture.md`, not in separate pages.)
 
-The plan does NOT pre-file these issues. Pre-filing 12 placeholder issues clutters the issue tracker. They are filed at the moment they become actionable.
+The plan does NOT pre-file these issues. Pre-filing placeholder issues clutters the issue tracker. They are filed at the moment they become actionable.
 
 ---
 
-## 10. Definition of done (for #739, the plan)
+## 10. Definition of done (for the plan)
 
 - This document exists at `docs/audits/10833-wiki-audit-and-refresh-plan.md`.
-- All six sections promised in #739 are present: methodology (§ 3), known drift (§ 4.1), IA analysis (§ 6), mermaid refresh (§ 5), concepts index proposal (§ 7), follow-up issue list (§ 9).
+- All six sections promised in #739 are present: methodology (§ 3), known drift (§ 4.1), IA approach (§ 6), mermaid refresh (§ 5), concepts index proposal (§ 7), follow-up issue list (§ 9).
 - The audit philosophy in § 3.1 is consistent with `docs/audits/10800-audit-index.md` § 2.1.
+- All five open questions from the original plan are resolved with operator decisions documented in § 12.
 - The follow-up issue list (§ 9) is granular enough to satisfy `One Issue Per Concern` — no issue bundles two unrelated wiki pages, no issue bundles a wiki page with a repo change.
-- The operator has reviewed and approved the plan before any follow-up issue is filed.
+- F1 (audit report) and F10 (Concepts.md) can be filed as soon as the operator wants to start; their scope is fully set by this plan.
 
 ---
 
-## 11. Risks & decisions deferred
+## 11. Residual risks
 
 - **Risk: the audit produces too much drift to land in one cycle.** Mitigation: the issue list (§ 9) is already split per page so PRs are mergeable independently; nothing forces them to land together. Worst case is partial refresh and a second audit a few months later.
 - **Risk: the Concepts page becomes a maintenance burden and rots faster than the rest of the wiki.** Mitigation: § 7.4 maintenance rules. If those rules feel too heavy, the page is too long — trim, do not abandon.
-- **Risk: the IA refactor (Outcome B in § 6.1) gets revisited mid-refresh and derails it.** Mitigation: this plan recommends Outcome A explicitly to prevent that. If the operator wants Outcome B, file it as a separate effort after the accuracy refresh ships.
-- **Decision deferred to operator: product framing.** "Digital Etymologist" vs "privacy-first context analyzer" vs both. The store listings use the latter; `Home.md:5` uses the former. The auditor cannot make this call — it is a positioning decision, not a drift correction. Operator answers before F2 (Home.md refresh) starts.
-- **Decision deferred to operator: Concepts page name.** `Concepts.md` is the plan's recommendation. Alternatives: `Technical-Concepts.md`, `Stack.md`, `Concept-Index.md`, `Reference.md`. The chosen name appears in the sidebar; pick before F10 starts.
+- **Risk: the IA refactor (Outcome B) breaks external search-engine deep links into renamed/restructured pages.** Mitigation: § 6.3 keeps page names stable wherever possible; only splits or renames a page if the audit surfaces a concrete reason; each such split/rename gets its own follow-up issue so the link breakage is visible at PR review.
+- **Risk: the AZ 0004 mermaid auto-inspection step (§ 5.1, § 8.5 of 0004) is treated as optional under time pressure.** Mitigation: § 5.1 names it as REQUIRED, not advisory; an unrendered diagram is the wrong unit of completion.
 
 ---
 
-## 12. Open questions for the operator (please answer before F1 starts)
+## 12. Decisions made (operator, 2026-06-04)
 
-1. Outcome A (refresh in place) or Outcome B (IA refactor)? Plan recommends A.
-2. Product framing — keep "Digital Etymologist" anywhere, or fully migrate to the AMO/CWS positioning ("privacy-first context analyzer with prompt-injection detection")?
-3. Concepts page name — `Concepts`, `Technical-Concepts`, `Stack`, `Reference`, or other?
-4. Should the audit report (F1) include estimated time-to-refresh per page so PRs can be scheduled, or just findings? Plan defaults to findings only.
-5. Should diagrams B + D live inline in `Architecture.md` (one long page) or as separate pages (`AI-Pipeline.md`, `Extension-Internals.md`)? Plan defaults to inline; happy to split if the page gets too long.
+The original plan posed five open questions in § 12. All five are now resolved.
+
+| # | Question | Operator decision |
+|---|---|---|
+| 1 | Refresh in place (Outcome A) or full IA refactor (Outcome B)? | **Outcome B** — full refactor of the wiki. Restructure by reader audience per § 6.1. |
+| 2 | Product framing — keep "Digital Etymologist" or migrate fully to "privacy-first context analyzer"? | **Keep "Digital Etymologist"** as a product concept. It is a valid framing, not drift. Concepts page entry covers what it means. Refresh does not relitigate. |
+| 3 | Concepts page name — `Concepts`, `Technical-Concepts`, `Stack`, `Reference`, or other? | **`Concepts.md`** (verbatim "fine" on the recommendation). |
+| 4 | F1 audit report — findings only, or include time-to-refresh estimates per page? | **Include estimates.** Operator framing: "I don't care how hard you work. I want you to do the work." Estimates exist to schedule PRs, not to justify scope cuts. |
+| 5 | Diagrams B + D — inline in `Architecture.md` or split into separate pages? | **Inline.** All four diagrams live in `Architecture.md`. |
+
+Two further operator directives recorded the same conversation:
+
+- **Prompt-injection detection / Opus verifier is a very minor implementation detail with no user value.** Removed from `Concepts.md` as a flagship entry (§ 7.3). Not surfaced as a defense layer headline in `Security.md` (F4). Not flagged in Diagram B (§ 5.3). Mentioned factually where the page enumerates internals; never as a flagship feature.
+- **Mermaid diagrams follow AssemblyZero `docs/standards/0004-mermaid-diagrams.md` verbatim.** Adopted as § 5.1. Includes the agent auto-inspection procedure via `mermaid.ink` (0004 § 8.5) and the Playwright-based GitHub-render verification (0004 § 8.7). Non-negotiable.
 
 ---
 
-*Plan author: this PR. Plan execution: future PRs per § 9. Plan validity: until the wiki is refreshed; this document becomes a historical record after F1 ships.*
+*Plan author: PR #740 (original) and PR for #741 (revision). Plan execution: future PRs per § 9. Plan validity: until the wiki is refreshed; this document becomes a historical record after F1 ships.*
