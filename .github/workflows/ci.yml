@@ -8,6 +8,8 @@ on:
   schedule:
     # Nightly compliance audit at midnight UTC
     - cron: '0 0 * * *'
+  workflow_dispatch:
+    # Manual-only infra deploy (provision.sh); merges to main do NOT auto-deploy
 
 jobs:
   # Dependency security review - runs on PRs only
@@ -332,7 +334,7 @@ jobs:
 
   # Infrastructure deployment - runs ONLY on push to main
   deploy-infra:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch'
     needs: [test, integration-tests, policy-check]
     runs-on: ubuntu-latest
     permissions:
@@ -359,7 +361,7 @@ jobs:
   # Post-deploy smoke test - verify API health after infrastructure deployment
   # Catches misconfigurations (e.g. AUTH_ENABLED=true before extension auth is ready)
   post-deploy-smoke:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch'
     needs: deploy-infra
     runs-on: ubuntu-latest
     steps:
@@ -395,6 +397,9 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'schedule'
     needs: policy-check
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v7
 
@@ -414,8 +419,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::383687041805:role/AletheiaCIAuditRole
           aws-region: us-east-1
 
       - name: Run compliance audit tests
