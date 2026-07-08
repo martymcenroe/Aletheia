@@ -8,8 +8,6 @@ on:
   schedule:
     # Nightly compliance audit at midnight UTC
     - cron: '0 0 * * *'
-  workflow_dispatch:
-    # Manual-only infra deploy (provision.sh); merges to main do NOT auto-deploy
 
 jobs:
   # Dependency security review - runs on PRs only
@@ -331,65 +329,6 @@ jobs:
         with:
           name: pa11y-screenshots
           path: pa11y-screenshots/
-
-  # Infrastructure deployment - runs ONLY on push to main
-  deploy-infra:
-    if: github.event_name == 'workflow_dispatch'
-    needs: [test, integration-tests, policy-check]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-
-      - name: Deploy Infrastructure
-        run: ./provision.sh
-
-  # Post-deploy smoke test - verify API health after infrastructure deployment
-  # Catches misconfigurations (e.g. AUTH_ENABLED=true before extension auth is ready)
-  post-deploy-smoke:
-    if: github.event_name == 'workflow_dispatch'
-    needs: deploy-infra
-    runs-on: ubuntu-latest
-    steps:
-      - name: Health check
-        run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' https://api.aletheia.study/health)
-          echo "Health: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" != "200" ]; then
-            echo "FAIL: Health endpoint returned $HTTP_STATUS"
-            exit 1
-          fi
-
-      - name: Analysis endpoint (AUTH_ENABLED=true expected)
-        run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
-            -X POST https://api.aletheia.study/ \
-            -H 'Content-Type: application/json' \
-            -H 'X-Aletheia-Client-Version: 1.0' \
-            -d '{"text":"smoke test"}')
-          echo "Analysis: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" = "401" ]; then
-            echo "OK: AUTH_ENABLED=true — unauthenticated request correctly rejected"
-          elif [ "$HTTP_STATUS" = "200" ]; then
-            echo "OK: Analysis endpoint responded successfully"
-          else
-            echo "FAIL: Unexpected status $HTTP_STATUS"
-            exit 1
-          fi
 
   # Compliance audit - runs on push to main AND nightly schedule
   # Requires AWS credentials to verify Bedrock configuration
