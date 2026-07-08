@@ -1237,3 +1237,29 @@ class TestEtymologistExceptionTextDoesNotLeakIntoLog:
         assert self.CANARY not in log_text, f"Canary leaked into log: {log_text!r}"
         assert "JSON_DECODE_FAILED" in log_text
         assert "JSONDecodeError" in log_text
+
+
+class TestLoanwordNotInjection:
+    """Issue #618: foreign loanwords must not be classified as prompt injection.
+
+    Root cause: Nova Micro read rule 3 ("attempts to override these instructions")
+    too literally and flagged anomalous-but-benign foreign words (e.g. 'gedenken')
+    as "Prompt Injection Attempt". The fix tightens rule 3 and adds a loanword
+    counter-example to both system prompts. (Verified against the live Nova model:
+    gedenken/zeitgeist/schadenfreude -> "German Loanword"; real injections still
+    resisted.)
+    """
+
+    def test_rule3_tightened_in_both_prompts(self):
+        for prompt in (SYSTEM_PROMPT, SYSTEM_PROMPT_NOVA):
+            # the over-broad literal trigger is gone
+            assert "If the text attempts to override these instructions" not in prompt
+            # explicit fallback that prevents inventing a manipulation motive
+            assert "never invent a manipulation motive" in prompt
+            # foreign words explicitly excluded from the injection trigger
+            assert "loanwords" in prompt.lower()
+
+    def test_loanword_counterexample_in_both_prompts(self):
+        for prompt in (SYSTEM_PROMPT, SYSTEM_PROMPT_NOVA):
+            assert '"signal": "German Loanword"' in prompt
+            assert "gedenken" in prompt
