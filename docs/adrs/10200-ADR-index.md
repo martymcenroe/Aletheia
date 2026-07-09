@@ -35,6 +35,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 | [10217](10217-ADR-jwt-authentication.md) | JWT Authentication Architecture | Implemented | Security, Authentication, Infrastructure | 2026-02-17 |
 | [10218](10218-ADR-daily-token-cap.md) | Multi-Window Rate Limiting | Implemented | Infrastructure, Security, Cost Optimization | 2026-02-17 |
 | [10219](10219-ADR-auth-middleware-pattern.md) | Decorator-Based Auth Middleware | Implemented | Architecture, Security, Patterns | 2026-02-17 |
+| [10220](10220-ADR-ci-oidc-aws-auth.md) | CI-to-AWS Authentication via GitHub OIDC | Implemented | Security, Infrastructure, Authentication | 2026-07-08 |
 
 ---
 
@@ -43,6 +44,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 ### Authentication
 - [10217](10217-ADR-jwt-authentication.md)
 - [10219](10219-ADR-auth-middleware-pattern.md)
+- [10220](10220-ADR-ci-oidc-aws-auth.md)
 
 ### Cost Optimization
 - [10207](10207-ADR-single-identity-orchestration.md)
@@ -82,6 +84,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 - [10217](10217-ADR-jwt-authentication.md)
 - [10218](10218-ADR-daily-token-cap.md)
 - [10219](10219-ADR-auth-middleware-pattern.md)
+- [10220](10220-ADR-ci-oidc-aws-auth.md)
 
 ### Privacy
 - [10201](10201-ADR-privacy-first-permissions.md)
@@ -99,6 +102,7 @@ Use `AgentOS:templates/0104-adr-template` when creating new ADRs.
 - [10216](10216-ADR-cloudflare-migration.md)
 - [10217](10217-ADR-jwt-authentication.md)
 - [10218](10218-ADR-daily-token-cap.md)
+- [10220](10220-ADR-ci-oidc-aws-auth.md)
 
 ### Data
 - [10203](10203-ADR-stateful-serverless.md)
@@ -138,7 +142,7 @@ None yet.
 ## Adding New ADRs
 
 1. Copy `AgentOS:templates/0104-adr-template`
-2. Use next available number (currently 10220)
+2. Use next available number (currently 10221)
 3. Name format: `102xx-ADR-{short-topic}.md`
 4. Fill in all sections (Security Risk Analysis is mandatory)
 5. Update this index
