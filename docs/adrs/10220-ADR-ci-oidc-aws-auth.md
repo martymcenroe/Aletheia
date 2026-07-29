@@ -87,7 +87,7 @@ Give CI an OIDC role able to run `provision.sh` (Lambda/IAM/AIP writes).
 
 ### Neutral
 - Deploys are unchanged: still manual via `provision.sh`. This ADR does not grant CI deploy power.
-- Verification of the deployed posture is covered by the `Secret-Agent-Man/tools/aletheia_verify_config.sh` checks (origin secret, AUTH_ENABLED, budget/kill-switch).
+- Verification of the deployed posture is covered by the `aletheia_verify_config.sh` (maintained in a private tooling repo) checks (origin secret, AUTH_ENABLED, budget/kill-switch).
 
 ## 6. References
 
