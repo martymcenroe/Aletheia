@@ -9,7 +9,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.12"
 boto3 = "^1.43"
-pillow = "^12.2.0"
+pillow = "^12.3.0"
 tzdata = "^2026.2"
 pywin32 = {version = "^312", markers = "sys_platform == 'win32'"}
 requests = "^2.34.2"
