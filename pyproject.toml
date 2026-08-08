@@ -50,6 +50,17 @@ markers = [
     "tools: tests for CLI tools",
     "benchmark: performance benchmark tests (Issue #161)",
 ]
+# Issue #817: live tests assert against third parties' CURRENT robots.txt, so
+# they fail for reasons outside this repository — and a suite that is red for
+# external reasons stops being a signal. TestLiveWebsites was already marked
+# `live`, and its docstring already said to run it with `-m live`; nothing
+# enforced that, so it fired on every default run. Opt in explicitly:
+#
+#     poetry run pytest -m live
+#
+# A CLI `-m` overrides this (later occurrence wins), so CI's existing
+# `-m "not audit"` is unaffected and still exercises the live checks.
+addopts = "-m 'not live'"
 
 [tool.ruff]
 target-version = "py312"
