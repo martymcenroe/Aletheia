@@ -38,19 +38,27 @@ export function createChromeMock(options = {}) {
   } = options;
 
   // Internal storage state (local)
+  // Issue #812: a genuinely authenticated user carries an Aletheia refresh
+  // token in LOCAL storage. Without it the session cannot renew, which is the
+  // exact state that used to masquerade as "signed in".
   let localStorageData = {
     allowlist: [...allowlist],
     ...(authenticated ? {
       refreshToken: 'mock-refresh-token-67890',
+      aletheiaRefreshToken: 'mock-aletheia-refresh-token',
       userId: 'mock-sub-782bbtaQ',
       displayName: 'Test User'
     } : {})
   };
 
   // Internal storage state (session - MV3)
+  // Issue #814: jwtExpiresAt must accompany the JWT, otherwise the credential's
+  // freshness is unknowable and every request path has to guess.
   let sessionStorageData = authenticated ? {
     accessToken: 'mock-access-token-12345',
     expiresAt: Date.now() + 3600000,
+    jwt: 'mock-jwt-for-testing',
+    jwtExpiresAt: Date.now() + (24 * 3600 * 1000),
     oauth_state: null
   } : {};
 

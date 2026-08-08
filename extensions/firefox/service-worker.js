@@ -7,15 +7,150 @@ const API_ENDPOINT = "https://api.aletheia.study/";
 // [#95] Client version for Lambda header validation (Issue #349: moved from WAF to Lambda)
 const CLIENT_VERSION = "1.0";
 
-// Issue #402: Auth header injection
+// Server mints JWTs with a 24h life (Issue #811).
+const JWT_LIFETIME_SECONDS = 24 * 3600;
+
+// Renew ahead of expiry so a request cannot race the boundary.
+const JWT_RENEWAL_BUFFER_MS = 5 * 60 * 1000;
+
+// One renewal shared across concurrent callers, not N parallel ones.
+let _inFlightRenewal = null;
+
+/**
+ * Renew the JWT from the persisted Aletheia refresh token (Issue #811).
+ *
+ * The service worker cannot import auth.js, so this mirrors its renewal logic.
+ * Both must stay in step; the shared contract is the /auth/refresh payload.
+ *
+ * @returns {Promise<string | null>} Fresh JWT, or null if renewal is impossible
+ */
+async function renewJwt() {
+    if (_inFlightRenewal) return await _inFlightRenewal;
+
+    _inFlightRenewal = (async () => {
+        const local = await chrome.storage.local.get(['aletheiaRefreshToken']);
+        if (!local.aletheiaRefreshToken) return null;
+
+        try {
+            const response = await fetch("https://api.aletheia.study/auth/refresh", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ aletheiaRefreshToken: local.aletheiaRefreshToken })
+            });
+
+            if (!response.ok) {
+                // 401 means revoked or expired: renewal can never succeed again,
+                // so drop the token and require a real sign-in. Any other status
+                // (5xx, offline) is transient — keep it and retry later.
+                if (response.status === 401) {
+                    await chrome.storage.local.remove(['aletheiaRefreshToken']);
+                }
+                console.error('[Aletheia] JWT renewal failed:', response.status);
+                return null;
+            }
+
+            const data = await response.json();
+            if (!data.jwt) return null;
+
+            await chrome.storage.session.set({
+                jwt: data.jwt,
+                jwtExpiresAt: Date.now() + ((data.expiresIn || JWT_LIFETIME_SECONDS) * 1000)
+            });
+            console.log('[Aletheia] JWT renewed silently');
+            return data.jwt;
+
+        } catch (error) {
+            console.error('[Aletheia] JWT renewal error:', error.name);
+            return null;
+        }
+    })();
+
+    try {
+        return await _inFlightRenewal;
+    } finally {
+        _inFlightRenewal = null;
+    }
+}
+
+/**
+ * Get a usable JWT, renewing silently when the cached one is stale or absent.
+ * @returns {Promise<string | null>}
+ */
+async function getValidJwt() {
+    const session = await chrome.storage.session.get(['jwt', 'jwtExpiresAt']);
+
+    const stillFresh = session.jwt &&
+        session.jwtExpiresAt &&
+        Date.now() < (session.jwtExpiresAt - JWT_RENEWAL_BUFFER_MS);
+
+    if (stillFresh) return session.jwt;
+
+    const renewed = await renewJwt();
+    if (renewed) return renewed;
+
+    // Legacy session from a build predating jwtExpiresAt (#812): renewal is
+    // impossible because no refresh token was ever issued, but the cached JWT
+    // may still be valid. Use it and let the 401 path decide, rather than
+    // forcing a sign-in we cannot prove is needed.
+    return session.jwt || null;
+}
+
+/**
+ * Issue #402: Auth header injection. Issue #814: renew rather than dispatch
+ * a request already known to fail.
+ *
+ * Previously this read the JWT, found nothing, and sent the request anyway
+ * with no Authorization header — turning a recoverable missing-credential
+ * condition into a terminal "Sign In Required".
+ *
+ * @returns {Promise<object|null>} Headers, or null when no credential is
+ *   obtainable. Callers MUST NOT dispatch on null.
+ */
 async function getAuthHeaders() {
-    const session = await chrome.storage.session.get(['jwt']);
-    const headers = {
+    const jwt = await getValidJwt();
+    if (!jwt) return null;
+
+    return {
         'Content-Type': 'application/json',
-        'X-Aletheia-Client-Version': CLIENT_VERSION
+        'X-Aletheia-Client-Version': CLIENT_VERSION,
+        'Authorization': `Bearer ${jwt}`
     };
-    if (session.jwt) headers['Authorization'] = `Bearer ${session.jwt}`;
-    return headers;
+}
+
+/**
+ * POST to the API with a live credential, recovering once from a 401.
+ *
+ * Issue #814. A 401 can mean the cached JWT died between the freshness check
+ * and the server receiving it. That is recoverable, so renew and retry exactly
+ * once. Strictly one retry: no loop, no recursion — a renewal storm against
+ * the auth Lambda would turn a transient failure into an outage.
+ *
+ * @param {object} payload - JSON body
+ * @returns {Promise<Response|null>} Response, or null if no credential exists
+ */
+async function authedPost(payload) {
+    const headers = await getAuthHeaders();
+
+    // No credential obtainable: do not dispatch a request known to fail.
+    if (!headers) return null;
+
+    const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+    });
+
+    if (response.status !== 401) return response;
+
+    console.log('[Aletheia] 401 received; renewing once and retrying');
+    const freshJwt = await renewJwt();
+    if (!freshJwt) return response;
+
+    return await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { ...headers, 'Authorization': `Bearer ${freshJwt}` },
+        body: JSON.stringify(payload)
+    });
 }
 
 // =============================================================================
@@ -222,18 +357,38 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
             const tokenData = await tokenResponse.json();
 
-            // Store tokens
+            // Store tokens. Issue #812: the Aletheia refresh token goes to LOCAL
+            // storage so the session survives a browser restart — session storage
+            // is cleared on close, which is what previously destroyed the only
+            // credential the API accepts while leaving identity intact.
             await chrome.storage.session.set({
                 accessToken: tokenData.accessToken,
                 expiresAt: Date.now() + (tokenData.expiresIn * 1000),
-                jwt: tokenData.jwt || null
+                jwt: tokenData.jwt || null,
+                jwtExpiresAt: tokenData.jwt
+                    ? Date.now() + (JWT_LIFETIME_SECONDS * 1000)
+                    : 0
             });
 
-            await chrome.storage.local.set({
+            const localData = {
                 refreshToken: tokenData.refreshToken,
                 userId: tokenData.user.id,
                 displayName: tokenData.user.name
-            });
+            };
+
+            if (tokenData.aletheiaRefreshToken) {
+                localData.aletheiaRefreshToken = tokenData.aletheiaRefreshToken;
+            } else {
+                // A login that yields no refresh token produces a session that
+                // dies in 24h with no recovery — the original defect. Surface it
+                // rather than letting it look like a clean login.
+                console.error(
+                    '[Aletheia Auth SW] Login returned no aletheiaRefreshToken; ' +
+                    'session cannot renew. Auth Lambda may predate issue #811.'
+                );
+            }
+
+            await chrome.storage.local.set(localData);
 
             // Clear pending state
             await chrome.storage.session.remove('pendingOAuth');
@@ -312,11 +467,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const payload = message.payload;
                 console.log('[Aletheia] Deep poetic analysis request:', payload.text);
 
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: await getAuthHeaders(),
-                    body: JSON.stringify(payload)
-                });
+                const response = await authedPost(payload);
+
+                if (response === null) {
+                    sendResponse({
+                        status: 'error',
+                        error: 'Sign in with LinkedIn to use Aletheia.'
+                    });
+                    return;
+                }
 
                 const data = await response.json();
                 console.log('[Aletheia] Deep poetic analysis response:', data.status);
@@ -565,11 +724,29 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         console.log("[Aletheia] Sending payload to AWS:", payload.text);
 
-        const response = await fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: await getAuthHeaders(),
-            body: JSON.stringify(payload)
-        });
+        const response = await authedPost(payload);
+
+        // Issue #814: null means no credential could be obtained even after a
+        // renewal attempt. This is the genuine sign-in case — distinct from a
+        // 401, which now only survives after renewal has already been tried.
+        if (response === null) {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: (data, status) => window.showAletheiaResult(data, status),
+                args: [{
+                    signal: "Sign In Required",
+                    gem: "Please sign in with LinkedIn to use Aletheia.",
+                    context: "",
+                    warning: true,
+                    selectedText: info.selectionText,
+                    domContext: contextText
+                }, 401]
+            });
+            chrome.action.setBadgeText({ tabId: tab.id, text: '✗' });
+            chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: '#EF4444' });
+            setTimeout(() => chrome.action.setBadgeText({ tabId: tab.id, text: '' }), 5000);
+            return;
+        }
 
         // [#125] MUSEUM LABEL UI - Parse response and show structured result
         const httpStatus = response.status;

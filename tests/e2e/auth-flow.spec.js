@@ -100,10 +100,13 @@ test.describe('E2E Auth Flow (#403)', () => {
     });
 
     test('030: getAuthHeaders includes Authorization when JWT present', async ({ serviceWorker }) => {
-        // Store JWT in session storage
+        // Store JWT in session storage. jwtExpiresAt accompanies it (#814):
+        // without it the credential's freshness is unknowable and the worker
+        // would fall through to a renewal attempt.
         await serviceWorker.evaluate(async () => {
             await chrome.storage.session.set({
-                jwt: 'mock-jwt-for-testing'
+                jwt: 'mock-jwt-for-testing',
+                jwtExpiresAt: Date.now() + (24 * 3600 * 1000)
             });
         });
 
@@ -120,22 +123,61 @@ test.describe('E2E Auth Flow (#403)', () => {
         expect(headers['Authorization']).toBe('Bearer mock-jwt-for-testing');
     });
 
-    test('040: getAuthHeaders omits Authorization when no JWT', async ({ serviceWorker }) => {
-        // Clear JWT from session storage
+    test('040: getAuthHeaders returns null when no credential can be obtained', async ({ serviceWorker }) => {
+        // Issue #814. This previously asserted that headers were still returned
+        // with no Authorization key — i.e. that the worker would dispatch a
+        // request it knew would 401, then surface that as a terminal
+        // "Sign In Required". That was the defect, so the contract is inverted:
+        // with nothing to authenticate with, no request may be dispatched.
         await serviceWorker.evaluate(async () => {
-            await chrome.storage.session.remove(['jwt']);
+            await chrome.storage.session.remove(['jwt', 'jwtExpiresAt']);
+            await chrome.storage.local.remove(['aletheiaRefreshToken']);
         });
 
-        // Call getAuthHeaders() — should have no Authorization key
         const headers = await serviceWorker.evaluate(async () => {
             // eslint-disable-next-line no-undef
             return await getAuthHeaders();
         });
 
-        expect(headers).toBeTruthy();
-        expect(headers['Content-Type']).toBe('application/json');
-        expect(headers['X-Aletheia-Client-Version']).toBe('1.0');
-        expect(headers['Authorization']).toBeUndefined();
+        expect(headers).toBeNull();
+    });
+
+    test('045: getAuthHeaders renews silently when a refresh token is stored', async ({ serviceWorker }) => {
+        // Issue #812/#814: the state after a browser restart — session storage
+        // emptied, refresh token persisted. The user must not be asked to do
+        // anything; the worker renews on its own.
+        const result = await serviceWorker.evaluate(async () => {
+            await chrome.storage.session.remove(['jwt', 'jwtExpiresAt']);
+            await chrome.storage.local.set({ aletheiaRefreshToken: 'e2e-refresh-token' });
+
+            const realFetch = globalThis.fetch;
+            let refreshBody = null;
+            globalThis.fetch = async (url, init) => {
+                if (String(url).includes('/auth/refresh')) {
+                    refreshBody = JSON.parse(init.body);
+                    return {
+                        ok: true,
+                        status: 200,
+                        json: async () => ({ jwt: 'renewed-e2e-jwt', expiresIn: 86400 })
+                    };
+                }
+                return realFetch(url, init);
+            };
+
+            try {
+                // eslint-disable-next-line no-undef
+                const headers = await getAuthHeaders();
+                return { headers, refreshBody };
+            } finally {
+                globalThis.fetch = realFetch;
+                await chrome.storage.local.remove(['aletheiaRefreshToken']);
+            }
+        });
+
+        expect(result.headers).toBeTruthy();
+        expect(result.headers['Authorization']).toBe('Bearer renewed-e2e-jwt');
+        // The Aletheia token is what renews; LinkedIn cannot refresh these scopes.
+        expect(result.refreshBody).toHaveProperty('aletheiaRefreshToken', 'e2e-refresh-token');
     });
 
     test('050: mockLogin stores JWT via popup page', async ({ context, extensionId }) => {

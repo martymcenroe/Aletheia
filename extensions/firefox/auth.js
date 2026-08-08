@@ -50,33 +50,65 @@ function generateState() {
 }
 
 // =============================================================================
+// SESSION LIFETIME (Issues #811, #812, #814)
+// =============================================================================
+
+// Server mints JWTs with a 24h life. Mirrored here only to schedule renewal;
+// the server's `expiresIn` is preferred whenever the response carries one.
+const JWT_LIFETIME_SECONDS = 24 * 3600;
+
+// Renew this far ahead of expiry so an in-flight request cannot race the
+// boundary and arrive just after the token dies.
+const JWT_RENEWAL_BUFFER_MS = 5 * 60 * 1000;
+
+// Shared across concurrent callers so a cold start issues one renewal, not N.
+let _inFlightRenewal = null;
+
+// =============================================================================
 // TOKEN STORAGE (Hierarchy per LLD Section 6.3)
 // =============================================================================
 
 /**
  * Store tokens with proper security hierarchy.
- * - Access token: session storage (cleared on browser close)
- * - Refresh token + user info: local storage (persists)
+ *
+ * Issue #812: the Aletheia refresh token goes to LOCAL storage so the session
+ * survives a browser restart. Previously the only credential the API accepts
+ * (the JWT) lived solely in session storage, which the browser clears on close,
+ * while the identity fields in local storage persisted forever — so a restart
+ * destroyed the credential and left every field the popup inspects intact.
+ *
+ * The JWT itself may stay in session storage: it is short-lived and, with the
+ * refresh token persisted, a cold start simply re-mints it.
  *
  * @param {string} accessToken
- * @param {string} refreshToken
- * @param {number} expiresIn - Seconds until access token expires
+ * @param {string} refreshToken - LinkedIn's; effectively always null for the
+ *   'openid profile' scopes. Retained only so stored shape is unchanged.
+ * @param {number} expiresIn - Seconds until the LinkedIn access token expires
  * @param {object} user - User info {id, name}
+ * @param {string} jwt - The credential the analysis API accepts
+ * @param {string} aletheiaRefreshToken - Renews the JWT indefinitely (#811)
  */
-async function storeTokens(accessToken, refreshToken, expiresIn, user, jwt) {
-    // Access token + JWT - session only (memory, cleared on browser close)
+async function storeTokens(accessToken, refreshToken, expiresIn, user, jwt, aletheiaRefreshToken) {
     await browser.storage.session.set({
         accessToken,
         expiresAt: Date.now() + (expiresIn * 1000),
-        jwt: jwt || null
+        jwt: jwt || null,
+        jwtExpiresAt: jwt ? Date.now() + (JWT_LIFETIME_SECONDS * 1000) : 0
     });
 
-    // Refresh token + profile - local persistence
-    await browser.storage.local.set({
+    const localData = {
         refreshToken,
         userId: user.id,
         displayName: user.name
-    });
+    };
+
+    // Only overwrite a stored refresh token when a new one was actually issued,
+    // so a re-login that omits it cannot silently strip renewal ability.
+    if (aletheiaRefreshToken) {
+        localData.aletheiaRefreshToken = aletheiaRefreshToken;
+    }
+
+    await browser.storage.local.set(localData);
 
     console.log('[Aletheia Auth] Tokens stored successfully');
 }
@@ -85,14 +117,18 @@ async function storeTokens(accessToken, refreshToken, expiresIn, user, jwt) {
  * Clear all auth data (logout).
  */
 async function clearTokens() {
-    await browser.storage.session.remove(['accessToken', 'expiresAt', 'jwt']);
-    await browser.storage.local.remove(['refreshToken', 'userId', 'displayName']);
+    _inFlightRenewal = null;
+    await browser.storage.session.remove(['accessToken', 'expiresAt', 'jwt', 'jwtExpiresAt']);
+    await browser.storage.local.remove([
+        'refreshToken', 'userId', 'displayName', 'aletheiaRefreshToken'
+    ]);
     console.log('[Aletheia Auth] Tokens cleared');
 }
 
 /**
- * Get JWT from session storage.
- * @returns {Promise<string | null>} JWT or null if not authenticated
+ * Get the cached JWT without attempting renewal.
+ * Prefer getValidJwt() on any request path.
+ * @returns {Promise<string | null>}
  */
 async function getJwt() {
     const session = await browser.storage.session.get(['jwt']);
@@ -100,20 +136,52 @@ async function getJwt() {
 }
 
 /**
- * Get current auth state (user info if logged in).
+ * Get a usable JWT, renewing silently when the cached one is missing or stale.
+ *
+ * Issue #814. This is the only accessor a request path should use. Callers must
+ * treat null as "cannot authenticate" and NOT dispatch the request anyway.
+ *
+ * @returns {Promise<string | null>} A live JWT, or null if renewal is impossible
+ */
+async function getValidJwt() {
+    const session = await browser.storage.session.get(['jwt', 'jwtExpiresAt']);
+
+    // Renew slightly early so a request cannot race the expiry boundary.
+    const stillFresh = session.jwt &&
+        session.jwtExpiresAt &&
+        Date.now() < (session.jwtExpiresAt - JWT_RENEWAL_BUFFER_MS);
+
+    if (stillFresh) {
+        return session.jwt;
+    }
+
+    const renewed = await renewJwt();
+    if (renewed) return renewed;
+
+    // Legacy session from a build predating jwtExpiresAt (#812): renewal is
+    // impossible because no refresh token was ever issued, but the cached JWT
+    // may still be valid. Use it and let the 401 path decide, rather than
+    // forcing a sign-in we cannot prove is needed.
+    return session.jwt || null;
+}
+
+/**
+ * Get current auth state.
+ *
+ * Issue #813: previously this reported a user as signed in whenever `userId`
+ * was present. `userId` never expires and has no relationship to whether any
+ * request can succeed, so the popup claimed an active session indefinitely
+ * while every request failed. Authentication now means "a credential is
+ * obtainable" — a stored refresh token — not merely "a name is remembered".
+ *
  * @returns {Promise<{userId: string, displayName: string} | null>}
  */
 async function getAuthState() {
-    const local = await browser.storage.local.get(['userId', 'displayName', 'refreshToken']);
-    console.log('[Aletheia Auth] getAuthState storage:', {
-        hasUserId: !!local.userId,
-        hasDisplayName: !!local.displayName,
-        hasRefreshToken: !!local.refreshToken
-    });
+    const local = await browser.storage.local.get([
+        'userId', 'displayName', 'aletheiaRefreshToken'
+    ]);
 
-    // Note: refreshToken may be null if LinkedIn hasn't approved refresh token access
-    // We only require userId to consider the user authenticated
-    if (local.userId) {
+    if (local.userId && local.aletheiaRefreshToken) {
         return {
             userId: local.userId,
             displayName: local.displayName || 'User'
@@ -124,8 +192,7 @@ async function getAuthState() {
 }
 
 /**
- * Check if user is authenticated (has userId stored).
- * Note: We don't require refresh token as LinkedIn may not provide one.
+ * Whether a usable session exists (identity present AND renewable).
  * @returns {Promise<boolean>}
  */
 async function isAuthenticated() {
@@ -134,68 +201,85 @@ async function isAuthenticated() {
 }
 
 /**
- * Get valid access token, refreshing if needed (lazy refresh).
- * @returns {Promise<string | null>} Access token or null if not authenticated
+ * Whether identity is remembered but the session can no longer be renewed.
+ * Lets the UI say "signed out" honestly instead of claiming an active session.
+ * @returns {Promise<boolean>}
  */
-async function getAccessToken() {
-    const session = await browser.storage.session.get(['accessToken', 'expiresAt']);
-
-    // Check if token exists and is not expired (with 60s buffer)
-    if (session.accessToken && Date.now() < (session.expiresAt - 60000)) {
-        return session.accessToken;
-    }
-
-    // Token expired or missing - try to refresh
-    console.log('[Aletheia Auth] Access token expired, attempting refresh...');
-    return await refreshTokens();
+async function isSessionUnrecoverable() {
+    const local = await browser.storage.local.get(['userId', 'aletheiaRefreshToken']);
+    return Boolean(local.userId) && !local.aletheiaRefreshToken;
 }
 
 // =============================================================================
-// TOKEN REFRESH
+// TOKEN REFRESH (Issue #811 / #814)
 // =============================================================================
 
 /**
- * Refresh access token using stored refresh token.
- * @returns {Promise<string | null>} New access token or null if refresh fails
+ * Renew the JWT from the persisted Aletheia refresh token.
+ *
+ * Concurrent callers share one in-flight request: several extension contexts
+ * can hit this simultaneously on a cold start, and firing N parallel renewals
+ * would multiply load on the auth Lambda for no benefit.
+ *
+ * @returns {Promise<string | null>} A fresh JWT, or null if renewal failed
  */
-async function refreshTokens() {
-    const local = await browser.storage.local.get(['refreshToken']);
-
-    if (!local.refreshToken) {
-        console.log('[Aletheia Auth] No refresh token available');
-        return null;
+async function renewJwt() {
+    if (_inFlightRenewal) {
+        return await _inFlightRenewal;
     }
 
-    try {
-        const response = await fetch(`${AUTH_CONFIG.LAMBDA_AUTH_URL}/auth/refresh`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshToken: local.refreshToken })
-        });
+    _inFlightRenewal = (async () => {
+        const local = await browser.storage.local.get(['aletheiaRefreshToken']);
 
-        if (!response.ok) {
-            console.error('[Aletheia Auth] Token refresh failed:', response.status);
-            // Clear tokens on 401 (refresh token invalid)
-            if (response.status === 401) {
-                await clearTokens();
-            }
+        if (!local.aletheiaRefreshToken) {
+            console.log('[Aletheia Auth] No refresh token; sign-in required');
             return null;
         }
 
-        const data = await response.json();
+        try {
+            const response = await fetch(`${AUTH_CONFIG.LAMBDA_AUTH_URL}/auth/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ aletheiaRefreshToken: local.aletheiaRefreshToken })
+            });
 
-        // Store new access token
-        await browser.storage.session.set({
-            accessToken: data.accessToken,
-            expiresAt: Date.now() + (data.expiresIn * 1000)
-        });
+            if (!response.ok) {
+                console.error('[Aletheia Auth] JWT renewal failed:', response.status);
+                // 401 means the refresh token is revoked or expired: renewal can
+                // never succeed again, so drop it and require a real sign-in.
+                // Any other status (5xx, offline) is transient — keep the token.
+                if (response.status === 401) {
+                    await browser.storage.local.remove(['aletheiaRefreshToken']);
+                }
+                return null;
+            }
 
-        console.log('[Aletheia Auth] Token refreshed successfully');
-        return data.accessToken;
+            const data = await response.json();
+            if (!data.jwt) {
+                console.error('[Aletheia Auth] Renewal response carried no JWT');
+                return null;
+            }
 
-    } catch (error) {
-        console.error('[Aletheia Auth] Token refresh error:', error);
-        return null;
+            const lifetimeSeconds = data.expiresIn || JWT_LIFETIME_SECONDS;
+            await browser.storage.session.set({
+                jwt: data.jwt,
+                jwtExpiresAt: Date.now() + (lifetimeSeconds * 1000)
+            });
+
+            console.log('[Aletheia Auth] JWT renewed silently');
+            return data.jwt;
+
+        } catch (error) {
+            // Network failure is transient. Do not discard the refresh token.
+            console.error('[Aletheia Auth] JWT renewal error:', error.name);
+            return null;
+        }
+    })();
+
+    try {
+        return await _inFlightRenewal;
+    } finally {
+        _inFlightRenewal = null;
     }
 }
 
@@ -215,6 +299,7 @@ async function mockLogin() {
         refreshToken: 'mock-refresh-token-67890',
         expiresIn: 3600,
         jwt: 'mock-jwt-for-testing',
+        aletheiaRefreshToken: 'mock-aletheia-refresh-token',
         user: {
             id: 'mock-sub-782bbtaQ',  // Mimics OIDC 'sub' format
             name: 'Test User'
@@ -226,7 +311,8 @@ async function mockLogin() {
         mockUser.refreshToken,
         mockUser.expiresIn,
         mockUser.user,
-        mockUser.jwt
+        mockUser.jwt,
+        mockUser.aletheiaRefreshToken
     );
 
     return mockUser.user;
@@ -329,9 +415,11 @@ window.AletheiaAuth = {
     mockLogin,
     logout,
     isAuthenticated,
+    isSessionUnrecoverable,
     getAuthState,
-    getAccessToken,
+    getValidJwt,
     getJwt,
+    renewJwt,
     clearTokens,
     // Exposed for testing
     generateState,

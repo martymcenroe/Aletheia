@@ -155,7 +155,9 @@ describe('CSRF State Generation', () => {
     expect(auth.logout).toBeTypeOf('function');
     expect(auth.isAuthenticated).toBeTypeOf('function');
     expect(auth.getAuthState).toBeTypeOf('function');
-    expect(auth.getAccessToken).toBeTypeOf('function');
+    expect(auth.getValidJwt).toBeTypeOf('function');
+    expect(auth.renewJwt).toBeTypeOf('function');
+    expect(auth.isSessionUnrecoverable).toBeTypeOf('function');
     expect(auth.clearTokens).toBeTypeOf('function');
   });
 
@@ -408,10 +410,22 @@ describe('Authentication State', () => {
       }
     });
 
-    it('getAccessToken returns token when valid', async () => {
+    it('getValidJwt returns the cached JWT while it is still fresh', async () => {
       if (global.window.AletheiaAuth) {
-        const token = await global.window.AletheiaAuth.getAccessToken();
-        expect(token).toBe('mock-access-token-12345');
+        const token = await global.window.AletheiaAuth.getValidJwt();
+        expect(token).toBe('mock-jwt-for-testing');
+      }
+    });
+
+    it('getValidJwt does not hit the network when the JWT is fresh', async () => {
+      // Issue #814: a fresh credential must not trigger a renewal round-trip.
+      if (global.window.AletheiaAuth) {
+        global.fetch.mockClear();
+        await global.window.AletheiaAuth.getValidJwt();
+        const refreshCalls = global.fetch.mock.calls.filter(c =>
+          String(c[0]).includes('/auth/refresh')
+        );
+        expect(refreshCalls).toHaveLength(0);
       }
     });
   });
@@ -543,60 +557,68 @@ describe('Token Refresh', () => {
     cleanupEnvironment();
   });
 
-  it('getAccessToken returns null when no refresh token', async () => {
+  it('getValidJwt returns null when nothing can be renewed', async () => {
     const { chromeMock } = env;
 
-    // Remove tokens
+    // No JWT, no refresh token: renewal is impossible and the caller must be
+    // told so rather than handed a credential-less request (#814).
     chromeMock.__setLocalStorageData({ allowlist: [] });
     chromeMock.__setSessionStorageData({});
 
     if (global.window.AletheiaAuth) {
-      const token = await global.window.AletheiaAuth.getAccessToken();
+      const token = await global.window.AletheiaAuth.getValidJwt();
       expect(token).toBeNull();
     }
   });
 
-  it('returns cached token when not expired', async () => {
+  it('returns the cached JWT when not expired', async () => {
     const { chromeMock } = env;
 
-    // Set valid token
     chromeMock.__setSessionStorageData({
-      accessToken: 'cached-token',
-      expiresAt: Date.now() + 3600000 // 1 hour from now
+      jwt: 'cached-jwt',
+      jwtExpiresAt: Date.now() + 3600000 // 1 hour from now
     });
 
     if (global.window.AletheiaAuth) {
-      const token = await global.window.AletheiaAuth.getAccessToken();
-      expect(token).toBe('cached-token');
+      const token = await global.window.AletheiaAuth.getValidJwt();
+      expect(token).toBe('cached-jwt');
     }
   });
 
-  it('attempts refresh when token is expired', async () => {
+  it('renews silently when the JWT is expired', async () => {
     const { chromeMock } = env;
 
-    // Set expired token but valid refresh token
     chromeMock.__setSessionStorageData({
-      accessToken: 'expired-token',
-      expiresAt: Date.now() - 1000 // Expired
+      jwt: 'expired-jwt',
+      jwtExpiresAt: Date.now() - 1000 // Expired
+    });
+    chromeMock.__setLocalStorageData({
+      allowlist: [],
+      aletheiaRefreshToken: 'mock-aletheia-refresh-token'
     });
 
-    // Mock refresh endpoint
+    // Issue #811: /auth/refresh returns a JWT, not a LinkedIn access token.
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
-        accessToken: 'new-access-token',
-        expiresIn: 3600
+        jwt: 'renewed-jwt',
+        expiresIn: 86400
       })
     });
 
     if (global.window.AletheiaAuth) {
-      const _token = await global.window.AletheiaAuth.getAccessToken();
+      const token = await global.window.AletheiaAuth.getValidJwt();
 
-      // Should have called refresh endpoint
       const refreshCall = global.fetch.mock.calls.find(call =>
-        call[0].includes('/auth/refresh')
+        String(call[0]).includes('/auth/refresh')
       );
       expect(refreshCall).toBeDefined();
+
+      // The renewal must send the Aletheia token, not LinkedIn's.
+      expect(JSON.parse(refreshCall[1].body)).toHaveProperty('aletheiaRefreshToken');
+
+      // And the caller must receive the renewed credential, silently.
+      expect(token).toBe('renewed-jwt');
     }
   });
 });
