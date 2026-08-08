@@ -584,12 +584,16 @@ async function handleFullPageClick() {
     };
 
     // Send to Lambda (Issue #402: include JWT if authenticated)
-    const jwt = await window.AletheiaAuth.getJwt();
+    // Issue #814: renew silently rather than dispatch a request known to 401.
+    const jwt = await window.AletheiaAuth.getValidJwt();
+    if (!jwt) {
+      throw new Error('Please sign in with LinkedIn to use Aletheia.');
+    }
     const fullPageHeaders = {
       'Content-Type': 'application/json',
-      'X-Aletheia-Client-Version': CLIENT_VERSION
+      'X-Aletheia-Client-Version': CLIENT_VERSION,
+      'Authorization': `Bearer ${jwt}`
     };
-    if (jwt) fullPageHeaders['Authorization'] = `Bearer ${jwt}`;
 
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
@@ -697,7 +701,7 @@ async function handleCouponSubmit() {
 
   try {
     // Get JWT from session storage (Issue #402)
-    const jwt = await window.AletheiaAuth.getJwt();
+    const jwt = await window.AletheiaAuth.getValidJwt();
     if (!jwt) {
       showCouponStatus('Please sign in first', 'error');
       return;
@@ -774,7 +778,7 @@ async function checkSubscriptionStatus() {
 
   try {
     const authState = await window.AletheiaAuth.getAuthState();
-    const jwt = await window.AletheiaAuth.getJwt();
+    const jwt = await window.AletheiaAuth.getValidJwt();
     if (!authState || !jwt) return;
 
     const response = await fetch(SUBSCRIPTION_STATUS_URL, {
@@ -825,7 +829,7 @@ async function handleUpgradeClick() {
 
   try {
     const authState = await window.AletheiaAuth.getAuthState();
-    const jwt = await window.AletheiaAuth.getJwt();
+    const jwt = await window.AletheiaAuth.getValidJwt();
     if (!authState || !jwt) {
       upgradeButton.textContent = 'Please sign in first';
       return;

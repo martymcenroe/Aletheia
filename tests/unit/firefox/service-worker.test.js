@@ -347,8 +347,17 @@ describe('Context Menu Click Handler (Firefox)', () => {
   it('handles explain-with-ai menu click', async () => {
     const { browserMock } = env;
 
-    // Set up allowlist
-    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    // Issue #814: a request path now requires a renewable session. Without one
+    // the worker deliberately dispatches nothing, so these tests must model a
+    // signed-in user rather than relying on the old fire-anyway behavior.
+    browserMock.__setLocalStorageData({
+      allowlist: ['example.com'],
+      aletheiaRefreshToken: 'mock-aletheia-refresh-token'
+    });
+    browserMock.__setSessionStorageData({
+      jwt: 'mock-jwt-for-testing',
+      jwtExpiresAt: Date.now() + (24 * 3600 * 1000)
+    });
 
     // Set up script injection results
     browserMock.__setScriptInjectionResults([{
@@ -430,8 +439,17 @@ describe('Badge State (Firefox)', () => {
   it('sets success badge on successful API response', async () => {
     const { browserMock } = env;
 
-    // Set up allowlist
-    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    // Issue #814: a request path now requires a renewable session. Without one
+    // the worker deliberately dispatches nothing, so these tests must model a
+    // signed-in user rather than relying on the old fire-anyway behavior.
+    browserMock.__setLocalStorageData({
+      allowlist: ['example.com'],
+      aletheiaRefreshToken: 'mock-aletheia-refresh-token'
+    });
+    browserMock.__setSessionStorageData({
+      jwt: 'mock-jwt-for-testing',
+      jwtExpiresAt: Date.now() + (24 * 3600 * 1000)
+    });
 
     // Set up successful response
     global.fetch = vi.fn().mockResolvedValue({
@@ -482,8 +500,17 @@ describe('API Integration (Firefox)', () => {
   it('includes X-Aletheia-Client-Version header in API requests', async () => {
     const { browserMock } = env;
 
-    // Set up allowlist
-    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    // Issue #814: a request path now requires a renewable session. Without one
+    // the worker deliberately dispatches nothing, so these tests must model a
+    // signed-in user rather than relying on the old fire-anyway behavior.
+    browserMock.__setLocalStorageData({
+      allowlist: ['example.com'],
+      aletheiaRefreshToken: 'mock-aletheia-refresh-token'
+    });
+    browserMock.__setSessionStorageData({
+      jwt: 'mock-jwt-for-testing',
+      jwtExpiresAt: Date.now() + (24 * 3600 * 1000)
+    });
 
     // Set up script injection
     browserMock.__setScriptInjectionResults([
@@ -502,19 +529,53 @@ describe('API Integration (Firefox)', () => {
     browserMock.__triggerContextMenuClick(info, tab);
     await new Promise(resolve => setTimeout(resolve, 150));
 
-    // Check fetch was called with version header
+    // Assert unconditionally. This was previously wrapped in `if (fetchCall)`,
+    // which made it pass silently whenever no request was dispatched at all.
     const fetchCall = global.fetch.mock.calls[0];
-    if (fetchCall) {
-      const headers = fetchCall[1]?.headers;
-      expect(headers['X-Aletheia-Client-Version']).toBeDefined();
-    }
+    expect(fetchCall).toBeDefined();
+    expect(fetchCall[1].headers['X-Aletheia-Client-Version']).toBeDefined();
+    expect(fetchCall[1].headers['Authorization']).toBe('Bearer mock-jwt-for-testing');
+  });
+
+  it('dispatches NO request when no credential can be obtained', async () => {
+    const { browserMock } = env;
+
+    // Issue #814: previously the worker sent the request with no Authorization
+    // header, guaranteeing a 401, and surfaced that as a terminal
+    // "Sign In Required" — turning a recoverable state into a dead end.
+    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    browserMock.__setSessionStorageData({});
+    browserMock.__setScriptInjectionResults([
+      { result: { isRestricted: false, noarchive: false } },
+      { result: 'page body text' }
+    ]);
+
+    browserMock.__triggerContextMenuClick(
+      { menuItemId: 'explain-with-ai', selectionText: 'test', pageUrl: 'https://example.com' },
+      { id: 1, url: 'https://example.com', title: 'Test' }
+    );
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    const apiCalls = global.fetch.mock.calls.filter(c =>
+      !String(c[0]).includes('/auth/refresh')
+    );
+    expect(apiCalls).toHaveLength(0);
   });
 
   it('sends noarchive signal in payload when present', async () => {
     const { browserMock } = env;
 
-    // Set up allowlist
-    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    // Issue #814: a request path now requires a renewable session. Without one
+    // the worker deliberately dispatches nothing, so these tests must model a
+    // signed-in user rather than relying on the old fire-anyway behavior.
+    browserMock.__setLocalStorageData({
+      allowlist: ['example.com'],
+      aletheiaRefreshToken: 'mock-aletheia-refresh-token'
+    });
+    browserMock.__setSessionStorageData({
+      jwt: 'mock-jwt-for-testing',
+      jwtExpiresAt: Date.now() + (24 * 3600 * 1000)
+    });
 
     // Set up script injection with noarchive signal
     browserMock.__setScriptInjectionResults([
@@ -577,8 +638,17 @@ describe('Error Handling (Firefox)', () => {
   it('handles API fetch errors gracefully', async () => {
     const { browserMock } = env;
 
-    // Set up allowlist
-    browserMock.__setLocalStorageData({ allowlist: ['example.com'] });
+    // Issue #814: a request path now requires a renewable session. Without one
+    // the worker deliberately dispatches nothing, so these tests must model a
+    // signed-in user rather than relying on the old fire-anyway behavior.
+    browserMock.__setLocalStorageData({
+      allowlist: ['example.com'],
+      aletheiaRefreshToken: 'mock-aletheia-refresh-token'
+    });
+    browserMock.__setSessionStorageData({
+      jwt: 'mock-jwt-for-testing',
+      jwtExpiresAt: Date.now() + (24 * 3600 * 1000)
+    });
 
     // Mock network error
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
