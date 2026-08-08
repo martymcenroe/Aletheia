@@ -25,6 +25,7 @@ TABLE_NAME="${APP_NAME}AgentState"
 USERS_TABLE="aletheia-users"
 TOKEN_CAP_TABLE="aletheia-token-cap"
 COUPONS_TABLE="aletheia-coupons"
+REFRESH_TOKENS_TABLE="aletheia-refresh-tokens"
 ROLE_NAME="${APP_NAME}LambdaRole"
 FUNC_NAME="${APP_NAME}Agent"
 AUTH_FUNC_NAME="${APP_NAME}Auth"
@@ -186,6 +187,45 @@ else
 fi
 
 # =============================================================================
+# Issue #811: Refresh-token table — Aletheia-issued, long-lived, revocable.
+# Stores only the SHA-256 hash of each token, so a read of this table yields
+# nothing usable. The `ttl` attribute is storage cleanup only; expiry is also
+# enforced in code, because DynamoDB TTL deletion can lag by up to 48 hours.
+# =============================================================================
+echo ""
+echo "Checking DynamoDB Refresh Tokens Table..."
+if ! aws dynamodb describe-table --table-name "$REFRESH_TOKENS_TABLE" --region "$REGION" >/dev/null 2>&1; then
+    echo "Creating refresh tokens table: $REFRESH_TOKENS_TABLE"
+    aws dynamodb create-table \
+        --table-name "$REFRESH_TOKENS_TABLE" \
+        --attribute-definitions AttributeName=token_hash,AttributeType=S \
+        --key-schema AttributeName=token_hash,KeyType=HASH \
+        --billing-mode PAY_PER_REQUEST \
+        --region "$REGION"
+    aws dynamodb wait table-exists --table-name "$REFRESH_TOKENS_TABLE" --region "$REGION"
+    echo -e "${GREEN}Created refresh tokens table: $REFRESH_TOKENS_TABLE${NC}"
+else
+    echo "Refresh tokens table already exists: $REFRESH_TOKENS_TABLE"
+fi
+
+REFRESH_TTL_STATUS=$(aws dynamodb describe-time-to-live \
+    --table-name "$REFRESH_TOKENS_TABLE" \
+    --region "$REGION" \
+    --query 'TimeToLiveDescription.TimeToLiveStatus' \
+    --output text 2>/dev/null || echo "DISABLED")
+
+if [ "$REFRESH_TTL_STATUS" != "ENABLED" ]; then
+    echo "Enabling TTL on $REFRESH_TOKENS_TABLE..."
+    aws dynamodb update-time-to-live \
+        --table-name "$REFRESH_TOKENS_TABLE" \
+        --region "$REGION" \
+        --time-to-live-specification "Enabled=true,AttributeName=ttl"
+    echo -e "${GREEN}TTL enabled on $REFRESH_TOKENS_TABLE${NC}"
+else
+    echo "TTL already enabled on $REFRESH_TOKENS_TABLE"
+fi
+
+# =============================================================================
 # Step 3: DynamoDB Token Cap Table (Issue #341: JWT Auth + Daily Cap)
 # =============================================================================
 echo ""
@@ -312,7 +352,8 @@ aws iam put-role-policy \
                 "arn:aws:dynamodb:us-east-1:383687041805:table/'"$USERS_TABLE"'",
                 "arn:aws:dynamodb:us-east-1:383687041805:table/'"$USERS_TABLE"'/index/*",
                 "arn:aws:dynamodb:us-east-1:383687041805:table/'"$TOKEN_CAP_TABLE"'",
-                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$COUPONS_TABLE"'"
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$COUPONS_TABLE"'",
+                "arn:aws:dynamodb:us-east-1:383687041805:table/'"$REFRESH_TOKENS_TABLE"'"
             ]
         },
         {
@@ -550,7 +591,7 @@ if ! aws lambda get-function --function-name "$AUTH_FUNC_NAME" --region "$REGION
         --timeout 30 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID,STRIPE_SUCCESS_URL=${AUTH_LAMBDA_URL}upgrade-success,STRIPE_CANCEL_URL=${AUTH_LAMBDA_URL}upgrade-cancel,GITHUB_SECRET_NAME=$GITHUB_SECRET_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,REFRESH_TOKENS_TABLE=$REFRESH_TOKENS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID,STRIPE_SUCCESS_URL=${AUTH_LAMBDA_URL}upgrade-success,STRIPE_CANCEL_URL=${AUTH_LAMBDA_URL}upgrade-cancel,GITHUB_SECRET_NAME=$GITHUB_SECRET_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Auth Lambda (X-Ray enabled)${NC}"
@@ -568,7 +609,7 @@ else
         --function-name "$AUTH_FUNC_NAME" \
         --handler src.lambda_auth_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID,STRIPE_SUCCESS_URL=${AUTH_LAMBDA_URL}upgrade-success,STRIPE_CANCEL_URL=${AUTH_LAMBDA_URL}upgrade-cancel,GITHUB_SECRET_NAME=$GITHUB_SECRET_NAME}" \
+        --environment "Variables={USERS_TABLE=$USERS_TABLE,LINKEDIN_SECRET_NAME=$LINKEDIN_SECRET_NAME,AGENT_STATE_TABLE=$TABLE_NAME,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,COUPONS_TABLE=$COUPONS_TABLE,REFRESH_TOKENS_TABLE=$REFRESH_TOKENS_TABLE,STRIPE_SECRET_NAME=$STRIPE_SECRET_NAME,STRIPE_WEBHOOK_SECRET_NAME=$STRIPE_WEBHOOK_SECRET_NAME,STRIPE_PRICE_ID=$STRIPE_PRICE_ID,STRIPE_SUCCESS_URL=${AUTH_LAMBDA_URL}upgrade-success,STRIPE_CANCEL_URL=${AUTH_LAMBDA_URL}upgrade-cancel,GITHUB_SECRET_NAME=$GITHUB_SECRET_NAME}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 
