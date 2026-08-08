@@ -9,11 +9,13 @@ import json
 import os
 
 import boto3
+import jwt
 import pytest
 import responses
 from botocore.exceptions import ClientError
 from moto import mock_aws
 
+import src.auth.refresh_token_service as refresh_token_service
 import src.lambda_auth_function as auth_func
 
 # Constants for testing
@@ -68,6 +70,16 @@ def aws_env():
             TableName=auth_func.USERS_TABLE,
             KeySchema=[{"AttributeName": "user_id", "KeyType": "HASH"}],
             AttributeDefinitions=[{"AttributeName": "user_id", "AttributeType": "S"}],
+            BillingMode="PAY_PER_REQUEST"
+        )
+
+        # Refresh Tokens Table (Issue #811: Aletheia-issued session renewal)
+        dynamodb.create_table(
+            TableName=refresh_token_service.REFRESH_TOKENS_TABLE,
+            KeySchema=[{"AttributeName": "token_hash", "KeyType": "HASH"}],
+            AttributeDefinitions=[
+                {"AttributeName": "token_hash", "AttributeType": "S"}
+            ],
             BillingMode="PAY_PER_REQUEST"
         )
 
@@ -292,25 +304,43 @@ class TestHandlers:
         assert body["accessToken"] == TEST_TOKEN
         assert "jwt" in body
         assert body["user"]["id"] == TEST_USER_ID
+        # Issue #811: login must also issue an Aletheia refresh token, or the
+        # session cannot renew and dies 24h later.
+        assert body["aletheiaRefreshToken"]
 
     def test_handle_token_exchange_missing_args(self):
         result = auth_func.handle_token_exchange({})
         assert result["statusCode"] == 400
 
-    @responses.activate
     def test_handle_token_refresh(self, aws_env):
-        responses.add(
-            responses.POST, auth_func.LINKEDIN_TOKEN_URL,
-            json={"access_token": TEST_TOKEN, "expires_in": 3600}, status=200
-        )
-        responses.add(
-            responses.GET, auth_func.LINKEDIN_USERINFO_URL,
-            json={"sub": TEST_USER_ID, "name": TEST_USER_NAME}, status=200
-        )
+        """Issue #811: /auth/refresh mints a JWT from an Aletheia refresh token.
 
-        result = auth_func.handle_token_refresh({"refreshToken": "refresh123"})
+        This previously asserted the LinkedIn grant_type=refresh_token path,
+        which returned a LinkedIn access token and never a JWT. That path could
+        not work at all: the extension requests 'openid profile', for which
+        LinkedIn does not issue refresh tokens.
+        """
+        token = refresh_token_service.generate_refresh_token()
+        refresh_token_service.store_refresh_token(TEST_USER_ID, token)
+
+        result = auth_func.handle_token_refresh({"aletheiaRefreshToken": token})
+
         assert result["statusCode"] == 200
-        assert json.loads(result["body"])["accessToken"] == TEST_TOKEN
+        body = json.loads(result["body"])
+        assert "jwt" in body
+        # Verify against the same secret the handler signed with. The fixture
+        # stores a JSON blob and get_jwt_secret returns it verbatim, so the
+        # signing key is the whole string, not the "primary" field.
+        claims = jwt.decode(
+            body["jwt"], auth_func.get_jwt_secret(), algorithms=["HS256"]
+        )
+        assert claims["user_id"] == TEST_USER_ID
+
+    def test_handle_token_refresh_rejects_unknown_token(self, aws_env):
+        result = auth_func.handle_token_refresh(
+            {"aletheiaRefreshToken": "not-a-real-token"}
+        )
+        assert result["statusCode"] == 401
 
     @responses.activate
     def test_handle_validate_token_success(self, aws_env):

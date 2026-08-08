@@ -29,9 +29,19 @@ from botocore.exceptions import ClientError
 
 try:
     from .auth.jwt_service import create_jwt, get_jwt_secret
+    from .auth.refresh_token_service import (
+        generate_refresh_token,
+        store_refresh_token,
+        validate_refresh_token,
+    )
     from .auth.token_cap_service import check_and_increment_cap
 except ImportError:
     from auth.jwt_service import create_jwt, get_jwt_secret  # type: ignore[no-redef]
+    from auth.refresh_token_service import (  # type: ignore[no-redef]
+        generate_refresh_token,
+        store_refresh_token,
+        validate_refresh_token,
+    )
     from auth.token_cap_service import check_and_increment_cap  # type: ignore[no-redef]
 
 logger = logging.getLogger()
@@ -547,13 +557,31 @@ def handle_token_exchange(body: dict) -> dict:
                 "body": json.dumps({"error": "Internal server error"}),
             }
 
-        # 6. Return JWT + tokens and user info to extension
+        # 6. Issue an Aletheia refresh token so the session can renew silently
+        #    and indefinitely (Issue #811). LinkedIn is not involved again after
+        #    this point: its 'openid profile' scopes never return a refresh
+        #    token, so LinkedIn cannot support renewal at all.
+        try:
+            aletheia_refresh_token = generate_refresh_token()
+            store_refresh_token(user["user_id"], aletheia_refresh_token)
+        except Exception as e:
+            logger.error(
+                f"REFRESH_TOKEN_ISSUE_FAILED: {e.__class__.__name__}"
+            )
+            return {
+                "statusCode": 500,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({"error": "Internal server error"}),
+            }
+
+        # 7. Return JWT + tokens and user info to extension
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({
                 "accessToken": tokens["access_token"],
                 "refreshToken": tokens.get("refresh_token"),
+                "aletheiaRefreshToken": aletheia_refresh_token,
                 "expiresIn": tokens.get("expires_in", 3600),
                 "jwt": jwt_token,
                 "user": {
@@ -578,43 +606,72 @@ def handle_token_exchange(body: dict) -> dict:
 
 def handle_token_refresh(body: dict) -> dict:
     """
-    Handle POST /auth/refresh - Refresh access token.
+    Handle POST /auth/refresh - Mint a fresh JWT from an Aletheia refresh token.
 
-    Expected body: { "refreshToken": "..." }
+    Expected body: { "aletheiaRefreshToken": "..." }
+
+    Issue #811. This endpoint previously called LinkedIn's
+    ``grant_type=refresh_token`` and returned only a LinkedIn access token —
+    never a JWT, which is the sole credential the analysis API accepts. It
+    could not have worked regardless: the extension requests the
+    'openid profile' scopes, for which LinkedIn does not issue refresh tokens
+    at all. LinkedIn now proves identity once at login and is never called
+    again.
     """
-    refresh_token = body.get("refreshToken")
+    refresh_token = body.get("aletheiaRefreshToken")
 
     if not refresh_token:
         return {
             "statusCode": 400,
-            "body": json.dumps({"error": "Missing refreshToken"}),
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": "Missing aletheiaRefreshToken"}),
         }
 
     try:
-        # Refresh tokens
-        tokens = refresh_access_token(refresh_token)
+        # The stored user_id is authoritative. A client-supplied identifier is
+        # never consulted, so a valid token cannot mint a JWT for another user.
+        user_id = validate_refresh_token(refresh_token)
 
-        # Validate new token
-        user_info = get_linkedin_user_info(tokens["access_token"])
-        if user_info is None:
+        if user_id is None:
             return {
                 "statusCode": 401,
-                "body": json.dumps({"error": "Token validation failed"}),
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({
+                    "error": "Unauthorized",
+                    "reason": "invalid_refresh_token",
+                }),
             }
+
+        # Re-read tier on every refresh so an upgrade or downgrade takes effect
+        # without forcing a re-login, and so renewal never silently resets a
+        # paying user to the free tier.
+        jwt_secret = get_jwt_secret()
+        tier, billing_anchor_day = get_user_tier(user_id)
+        jwt_token = create_jwt(
+            user_id, jwt_secret, expiry_hours=24,
+            tier=tier, billing_anchor_day=billing_anchor_day,
+        )
+
+        logger.info(json.dumps({
+            "action": "jwt_refreshed",
+            "user_id": user_id,
+            "tier": tier,
+        }))
 
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({
-                "accessToken": tokens["access_token"],
-                "expiresIn": tokens.get("expires_in", 3600),
+                "jwt": jwt_token,
+                "expiresIn": 24 * 3600,
             }),
         }
 
-    except ValueError as e:
+    except ValueError:
         return {
             "statusCode": 401,
-            "body": json.dumps({"error": str(e)}),
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": "Unauthorized"}),
         }
     except Exception as e:
         logger.error(f"TOKEN_REFRESH_ERROR: {e.__class__.__name__}")
