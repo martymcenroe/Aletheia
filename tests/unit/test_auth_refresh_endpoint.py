@@ -106,7 +106,6 @@ def test_refresh_never_calls_linkedin():
         patch.object(auth_func, "validate_refresh_token", return_value=TEST_USER),
         patch.object(auth_func, "get_jwt_secret", return_value=TEST_SECRET),
         patch.object(auth_func, "get_user_tier", return_value=("free", 1)),
-        patch.object(auth_func, "refresh_access_token") as mock_linkedin_refresh,
         patch.object(auth_func, "get_linkedin_user_info") as mock_linkedin_info,
     ):
         response = auth_func.handle_token_refresh(
@@ -114,8 +113,18 @@ def test_refresh_never_calls_linkedin():
         )
 
     assert response["statusCode"] == 200
-    mock_linkedin_refresh.assert_not_called()
     mock_linkedin_info.assert_not_called()
+
+
+def test_linkedin_refresh_path_no_longer_exists():
+    """Issue #816: the dead LinkedIn refresh path is gone, not merely unwired.
+
+    It could never have worked — LinkedIn issues no refresh token for the
+    'openid profile' scopes the extension requests — and a plausible-looking
+    but non-functional auth path in the tree is what made the original session
+    defect hard to diagnose.
+    """
+    assert not hasattr(auth_func, "refresh_access_token")
 
 
 def test_refresh_response_carries_no_token_material():

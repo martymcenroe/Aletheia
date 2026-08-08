@@ -147,41 +147,6 @@ def exchange_code_for_tokens(code: str, redirect_uri: str) -> dict:
     return response.json()
 
 
-def refresh_access_token(refresh_token: str) -> dict:
-    """
-    Use refresh token to obtain new access token.
-
-    Args:
-        refresh_token: The refresh token from previous auth.
-
-    Returns:
-        Dict with new access_token and expires_in.
-
-    Raises:
-        ValueError: If refresh fails.
-    """
-    credentials = get_linkedin_credentials()
-
-    response = requests.post(
-        LINKEDIN_TOKEN_URL,
-        data={
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token,
-            "client_id": credentials["client_id"],
-            "client_secret": credentials["client_secret"],
-        },
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        timeout=10,
-    )
-
-    if response.status_code != 200:
-        # Privacy (#648): status code only, not response.text. See umbrella #637.
-        logger.error(f"TOKEN_REFRESH_FAILED: status={response.status_code}")
-        raise ValueError(f"Token refresh failed: {response.status_code}")
-
-    return response.json()
-
-
 def get_linkedin_user_info(access_token: str) -> dict | None:
     """
     Validate token and retrieve user info from LinkedIn.
@@ -336,9 +301,11 @@ def fetch_linkedin_profile(access_token: str) -> dict | None:
         return None
     else:
         # For server errors, raise so caller can return 502
-        logger.error(
-            f"LinkedIn API error: {response.status_code} - {response.text}"
-        )
+        # Privacy (#824): status code only, never response.text. A provider
+        # error body is untrusted third-party content that can carry user data,
+        # and CloudWatch retains it. Mirrors the repaired sibling call sites
+        # from #648; see umbrella #637.
+        logger.error(f"LINKEDIN_USERINFO_FAILED: status={response.status_code}")
         response.raise_for_status()
         return None  # pragma: no cover
 
