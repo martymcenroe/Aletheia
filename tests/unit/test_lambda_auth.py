@@ -566,24 +566,34 @@ class TestAuthLambdaExceptionTextDoesNotLeak:
         assert "status=400" in log_text
 
     @responses.activate
-    def test_token_refresh_failure_log_does_not_include_response_text(self, aws_env, caplog):
-        """Issue #648: OAuth refresh response.text must not be logged."""
+    def test_fetch_linkedin_profile_log_does_not_include_response_text(self, aws_env, caplog):
+        """Issue #824: LinkedIn's response body must not be logged.
+
+        Replaces the retired refresh_access_token canary (#816) — that call site
+        was removed as dead code. This one is live and was leaking: the #648
+        sweep fixed two of the three LinkedIn call sites and missed this one.
+
+        Note there are two near-duplicate userinfo callers with different error
+        handling (`get_linkedin_user_info` and `fetch_linkedin_profile`). Only
+        the latter logged the body, which is how a sweep targeting the obvious
+        name passed over it.
+        """
         import logging
 
         responses.add(
-            responses.POST,
-            auth_func.LINKEDIN_TOKEN_URL,
-            json={"error": self.CANARY},
-            status=401,
+            responses.GET,
+            auth_func.LINKEDIN_USERINFO_URL,
+            json={"error": self.CANARY, "error_description": self.CANARY},
+            status=500,
         )
         with caplog.at_level(logging.ERROR, logger="src.lambda_auth_function"):
-            with pytest.raises(ValueError):
-                auth_func.refresh_access_token("dummy_refresh")
+            with pytest.raises(Exception):
+                auth_func.fetch_linkedin_profile("dummy_access_token")
 
         log_text = "\n".join(r.getMessage() for r in caplog.records)
-        assert self.CANARY not in log_text
-        assert "TOKEN_REFRESH_FAILED" in log_text
-        assert "status=401" in log_text
+        assert self.CANARY not in log_text, f"LinkedIn response body leaked: {log_text!r}"
+        assert "LINKEDIN_USERINFO_FAILED" in log_text
+        assert "status=500" in log_text
 
     def test_redirect_uri_not_logged(self, caplog):
         """Issue #649: user-supplied redirect_uri must not appear in logs."""

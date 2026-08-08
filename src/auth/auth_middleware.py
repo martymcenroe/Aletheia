@@ -96,11 +96,52 @@ def log_auth_failure(user_id: str | None, reason: str, event: dict) -> None:
     logger.warning(json.dumps(log_entry))
 
 
-def _build_401_response(error_message: str) -> dict[str, Any]:
+# Issue #815: public 401 discriminators.
+#
+# Every 401 previously returned an identical opaque "Unauthorized", so a client
+# could not tell an expired credential (renewable — retry silently) from a
+# revoked one (renewal is futile — prompt for sign-in). It had to guess.
+#
+# These values are a FIXED enum and deliberately coarse: they name the class of
+# failure and nothing else. Token material, claims, user identifiers, and
+# exception text must never be added here.
+REASON_MISSING_TOKEN = "missing_token"
+REASON_EXPIRED_TOKEN = "expired_token"
+REASON_INVALID_TOKEN = "invalid_token"
+REASON_SERVER_ERROR = "server_error"
+
+# Maps the validator's internal reasons onto that public enum.
+_PUBLIC_REASONS = {
+    "missing_header": REASON_MISSING_TOKEN,
+    "invalid_format": REASON_MISSING_TOKEN,
+    "token_expired": REASON_EXPIRED_TOKEN,
+    "invalid_signature": REASON_INVALID_TOKEN,
+    "malformed": REASON_INVALID_TOKEN,
+    "invalid_token": REASON_INVALID_TOKEN,
+    # A missing signing secret is OUR failure, not a bad credential. It must not
+    # map to invalid_token: a client seeing that would discard a perfectly good
+    # session over a transient server problem.
+    "secret_unavailable": REASON_SERVER_ERROR,
+}
+
+
+def _public_reason(internal_reason: str | None) -> str:
+    """Map an internal validation reason to its public discriminator.
+
+    Unknown reasons collapse to ``invalid_token`` rather than being echoed, so a
+    future internal reason string can never leak through this boundary.
+    """
+    return _PUBLIC_REASONS.get(internal_reason or "", REASON_INVALID_TOKEN)
+
+
+def _build_401_response(
+    error_message: str, reason: str = REASON_INVALID_TOKEN
+) -> dict[str, Any]:
     """Build a 401 Unauthorized response.
 
     Args:
         error_message: Human-readable error message.
+        reason: Machine-readable discriminator from the fixed public enum.
 
     Returns:
         Lambda response dict with 401 status.
@@ -108,7 +149,7 @@ def _build_401_response(error_message: str) -> dict[str, Any]:
     return {
         "statusCode": 401,
         "headers": {"Content-Type": "application/json"},
-        "body": json.dumps({"error": error_message}),
+        "body": json.dumps({"error": error_message, "reason": reason}),
     }
 
 
@@ -269,14 +310,16 @@ def require_auth(handler: Callable) -> Callable:
                     reason = "invalid_format"
 
             log_auth_failure(None, reason, event)
-            return _build_401_response("Unauthorized")
+            return _build_401_response("Unauthorized", _public_reason(reason))
 
         # Step 2: Retrieve JWT secret (fail closed if unavailable)
         try:
             primary_secret = get_jwt_secret()
         except RuntimeError:
             log_auth_failure(None, "secret_unavailable", event)
-            return _build_401_response("Unauthorized")
+            return _build_401_response(
+                "Unauthorized", _public_reason("secret_unavailable")
+            )
 
         # Step 3: Validate JWT (with optional dual-secret rotation)
         secondary_secret = os.environ.get(_SECONDARY_SECRET_ENV)
@@ -292,7 +335,7 @@ def require_auth(handler: Callable) -> Callable:
         if not auth_result["success"]:
             reason = auth_result["reason"] or "unknown"
             log_auth_failure(auth_result.get("user_id"), reason, event)
-            return _build_401_response("Unauthorized")
+            return _build_401_response("Unauthorized", _public_reason(reason))
 
         # Step 5: Check rate limits (Issue #364)
         claims = auth_result.get("claims") or {}
