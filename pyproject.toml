@@ -30,7 +30,7 @@ pytest-benchmark = ">=5.1.0,<6.0.0"  # Issue #161: Performance benchmarks
 ruff = ">=0.16.1,<0.17.0"
 mypy = ">=2.3.0,<3.0.0"
 pre-commit = ">=4.6.1,<5.0.0"
-types-requests = ">=2.33.0.20260518,<3.0.0.0"
+types-requests = ">=2.33.0.20260712,<3.0.0.0"
 types-colorama = "^0.4.15.20260508"
 pyjwt = "^2.13.0"
 moto = "^5.2.2"
