@@ -606,7 +606,7 @@ def _analysis_handler(
             estimated_cost = tokens * 0.00000075
             emit_bedrock_cost_metric(estimated_cost)
     except Exception as e:
-        logger.warning(f"Response metric emission failed (non-fatal): {e}")
+        logger.warning(f"Response metric emission failed (non-fatal): {e.__class__.__name__}")
 
     return {
         "statusCode": 200,
@@ -641,7 +641,7 @@ def _metrics_handler(event: dict, context: Any) -> dict:
                 users_by_tier[tier] = users_by_tier.get(tier, 0) + 1
                 total_users += 1
         except Exception as e:
-            logger.warning(f"Failed to scan users table: {e}")
+            logger.warning(f"Failed to scan users table: {e.__class__.__name__}")
 
         # Count denials today
         denials_today = 0
@@ -659,7 +659,7 @@ def _metrics_handler(event: dict, context: Any) -> dict:
             )
             denials_today = scan_result.get("Count", 0)
         except Exception as e:
-            logger.warning(f"Failed to count denials: {e}")
+            logger.warning(f"Failed to count denials: {e.__class__.__name__}")
 
         return {
             "statusCode": 200,
@@ -671,7 +671,7 @@ def _metrics_handler(event: dict, context: Any) -> dict:
             }),
         }
     except Exception as e:
-        logger.error(f"Metrics handler error: {e}")
+        logger.error(f"Metrics handler error: {e.__class__.__name__}")
         return {"statusCode": 500, "body": json.dumps({"error": "Metrics unavailable"})}
 
 

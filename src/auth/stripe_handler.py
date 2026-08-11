@@ -177,7 +177,7 @@ def handle_create_checkout(event: dict, context: Any = None) -> dict:
         })
 
     except stripe.StripeError as e:
-        logger.error(f"Stripe checkout error: {e}")
+        logger.error(f"Stripe checkout error: {e.__class__.__name__}")
         return _build_response(500, {"error": "Failed to create checkout session"})
 
 
@@ -207,7 +207,7 @@ def handle_webhook(event: dict, context: Any = None) -> dict:
     try:
         webhook_secret = get_webhook_secret()
     except Exception as e:
-        logger.error(f"Failed to get webhook secret: {e}")
+        logger.error(f"Failed to get webhook secret: {e.__class__.__name__}")
         return _build_response(500, {"error": "Internal error"})
 
     # Validate signature
@@ -267,7 +267,7 @@ def handle_webhook(event: dict, context: Any = None) -> dict:
             }))
             return _build_response(200, {"status": "processed"})
         except Exception as e:
-            logger.error(f"Error processing {event_type}: {e}")
+            logger.error(f"Error processing {event_type}: {e.__class__.__name__}")
             return _build_response(500, {"error": "Processing failed"})
     else:
         # Unknown event type — acknowledge to prevent retries
@@ -302,7 +302,7 @@ def handle_subscription_status(event: dict, context: Any = None) -> dict:
             ProjectionExpression="tier, grace_period_end, stripe_customer_id",
         )
     except ClientError as e:
-        logger.error(f"DynamoDB error: {e}")
+        logger.error(f"DynamoDB error: {e.__class__.__name__}")
         return _build_response(500, {"error": "Internal error"})
 
     item = result.get("Item", {})
@@ -349,7 +349,7 @@ def _lookup_user_by_stripe_customer(customer_id: str) -> str | None:
         if items:
             return items[0]["user_id"]["S"]
     except ClientError as e:
-        logger.error(f"Customer lookup error: {e}")
+        logger.error(f"Customer lookup error: {e.__class__.__name__}")
     return None
 
 

@@ -88,7 +88,7 @@ def fetch_robots_txt(
         logger.warning(f"Timeout fetching robots.txt from {robots_url}")
         return None
     except requests.exceptions.RequestException as e:
-        logger.warning(f"Error fetching robots.txt: {e}")
+        logger.warning(f"Error fetching robots.txt: {e.__class__.__name__}")
         return None
 
 

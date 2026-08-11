@@ -103,7 +103,7 @@ def get_linkedin_credentials() -> dict:
             response = client.get_secret_value(SecretId=secret_name)
             _linkedin_credentials = json.loads(response["SecretString"])
         except ClientError as e:
-            logger.error(f"Failed to retrieve LinkedIn credentials: {e}")
+            logger.error(f"Failed to retrieve LinkedIn credentials: {e.__class__.__name__}")
             raise
     return _linkedin_credentials
 
@@ -361,7 +361,7 @@ def get_or_create_user(user_info: dict) -> dict:
                 "last_login": now,
             }
     except ClientError as e:
-        logger.error(f"DynamoDB get_item error: {e}")
+        logger.error(f"DynamoDB get_item error: {e.__class__.__name__}")
         raise
 
     # Create new user (Issue #498: store profile fields)
@@ -391,7 +391,7 @@ def get_or_create_user(user_info: dict) -> dict:
             "last_login": now,
         }
     except ClientError as e:
-        logger.error(f"DynamoDB put_item error: {e}")
+        logger.error(f"DynamoDB put_item error: {e.__class__.__name__}")
         raise
 
 
@@ -419,7 +419,7 @@ def get_user_tier(user_id: str) -> tuple[str, int]:
         billing_anchor_day = int(item.get("billing_anchor_day", {}).get("N", "1"))
         return tier, billing_anchor_day
     except (ClientError, KeyError, ValueError) as e:
-        logger.warning(f"Failed to get user tier for {user_id}: {e}")
+        logger.warning(f"Failed to get user tier for {user_id}: {e.__class__.__name__}")
         return "free", 1
 
 
@@ -517,7 +517,7 @@ def handle_token_exchange(body: dict) -> dict:
                 tier=tier, billing_anchor_day=billing_anchor_day,
             )
         except Exception as e:
-            logger.error(f"JWT generation failed: {e}")
+            logger.error(f"JWT generation failed: {e.__class__.__name__}")
             return {
                 "statusCode": 500,
                 "headers": {"Content-Type": "application/json"},
@@ -752,7 +752,7 @@ def _cancel_stripe_subscription(user_record: dict) -> bool:
         logger.info(f"GDPR erasure: cancelled Stripe subscription {sub_id}")
         return True
     except Exception as e:
-        logger.warning(f"GDPR erasure: Stripe cancellation failed for {sub_id}: {e}")
+        logger.warning(f"GDPR erasure: Stripe cancellation failed for {sub_id}: {e.__class__.__name__}")
         return False
 
 
@@ -801,7 +801,7 @@ def _remove_from_coupon_redeemed_by(client, user_id: str) -> int:
             )
             updated += 1
     except ClientError as e:
-        logger.warning(f"GDPR erasure: coupon cleanup failed: {e}")
+        logger.warning(f"GDPR erasure: coupon cleanup failed: {e.__class__.__name__}")
 
     return updated
 
@@ -836,7 +836,7 @@ def _delete_rate_limit_records(client, user_id: str) -> int:
             )
             deleted += 1
     except ClientError as e:
-        logger.warning(f"GDPR erasure: rate limit cleanup failed: {e}")
+        logger.warning(f"GDPR erasure: rate limit cleanup failed: {e.__class__.__name__}")
 
     return deleted
 
@@ -994,7 +994,7 @@ def handle_delete_my_data(headers: dict) -> dict:
         }
 
     except ClientError as e:
-        logger.error(f"GDPR deletion error for user {user_id}: {e}")
+        logger.error(f"GDPR deletion error for user {user_id}: {e.__class__.__name__}")
         return {
             "statusCode": 500,
             "body": json.dumps({"error": "Deletion failed - please try again"}),

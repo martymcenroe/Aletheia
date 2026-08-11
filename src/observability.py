@@ -121,7 +121,7 @@ def trace_bedrock_call(
 
     except Exception as e:
         # Tracing should never break the main flow
-        logger.debug(f"X-Ray annotation failed (non-fatal): {e}")
+        logger.debug(f"X-Ray annotation failed (non-fatal): {e.__class__.__name__}")
 
 
 def create_subsegment(name: str) -> Any:
@@ -200,7 +200,7 @@ def log_bedrock_metrics(
 
     except Exception as e:
         # Metrics logging should never break the main flow
-        logger.warning(f"Failed to log CloudWatch metrics (non-fatal): {e}")
+        logger.warning(f"Failed to log CloudWatch metrics (non-fatal): {e.__class__.__name__}")
 
 
 # --------------------------------------------------------------------------- #
@@ -275,7 +275,7 @@ def emit_request_metric(tier: str) -> None:
         )
         _emit_emf_log(payload)
     except Exception as e:
-        logger.warning(f"Metric emission failed (non-fatal): {e}")
+        logger.warning(f"Metric emission failed (non-fatal): {e.__class__.__name__}")
 
 
 def emit_cap_utilization_metric(
@@ -302,7 +302,7 @@ def emit_cap_utilization_metric(
         )
         _emit_emf_log(payload)
     except Exception as e:
-        logger.warning(f"Metric emission failed (non-fatal): {e}")
+        logger.warning(f"Metric emission failed (non-fatal): {e.__class__.__name__}")
 
 
 def emit_cap_denied_metric(tier: str) -> None:
@@ -321,7 +321,7 @@ def emit_cap_denied_metric(tier: str) -> None:
         )
         _emit_emf_log(payload)
     except Exception as e:
-        logger.warning(f"Metric emission failed (non-fatal): {e}")
+        logger.warning(f"Metric emission failed (non-fatal): {e.__class__.__name__}")
 
 
 def emit_bedrock_cost_metric(estimated_cost_usd: float) -> None:
@@ -340,7 +340,7 @@ def emit_bedrock_cost_metric(estimated_cost_usd: float) -> None:
         )
         _emit_emf_log(payload)
     except Exception as e:
-        logger.warning(f"Metric emission failed (non-fatal): {e}")
+        logger.warning(f"Metric emission failed (non-fatal): {e.__class__.__name__}")
 
 
 def emit_error_rate_metric(status_code: int) -> None:
@@ -359,7 +359,7 @@ def emit_error_rate_metric(status_code: int) -> None:
         )
         _emit_emf_log(payload)
     except Exception as e:
-        logger.warning(f"Metric emission failed (non-fatal): {e}")
+        logger.warning(f"Metric emission failed (non-fatal): {e.__class__.__name__}")
 
 
 def emit_latency_metric(latency_ms: float) -> None:
@@ -378,7 +378,7 @@ def emit_latency_metric(latency_ms: float) -> None:
         )
         _emit_emf_log(payload)
     except Exception as e:
-        logger.warning(f"Metric emission failed (non-fatal): {e}")
+        logger.warning(f"Metric emission failed (non-fatal): {e.__class__.__name__}")
 
 
 def log_anonymized_user(user_id: str) -> None:
@@ -396,7 +396,7 @@ def log_anonymized_user(user_id: str) -> None:
         anon_id = anonymize_user_id(user_id)
         logger.info(_json.dumps({"action": "request", "anon_user": anon_id}))
     except Exception as e:
-        logger.warning(f"Anonymized user logging failed (non-fatal): {e}")
+        logger.warning(f"Anonymized user logging failed (non-fatal): {e.__class__.__name__}")
 
 
 # Initialize X-Ray on module import (Lambda cold start)
