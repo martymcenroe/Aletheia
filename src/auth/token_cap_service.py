@@ -91,7 +91,7 @@ def get_current_cap(table_name: str) -> int:
         return DEFAULT_DAILY_CAP
 
     except ClientError as e:
-        logger.error("Failed to get current cap: %s", str(e))
+        logger.error("Failed to get current cap: %s", e.__class__.__name__)
         # Fail closed - return 0 to deny all tokens if we can't read config
         raise
 
@@ -168,7 +168,7 @@ def check_and_increment_cap(table_name: str) -> tuple[bool, int]:
 
     except ClientError as e:
         if e.response["Error"]["Code"] != "ConditionalCheckFailedException":
-            logger.error("DynamoDB error during cap check: %s", str(e))
+            logger.error("DynamoDB error during cap check: %s", e.__class__.__name__)
         # Fail closed - deny token if DynamoDB is unavailable
         raise
 
@@ -254,7 +254,7 @@ def set_daily_cap(table_name: str, new_cap: int, admin_id: str) -> bool:
         return True
 
     except ClientError as e:
-        logger.error("Failed to update daily cap: %s", str(e))
+        logger.error("Failed to update daily cap: %s", e.__class__.__name__)
         raise
 
 
@@ -434,7 +434,7 @@ class MultiWindowCounter:
 
         except Exception as e:
             # Any other error (timeout, connection, etc.): hybrid fail mode
-            logger.error("Unexpected error in rate limit check: %s", str(e))
+            logger.error("Unexpected error in rate limit check: %s", e.__class__.__name__)
             return self._handle_dynamo_error(e, tier_config, user_id)
 
     def _find_exceeded_window(
@@ -634,7 +634,7 @@ class MultiWindowCounter:
                 else:
                     counts[name] = 0
         except (ClientError, Exception) as e:
-            logger.warning("Failed to read counter state: %s", str(e))
+            logger.warning("Failed to read counter state: %s", e.__class__.__name__)
             counts = {"hourly": 0, "daily": 0, "monthly": 0}
 
         return CounterState(

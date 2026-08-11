@@ -166,7 +166,7 @@ def redeem_coupon(
             Key={"code": {"S": code}},
         )
     except ClientError as e:
-        logger.error(f"DynamoDB get_item error: {e}")
+        logger.error(f"DynamoDB get_item error: {e.__class__.__name__}")
         return {"success": False, "error": "internal_error"}
 
     item = result.get("Item")
@@ -216,7 +216,7 @@ def redeem_coupon(
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             return {"success": False, "error": "code_exhausted"}
-        logger.error(f"DynamoDB update_item error: {e}")
+        logger.error(f"DynamoDB update_item error: {e.__class__.__name__}")
         return {"success": False, "error": "internal_error"}
 
     # Upgrade user tier
@@ -235,7 +235,7 @@ def redeem_coupon(
             ExpressionAttributeValues=expr_values,
         )
     except ClientError as e:
-        logger.error(f"Failed to upgrade user tier: {e}")
+        logger.error(f"Failed to upgrade user tier: {e.__class__.__name__}")
         # Coupon was consumed but tier upgrade failed — log for manual resolution
         return {"success": False, "error": "internal_error"}
 

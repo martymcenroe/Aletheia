@@ -355,7 +355,7 @@ def require_auth(handler: Callable) -> Callable:
             if isinstance(body, dict) and body.get("action") == "deep_poetic_analysis":
                 weight = 5  # Opus is much more expensive
         except Exception as e:
-            logger.debug(f"Failed to parse body for rate limit weighting: {e}")
+            logger.debug(f"Failed to parse body for rate limit weighting: {e.__class__.__name__}")
 
         # Issue #369: Emit RequestCount metric and log anonymized user (fail-open)
         try:
@@ -363,7 +363,7 @@ def require_auth(handler: Callable) -> Callable:
             emit_request_metric(tier.value)
             log_anonymized_user(user_id)
         except Exception as e:
-            logger.warning(f"Metric emission failed (non-fatal): {e}")
+            logger.warning(f"Metric emission failed (non-fatal): {e.__class__.__name__}")
 
         allowed, error_response = check_rate_limit(
             user_id, tier, billing_anchor_day, weight
@@ -374,7 +374,7 @@ def require_auth(handler: Callable) -> Callable:
                 from ..observability import emit_cap_denied_metric
                 emit_cap_denied_metric(tier.value)
             except Exception as e:
-                logger.warning(f"CapDenied metric failed (non-fatal): {e}")
+                logger.warning(f"CapDenied metric failed (non-fatal): {e.__class__.__name__}")
             return _build_429_response(error_response)
 
         # Step 6: Inject user_id into event for downstream use

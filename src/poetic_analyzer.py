@@ -182,7 +182,7 @@ def _extract_json_from_response(raw_text: str) -> dict | None:
     try:
         return json.loads(json_str)
     except json.JSONDecodeError as e:
-        logger.warning(f"JSON decode failed for Opus response: {e}")
+        logger.warning(f"JSON decode failed for Opus response: {e.__class__.__name__}")
         logger.warning(f"JSON string (first 300 chars): {json_str[:300]}")
         return None
 

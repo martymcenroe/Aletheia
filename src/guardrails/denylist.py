@@ -57,11 +57,11 @@ def load_denylist(path: str | None = None) -> set[str]:
         _denylist = set()
         return _denylist
     except json.JSONDecodeError as e:
-        logger.warning(f"Malformed denylist JSON: {e}. Failing open.")
+        logger.warning(f"Malformed denylist JSON: {e.__class__.__name__}. Failing open.")
         _denylist = set()
         return _denylist
     except Exception as e:
-        logger.warning(f"Error loading denylist: {e}. Failing open.")
+        logger.warning(f"Error loading denylist: {e.__class__.__name__}. Failing open.")
         _denylist = set()
         return _denylist
 

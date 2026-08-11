@@ -157,7 +157,7 @@ def get_jwt_secret() -> str:
         _cached_secret_time = now
         return secret
     except Exception as e:
-        logger.error("Failed to retrieve JWT secret from Secrets Manager: %s", str(e))
+        logger.error("Failed to retrieve JWT secret from Secrets Manager: %s", e.__class__.__name__)
         raise RuntimeError(f"Failed to retrieve JWT secret: {e}") from e
 
 

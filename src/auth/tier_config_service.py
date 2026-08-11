@@ -134,7 +134,7 @@ class TierConfigService:
             )
 
         except (ClientError, KeyError, ValueError) as e:
-            logger.warning("Failed to load tier config from DynamoDB: %s", str(e))
+            logger.warning("Failed to load tier config from DynamoDB: %s", e.__class__.__name__)
             return None
 
     def set_tier_config(
@@ -181,7 +181,7 @@ class TierConfigService:
             return True
 
         except ClientError as e:
-            logger.error("Failed to save tier config: %s", str(e))
+            logger.error("Failed to save tier config: %s", e.__class__.__name__)
             raise
 
     def invalidate_cache(self, tier: UserTier | str | None = None) -> None:

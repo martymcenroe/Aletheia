@@ -189,7 +189,7 @@ def fetch_adoption_metrics(
         ]
         return adoption[-days:]  # Last N days
     except Exception as e:
-        logger.warning(f"Failed to fetch adoption metrics: {e}")
+        logger.warning(f"Failed to fetch adoption metrics: {e.__class__.__name__}")
         return []
 
 
@@ -211,7 +211,7 @@ def fetch_tier_distribution(dynamodb_client: Any) -> dict[str, int]:
                 tiers["free"] += 1  # Unknown tiers default to free
         return tiers
     except Exception as e:
-        logger.warning(f"Failed to fetch tier distribution: {e}")
+        logger.warning(f"Failed to fetch tier distribution: {e.__class__.__name__}")
         return {"free": 0, "subscriber": 0, "admin": 0}
 
 
@@ -266,7 +266,7 @@ def fetch_coupon_metrics(dynamodb_client: Any) -> dict[str, Any]:
     except dynamodb_client.exceptions.ResourceNotFoundException:
         return {"total_redeemed": 0, "by_code": {}}
     except Exception as e:
-        logger.warning(f"Failed to fetch coupon metrics: {e}")
+        logger.warning(f"Failed to fetch coupon metrics: {e.__class__.__name__}")
         return {"total_redeemed": 0, "by_code": {}}
 
 
@@ -312,7 +312,7 @@ def fetch_retention_metrics(
             "window_days": window_days,
         }
     except Exception as e:
-        logger.warning(f"Failed to fetch retention metrics: {e}")
+        logger.warning(f"Failed to fetch retention metrics: {e.__class__.__name__}")
         return {
             "returning_users": 0,
             "single_session_users": 0,
