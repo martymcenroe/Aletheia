@@ -10,6 +10,14 @@ Cleans up the Aletheia database by:
 
 See: docs/1150-dynamodb-data-hygiene.md
 
+RETAINED RECORDS ARE NEVER TOUCHED (Issue #870, operator directive, permanent).
+A record is retained if it carries the operator's user_id, or if it has no
+`ttl` attribute (the operator's records are written without one, and so are
+the operator's legacy rows from before TTL existed). Every mode that writes
+or deletes skips retained records. The operator IDs are loaded from SSM
+`/aletheia/operator-user-ids`; if they cannot be loaded the tool refuses to
+run at all, rather than run unguarded.
+
 Usage:
     # Scan and report statistics (dry run, no changes)
     python tools/data_hygiene.py --scan
@@ -35,6 +43,7 @@ Usage:
 """
 
 import argparse
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -52,8 +61,48 @@ TTL_SECONDS = 2592000  # 30 days
 SCRIPT_DIR = Path(__file__).parent
 COMMON_WORDS_FILE = SCRIPT_DIR / "data" / "common_words.txt"
 
+# Issue #870: where the operator user IDs live (never in git; public repo)
+OPERATOR_IDS_PARAM = "/aletheia/operator-user-ids"
+
 # Global state
 COMMON_WORDS: set[str] = set()
+OPERATOR_USER_IDS: frozenset[str] = frozenset()
+
+
+def parse_operator_ids(raw: str) -> frozenset[str]:
+    """Split the configured value on comma, pipe or whitespace."""
+    return frozenset(part for part in re.split(r"[,|\s]+", raw or "") if part)
+
+
+def load_operator_user_ids() -> None:
+    """Load operator IDs from SSM. Exit if unavailable: never run unguarded."""
+    global OPERATOR_USER_IDS
+    try:
+        ssm = boto3.client("ssm", region_name=REGION)
+        raw = ssm.get_parameter(Name=OPERATOR_IDS_PARAM)["Parameter"]["Value"]
+    except ClientError as e:
+        print(f"ERROR: cannot read {OPERATOR_IDS_PARAM} "
+              f"({e.response['Error']['Code']}). Refusing to run without the "
+              "operator guard (#870).")
+        sys.exit(1)
+
+    OPERATOR_USER_IDS = parse_operator_ids(raw)
+    if not OPERATOR_USER_IDS:
+        print(f"ERROR: {OPERATOR_IDS_PARAM} is empty. Refusing to run without "
+              "the operator guard (#870).")
+        sys.exit(1)
+    print(f"Operator guard loaded: {len(OPERATOR_USER_IDS)} protected user ID(s)")
+
+
+def is_retained(item: dict) -> bool:
+    """
+    True if this record must never be modified or deleted (Issue #870).
+
+    Retained when it carries an operator user_id, or has no ttl at all.
+    """
+    if item.get("user_id") in OPERATOR_USER_IDS:
+        return True
+    return "ttl" not in item
 
 
 @dataclass
@@ -70,6 +119,7 @@ class CleanupStats:
     normalized: int = 0
     duplicates_found: int = 0
     duplicates_deleted: int = 0
+    retained_skipped: int = 0
     errors: int = 0
 
 
@@ -171,6 +221,27 @@ def scan_all_items() -> list[dict]:
     return items
 
 
+def scan_modifiable_items(stats: "CleanupStats") -> list[dict]:
+    """
+    Scan the table and return ONLY records that may be modified or deleted.
+
+    Issue #870: the single choke point for every mode that writes. Retained
+    records are dropped here, before any mode sees them, so no mode can touch
+    one. stats.total_scanned counts everything; stats.retained_skipped counts
+    what was withheld.
+    """
+    if not OPERATOR_USER_IDS:
+        # load_operator_user_ids() must have run. Never proceed unguarded.
+        raise RuntimeError("operator guard not loaded (#870)")
+
+    items = scan_all_items()
+    stats.total_scanned = len(items)
+    modifiable = [item for item in items if not is_retained(item)]
+    stats.retained_skipped = len(items) - len(modifiable)
+    print(f"Retained (never touched, #870): {stats.retained_skipped:,}")
+    return modifiable
+
+
 def normalize_schema(dry_run: bool = True) -> CleanupStats:
     """
     Normalize items to current schema format.
@@ -194,8 +265,7 @@ def normalize_schema(dry_run: bool = True) -> CleanupStats:
     print("    - user_input/word -> input (update in place)")
     print("=" * 60)
 
-    items = scan_all_items()
-    stats.total_scanned = len(items)
+    items = scan_modifiable_items(stats)
 
     print(f"\nScanning {stats.total_scanned:,} items...\n")
 
@@ -318,6 +388,9 @@ def backfill_ttl(dry_run: bool = True) -> CleanupStats:
     Add TTL attribute to items missing it.
 
     Sets TTL to now + 30 days for all items without a ttl attribute.
+
+    Issue #870: a record with no ttl is retained by definition and is withheld
+    by scan_modifiable_items(), so this mode never expires a retained record.
     """
     stats = CleanupStats()
     table = get_dynamodb_table()
@@ -330,8 +403,7 @@ def backfill_ttl(dry_run: bool = True) -> CleanupStats:
     print(f"  Dry run: {dry_run}")
     print("=" * 60)
 
-    items = scan_all_items()
-    stats.total_scanned = len(items)
+    items = scan_modifiable_items(stats)
 
     print(f"\nScanning {stats.total_scanned:,} items...\n")
 
@@ -385,8 +457,7 @@ def clean_common_words(dry_run: bool = True) -> CleanupStats:
     print(f"  Dry run: {dry_run}")
     print("=" * 60)
 
-    items = scan_all_items()
-    stats.total_scanned = len(items)
+    items = scan_modifiable_items(stats)
 
     print(f"\nScanning {stats.total_scanned:,} items...\n")
 
@@ -442,8 +513,7 @@ def deduplicate(dry_run: bool = True) -> CleanupStats:
     print("  Logic: Group by (input, url), keep newest, delete rest")
     print("=" * 60)
 
-    items = scan_all_items()
-    stats.total_scanned = len(items)
+    items = scan_modifiable_items(stats)
 
     print(f"\nGrouping {stats.total_scanned:,} items by (input, url)...\n")
 
@@ -527,6 +597,11 @@ def scan_only() -> CleanupStats:
     for item in items:
         input_text = get_input_text(item)
 
+        if is_retained(item):
+            # Issue #870: reported, never counted as a cleanup candidate
+            stats.retained_skipped += 1
+            continue
+
         if "ttl" not in item:
             stats.missing_ttl += 1
 
@@ -554,6 +629,7 @@ def scan_only() -> CleanupStats:
 
     print("-" * 60)
     print(f"Total items: {stats.total_scanned:,}")
+    print(f"Retained, never touched (#870): {stats.retained_skipped:,}")
     print(f"Needs schema normalization: {stats.needs_normalization:,}")
     print(f"  - checkpoint_id='raw_capture': {raw_capture_count:,}")
     print(f"Missing TTL: {stats.missing_ttl:,}")
@@ -628,6 +704,9 @@ Recommended order: --normalize, --backfill-ttl, --deduplicate, --clean-common
     if not any([args.scan, args.normalize, args.backfill_ttl, args.deduplicate, args.clean_common]):
         parser.print_help()
         sys.exit(1)
+
+    # Issue #870: the operator guard loads first, for every mode, or nothing runs
+    load_operator_user_ids()
 
     # Load common words if needed
     if args.clean_common or args.scan:

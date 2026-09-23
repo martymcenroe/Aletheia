@@ -5,20 +5,26 @@ Issue #264: DynamoDB integration test infrastructure.
 LLD: docs/lld/active/1264-dynamodb-integration-fixtures.md Section 11.1
 
 Test Scenarios:
-- 010: delete_user_data happy path (profile + 10 analysis records)
+- 010: delete_user_data happy path (profile deleted; analysis rows untouched)
 - 011: profile-only (OAuth'd but never used the analyzer)
-- 020: delete_user_data pagination (profile + 2000 records, >1MB)
+- 020: erasure leaves a large analysis table (2000 rows, >1MB) untouched
 - 030: delete_user_data nonexistent user (nothing anywhere)
-- 031: records-only orphan (records exist, no profile)
+- 031: records-only orphan (analysis rows exist, no profile: rows untouched)
 - 032: Stripe subscriber, cancel succeeds
 - 033: Stripe subscriber, cancel raises (rest of deletion must still complete)
 - 034: coupon single redemption (user_id stripped from one redeemed_by set)
 - 035: coupon many redemptions (exercise the scan/pagination loop)
 - 036: token-cap rows (rate-limit windows for a user wiped)
-- 037: full-spectrum (every column of the state space active simultaneously)
+- 037: full-spectrum (every account surface wiped; analysis rows untouched)
 - 040: save_state with TTL
-- 050: GSI query returns correct user
-- 060: Table creation with GSI
+- 041: save_state for the operator: attributed, no TTL (#870)
+- 042: save_state for anyone else: unattributed, TTL (#869)
+- 060: Table has no user_id GSI (#869)
+
+Issue #869: account erasure no longer touches AletheiaAgentState. Analysis
+records carry no user identifier; the operator's own records (#870) are
+retained forever by the operator's decision. The erasure tests therefore
+assert those rows SURVIVE, and that every account surface is still wiped.
 """
 
 import sys
@@ -114,20 +120,37 @@ def _seed_token_cap_rows(
     return count
 
 
+def _count_analysis_rows(dynamodb_client, table_name: str, user_id: str) -> int:
+    """Count analysis rows carrying user_id, by paginated scan (there is no GSI)."""
+    kwargs = {
+        "TableName": table_name,
+        "FilterExpression": "user_id = :uid",
+        "ExpressionAttributeValues": {":uid": {"S": user_id}},
+        "Select": "COUNT",
+    }
+    total = 0
+    while True:
+        response = dynamodb_client.scan(**kwargs)
+        total += response["Count"]
+        if "LastEvaluatedKey" not in response:
+            return total
+        kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+
+
 class TestDeleteUserData:
     """Tests for delete_user_data() — GDPR Article 17 erasure procedure.
 
     Covers the full state space of (profile present, analysis records,
     Stripe subscription, coupon redemptions, token-cap rows) both
-    individually and in interaction. The procedure returns a 5-key summary
+    individually and in interaction. The procedure returns a 4-key summary
     dict; tests verify the counts in the dict AND the actual state of each
-    DynamoDB table after the call.
+    DynamoDB table after the call. Analysis rows must be left untouched (#869).
     """
 
     def test_010_delete_user_data_happy_path(
         self, dynamodb_client, agent_state_table, users_table, sample_user_data
     ):
-        """Profile + 10 analysis records, no Stripe → analysis_records=10, profile_deleted=True."""
+        """Profile + 10 attributed analysis rows, no Stripe → profile deleted, rows untouched."""
         import src.lambda_auth_function as auth_module
 
         auth_module._dynamodb_client = None
@@ -136,13 +159,7 @@ class TestDeleteUserData:
         _seed_user_profile(dynamodb_client, users_table, user_id)
 
         # Preconditions
-        records_before = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": user_id}},
-        )
-        assert len(records_before["Items"]) == 10
+        assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 10
         profile_before = dynamodb_client.get_item(
             TableName=users_table, Key={"user_id": {"S": user_id}}
         )
@@ -151,20 +168,14 @@ class TestDeleteUserData:
         result = auth_module.delete_user_data(user_id)
 
         # Summary dict
-        assert result["analysis_records"] == 10
+        assert "analysis_records" not in result
         assert result["profile_deleted"] is True
         assert result["stripe_cancelled"] is False  # no subscription on this profile
         assert result["coupons_updated"] == 0
         assert result["rate_limits_deleted"] == 0
 
-        # Actual table state
-        records_after = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": user_id}},
-        )
-        assert len(records_after["Items"]) == 0
+        # Actual table state: analysis rows untouched (#869), profile gone
+        assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 10
         profile_after = dynamodb_client.get_item(
             TableName=users_table, Key={"user_id": {"S": user_id}}
         )
@@ -173,7 +184,7 @@ class TestDeleteUserData:
     def test_011_profile_only(
         self, dynamodb_client, agent_state_table, users_table
     ):
-        """Profile exists, no analysis records → profile deleted, analysis_records=0.
+        """Profile exists, no analysis records → profile deleted.
 
         Covers the case where a user OAuth'd but never used the analyzer
         (so `get_or_create_user` created a profile row but `save_state` was
@@ -190,7 +201,7 @@ class TestDeleteUserData:
 
         result = auth_module.delete_user_data(user_id)
 
-        assert result["analysis_records"] == 0
+        assert "analysis_records" not in result
         assert result["profile_deleted"] is True
         assert result["stripe_cancelled"] is False
         assert result["coupons_updated"] == 0
@@ -204,7 +215,7 @@ class TestDeleteUserData:
     def test_020_delete_user_data_pagination(
         self, dynamodb_client, agent_state_table, users_table, large_user_data
     ):
-        """Profile + 2000 analysis records (triggers >1MB pagination) → all wiped."""
+        """Profile + 2000 analysis rows (>1MB) → profile deleted, all 2000 rows untouched."""
         import src.lambda_auth_function as auth_module
 
         auth_module._dynamodb_client = None
@@ -212,41 +223,13 @@ class TestDeleteUserData:
         user_id = "large-user"
         _seed_user_profile(dynamodb_client, users_table, user_id)
 
-        # Verify item count before (with pagination)
-        response = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": user_id}},
-            Select="COUNT",
-        )
-        initial_count = response["Count"]
-        while response.get("LastEvaluatedKey"):
-            response = dynamodb_client.query(
-                TableName=agent_state_table,
-                IndexName="user_id-index",
-                KeyConditionExpression="user_id = :uid",
-                ExpressionAttributeValues={":uid": {"S": user_id}},
-                Select="COUNT",
-                ExclusiveStartKey=response["LastEvaluatedKey"],
-            )
-            initial_count += response["Count"]
-        assert initial_count == 2000
+        assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 2000
 
         result = auth_module.delete_user_data(user_id)
 
-        assert result["analysis_records"] == 2000
+        assert "analysis_records" not in result
         assert result["profile_deleted"] is True
-
-        # No records remain
-        response = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": user_id}},
-            Select="COUNT",
-        )
-        assert response["Count"] == 0
+        assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 2000
 
     def test_030_delete_user_data_no_items(
         self, dynamodb_client, agent_state_table
@@ -267,7 +250,7 @@ class TestDeleteUserData:
 
         result = auth_module.delete_user_data(user_id)
 
-        assert result["analysis_records"] == 0
+        assert "analysis_records" not in result
         assert result["profile_deleted"] is False  # correctly False — no profile existed
         assert result["stripe_cancelled"] is False  # no profile → early-return path
         assert result["coupons_updated"] == 0
@@ -276,14 +259,13 @@ class TestDeleteUserData:
     def test_031_records_only_orphan(
         self, dynamodb_client, agent_state_table, sample_user_data
     ):
-        """Records exist, no profile → records wiped, profile_deleted=False.
+        """Analysis rows exist, no profile → rows untouched, profile_deleted=False.
 
-        Models a partial-erasure-mid-flight or data-integrity scenario.
-        The procedure should still wipe what's there (the analysis records)
-        and report profile_deleted=False truthfully (no profile was present
-        to delete). Note this test does NOT use the users_table fixture's
-        seeded profile — the autouse cleanup_tables fixture guarantees the
-        users table is empty.
+        Models a data-integrity scenario. Erasure reports profile_deleted=False
+        truthfully (no profile was present to delete) and, per #869, leaves
+        the analysis rows alone. Note this test does NOT use the users_table
+        fixture's seeded profile — the autouse cleanup_tables fixture
+        guarantees the users table is empty.
         """
         import src.lambda_auth_function as auth_module
 
@@ -293,17 +275,9 @@ class TestDeleteUserData:
 
         result = auth_module.delete_user_data(user_id)
 
-        assert result["analysis_records"] == 10
+        assert "analysis_records" not in result
         assert result["profile_deleted"] is False
-
-        # Records still got wiped
-        response = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": user_id}},
-        )
-        assert len(response["Items"]) == 0
+        assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 10
 
     def test_032_stripe_subscriber_cancel_succeeds(
         self, dynamodb_client, agent_state_table, users_table
@@ -343,7 +317,7 @@ class TestDeleteUserData:
         users_table,
         sample_user_data,
     ):
-        """Stripe.cancel raises → stripe_cancelled=False, but profile+records still wiped.
+        """Stripe.cancel raises → stripe_cancelled=False, but the profile is still wiped.
 
         Verifies _cancel_stripe_subscription's broad except is genuinely
         non-cascading: a Stripe-side failure must not abort the rest of
@@ -372,7 +346,7 @@ class TestDeleteUserData:
 
         assert result["stripe_cancelled"] is False
         assert result["profile_deleted"] is True  # rest completed
-        assert result["analysis_records"] == 10
+        assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 10
 
         # Profile actually gone from the table
         profile_after = dynamodb_client.get_item(
@@ -491,11 +465,12 @@ class TestDeleteUserData:
         token_cap_table,
         sample_user_data,
     ):
-        """Every column of the state space active → every surface wiped.
+        """Every column of the state space active → every account surface wiped.
 
         The integration validator. If a future refactor of delete_user_data
-        forgets one of the five surfaces, this test catches it: not only the
-        summary dict's counts but also the actual DynamoDB rows.
+        forgets one of the four account surfaces, this test catches it: not
+        only the summary dict's counts but also the actual DynamoDB rows. It
+        also pins #869: the analysis rows are left exactly as they were.
         """
         import src.lambda_auth_function as auth_module
 
@@ -524,21 +499,16 @@ class TestDeleteUserData:
             result = auth_module.delete_user_data(user_id)
             mock_cancel.assert_called_once_with(sub_id)
 
-        # Summary dict — all five counts
-        assert result["analysis_records"] == 10
+        # Summary dict — all four account surfaces, and nothing else
+        assert set(result) == {
+            "profile_deleted", "stripe_cancelled", "coupons_updated", "rate_limits_deleted"}
         assert result["profile_deleted"] is True
         assert result["stripe_cancelled"] is True
         assert result["coupons_updated"] == 1
         assert result["rate_limits_deleted"] == 3
 
-        # Actual table state — every surface
-        records = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": user_id}},
-        )
-        assert len(records["Items"]) == 0
+        # Actual table state — analysis rows untouched (#869)
+        assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 10
 
         profile = dynamodb_client.get_item(
             TableName=users_table, Key={"user_id": {"S": user_id}}
@@ -610,78 +580,62 @@ class TestSaveState:
         assert item["url"]["S"] == "https://example.com"
 
 
-class TestGSIQuery:
-    """Tests for GSI (Global Secondary Index) query functionality."""
+    def _get_item(self, dynamodb_client, table: str, thread_id: str) -> dict:
+        response = dynamodb_client.scan(
+            TableName=table,
+            FilterExpression="thread_id = :tid",
+            ExpressionAttributeValues={":tid": {"S": thread_id}},
+        )
+        assert len(response["Items"]) == 1
+        return response["Items"][0]
 
-    def test_050_gsi_query_returns_correct_user(
-        self, dynamodb_client, agent_state_table, multiple_users_data
+    def test_041_operator_row_attributed_and_never_expires(
+        self, dynamodb_client, agent_state_table, monkeypatch
     ):
-        """
-        Scenario 050: GSI query returns only items for target user.
+        """Scenario 041 (#870): operator rows carry user_id and have no ttl."""
+        import src.lambda_function as main_module
 
-        With items for 3 users, querying for user-bob should only return
-        user-bob's items, not items from user-alice or user-charlie.
-        """
-        # Query for user-bob
-        response = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": "user-bob"}},
+        main_module._dynamodb_client = None
+        monkeypatch.setenv("OPERATOR_USER_IDS", "operator-fake-id")
+
+        main_module.save_state(
+            "operator-thread",
+            {"text": "logos", "url": "https://example.com", "userId": "operator-fake-id"},
         )
 
-        # Should return exactly 5 items (all for user-bob)
-        assert len(response["Items"]) == 5
+        item = self._get_item(dynamodb_client, agent_state_table, "operator-thread")
+        assert item["user_id"] == {"S": "operator-fake-id"}
+        assert "ttl" not in item
 
-        # Verify all items belong to user-bob (check via primary key pattern)
-        for item in response["Items"]:
-            assert item["thread_id"]["S"].startswith("user-bob-thread-")
+    def test_042_other_user_row_unattributed_and_expires(
+        self, dynamodb_client, agent_state_table, monkeypatch
+    ):
+        """Scenario 042 (#869): anyone else's row has no user_id and a ttl."""
+        import src.lambda_function as main_module
 
-        # Verify user-alice items are NOT included
-        for item in response["Items"]:
-            assert "alice" not in item["thread_id"]["S"]
-            assert "charlie" not in item["thread_id"]["S"]
+        main_module._dynamodb_client = None
+        monkeypatch.setenv("OPERATOR_USER_IDS", "operator-fake-id")
+
+        main_module.save_state(
+            "other-thread",
+            {"text": "logos", "url": "https://example.com", "userId": "someone-else"},
+        )
+
+        item = self._get_item(dynamodb_client, agent_state_table, "other-thread")
+        assert "user_id" not in item
+        assert "ttl" in item
 
 
 class TestTableCreation:
-    """Tests for table creation with GSI."""
+    """Tests for the AletheiaAgentState table shape."""
 
-    def test_060_table_creation_with_gsi(self, dynamodb_client, agent_state_table):
+    def test_060_table_has_no_user_id_index(self, dynamodb_client, agent_state_table):
         """
-        Scenario 060: Table created with GSI is queryable.
+        Scenario 060 (#869): the table is ACTIVE and has no user_id GSI.
 
-        Verifies:
-        - Table exists and is ACTIVE
-        - GSI exists and is ACTIVE
-        - GSI is queryable
+        Nothing queries analysis records by user. The fixture mirrors
+        production, which has no GSI; the erasure path no longer needs one.
         """
-        # Describe table
-        response = dynamodb_client.describe_table(TableName=agent_state_table)
-        table = response["Table"]
-
-        # Verify table is ACTIVE
+        table = dynamodb_client.describe_table(TableName=agent_state_table)["Table"]
         assert table["TableStatus"] == "ACTIVE"
-
-        # Verify GSI exists
-        gsi_list = table.get("GlobalSecondaryIndexes", [])
-        assert len(gsi_list) == 1
-        gsi = gsi_list[0]
-
-        # Verify GSI configuration
-        assert gsi["IndexName"] == "user_id-index"
-        assert gsi["IndexStatus"] == "ACTIVE"
-
-        # Verify GSI key schema
-        key_schema = gsi["KeySchema"]
-        assert len(key_schema) == 1
-        assert key_schema[0]["AttributeName"] == "user_id"
-        assert key_schema[0]["KeyType"] == "HASH"
-
-        # Verify GSI is queryable (empty query should work)
-        response = dynamodb_client.query(
-            TableName=agent_state_table,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": "test-query"}},
-        )
-        assert "Items" in response  # Query succeeded
+        assert not table.get("GlobalSecondaryIndexes")

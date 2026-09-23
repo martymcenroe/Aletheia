@@ -50,6 +50,8 @@ logger.setLevel(logging.INFO)
 # Configuration
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 USERS_TABLE = os.environ.get("USERS_TABLE", "aletheia-users")
+# Issue #869: not read or written by this Lambda. Kept so tests can assert
+# that account erasure leaves the analysis table untouched.
 AGENT_STATE_TABLE = os.environ.get("AGENT_STATE_TABLE", "AletheiaAgentState")
 TOKEN_CAP_TABLE = os.environ.get("TOKEN_CAP_TABLE", "aletheia-token-cap")
 
@@ -702,42 +704,6 @@ def handle_validate_token(headers: dict) -> dict:
     }
 
 
-def _delete_analysis_records(client, user_id: str) -> int:
-    """Delete all analysis records from AletheiaAgentState for a user."""
-    deleted_count = 0
-    response = client.query(
-        TableName=AGENT_STATE_TABLE,
-        IndexName="user_id-index",
-        KeyConditionExpression="user_id = :uid",
-        ExpressionAttributeValues={":uid": {"S": user_id}},
-        ProjectionExpression="thread_id, checkpoint_id",
-    )
-    items = response.get("Items", [])
-
-    while response.get("LastEvaluatedKey"):
-        response = client.query(
-            TableName=AGENT_STATE_TABLE,
-            IndexName="user_id-index",
-            KeyConditionExpression="user_id = :uid",
-            ExpressionAttributeValues={":uid": {"S": user_id}},
-            ProjectionExpression="thread_id, checkpoint_id",
-            ExclusiveStartKey=response["LastEvaluatedKey"],
-        )
-        items.extend(response.get("Items", []))
-
-    for item in items:
-        client.delete_item(
-            TableName=AGENT_STATE_TABLE,
-            Key={
-                "thread_id": item["thread_id"],
-                "checkpoint_id": item["checkpoint_id"],
-            },
-        )
-        deleted_count += 1
-
-    return deleted_count
-
-
 def _cancel_stripe_subscription(user_record: dict) -> bool:
     """Cancel active Stripe subscription if one exists. Returns True if cancelled."""
     sub_id = user_record.get("stripe_subscription_id", {}).get("S")
@@ -846,8 +812,13 @@ def delete_user_data(user_id: str) -> dict:
     Delete ALL data for a user across all DynamoDB tables.
 
     Issue #147 + #553: GDPR Article 17 - Complete Right to Erasure.
-    Deletes from: AletheiaAgentState, aletheia-users, aletheia-coupons,
-    aletheia-token-cap. Cancels Stripe subscription if active.
+    Deletes from: aletheia-users, aletheia-coupons, aletheia-token-cap.
+    Cancels Stripe subscription if active.
+
+    Issue #869: AletheiaAgentState is deliberately NOT touched. Analysis
+    records carry no user identifier (except the operator's own, which #870
+    retains forever by the operator's decision), so there is nothing in that
+    table to find or erase for a requester.
 
     Args:
         user_id: LinkedIn OIDC 'sub' identifier.
@@ -856,13 +827,9 @@ def delete_user_data(user_id: str) -> dict:
         Summary dict with counts of deleted/updated items per table.
     """
     client = get_dynamodb_client()
-    summary = {}
+    summary: dict[str, bool | int] = {}
 
-    # 1. Delete analysis records from AletheiaAgentState
-    analysis_count = _delete_analysis_records(client, user_id)
-    summary["analysis_records"] = analysis_count
-
-    # 2. Get user profile (need Stripe IDs before deletion)
+    # 1. Get user profile (need Stripe IDs before deletion)
     try:
         user_response = client.get_item(
             TableName=USERS_TABLE,
@@ -872,16 +839,16 @@ def delete_user_data(user_id: str) -> dict:
     except ClientError:
         user_record = {}
 
-    # 3. Cancel Stripe subscription if active
+    # 2. Cancel Stripe subscription if active
     summary["stripe_cancelled"] = _cancel_stripe_subscription(user_record)
 
-    # 4. Delete user profile from aletheia-users
+    # 3. Delete user profile from aletheia-users
     summary["profile_deleted"] = _delete_user_profile(client, user_id)
 
-    # 5. Remove user_id from coupon redeemed_by sets
+    # 4. Remove user_id from coupon redeemed_by sets
     summary["coupons_updated"] = _remove_from_coupon_redeemed_by(client, user_id)
 
-    # 6. Delete rate limit counters from aletheia-token-cap
+    # 5. Delete rate limit counters from aletheia-token-cap
     summary["rate_limits_deleted"] = _delete_rate_limit_records(client, user_id)
 
     logger.info(f"GDPR erasure complete for user {user_id}: {summary}")

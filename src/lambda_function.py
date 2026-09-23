@@ -19,6 +19,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 from typing import Any
 
@@ -52,6 +53,27 @@ AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 # Issue #145: TTL for automatic data expiry (30 days)
 TTL_SECONDS = 2592000
+
+
+def operator_user_ids() -> frozenset[str]:
+    """
+    Return the operator's authenticated user IDs from OPERATOR_USER_IDS.
+
+    Issue #870: the operator's own analysis records are attributed to them and
+    retained forever (no TTL). Everyone else's records carry no user identifier
+    and expire after 30 days (#869). The IDs come from configuration, never
+    from source, because this repository is public. Separators: comma, pipe
+    or whitespace.
+
+    Read on every call rather than at import so tests can set the variable.
+    """
+    raw = os.environ.get("OPERATOR_USER_IDS", "")
+    return frozenset(part for part in re.split(r"[,|\s]+", raw) if part)
+
+
+def is_operator(user_id: str | None) -> bool:
+    """True only for an exact match against a configured operator user ID."""
+    return bool(user_id) and user_id in operator_user_ids()
 
 # Issue #310: Poetic resonance detection threshold
 # When poetic_potential >= this value, "Explore Deeper Meaning" button appears
@@ -198,6 +220,11 @@ def save_state(thread_id: str, data: dict) -> None:
     Issue #145: Added TTL for automatic data expiry.
     Issue #177: Added domContext field for surrounding paragraph storage.
     Issue #178: Added response field for AI etymology output storage.
+    Issue #869: Records carry no user identifier and expire after 30 days.
+    Issue #870: The operator's records are the one exception: attributed to
+        the operator and written with NO ttl, so they are retained forever.
+        `data["userId"]` must be the middleware-authenticated ID; the
+        operator check below is the only thing that lets it reach storage.
     """
     client = get_dynamodb_client()
     now = int(time.time())
@@ -209,8 +236,18 @@ def save_state(thread_id: str, data: dict) -> None:
         "input": {"S": data.get("text", "")},
         "url": {"S": data.get("url", "")},
         "safety_score": {"S": json.dumps(data.get("safety_score", {}))},
-        "ttl": {"N": str(now + TTL_SECONDS)},  # Issue #145: Auto-expire after 30 days
     }
+
+    user_id = data.get("userId")
+    if is_operator(user_id):
+        # Issue #870: operator carve-out. Attributed, and deliberately no ttl.
+        item["user_id"] = {"S": user_id}
+    else:
+        item["ttl"] = {"N": str(now + TTL_SECONDS)}  # Issue #145: Auto-expire after 30 days
+        if user_id and not operator_user_ids():
+            # Without the configured ID the operator's records would silently
+            # expire. Say so on every write until it is fixed.
+            logger.warning("OPERATOR_USER_IDS_UNSET: operator records will expire")
 
     # Issue #177: Store surrounding paragraph (domContext)
     # Default to empty string if missing; truncate to 100KB for DynamoDB safety
@@ -224,10 +261,6 @@ def save_state(thread_id: str, data: dict) -> None:
         item["response"] = {"S": json.dumps(response_data)}
     else:
         item["response"] = {"S": "null"}
-
-    # Store user_id if available from authenticated session
-    if data.get("userId"):
-        item["user_id"] = {"S": data["userId"]}
 
     try:
         client.put_item(TableName=DYNAMODB_TABLE, Item=item)
@@ -486,9 +519,6 @@ def _analysis_handler(
     result = None
     generation_error = None
 
-    # Issue #341: Use authenticated user_id if available, fall back to body userId
-    persist_user_id = auth_user_id or body.get("userId")
-
     try:
         t0 = time.time()
         result = generate_etymology(text, dom_context)
@@ -531,7 +561,10 @@ def _analysis_handler(
                     "text": text,
                     "domContext": dom_context,  # Issue #177
                     "url": body.get("url", ""),
-                    "userId": persist_user_id,  # Issue #341: Use authenticated user_id
+                    # Issue #870: authenticated ID only, never body["userId"],
+                    # which any client can set. save_state stores it only for
+                    # the operator.
+                    "userId": auth_user_id,
                     "safety_score": metadata.get("scores", {}),
                     "response": response_data,  # Issue #178
                 },

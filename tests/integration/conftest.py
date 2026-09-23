@@ -23,15 +23,8 @@ AGENT_STATE_TABLE_SCHEMA = {
     "AttributeDefinitions": [
         {"AttributeName": "thread_id", "AttributeType": "S"},
         {"AttributeName": "checkpoint_id", "AttributeType": "S"},
-        {"AttributeName": "user_id", "AttributeType": "S"},
     ],
-    "GlobalSecondaryIndexes": [
-        {
-            "IndexName": "user_id-index",
-            "KeySchema": [{"AttributeName": "user_id", "KeyType": "HASH"}],
-            "Projection": {"ProjectionType": "KEYS_ONLY"},
-        }
-    ],
+    # Issue #869: no GSI. Production has none and nothing queries by user.
     "BillingMode": "PAY_PER_REQUEST",
 }
 
@@ -112,7 +105,7 @@ def dynamodb_client(aws_credentials):
 
 @pytest.fixture(scope="session")
 def agent_state_table(dynamodb_client) -> str:
-    """Create AletheiaAgentState table with GSI."""
+    """Create AletheiaAgentState table (no GSI, matching production; #869)."""
     table_name: str = AGENT_STATE_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
     dynamodb_client.create_table(**AGENT_STATE_TABLE_SCHEMA)
     return table_name
