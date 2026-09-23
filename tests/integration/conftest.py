@@ -24,7 +24,7 @@ AGENT_STATE_TABLE_SCHEMA = {
         {"AttributeName": "thread_id", "AttributeType": "S"},
         {"AttributeName": "checkpoint_id", "AttributeType": "S"},
     ],
-    # Issue #869: no GSI. Production has none and nothing queries by user.
+    # Issue #875: no GSI. Production has none and nothing queries by user.
     "BillingMode": "PAY_PER_REQUEST",
 }
 
@@ -105,7 +105,7 @@ def dynamodb_client(aws_credentials):
 
 @pytest.fixture(scope="session")
 def agent_state_table(dynamodb_client) -> str:
-    """Create AletheiaAgentState table (no GSI, matching production; #869)."""
+    """Create AletheiaAgentState table (no GSI, matching production; #875)."""
     table_name: str = AGENT_STATE_TABLE_SCHEMA["TableName"]  # type: ignore[assignment]
     dynamodb_client.create_table(**AGENT_STATE_TABLE_SCHEMA)
     return table_name

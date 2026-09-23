@@ -120,7 +120,7 @@ else
     echo "TTL already enabled"
 fi
 
-# Issue #869: no GSI on user_id. Analysis records carry no user identifier
+# Issue #875: no GSI on user_id. Analysis records carry no user identifier
 # (the operator's own are the #870 exception and are never erased), so there
 # is nothing to query by user. Do not re-add the index.
 

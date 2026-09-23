@@ -18,10 +18,10 @@ Test Scenarios:
 - 037: full-spectrum (every account surface wiped; analysis rows untouched)
 - 040: save_state with TTL
 - 041: save_state for the operator: attributed, no TTL (#870)
-- 042: save_state for anyone else: unattributed, TTL (#869)
-- 060: Table has no user_id GSI (#869)
+- 042: save_state for anyone else: unattributed, TTL (#875)
+- 060: Table has no user_id GSI (#875)
 
-Issue #869: account erasure no longer touches AletheiaAgentState. Analysis
+Issue #875: account erasure no longer touches AletheiaAgentState. Analysis
 records carry no user identifier; the operator's own records (#870) are
 retained forever by the operator's decision. The erasure tests therefore
 assert those rows SURVIVE, and that every account surface is still wiped.
@@ -144,7 +144,7 @@ class TestDeleteUserData:
     Stripe subscription, coupon redemptions, token-cap rows) both
     individually and in interaction. The procedure returns a 4-key summary
     dict; tests verify the counts in the dict AND the actual state of each
-    DynamoDB table after the call. Analysis rows must be left untouched (#869).
+    DynamoDB table after the call. Analysis rows must be left untouched (#875).
     """
 
     def test_010_delete_user_data_happy_path(
@@ -174,7 +174,7 @@ class TestDeleteUserData:
         assert result["coupons_updated"] == 0
         assert result["rate_limits_deleted"] == 0
 
-        # Actual table state: analysis rows untouched (#869), profile gone
+        # Actual table state: analysis rows untouched (#875), profile gone
         assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 10
         profile_after = dynamodb_client.get_item(
             TableName=users_table, Key={"user_id": {"S": user_id}}
@@ -262,7 +262,7 @@ class TestDeleteUserData:
         """Analysis rows exist, no profile → rows untouched, profile_deleted=False.
 
         Models a data-integrity scenario. Erasure reports profile_deleted=False
-        truthfully (no profile was present to delete) and, per #869, leaves
+        truthfully (no profile was present to delete) and, per #875, leaves
         the analysis rows alone. Note this test does NOT use the users_table
         fixture's seeded profile — the autouse cleanup_tables fixture
         guarantees the users table is empty.
@@ -470,7 +470,7 @@ class TestDeleteUserData:
         The integration validator. If a future refactor of delete_user_data
         forgets one of the four account surfaces, this test catches it: not
         only the summary dict's counts but also the actual DynamoDB rows. It
-        also pins #869: the analysis rows are left exactly as they were.
+        also pins #875: the analysis rows are left exactly as they were.
         """
         import src.lambda_auth_function as auth_module
 
@@ -507,7 +507,7 @@ class TestDeleteUserData:
         assert result["coupons_updated"] == 1
         assert result["rate_limits_deleted"] == 3
 
-        # Actual table state — analysis rows untouched (#869)
+        # Actual table state — analysis rows untouched (#875)
         assert _count_analysis_rows(dynamodb_client, agent_state_table, user_id) == 10
 
         profile = dynamodb_client.get_item(
@@ -610,7 +610,7 @@ class TestSaveState:
     def test_042_other_user_row_unattributed_and_expires(
         self, dynamodb_client, agent_state_table, monkeypatch
     ):
-        """Scenario 042 (#869): anyone else's row has no user_id and a ttl."""
+        """Scenario 042 (#875): anyone else's row has no user_id and a ttl."""
         import src.lambda_function as main_module
 
         main_module._dynamodb_client = None
@@ -631,7 +631,7 @@ class TestTableCreation:
 
     def test_060_table_has_no_user_id_index(self, dynamodb_client, agent_state_table):
         """
-        Scenario 060 (#869): the table is ACTIVE and has no user_id GSI.
+        Scenario 060 (#875): the table is ACTIVE and has no user_id GSI.
 
         Nothing queries analysis records by user. The fixture mirrors
         production, which has no GSI; the erasure path no longer needs one.

@@ -1,4 +1,4 @@
-# Test Report — Issue #870 (with the code half of #869)
+# Test Report — Issue #870 (with the code half of #875)
 
 ## Result
 

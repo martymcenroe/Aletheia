@@ -1,7 +1,7 @@
 """
-Unit tests for Issues #869 and #870.
+Unit tests for Issues #875 and #870.
 
-#869: analysis records carry no user identifier and expire after 30 days.
+#875: analysis records carry no user identifier and expire after 30 days.
 #870: the operator's own records are the permanent exception. They are
       attributed to the operator and written with NO ttl, and no cleanup
       tool may modify or delete them. Operator directive; inviolable.
@@ -83,7 +83,7 @@ class TestSaveStateAttribution:
         assert "ttl" not in item
 
     def test_other_user_record_is_unattributed_and_expires(self, monkeypatch):
-        """#869: an authenticated non-operator row has no user_id and a 30-day ttl."""
+        """#875: an authenticated non-operator row has no user_id and a 30-day ttl."""
         monkeypatch.setenv("OPERATOR_USER_IDS", OPERATOR)
         before = int(time.time())
         item = _saved_item({"userId": OTHER_USER})
