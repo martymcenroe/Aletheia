@@ -61,7 +61,7 @@ def operator_user_ids() -> frozenset[str]:
 
     Issue #870: the operator's own analysis records are attributed to them and
     retained forever (no TTL). Everyone else's records carry no user identifier
-    and expire after 30 days (#869). The IDs come from configuration, never
+    and expire after 30 days (#875). The IDs come from configuration, never
     from source, because this repository is public. Separators: comma, pipe
     or whitespace.
 
@@ -220,7 +220,7 @@ def save_state(thread_id: str, data: dict) -> None:
     Issue #145: Added TTL for automatic data expiry.
     Issue #177: Added domContext field for surrounding paragraph storage.
     Issue #178: Added response field for AI etymology output storage.
-    Issue #869: Records carry no user identifier and expire after 30 days.
+    Issue #875: Records carry no user identifier and expire after 30 days.
     Issue #870: The operator's records are the one exception: attributed to
         the operator and written with NO ttl, so they are retained forever.
         `data["userId"]` must be the middleware-authenticated ID; the

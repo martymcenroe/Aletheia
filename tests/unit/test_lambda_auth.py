@@ -83,7 +83,7 @@ def aws_env():
             BillingMode="PAY_PER_REQUEST"
         )
 
-        # Agent State Table. Issue #869: no GSI, matching production, which
+        # Agent State Table. Issue #875: no GSI, matching production, which
         # has none. Erasure must work against exactly this shape.
         dynamodb.create_table(
             TableName=auth_func.AGENT_STATE_TABLE,
@@ -373,7 +373,7 @@ class TestHandlers:
 
 class TestGDPRDataErasure:
     def test_delete_user_data_never_touches_analysis_table(self, aws_env):
-        """Issue #869/#870: erasure leaves AletheiaAgentState exactly as it was.
+        """Issue #875/#870: erasure leaves AletheiaAgentState exactly as it was.
 
         Analysis records carry no user identifier, and the operator's
         attributed records are retained forever by the operator's decision,
@@ -402,7 +402,7 @@ class TestGDPRDataErasure:
             "t-attributed", "t-unattributed"]
 
     def test_delete_user_data_succeeds_without_user_id_index(self, aws_env):
-        """Issue #869: regression for the production 500.
+        """Issue #875: regression for the production 500.
 
         Production's AletheiaAgentState has no user_id-index. Erasure used to
         query it first, fail with ValidationException, and delete nothing.
@@ -490,7 +490,7 @@ class TestGDPRDataErasure:
         assert response["Items"][0]["PK"]["S"] == "USER#other"
 
     def test_delete_user_data_returns_complete_summary(self, aws_env):
-        """Issue #553: summary includes all tables. #869: analysis table excluded."""
+        """Issue #553: summary includes all tables. #875: analysis table excluded."""
         summary = auth_func.delete_user_data(TEST_USER_ID)
         assert "analysis_records" not in summary
         assert "profile_deleted" in summary

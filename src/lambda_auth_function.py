@@ -50,7 +50,7 @@ logger.setLevel(logging.INFO)
 # Configuration
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 USERS_TABLE = os.environ.get("USERS_TABLE", "aletheia-users")
-# Issue #869: not read or written by this Lambda. Kept so tests can assert
+# Issue #875: not read or written by this Lambda. Kept so tests can assert
 # that account erasure leaves the analysis table untouched.
 AGENT_STATE_TABLE = os.environ.get("AGENT_STATE_TABLE", "AletheiaAgentState")
 TOKEN_CAP_TABLE = os.environ.get("TOKEN_CAP_TABLE", "aletheia-token-cap")
@@ -815,7 +815,7 @@ def delete_user_data(user_id: str) -> dict:
     Deletes from: aletheia-users, aletheia-coupons, aletheia-token-cap.
     Cancels Stripe subscription if active.
 
-    Issue #869: AletheiaAgentState is deliberately NOT touched. Analysis
+    Issue #875: AletheiaAgentState is deliberately NOT touched. Analysis
     records carry no user identifier (except the operator's own, which #870
     retains forever by the operator's decision), so there is nothing in that
     table to find or erase for a requester.

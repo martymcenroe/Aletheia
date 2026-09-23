@@ -1,4 +1,4 @@
-# Implementation Report — Issue #870 (with the code half of #869)
+# Implementation Report — Issue #870 (with the code half of #875)
 
 ## What changed
 
@@ -70,13 +70,13 @@ the cleanup and backfill tools read it directly.
 
 ## Not in this change
 
-- **`docs/privacy.html`** — per #869, the policy changes after the code is
-  deployed and verified, so every sentence traces to running code. #869 stays
+- **`docs/privacy.html`** — per #875, the policy changes after the code is
+  deployed and verified, so every sentence traces to running code. #875 stays
   open for that.
 - **Refresh-token erasure** — `delete_user_data` has never deleted refresh
-  tokens. That was raised on #869 and is not addressed here.
+  tokens. Tracked in #873 and not addressed here.
 - **Other accounts.** `aletheia-users` holds two accounts besides the
-  operator's. Their records follow #869; the carve-out is the configured ID only.
+  operator's. Their records follow #875; the carve-out is the configured ID only.
 
 ## Deploy sequence (none of this happens on merge)
 
