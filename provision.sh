@@ -40,6 +40,15 @@ LAYER_NAME="${APP_NAME}Dependencies"
 # Issue #351: Read CloudFlare origin secret from SSM Parameter Store (never in git)
 ORIGIN_SECRET=$(aws ssm get-parameter --name "/aletheia/cloudflare-origin-secret" --with-decryption --query Parameter.Value --output text --region "$REGION" 2>/dev/null || echo "")
 
+# Issue #870: operator user IDs whose analysis records are retained forever.
+# Kept in SSM, never in git (public repo). Fail fast: an empty value written
+# into the Lambda env would silently expire the operator's records (#779).
+OPERATOR_USER_IDS=$(aws ssm get-parameter --name "/aletheia/operator-user-ids" --query Parameter.Value --output text --region "$REGION" 2>/dev/null || true)
+if [ -z "$OPERATOR_USER_IDS" ] || [ "$OPERATOR_USER_IDS" = "None" ]; then
+    echo "ERROR: SSM /aletheia/operator-user-ids is missing or empty. Aborting before any change." >&2
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -111,33 +120,9 @@ else
     echo "TTL already enabled"
 fi
 
-# Issue #147: Add GSI on user_id for GDPR data erasure queries
-echo "Checking GSI on user_id..."
-GSI_EXISTS=$(aws dynamodb describe-table \
-    --table-name "$TABLE_NAME" \
-    --region "$REGION" \
-    --query "Table.GlobalSecondaryIndexes[?IndexName=='user_id-index'].IndexName" \
-    --output text 2>/dev/null || echo "")
-
-if [ -z "$GSI_EXISTS" ]; then
-    echo "Creating GSI on user_id for GDPR erasure queries..."
-    aws dynamodb update-table \
-        --table-name "$TABLE_NAME" \
-        --region "$REGION" \
-        --attribute-definitions AttributeName=user_id,AttributeType=S \
-        --global-secondary-index-updates '[{
-            "Create": {
-                "IndexName": "user_id-index",
-                "KeySchema": [{"AttributeName": "user_id", "KeyType": "HASH"}],
-                "Projection": {"ProjectionType": "KEYS_ONLY"}
-            }
-        }]'
-    echo "Waiting for GSI to become active..."
-    aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION"
-    echo -e "${GREEN}GSI user_id-index created${NC}"
-else
-    echo "GSI user_id-index already exists"
-fi
+# Issue #869: no GSI on user_id. Analysis records carry no user identifier
+# (the operator's own are the #870 exception and are never erased), so there
+# is nothing to query by user. Do not re-add the index.
 
 # =============================================================================
 # Step 2: DynamoDB Users Table (Issue #116: LinkedIn OAuth)
@@ -533,7 +518,7 @@ if ! aws lambda get-function --function-name "$FUNC_NAME" --region "$REGION" >/d
         --timeout 60 \
         --memory-size 256 \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true,ALETHEIA_AIP_NOVA_MICRO=${AIP_NOVA_ARN},ALETHEIA_AIP_HAIKU=${AIP_HAIKU_ARN},ALETHEIA_AIP_OPUS=${AIP_OPUS_ARN}}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,OPERATOR_USER_IDS=$OPERATOR_USER_IDS,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true,ALETHEIA_AIP_NOVA_MICRO=${AIP_NOVA_ARN},ALETHEIA_AIP_HAIKU=${AIP_HAIKU_ARN},ALETHEIA_AIP_OPUS=${AIP_OPUS_ARN}}" \
         --tracing-config Mode=Active \
         --region "$REGION"
     echo -e "${GREEN}Created Agent Lambda (X-Ray enabled)${NC}"
@@ -552,7 +537,7 @@ else
         --function-name "$FUNC_NAME" \
         --handler src.lambda_function.lambda_handler \
         --layers "$LAYER_VERSION_ARN" \
-        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true,ALETHEIA_AIP_NOVA_MICRO=${AIP_NOVA_ARN},ALETHEIA_AIP_HAIKU=${AIP_HAIKU_ARN},ALETHEIA_AIP_OPUS=${AIP_OPUS_ARN}}" \
+        --environment "Variables={ALETHEIA_ENV=dev,DYNAMODB_TABLE=$TABLE_NAME,OPERATOR_USER_IDS=$OPERATOR_USER_IDS,CLOUDFLARE_ORIGIN_SECRET=$ORIGIN_SECRET,TOKEN_CAP_TABLE=$TOKEN_CAP_TABLE,JWT_SECRET_NAME=$JWT_SECRET_NAME,AUTH_ENABLED=true,ALETHEIA_AIP_NOVA_MICRO=${AIP_NOVA_ARN},ALETHEIA_AIP_HAIKU=${AIP_HAIKU_ARN},ALETHEIA_AIP_OPUS=${AIP_OPUS_ARN}}" \
         --tracing-config Mode=Active \
         --region "$REGION" >/dev/null
 

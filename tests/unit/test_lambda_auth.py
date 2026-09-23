@@ -83,7 +83,8 @@ def aws_env():
             BillingMode="PAY_PER_REQUEST"
         )
 
-        # Agent State Table (GDPR Deletions)
+        # Agent State Table. Issue #869: no GSI, matching production, which
+        # has none. Erasure must work against exactly this shape.
         dynamodb.create_table(
             TableName=auth_func.AGENT_STATE_TABLE,
             KeySchema=[
@@ -93,13 +94,7 @@ def aws_env():
             AttributeDefinitions=[
                 {"AttributeName": "thread_id", "AttributeType": "S"},
                 {"AttributeName": "checkpoint_id", "AttributeType": "S"},
-                {"AttributeName": "user_id", "AttributeType": "S"},
             ],
-            GlobalSecondaryIndexes=[{
-                "IndexName": "user_id-index",
-                "KeySchema": [{"AttributeName": "user_id", "KeyType": "HASH"}],
-                "Projection": {"ProjectionType": "KEYS_ONLY"}
-            }],
             BillingMode="PAY_PER_REQUEST"
         )
 
@@ -377,37 +372,49 @@ class TestHandlers:
 
 
 class TestGDPRDataErasure:
-    def test_delete_user_data_deletes_analysis_records(self, aws_env):
-        """Issue #553: analysis records deleted from AletheiaAgentState."""
-        dynamodb = aws_env["dynamodb"]
-        for i in range(3):
-            dynamodb.put_item(
-                TableName=auth_func.AGENT_STATE_TABLE,
-                Item={
-                    "thread_id": {"S": f"thread-{i}"},
-                    "checkpoint_id": {"S": f"cp-{i}"},
-                    "user_id": {"S": TEST_USER_ID}
-                }
-            )
+    def test_delete_user_data_never_touches_analysis_table(self, aws_env):
+        """Issue #869/#870: erasure leaves AletheiaAgentState exactly as it was.
 
-        # Insert another user's data (must survive)
+        Analysis records carry no user identifier, and the operator's
+        attributed records are retained forever by the operator's decision,
+        so erasure has nothing to do in that table and must not try.
+        """
+        dynamodb = aws_env["dynamodb"]
+        rows = [
+            {"thread_id": {"S": "t-attributed"}, "checkpoint_id": {"S": "1"},
+             "user_id": {"S": TEST_USER_ID}},
+            {"thread_id": {"S": "t-unattributed"}, "checkpoint_id": {"S": "2"},
+             "ttl": {"N": "9999999999"}},
+        ]
+        for row in rows:
+            dynamodb.put_item(TableName=auth_func.AGENT_STATE_TABLE, Item=row)
         dynamodb.put_item(
-            TableName=auth_func.AGENT_STATE_TABLE,
-            Item={
-                "thread_id": {"S": "thread-other"},
-                "checkpoint_id": {"S": "cp-other"},
-                "user_id": {"S": "other-user"}
-            }
+            TableName=auth_func.USERS_TABLE,
+            Item={"user_id": {"S": TEST_USER_ID}, "display_name": {"S": TEST_USER_NAME}},
         )
 
         summary = auth_func.delete_user_data(TEST_USER_ID)
-        assert summary["analysis_records"] == 3
 
-        # Other user's data untouched
-        response = dynamodb.scan(TableName=auth_func.AGENT_STATE_TABLE)
-        items = response["Items"]
-        assert len(items) == 1
-        assert items[0]["user_id"]["S"] == "other-user"
+        # The rest of erasure still ran.
+        assert summary["profile_deleted"] is True
+        remaining = dynamodb.scan(TableName=auth_func.AGENT_STATE_TABLE)["Items"]
+        assert sorted(r["thread_id"]["S"] for r in remaining) == [
+            "t-attributed", "t-unattributed"]
+
+    def test_delete_user_data_succeeds_without_user_id_index(self, aws_env):
+        """Issue #869: regression for the production 500.
+
+        Production's AletheiaAgentState has no user_id-index. Erasure used to
+        query it first, fail with ValidationException, and delete nothing.
+        This fixture's table has no index either, so the old code fails here.
+        """
+        dynamodb = aws_env["dynamodb"]
+        dynamodb.put_item(
+            TableName=auth_func.USERS_TABLE,
+            Item={"user_id": {"S": TEST_USER_ID}, "display_name": {"S": TEST_USER_NAME}},
+        )
+        summary = auth_func.delete_user_data(TEST_USER_ID)
+        assert summary["profile_deleted"] is True
 
     def test_delete_user_data_deletes_user_profile(self, aws_env):
         """Issue #553: user profile deleted from aletheia-users."""
@@ -483,9 +490,9 @@ class TestGDPRDataErasure:
         assert response["Items"][0]["PK"]["S"] == "USER#other"
 
     def test_delete_user_data_returns_complete_summary(self, aws_env):
-        """Issue #553: summary includes all tables."""
+        """Issue #553: summary includes all tables. #869: analysis table excluded."""
         summary = auth_func.delete_user_data(TEST_USER_ID)
-        assert "analysis_records" in summary
+        assert "analysis_records" not in summary
         assert "profile_deleted" in summary
         assert "stripe_cancelled" in summary
         assert "coupons_updated" in summary
