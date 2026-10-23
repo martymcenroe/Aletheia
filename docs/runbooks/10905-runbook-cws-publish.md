@@ -482,7 +482,7 @@ Do **not** delist. File a `launch-blocker` issue, reproduce in dev mode, ship a 
 
 ## 16. Version bump procedure
 
-Aletheia ships Chrome and Firefox from one version line. Bump both manifests together (the Firefox runbook [10907](./10907-runbook-amo-publish.md) §16 is the same procedure).
+Aletheia ships Chrome and Firefox from one version line. Bump both manifests together (the Firefox runbook [10907](./10907-runbook-amo-publish.md) §13 is the same procedure).
 
 1. Open a GitHub issue describing the release contents — link the closed work bundled in.
 2. Update **both** manifests to the same version:

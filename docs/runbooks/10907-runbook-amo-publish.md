@@ -1,7 +1,7 @@
 # 10907 — Firefox AMO Publishing (Aletheia)
 
-> **Version:** 2.0.0
-> **Last updated:** 2026-05-30 10:49:19 AM Central
+> **Version:** 2.1.0
+> **Last updated:** 2026-10-23 4:27:11 PM Central
 > **Applies to:** Aletheia Firefox extension submissions to AMO (`addons.mozilla.org`)
 
 ## Aletheia AMO deployment state
@@ -15,7 +15,8 @@
 | Manage Versions URL | `https://addons.mozilla.org/developers/addon/aletheia-ai/versions/` |
 | Account | `cto@thrivetech.ai` (forwards to `cto.thrivetech.ai@gmail.com`) |
 | Current published version | `1.1.1` (live since 2026-03-06) |
-| Pending upload | `1.1.2` (built, release-noted, never published) |
+| Pending upload | `1.1.3` on `main` (`dist/aletheia-firefox-v1.1.3.zip` built 2026-08-08, never signed or uploaded). `1.1.2` was never uploaded and is skipped. |
+| Signed test build | §15 signs a version unlisted for your own Firefox, with no review queue (#925) |
 | Minimum Firefox | `140.0` desktop / `142.0` Android |
 | License (must be) | `PolyForm Noncommercial 1.0.0` (NOT MIT) |
 
@@ -48,7 +49,7 @@ The operator types one of these to trigger the matching agent action.
 
 1. Open `https://addons.mozilla.org/developers/addon/aletheia-ai/versions/`.
 2. Scan the version history table.
-3. Confirm the version you intend to upload (e.g. `1.1.2`) does NOT appear. AMO refuses duplicate version numbers at upload.
+3. Confirm the version you intend to upload (e.g. `1.1.3`) does NOT appear. AMO refuses duplicate version numbers at upload. The table lists listed and unlisted (§15) versions together, and a number used in either channel is taken in both.
 4. If the version already exists (typically from a prior partial upload), STOP. Bump both manifests to the next patch version per §13 and rebuild before continuing.
 
 ## 3. Agent: verify build prerequisites
@@ -106,9 +107,10 @@ If no fields drifted, skip §7.
 
 1. From the Developer Hub, click **Aletheia** → left nav **Manage Status & Versions** (or go to `https://addons.mozilla.org/developers/addon/aletheia-ai/versions/`).
 2. Click **Upload a New Version**.
-3. Choose the ZIP path the agent handed you in §4 (`dist/aletheia-firefox-vX.Y.Z.zip`). Upload.
-4. AMO runs automated validation (seconds). If validation fails, read the error, fix, rebuild, return to step 2.
-5. AMO asks "Do you use tools that make your code hard to read?" → answer **No**. Provide the repo as a reviewer reference: `https://github.com/martymcenroe/Aletheia`. Aletheia ships plain readable JavaScript; the ZIP files ARE the source.
+3. AMO asks how to distribute this version. Choose **On this site** (the public listing), then continue. **On your own** produces an unlisted signed build instead, which is §15. If AMO does not offer the choice, stop and tell the agent.
+4. Choose the ZIP path the agent handed you in §4 (`dist/aletheia-firefox-vX.Y.Z.zip`). Upload.
+5. AMO runs automated validation (seconds). If validation fails, read the error, fix, rebuild, return to step 2.
+6. AMO asks "Do you use tools that make your code hard to read?" → answer **No**. Provide the repo as a reviewer reference: `https://github.com/martymcenroe/Aletheia`. Aletheia ships plain readable JavaScript; the ZIP files ARE the source.
 
 The new version now enters review. The previously-approved version stays live until this one is approved.
 
@@ -213,7 +215,7 @@ Other
 
 If you are NOT changing screenshots this submission (the typical case for an update), no action — existing AMO screenshots remain.
 
-If you are changing screenshots: produce per `docs/runbooks/10906-runbook-cws-image-pad.md` (CWS 1280×800 images can be reused). Output to `screenshots/amo/amo-image-N-<slug>.png`. Upload at §6 step 5 alongside the ZIP, or via the Listing tab after submission.
+If you are changing screenshots: produce per `docs/runbooks/10906-runbook-cws-image-pad.md` (CWS 1280×800 images can be reused). Output to `screenshots/amo/amo-image-N-<slug>.png`. Upload at §6 step 6 alongside the ZIP, or via the Listing tab after submission.
 
 ### 11g. Homepage URL
 
@@ -252,6 +254,8 @@ Match these to the manifest's `data_collection_permissions`:
 | (none other) | — |
 
 No "cannot see browsing history" claims. No data type beyond these two.
+
+**Review before submitting 1.1.3 or later to the public listing.** "Cleared on browser close" is true of 1.1.1 only. From 1.1.3 the Aletheia refresh token stays in `storage.local` across restarts (`extensions/firefox/auth.js:111`); only the JWT and the LinkedIn access token sit in `storage.session` (`extensions/firefox/auth.js:92`). This text is a promise to users, so the operator approves its new wording before it is pasted, as with the privacy policy (#875).
 
 ### 11k. License (Custom — AMO does not have PolyForm in its dropdown)
 
@@ -296,17 +300,21 @@ Provides the primary trigger: the right-click "Explain with AI" menu item on sel
 Saves user preferences, the authentication token, and the domain allowlist locally on the user's device. Nothing is stored on a remote server.
 ```
 
+**Review before the next listed submission.** The last sentence reads as a claim about the whole service, and the server does keep data: analysis records, and a record of each refresh token (`src/auth/refresh_token_service.py`). The operator approves any new wording before it is pasted.
+
 **Host permission `https://api.aletheia.study/*`:**
 ```
 The single remote endpoint the extension communicates with: the selected text and its surrounding context are sent here for analysis and the result is returned. No other network requests, no third-party analytics or tracking host.
 ```
 
-### 11.smoke-test (operator does after AMO approves)
+### 11.smoke-test (operator does after AMO approves, or after installing a §15 build)
 
-1. Install / update Aletheia in Firefox from the AMO listing.
-2. **Core flow:** select text on any page → right-click → "Explain with AI" → overlay appears with context-aware analysis.
-3. **Auth flow:** click extension icon → "Log in with LinkedIn" → tabs-based OAuth completes (a callback tab opens and closes) → popup shows logged-in state.
-4. Verify the version in `about:addons` matches what was uploaded.
+1. Install / update Aletheia in Firefox from the AMO listing, or from the signed `.xpi` (§15).
+2. **Auth flow:** click extension icon → "Sign in with LinkedIn" → tabs-based OAuth completes (a callback tab opens and closes) → popup shows signed-in state.
+3. **Enable the site:** on the page you will test, click the extension icon and press the power button ("Toggle Aletheia on this domain"). Without this the extension stops in the browser, shows "Enable Aletheia for this site", and sends nothing.
+4. **Core flow:** select text on that page → right-click → "Explain with AI" → overlay appears with context-aware analysis.
+5. **Restart (1.1.3 and later):** quit Firefox completely, reopen it, and repeat step 4 without signing in. The overlay must show an analysis, not "Sign In Required". 1.1.1 fails this step: it keeps the sign-in only until the browser closes.
+6. Verify the version in `about:addons` matches what was uploaded.
 
 If a smoke test fails: do NOT delist. File a `launch-blocker` issue, reproduce in Firefox dev mode (`about:debugging` → Load Temporary Add-on), ship a patch version. A patch must go through AMO review again; do not pull the working version.
 
@@ -319,7 +327,7 @@ Aletheia is already published. This applies only to a from-scratch resubmission 
 1. Developer Hub → **Submit a New Add-on**.
 2. Distribution channel: **On this site** (listed on AMO).
 3. Upload `dist/aletheia-firefox-vX.Y.Z.zip`.
-4. Answer the source-code question per §6 step 5. Fill listing metadata from §11 (Name, Slug, Summary, Description, Category, Homepage URL, Support URL/email, Privacy Policy URL, Permission Justifications, License). Submit.
+4. Answer the source-code question per §6 step 6. Fill listing metadata from §11 (Name, Slug, Summary, Description, Category, Homepage URL, Support URL/email, Privacy Policy URL, Permission Justifications, License). Submit.
 
 ---
 
@@ -370,12 +378,35 @@ npx web-ext sign \
 
 The agent verifies the env vars are set without printing their values; refuses to run if unset.
 
-# 15. Troubleshooting
+# 15. Unlisted signing: a signed build for your own Firefox
+
+Use this to run a version in your own Firefox before, or instead of, the public listing. Mozilla signs an **On your own** (unlisted) upload automatically, usually within minutes, with no human review queue. A signed `.xpi` installs permanently. A temporary add-on loaded through `about:debugging` is removed when Firefox restarts, so it can never test the restart behaviour.
+
+**Signing a number here spends it.** AMO version numbers are unique across the listed and unlisted channels. Once `X.Y.Z` is signed here, the public listing cannot ship `X.Y.Z`: bump both manifests per §13 before the listed submission (§6).
+
+1. **Agent: verify the ZIP.** Say `Run amo build`. The agent runs §4 and hands you the path, `C:\Users\mcwiz\Projects\Aletheia\dist\aletheia-firefox-vX.Y.Z.zip`. Look for: the agent reports 14 entries, forward slashes, and the manifest version you mean to sign. If it reports anything else, it fixes and rebuilds before you continue.
+2. **Sign in** to the Developer Hub per §1.
+3. **Check the number is free.** Open `https://addons.mozilla.org/developers/addon/aletheia-ai/versions/`. Look for: `X.Y.Z` is not in the table. If it is there, stop: bump per §13 and return to step 1.
+4. **Start the upload.** On that page, click **Upload a New Version**.
+5. **Choose the channel.** AMO asks how to distribute this version. Choose **On your own**, then continue. Look for: the next screen asks for the file. If AMO does not offer the choice, stop and tell the agent. Never fall back to **On this site** here: that queues a public review and spends the number on the listing.
+6. **Upload the ZIP** from step 1. Look for: validation passes within seconds. If it fails, give the agent the error text; it fixes and rebuilds, and you return to step 4.
+7. **Answer the source-code question** as in §6 step 6: **No**, with the repo link.
+8. **Submit.** Click **Submit Version**. Look for: AMO confirms the version was submitted. If an error appears instead, give the agent its text.
+9. **Wait for signing.** Usually a few minutes; AMO emails the account when it finishes. Reload the versions page. Look for: `X.Y.Z` with a file whose name ends in `.xpi`. If nothing has changed after an hour, tell the agent.
+10. **Download the signed file.** Click `X.Y.Z` on the versions page, then the `.xpi` file link. Save it to `C:\Users\mcwiz\Projects\Aletheia\dist\`.
+11. **Install it.** In Firefox, open `about:addons`, click the gear icon, choose **Install Add-on From File…**, pick the `.xpi`, and accept the permission prompt. It installs over the store version in place. Look for: Aletheia shows `X.Y.Z` in `about:addons`. If Firefox says the file is corrupt or could not be verified, you picked the unsigned ZIP or a partial download: download again from step 10.
+12. **Test it** with §11.smoke-test, all six steps.
+13. **Tell the agent the result.** The agent reads the server logs for the test window, records the result on the release issue, and corrects this section if any step differed from what you saw.
+
+# 16. Troubleshooting
 
 | Problem | Diagnosis | Action |
 |---|---|---|
 | AMO rejects ZIP with backslash-path error | Built with PowerShell `Compress-Archive` | Rebuild with `build_release.py` or `zip` from MSYS2 / Git Bash |
-| "Version already exists" at upload | Forgot to bump one or both manifests | Bump both per §13, rebuild |
+| "Version already exists" at upload | Forgot to bump one or both manifests, or the number was already spent by an unlisted (§15) upload | Bump both per §13, rebuild |
+| "Explain with AI" shows "Enable Aletheia for this site" and nothing is analyzed | The site is not on the allowlist. The extension stops in the browser and sends no request, so the server logs show nothing | On that page, click the extension icon, press the power button, try again |
+| "Sign In Required" after restarting Firefox | 1.1.1 keeps the sign-in only until the browser closes | Sign in again from the popup. 1.1.3 and later keep it across restarts (§11.smoke-test step 5) |
+| Firefox refuses to install the file ("corrupt" or "could not be verified") | It is the unsigned ZIP from `dist/`, or a partial download | Sign it via §15 and install the downloaded `.xpi` |
 | License shows MIT on the listing | AMO default-picker error | Set to Custom License → PolyForm Noncommercial 1.0.0 (§11k) |
 | AMO asks for source code | Validator flagged code as hard-to-read | Aletheia is not minified — answer No and link the repo. If a specific file is flagged, upload the repo as a source ZIP with build instructions |
 | Data-collection disclosure mismatch | AMO form drifted from the manifest | Make the AMO form match §11j |
@@ -385,7 +416,7 @@ The agent verifies the env vars are set without printing their values; refuses t
 | `strict_min_version` rejected | Set below a Firefox feature's availability | Keep `140.0` desktop / `142.0` Android unless a feature requires higher |
 | Listing still shows "cannot see your browsing history" | Pre-audit text | Overwrite §11d at §7. Verify in private browsing. |
 
-# 16. Related documents
+# 17. Related documents
 
 - `docs/runbooks/10905-runbook-cws-publish.md` — parallel Chrome Web Store publishing runbook.
 - `docs/runbooks/10906-runbook-cws-image-pad.md` — produce listing screenshots without cropping.
@@ -394,10 +425,11 @@ The agent verifies the env vars are set without printing their values; refuses t
 - `docs/legal/eula.html` — End User License Agreement.
 - `extensions/firefox/manifest.json` — ground-truth permissions, gecko settings, data collection.
 
-# 17. Change log
+# 18. Change log
 
 | Version | Date | Change |
 |---------|------|--------|
+| 2.1.0 | 2026-10-23 4:27:11 PM Central | Minor, before the 1.1.3 test build (#925). New §15, unlisted signing, so a version can be signed for the operator's own Firefox with no review queue. §6 gains the distribution-channel step it never had. §2 and Troubleshooting say a number spent by an unlisted upload is taken for the listing too. Deployment state names `1.1.3` as pending and `1.1.2` as skipped. §11.smoke-test signs in first, enables the site (the allowlist stop that made the service look broken on 2026-10-23), and adds a restart check. §11j and §11l carry review warnings, their paste-ready text unchanged. Troubleshooting, Related documents and Change log move to §16–§18 (Closes #926). |
 | 2.0.0 | 2026-05-30 10:49:19 AM Central | **Major restructure** per operator end-to-end test (#726). The runbook was a checklist wrapped in maintainer commentary, redundant steps, and nebulous directions; this version is a flat numbered procedure (§1–§10 for the update path) with explicit URLs, clicks, what-to-look-for, and what-to-do-if-it-fails on every step. Major changes: dropped redundant `§2 Account check passes` operator item (§2 happens once, in §1); separated `web-ext lint` from §3 verify (it runs during §4 build, can't be verified pre-build); split the §3b.4 "review §7–§13 for changes" lump into §5 ("Diff the live listing") with a per-field comparison table; added §7 "Overwrite drifted listing fields" with explicit dashboard surfaces (the prior runbook directed operators to "overwrite at §6 upload" without saying how); made screenshots a no-op for updates by default (§11f); moved first-submission flow to §12 with a "historical" label; removed front-matter padding (Tracking issue, Versioning, Standard reference, Chrome cross-reference); removed §4 anecdote about a cleanup-agent incident; removed §4a "Known hardening gap" bug-commentary; removed §7e category-rationale history, §11 license-rationale restating its own warning, §12 "Why fewer than Chrome" cross-runbook commentary. Listing paste-blocks (now §11) are unchanged in content; only their position and numbering moved (Closes #726). |
 | 1.0.10 | 2026-05-30 10:28:40 AM Central | Patch: dropped the §0 section number. The agent-invocation-phrases table read as "step 0, do this first" when it is reference material, not a procedure step (Closes #721). |
 | 1.0.9 | 2026-05-30 10:05:57 AM Central | Patch: dropped "pre-flight" framing throughout. §3 retitled "Verification (before §4 build)"; `Run amo pre-flight` → `Run amo prep` (Closes #719). |
