@@ -1,3 +1,16 @@
+# THE TEST JOBS IN THIS FILE ARE OFF, by the operator's order of 2026-11-11 (#947): "shut it off fleet-wide. i simply
+# do NOT understand why i ever did it. and even AZ. why take the extra time and tokens. somehow i think it got turned
+# on and i had no idea why or how or when". Each one named below carries `if: false`, so GitHub starts no runner for
+# it, bills nothing and reports it `skipped`; the tests run on the operator's machine before a branch lands. GitHub
+# counts a skipped required check as passed, so branch protection is unchanged and a pull request still merges on
+# pr-sentinel and Cerberus, which run apart from this file. Triggers, steps and every other job are kept as they were.
+#
+# Off: infra-lint, integration-tests, test, extension-lint, e2e-chrome, accessibility, compliance-audit. Left running:
+# dependency-review, policy-check.
+#
+# To turn one back on: delete its `if: false` line (where the line ends `# was: <condition>`, put that condition back
+# as its `if:`), stage the file, and land it with AssemblyZero's tools/land_staged_workflow.py.
+
 name: CI
 
 on:
@@ -35,6 +48,7 @@ jobs:
 
   # Shell script linting - catch bash syntax errors before merge
   infra-lint:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -53,6 +67,7 @@ jobs:
   # DynamoDB integration tests - runs with DynamoDB Local service container
   # Issue #264: DynamoDB integration test infrastructure
   integration-tests:
+    if: false
     needs: policy-check
     runs-on: ubuntu-latest
     services:
@@ -93,6 +108,7 @@ jobs:
           exit $EXIT_CODE
 
   test:
+    if: false
     needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest
     steps:
@@ -169,6 +185,7 @@ jobs:
           fail_ci_if_error: false
 
   extension-lint:
+    if: false
     needs: policy-check  # Only run if policy check passes
     runs-on: ubuntu-latest
     steps:
@@ -250,6 +267,7 @@ jobs:
   # Chrome E2E tests - BLOCKING gate for extension functionality
   # Issue #306: Ensures extension works in Chrome before merge
   e2e-chrome:
+    if: false
     needs: policy-check
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -297,6 +315,7 @@ jobs:
 
   # Accessibility testing with pa11y (WCAG 2.0 AA)
   accessibility:
+    if: false
     needs: policy-check
     runs-on: ubuntu-latest
     steps:
@@ -333,7 +352,7 @@ jobs:
   # Compliance audit - runs on push to main AND nightly schedule
   # Requires AWS credentials to verify Bedrock configuration
   compliance-audit:
-    if: github.event_name == 'push' || github.event_name == 'schedule'
+    if: false  # was: github.event_name == 'push' || github.event_name == 'schedule'
     needs: policy-check
     runs-on: ubuntu-latest
     permissions:
