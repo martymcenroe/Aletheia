@@ -1,3 +1,11 @@
 name = "aletheia-api"
 main = "worker.js"
 compatibility_date = "2026-02-16"
+workers_dev = false
+
+# Issue #958: aletheia.study lapses 2026-11-13; aletheia-api.thrivetech.ai replaces it.
+# One level deep, so Universal SSL covers it. Remove the aletheia.study route after the lapse.
+routes = [
+  { pattern = "api.aletheia.study/*", zone_name = "aletheia.study" },
+  { pattern = "aletheia-api.thrivetech.ai", custom_domain = true },
+]
